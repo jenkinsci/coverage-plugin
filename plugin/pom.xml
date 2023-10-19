@@ -10,42 +10,35 @@
   </parent>
 
   <groupId>io.jenkins.plugins</groupId>
-  <artifactId>code-coverage-api</artifactId>
+  <artifactId>coverage</artifactId>
   <version>${revision}${changelist}</version>
   <packaging>hpi</packaging>
 
-  <name>Code Coverage Plugin</name>
+  <name>Coverage Plugin</name>
   <description>Collects reports of code coverage or mutation coverage tools and visualizes the results. It has support
     for the following report formats: JaCoCo, Cobertura, and PIT.</description>
-  <url>https://github.com/jenkinsci/code-coverage-api-plugin</url>
+  <url>https://github.com/jenkinsci/coverage-plugin</url>
 
   <properties>
-    <revision>4.11.0</revision>
+    <revision>1.0.0</revision>
     <changelist>-SNAPSHOT</changelist>
-    <gitHubRepo>jenkinsci/code-coverage-api-plugin</gitHubRepo>
+    <gitHubRepo>jenkinsci/coverage-plugin</gitHubRepo>
 
-    <trove4j.version>3.0.3</trove4j.version>
-    <saxon-he.version>12.3</saxon-he.version>
-    <gson.version>2.10.1</gson.version>
-
-    <xmlunit.version>2.9.1</xmlunit.version>
-    <jsoup.version>1.16.1</jsoup.version>
-    <testcontainers.version>1.19.1</testcontainers.version>
-    <job-dsl.version>1.86</job-dsl.version>
-
+    <!-- Library Dependencies Versions -->
     <coverage-model.version>0.27.0</coverage-model.version>
+    <jsoup.version>1.16.1</jsoup.version>
+
+    <!-- Jenkins Plug-in Dependencies Versions -->
     <git-forensics.version>2.0.0</git-forensics.version>
     <prism-api.version>1.29.0-8</prism-api.version>
-    <pull-request-monitoring.version>1.7.8</pull-request-monitoring.version>
 
+    <!-- Test Library Dependencies Versions -->
+    <xmlunit.version>2.9.1</xmlunit.version>
+    <testcontainers.version>1.19.1</testcontainers.version>
+    <job-dsl.version>1.86</job-dsl.version>
   </properties>
 
   <developers>
-    <developer>
-      <id>cizezsy</id>
-      <name>Shenyu Zheng</name>
-      <email>zsy19980307@gmail.com</email>
-    </developer>
     <developer>
       <name>Ullrich Hafner</name>
       <id>uhafner</id>
@@ -97,6 +90,12 @@
       </exclusions>
     </dependency>
     <dependency>
+      <groupId>org.jsoup</groupId>
+      <artifactId>jsoup</artifactId>
+      <version>${jsoup.version}</version>
+    </dependency>
+
+    <dependency>
       <groupId>io.jenkins.plugins</groupId>
       <artifactId>ionicons-api</artifactId>
     </dependency>
@@ -104,32 +103,6 @@
       <groupId>org.jenkins-ci.plugins</groupId>
       <artifactId>token-macro</artifactId>
       <optional>true</optional>
-    </dependency>
-    <dependency>
-      <groupId>net.sf.trove4j</groupId>
-      <artifactId>trove4j</artifactId>
-      <version>${trove4j.version}</version>
-      <type>jar</type>
-    </dependency>
-    <dependency>
-      <groupId>net.sf.saxon</groupId>
-      <artifactId>Saxon-HE</artifactId>
-      <version>${saxon-he.version}</version>
-      <exclusions>
-        <exclusion>
-          <artifactId>httpclient</artifactId>
-          <groupId>org.apache.httpcomponents</groupId>
-        </exclusion>
-        <exclusion>
-          <artifactId>httpcore</artifactId>
-          <groupId>org.apache.httpcomponents</groupId>
-        </exclusion>
-      </exclusions>
-    </dependency>
-    <dependency>
-      <groupId>com.google.code.gson</groupId>
-      <artifactId>gson</artifactId>
-      <version>${gson.version}</version>
     </dependency>
 
     <!-- Plugin Dependencies -->
@@ -152,10 +125,6 @@
     <dependency>
       <groupId>io.jenkins.plugins</groupId>
       <artifactId>checks-api</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.jenkins-ci.plugins</groupId>
-      <artifactId>display-url-api</artifactId>
     </dependency>
     <dependency>
       <groupId>io.jenkins.plugins</groupId>
@@ -189,17 +158,6 @@
       <groupId>io.jenkins.plugins</groupId>
       <artifactId>prism-api</artifactId>
       <version>${prism-api.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.jsoup</groupId>
-      <artifactId>jsoup</artifactId>
-      <version>${jsoup.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>io.jenkins.plugins</groupId>
-      <artifactId>pull-request-monitoring</artifactId>
-      <version>${pull-request-monitoring.version}</version>
-      <optional>true</optional>
     </dependency>
 
     <!-- Test Dependencies -->

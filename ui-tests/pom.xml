@@ -5,12 +5,12 @@
   <parent>
     <groupId>edu.hm.hafner</groupId>
     <artifactId>codingstyle-pom</artifactId>
-    <version>2.29.0</version>
+    <version>3.33.0</version>
     <relativePath/>
   </parent>
 
   <groupId>io.jenkins.plugins</groupId>
-  <artifactId>code-coverage-api-ui-tests</artifactId>
+  <artifactId>coverage-ui-tests</artifactId>
   <packaging>jar</packaging>
   <version>UNVERSIONED</version>
   <name>UI Tests of Code Coverage Plugin</name>
@@ -32,6 +32,14 @@
         <groupId>org.jenkins-ci.main</groupId>
         <artifactId>jenkins-core</artifactId>
         <version>${jenkins.version}</version>
+      </dependency>
+      <dependency>
+        <!-- ClassNotFoundException if omitted -->
+        <groupId>io.netty</groupId>
+        <artifactId>netty-bom</artifactId>
+        <version>4.1.99.Final</version>
+        <type>pom</type>
+        <scope>import</scope>
       </dependency>
     </dependencies>
   </dependencyManagement>
@@ -148,6 +156,13 @@
   <build>
     <plugins>
       <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-javadoc-plugin</artifactId>
+        <configuration>
+          <skip>true</skip>
+        </configuration>
+      </plugin>
+      <plugin>
         <groupId>org.jacoco</groupId>
         <artifactId>jacoco-maven-plugin</artifactId>
         <configuration>
@@ -191,7 +206,7 @@
                 <resource>
                   <directory>../plugin/target/</directory>
                   <includes>
-                    <include>code-coverage-api.hpi</include>
+                    <include>coverage.hpi</include>
                   </includes>
                   <filtering>false</filtering>
                 </resource>
@@ -210,11 +225,11 @@
           <environmentVariables>
             <PLUGINS_DIR>../plugin/target/test-classes/test-dependencies</PLUGINS_DIR>
             <JENKINS_VERSION>${jenkins.version}</JENKINS_VERSION>
-            <BROWSER>firefox-container</BROWSER>
+            <BROWSER>chrome-container</BROWSER>
           </environmentVariables>
           <rerunFailingTestsCount>1</rerunFailingTestsCount>
           <includes>
-            <include>**/io.jenkins.plugins.coverage.SmokeTests.java</include>
+            <include>**/*SmokeTests.java</include>
           </includes>
         </configuration>
       </plugin>

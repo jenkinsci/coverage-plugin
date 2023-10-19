@@ -2,11 +2,11 @@
   <modelVersion>4.0.0</modelVersion>
 
   <groupId>io.jenkins.plugins</groupId>
-  <artifactId>code-coverage-api-parent</artifactId>
+  <artifactId>coverage-parent</artifactId>
   <packaging>pom</packaging>
   <version>UNVERSIONED</version>
 
-  <name>Aggregator for Code Coverage Plugin</name>
+  <name>Aggregator for Coverage Plugin</name>
 
   <modules>
     <module>plugin</module>

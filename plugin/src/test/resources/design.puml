@@ -6,21 +6,21 @@ skinparam component {
   BackgroundColor #f8f8f8
 }
 
-[Steps] <<..metrics.steps>>
-[Color] <<..metrics.color>>
-[Source] <<..metrics.source>>
-[Charts] <<..metrics.charts>>
-[Model] <<..metrics.model>>
-[Restapi] <<..metrics.restapi>>
+[Steps] <<..steps>>
+[Color] <<..color>>
+[Source] <<..source>>
+[Charts] <<..charts>>
+[Model] <<..model>>
+[RestApi] <<..restapi>>
 
-[Restapi] --> [Model]
-[Restapi] --> [Source]
+[RestApi] --> [Model]
+[RestApi] --> [Source]
 
 [Steps] --> [Model]
 [Steps] --> [Color]
 [Steps] --> [Source]
 [Steps] --> [Charts]
-[Steps] --> [Restapi]
+[Steps] --> [RestApi]
 
 [Charts] --> [Color]
 [Charts] --> [Model]
