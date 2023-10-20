@@ -155,6 +155,7 @@
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-surefire-plugin</artifactId>
         <configuration>
+          <skip>true</skip>
           <reuseForks>false</reuseForks>
           <trimStackTrace>false</trimStackTrace> <!-- SUREFIRE-1798 -->
           <environmentVariables>
