@@ -1,13 +1,13 @@
-# Jenkins Code Coverage Plug-in
+# Jenkins Coverage Plug-in
 
 [![Join the chat at Gitter/Matrix](https://badges.gitter.im/jenkinsci/code-coverage-api-plugin.svg)](https://gitter.im/jenkinsci/code-coverage-api-plugin?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
-[![Jenkins Plugin Installs](https://img.shields.io/jenkins/plugin/i/code-coverage-api.svg?color=red)](https://plugins.jenkins.io/code-coverage-api)
-[![Jenkins](https://ci.jenkins.io/job/Plugins/job/code-coverage-api-plugin/job/master/badge/icon?subject=Jenkins%20CI)](https://ci.jenkins.io/job/Plugins/job/code-coverage-api-plugin/job/master/)
-[![GitHub Actions](https://github.com/jenkinsci/code-coverage-api-plugin/workflows/GitHub%20CI/badge.svg)](https://github.com/jenkinsci/code-coverage-api-plugin/actions)
-[![Codecov](https://codecov.io/gh/jenkinsci/code-coverage-api/branch/master/graph/badge.svg)](https://codecov.io/gh/jenkinsci/code-coverage-api-plugin/branch/master)
-[![CodeQL](https://github.com/jenkinsci/code-coverage-api/workflows/CodeQL/badge.svg)](https://github.com/jenkinsci/code-coverage-api/actions/workflows/codeql.yml)
+[![Jenkins Plugin Installs](https://img.shields.io/jenkins/plugin/i/coverage.svg?color=red)](https://plugins.jenkins.io/coverage)
+[![Jenkins](https://ci.jenkins.io/job/Plugins/job/coverage-plugin/job/master/badge/icon?subject=Jenkins%20CI)](https://ci.jenkins.io/job/Plugins/job/coverage-plugin/job/master/)
+[![GitHub Actions](https://github.com/jenkinsci/coverage-plugin/workflows/GitHub%20CI/badge.svg)](https://github.com/jenkinsci/coverage-plugin/actions)
+[![Codecov](https://codecov.io/gh/jenkinsci/coverage/branch/master/graph/badge.svg)](https://codecov.io/gh/jenkinsci/coverage-plugin/branch/master)
+[![CodeQL](https://github.com/jenkinsci/coverage/workflows/CodeQL/badge.svg)](https://github.com/jenkinsci/coverage/actions/workflows/codeql.yml)
 
-The Jenkins Code Coverage Plug-in collects reports of code coverage or mutation coverage tools. It has support for the following report formats:
+The Jenkins Coverage Plug-in collects reports of code coverage or mutation coverage tools. It has support for the following report formats:
 
 - [JaCoCo](https://www.jacoco.org/jacoco)
 - [Cobertura](https://cobertura.github.io/cobertura/)
@@ -173,8 +173,8 @@ recordCoverage(tools: [[parser: 'JACOCO']],
 The coverage plugin provides the token `COVERAGE` that could be used in additional post build processing steps, e.g. in the mailer. In order to use this token you need to install the [Token Macro plugin](https://plugins.jenkins.io/token-macro).
 The token has the following optional parameters:
 - `id`: selects a particular coverage result, if not defined the defauult  result that are published under the URL "coverage" are shown.
-- `metric`: selects the coverage metric to evaluate, see [Metric help](https://github.com/jenkinsci/code-coverage-api-plugin/blob/master/plugin/src/main/resources/io/jenkins/plugins/coverage/metrics/steps/CoverageMetricColumn/help-metric.html) for all possible values. 
-- `baseline`: selects the baseline to use, see [Baseline help](https://github.com/jenkinsci/code-coverage-api-plugin/blob/master/plugin/src/main/resources/io/jenkins/plugins/coverage/metrics/steps/CoverageMetricColumn/help-baseline.html) for all possible values. .
+- `metric`: selects the coverage metric to evaluate, see [Metric help](https://github.com/jenkinsci/coverage-plugin/blob/master/plugin/src/main/resources/io/jenkins/plugins/coverage/metrics/steps/CoverageMetricColumn/help-metric.html) for all possible values. 
+- `baseline`: selects the baseline to use, see [Baseline help](https://github.com/jenkinsci/coverage-plugin/blob/master/plugin/src/main/resources/io/jenkins/plugins/coverage/metrics/steps/CoverageMetricColumn/help-baseline.html) for all possible values. .
  
 Examples:
 

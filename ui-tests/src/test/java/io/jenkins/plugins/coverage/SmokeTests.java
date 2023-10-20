@@ -10,7 +10,7 @@ import org.jenkinsci.test.acceptance.po.Build;
 import org.jenkinsci.test.acceptance.po.FreeStyleJob;
 
 /**
- * Smoke Test to test the most used features of Code Coverage api plugin.
+ * Smoke Test to test the most used features of coverage plugin.
  */
 public class SmokeTests extends UiTest {
 

@@ -1,6 +1,6 @@
-# Contributing to the Code Coverage API plug-in
+# Contributing to the Coverage plug-in
 
-This document provides information about contributing code to Jenkins' Code Coverage API plug-in.
+This document provides information about contributing code to Jenkins' Coverage plug-in.
 
 :exclamation: There's a lot more to the Jenkins project than just code. For information on contributing to the Jenkins'
 project overall, check out [Jenkins' contributing landing page](https://jenkins.io/participate/).
@@ -8,7 +8,7 @@ project overall, check out [Jenkins' contributing landing page](https://jenkins.
 ## Beginner Topics
 
 If you don't have a specific problem or task in mind, i.e.,  you simply want to participate in this open source project 
-I would suggest look at the [open newbie friendly issues in our issues tracker](https://github.com/jenkinsci/code-coverage-api-plugin/issues?q=is%3Aissue+is%3Aopen+label%3AHacktoberfest). 
+I would suggest look at the [open newbie friendly issues in our issues tracker](https://github.com/jenkinsci/coverage-plugin/issues?q=is%3Aissue+is%3Aopen+label%3AHacktoberfest). 
 I marked several newbie friendly issues with the label `Hacktoberfest` since they can also be contributed in the 
 [Hacktoberfest](https://hacktoberfest.digitalocean.com) event. These are a good starting point to get in touch with this 
 Jenkins plugin. If you already have some experience with the plugin you can also fix one of the other issues. 
@@ -64,12 +64,12 @@ There is no additional action required from pull request authors at this point.
 
 ## Copyright
 
-The Code Coverage API plugin is licensed under [MIT license](./LICENSE). We consider all contributions as MIT unless it's 
+The Coverage plugin is licensed under [MIT license](./LICENSE). We consider all contributions as MIT unless it's 
 explicitly stated otherwise. MIT-incompatible code contributions will be rejected.
 Contributions under MIT-compatible licenses may be also rejected if they are not ultimately necessary.
 
 ## Continuous Integration
 
 The Jenkins project has a Continuous Integration server... powered by Jenkins, of course.
-The CI job for this project is located at [ci.jenkins.io](https://ci.jenkins.io/job/Plugins/job/code-coverage-api-plugin/).
+The CI job for this project is located at [ci.jenkins.io](https://ci.jenkins.io/job/Plugins/job/coverage-plugin/).
 

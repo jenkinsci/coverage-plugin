@@ -9,9 +9,9 @@
     <st:adjunct includes="io.jenkins.plugins.data-tables-select"/>
 
     <link rel="stylesheet" href="${resURL}/plugin/font-awesome-api/css/jenkins-style.css"/>
-    <link rel="stylesheet" href="${resURL}/plugin/code-coverage-api/css/view-model.css"/>
+    <link rel="stylesheet" href="${resURL}/plugin/coverage/css/view-model.css"/>
 
-    <script type="text/javascript" src="${resURL}/plugin/code-coverage-api/js/view-model.js"/>
+    <script type="text/javascript" src="${resURL}/plugin/coverage/js/view-model.js"/>
 
     <j:set var="formatter" value="${it.formatter}"/>
 
