@@ -1,10 +1,10 @@
 package io.jenkins.plugins.coverage.util;
 
+import java.util.Objects;
+
 import org.openqa.selenium.By;
 import org.openqa.selenium.NoSuchElementException;
 import org.openqa.selenium.WebElement;
-
-import com.gargoylesoftware.htmlunit.ScriptResult;
 
 import org.jenkinsci.test.acceptance.po.PageObject;
 
@@ -28,14 +28,15 @@ public class ChartUtil {
      */
     public static String getChartDataById(final PageObject pageObject, final String elementId) {
         if (isChartDisplayedByElementId(pageObject, elementId)) {
-            Object result = pageObject.executeScript(String.format(
-                    "delete(window.Array.prototype.toJSON) %n"
-                            + "return JSON.stringify(echarts.getInstanceByDom(document.getElementById(\"%s\")).getOption())",
-                    elementId));
-            ScriptResult scriptResult = new ScriptResult(result);
-            return scriptResult.getJavaScriptResult().toString();
+            return Objects.toString(getEchartsOptionsOf(pageObject, String.format("document.getElementById(\"%s\")", elementId)));
         }
-        return null;
+        return null; // FIXME?
+    }
+
+    private static Object getEchartsOptionsOf(final PageObject pageObject, final String selector) {
+        var script = String.format("delete(window.Array.prototype.toJSON) %n"
+                        + "return JSON.stringify(echarts.getInstanceByDom(%s)).getOption())", selector);
+        return pageObject.executeScript(script);
     }
 
     /**
@@ -52,14 +53,10 @@ public class ChartUtil {
             final String toolAttribute) {
         if (isChartDisplayedByDivToolAttribute(pageObject, toolAttribute)) {
             for (int i = 0; i < MAX_ATTEMPTS; i++) {
-                Object result = pageObject.executeScript(String.format(
-                        "delete(window.Array.prototype.toJSON) %n"
-                                + "return JSON.stringify(echarts.getInstanceByDom(document.querySelector(\"div [tool='%s']\")).getOption())",
-                        toolAttribute));
+                Object result = getEchartsOptionsOf(pageObject, String.format("document.querySelector(\"div [tool='%s']\")", toolAttribute));
 
-                Object scriptResult = new ScriptResult(result).getJavaScriptResult();
-                if (scriptResult != null) {
-                    return scriptResult.toString();
+                if (result != null) {
+                    return result.toString();
                 }
                 pageObject.elasticSleep(1000);
             }
