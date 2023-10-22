@@ -14,7 +14,7 @@ import io.jenkins.plugins.coverage.CoveragePublisher.Threshold.GlobalThreshold.G
 /**
  * Coverage Publisher which can be added in the configuration of a FreeStyle Project.
  */
-@Describable("Publish Coverage Report")
+@Describable("Record Code Coverage Results")
 public class CoveragePublisher extends AbstractStep implements PostBuildStep {
 
     private final Control adapter = control("hetero-list-add[adapters]");

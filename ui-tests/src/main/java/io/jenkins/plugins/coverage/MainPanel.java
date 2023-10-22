@@ -20,7 +20,7 @@ public class MainPanel extends PageObject {
      * @param parent
      *         job of wanted MainPanel.
      */
-    public MainPanel(Job parent) {
+    public MainPanel(final Job parent) {
         super(parent, parent.url);
     }
 
