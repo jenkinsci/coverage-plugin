@@ -2,9 +2,9 @@
 
 [![Join the chat at Gitter/Matrix](https://badges.gitter.im/jenkinsci/code-coverage-api-plugin.svg)](https://gitter.im/jenkinsci/code-coverage-api-plugin?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
 [![Jenkins Plugin Installs](https://img.shields.io/jenkins/plugin/i/coverage.svg?color=red)](https://plugins.jenkins.io/coverage)
-[![Jenkins](https://ci.jenkins.io/job/Plugins/job/coverage-plugin/job/master/badge/icon?subject=Jenkins%20CI)](https://ci.jenkins.io/job/Plugins/job/coverage-plugin/job/master/)
+[![Jenkins](https://ci.jenkins.io/job/Plugins/job/coverage-plugin/job/main/badge/icon?subject=Jenkins%20CI)](https://ci.jenkins.io/job/Plugins/job/coverage-plugin/job/master/)
 [![GitHub Actions](https://github.com/jenkinsci/coverage-plugin/workflows/GitHub%20CI/badge.svg)](https://github.com/jenkinsci/coverage-plugin/actions)
-[![Codecov](https://codecov.io/gh/jenkinsci/coverage/branch/master/graph/badge.svg)](https://codecov.io/gh/jenkinsci/coverage-plugin/branch/master)
+[![Codecov](https://codecov.io/gh/jenkinsci/coverage/branch/master/graph/badge.svg)](https://codecov.io/gh/jenkinsci/coverage-plugin/branch/main)
 [![CodeQL](https://github.com/jenkinsci/coverage/workflows/CodeQL/badge.svg)](https://github.com/jenkinsci/coverage/actions/workflows/codeql.yml)
 
 The Jenkins Coverage Plug-in collects reports of code coverage or mutation coverage tools. It has support for the following report formats:
@@ -21,7 +21,7 @@ The plugin publishes a report of the code coverage and mutation coverage in your
 - source code of the files with the coverage highlighted
 - trend charts of the coverage over time
 
-This project was part of [GSoC 2018](https://jenkins.io/projects/gsoc/2018/code-coverage-api-plugin/).
+The initial version of this plugin has been developed by Shenyu Zheng in [GSoC 2018](https://jenkins.io/projects/gsoc/2018/code-coverage-api-plugin/). After several incompatible step and code improvements, we decided to move the whole source code to a clean and new plugin. The old plugin containing the deprecated steps and code is still available at [GitHub](https://github.com/jenkinsci/code-coverage-api-plugin) and [Jenkins](https://plugins.jenkins.io/code-coverage-api/).
 
 ## Features
 

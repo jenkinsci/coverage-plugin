@@ -1,12 +1,12 @@
 - name: bug
   description: Bugs or performance problems
   color: CC0000
-- name: feature
-  color: 1d76db
-  description: New features
 - name: enhancement
   description: Enhancement of existing functionality
   color: 0366d6
+- name: feature
+  color: 1d76db
+  description: New features
 - name: breaking
   description: Breaking Changes
   color: e4b21d
