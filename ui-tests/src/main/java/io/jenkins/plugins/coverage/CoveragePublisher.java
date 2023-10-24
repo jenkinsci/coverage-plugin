@@ -1,4 +1,4 @@
-package io.jenkins.plugins.coverage.CoveragePublisher;
+package io.jenkins.plugins.coverage;
 
 import org.jenkinsci.test.acceptance.po.AbstractStep;
 import org.jenkinsci.test.acceptance.po.Control;
@@ -8,13 +8,12 @@ import org.jenkinsci.test.acceptance.po.PageArea;
 import org.jenkinsci.test.acceptance.po.PageAreaImpl;
 import org.jenkinsci.test.acceptance.po.PostBuildStep;
 
-import io.jenkins.plugins.coverage.CoveragePublisher.Threshold.GlobalThreshold;
-import io.jenkins.plugins.coverage.CoveragePublisher.Threshold.GlobalThreshold.GlobalThresholdTarget;
+import io.jenkins.plugins.coverage.GlobalThreshold.GlobalThresholdTarget;
 
 /**
  * Coverage Publisher which can be added in the configuration of a FreeStyle Project.
  */
-@Describable("Record Code Coverage Results")
+@Describable("Record code coverage results")
 public class CoveragePublisher extends AbstractStep implements PostBuildStep {
 
     private final Control adapter = control("hetero-list-add[adapters]");
@@ -25,27 +24,58 @@ public class CoveragePublisher extends AbstractStep implements PostBuildStep {
     private final Control failNoReports = control("failNoReports");
     private final Control failBuildIfCoverageDecreasedInChangeRequest = control(
             "failBuildIfCoverageDecreasedInChangeRequest");
-    private final Control skipPublishingChecks = control("skipPublishingChecks");
     private final Control sourceFileResolver = control("sourceFileResolver/level");
     private final Control globalThreshold = control("repeatable-add");
-    private final Control sourceCodeEncoding = control("sourceCodeEncoding");
     private final Control sourceDirectories = findRepeatableAddButtonFor("sourceDirectories");
+
+    private final Control id = control("id");
+    private final Control name = control("name");
+    private final Control skipPublishingChecks = control("skipPublishingChecks");
     private final Control checksName = control("checksName");
+    private final Control checksAnnotationScope = control("checksAnnotationScope");
+    private final Control ignoreParsingErrors = control("ignoreParsingErrors");
+    private final Control failOnError = control("failOnError");
+    private final Control enabledForFailure = control("enabledForFailure");
+    private final Control skipSymbolicLinks = control("skipSymbolicLinks");
+    private final Control scm = control("scm");
+    private final Control sourceCodeEncoding = control("sourceCodeEncoding");
+    private final Control sourceCodeRetention = control("sourceCodeRetention");
 
     /**
-     * Constructor for CoveragePublisher.
+     * Creates a new page object for the {@link CoveragePublisher}.
      *
      * @param parent
-     *         is the job which uses the CoveragePublisher
+     *         the parent job
      * @param path
-     *         on the parent page
+     *         the path on the configuration page
      */
     public CoveragePublisher(final Job parent, final String path) {
         super(parent, path);
     }
 
+    CoveragePublisher setIgnoreParsingErrors(final boolean ignoreParsingErrors) {
+        ensureAdvancedOptionsIsActivated();
+        this.ignoreParsingErrors.check(ignoreParsingErrors);
+
+        return this;
+    }
+
+    CoveragePublisher setFailOnError(final boolean failOnError) {
+        ensureAdvancedOptionsIsActivated();
+        this.failOnError.check(failOnError);
+
+        return this;
+    }
+
     private Control findRepeatableAddButtonFor(final String propertyName) {
         return control(by.xpath("//div[@id='" + propertyName + "']//button[contains(@path,'-add')]"));
+    }
+
+    CoveragePublisher setTool(final String tool, final String pattern) {
+        var tools = new CoverageTool(this, "tools");
+        tools.setTool("COBERTURA").setPattern(pattern);
+
+        return this;
     }
 
     /**
@@ -161,9 +191,9 @@ public class CoveragePublisher extends AbstractStep implements PostBuildStep {
     }
 
     /**
-     * Ensures advanced options of CoveragePublisher is activated, so that values like {@link
-     * CoveragePublisher#setFailUnhealthy(boolean)} or {@link CoveragePublisher#setFailNoReports(boolean)} are visible
-     * and can be set.
+     * Ensures advanced options of CoveragePublisher is activated, so that values like
+     * {@link CoveragePublisher#setFailUnhealthy(boolean)} or {@link CoveragePublisher#setFailNoReports(boolean)} are
+     * visible and can be set.
      */
     public void ensureAdvancedOptionsIsActivated() {
         if (advancedOptions.exists()) {
@@ -276,6 +306,45 @@ public class CoveragePublisher extends AbstractStep implements PostBuildStep {
 
         public void setPath(final String path) {
             this.path.set(path);
+        }
+    }
+
+    /**
+     * Page area of a coverage tool configuration.
+     */
+    public static class CoverageTool extends PageAreaImpl {
+        private final Control tool = control("");
+        private final Control pattern = control("pattern");
+
+        CoverageTool(final PageArea coverageRecorder, final String path) {
+            super(coverageRecorder, path);
+        }
+
+        /**
+         * Sets the name of the tool.
+         *
+         * @param toolName
+         *         the name of the tool, e.g., PIT, JACOCO, COBERTURA
+         *
+         * @return this
+         */
+        public CoverageTool setTool(final String toolName) {
+            tool.select(toolName);
+            return this;
+        }
+
+        /**
+         * Sets the pattern of the files to parse.
+         *
+         * @param pattern
+         *         the pattern
+         *
+         * @return this
+         */
+        public CoverageTool setPattern(final String pattern) {
+            this.pattern.set(pattern);
+
+            return this;
         }
     }
 }

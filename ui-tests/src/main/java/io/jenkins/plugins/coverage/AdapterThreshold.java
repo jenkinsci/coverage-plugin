@@ -1,7 +1,4 @@
-package io.jenkins.plugins.coverage.CoveragePublisher.Threshold;
-
-import io.jenkins.plugins.coverage.CoveragePublisher.Adapter;
-import io.jenkins.plugins.coverage.CoveragePublisher.CoveragePublisher;
+package io.jenkins.plugins.coverage;
 
 /**
  * Threshold used in {@link Adapter} in {@link CoveragePublisher}.

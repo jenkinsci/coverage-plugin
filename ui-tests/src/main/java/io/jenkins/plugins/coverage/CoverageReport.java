@@ -11,7 +11,7 @@ import org.openqa.selenium.WebElement;
 import org.jenkinsci.test.acceptance.po.Build;
 import org.jenkinsci.test.acceptance.po.PageObject;
 
-import static io.jenkins.plugins.coverage.util.ChartUtil.*;
+import static io.jenkins.plugins.coverage.ChartUtil.*;
 
 /**
  * {@link PageObject} representing the Coverage Report.

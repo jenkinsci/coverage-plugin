@@ -1,4 +1,4 @@
-package io.jenkins.plugins.coverage.CoveragePublisher.Threshold;
+package io.jenkins.plugins.coverage;
 
 import org.jenkinsci.test.acceptance.po.Control;
 import org.jenkinsci.test.acceptance.po.PageArea;

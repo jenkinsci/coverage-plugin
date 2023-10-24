@@ -1,11 +1,10 @@
-package io.jenkins.plugins.coverage.CoveragePublisher;
+package io.jenkins.plugins.coverage;
 
 import org.jenkinsci.test.acceptance.po.Control;
 import org.jenkinsci.test.acceptance.po.PageArea;
 import org.jenkinsci.test.acceptance.po.PageAreaImpl;
 
-import io.jenkins.plugins.coverage.CoveragePublisher.Threshold.AdapterThreshold;
-import io.jenkins.plugins.coverage.CoveragePublisher.Threshold.AdapterThreshold.AdapterThresholdTarget;
+import io.jenkins.plugins.coverage.AdapterThreshold.AdapterThresholdTarget;
 
 /**
  * Adapter which can be added in the configuration of the {@link CoveragePublisher} of a FreeStyle Project.
