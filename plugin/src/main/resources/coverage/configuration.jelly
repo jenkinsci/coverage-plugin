@@ -39,6 +39,9 @@
       <f:textbox/>
     </f:entry>
 
+    <f:entry field="ignoreParsingErrors">
+      <f:checkbox title="${%title.ignoreParsingErrors}"/>
+    </f:entry>
     <f:entry field="failOnError">
       <f:checkbox title="${%failOnError.title}"/>
     </f:entry>
