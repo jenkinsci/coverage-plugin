@@ -14,6 +14,7 @@ import io.jenkins.plugins.coverage.GlobalThreshold.GlobalThresholdTarget;
  * Coverage Publisher which can be added in the configuration of a FreeStyle Project.
  */
 @Describable("Record code coverage results")
+@SuppressWarnings("PMD.TooManyFields")
 public class CoveragePublisher extends AbstractStep implements PostBuildStep {
 
     private final Control adapter = control("hetero-list-add[adapters]");
