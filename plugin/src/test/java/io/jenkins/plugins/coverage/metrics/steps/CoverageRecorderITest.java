@@ -41,8 +41,7 @@ class CoverageRecorderITest extends IntegrationTestWithJenkinsPerSuite {
 
         assertThat(getConsoleLog(success))
                 .doesNotContain("java.lang.IllegalArgumentException")
-                .contains("[-ERROR-] Skipping duplicate method 'VisualOn.Data.DataSourceProvider' for class 'Enumerate()'");
-
+                .contains("[-ERROR-] Found a duplicate method 'Enumerate' with signature '()' in 'VisualOn.Data.DataSourceProvider'");
     }
 
     @Test
