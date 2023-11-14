@@ -28,6 +28,7 @@ import hudson.Launcher;
 import hudson.model.AbstractBuild;
 import hudson.model.AbstractProject;
 import hudson.model.BuildListener;
+import hudson.model.BuildableItem;
 import hudson.model.Item;
 import hudson.model.Result;
 import hudson.model.Run;
@@ -41,6 +42,7 @@ import hudson.util.ComboBoxModel;
 import hudson.util.FormValidation;
 import hudson.util.FormValidation.Kind;
 import hudson.util.ListBoxModel;
+import jenkins.model.Jenkins;
 
 import io.jenkins.plugins.coverage.metrics.steps.CoverageTool.Parser;
 import io.jenkins.plugins.prism.SourceCodeDirectory;
@@ -544,15 +546,12 @@ public class CoverageRecorder extends Recorder {
         /**
          * Returns a model with all {@link SourceCodeRetention} strategies.
          *
-         * @param project
-         *         the project that is configured
-         *
          * @return a model with all {@link SourceCodeRetention} strategies.
          */
         @POST
         @SuppressWarnings("unused") // used by Stapler view data binding
-        public ListBoxModel doFillSourceCodeRetentionItems(@AncestorInPath final AbstractProject<?, ?> project) {
-            if (JENKINS.hasPermission(Item.CONFIGURE, project)) {
+        public ListBoxModel doFillSourceCodeRetentionItems() {
+            if (JENKINS.hasPermission(Jenkins.READ)) {
                 return SourceCodeRetention.fillItems();
             }
             return new ListBoxModel();
@@ -561,15 +560,12 @@ public class CoverageRecorder extends Recorder {
         /**
          * Returns a model with all {@link ChecksAnnotationScope} scopes.
          *
-         * @param project
-         *         the project that is configured
-         *
          * @return a model with all {@link ChecksAnnotationScope} scopes.
          */
         @POST
         @SuppressWarnings("unused") // used by Stapler view data binding
-        public ListBoxModel doFillChecksAnnotationScopeItems(@AncestorInPath final AbstractProject<?, ?> project) {
-            if (JENKINS.hasPermission(Item.CONFIGURE, project)) {
+        public ListBoxModel doFillChecksAnnotationScopeItems() {
+            if (JENKINS.hasPermission(Jenkins.READ)) {
                 return ChecksAnnotationScope.fillItems();
             }
             return new ListBoxModel();
@@ -578,15 +574,12 @@ public class CoverageRecorder extends Recorder {
         /**
          * Returns a model with all available charsets.
          *
-         * @param project
-         *         the project that is configured
-         *
          * @return a model with all available charsets
          */
         @POST
         @SuppressWarnings("unused") // used by Stapler view data binding
-        public ComboBoxModel doFillSourceCodeEncodingItems(@AncestorInPath final AbstractProject<?, ?> project) {
-            if (JENKINS.hasPermission(Item.CONFIGURE, project)) {
+        public ComboBoxModel doFillSourceCodeEncodingItems() {
+            if (JENKINS.hasPermission(Jenkins.READ)) {
                 return VALIDATION_UTILITIES.getAllCharsets();
             }
             return new ComboBoxModel();
@@ -604,7 +597,7 @@ public class CoverageRecorder extends Recorder {
          */
         @POST
         @SuppressWarnings("unused") // used by Stapler view data binding
-        public FormValidation doCheckSourceCodeEncoding(@AncestorInPath final AbstractProject<?, ?> project,
+        public FormValidation doCheckSourceCodeEncoding(@AncestorInPath final BuildableItem project,
                 @QueryParameter final String sourceCodeEncoding) {
             if (!JENKINS.hasPermission(Item.CONFIGURE, project)) {
                 return FormValidation.ok();
@@ -624,7 +617,7 @@ public class CoverageRecorder extends Recorder {
          * @return the validation result
          */
         @POST
-        public FormValidation doCheckId(@AncestorInPath final AbstractProject<?, ?> project,
+        public FormValidation doCheckId(@AncestorInPath final BuildableItem project,
                 @QueryParameter final String id) {
             if (!JENKINS.hasPermission(Item.CONFIGURE, project)) {
                 return FormValidation.ok();

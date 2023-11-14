@@ -19,11 +19,12 @@ import org.kohsuke.stapler.verb.POST;
 import org.jvnet.localizer.Localizable;
 import hudson.Extension;
 import hudson.model.AbstractDescribableImpl;
-import hudson.model.AbstractProject;
+import hudson.model.BuildableItem;
 import hudson.model.Descriptor;
 import hudson.model.Item;
 import hudson.util.FormValidation;
 import hudson.util.ListBoxModel;
+import jenkins.model.Jenkins;
 
 import io.jenkins.plugins.prism.SourceCodeRetention;
 import io.jenkins.plugins.util.JenkinsFacade;
@@ -139,13 +140,11 @@ public class CoverageTool extends AbstractDescribableImpl<CoverageTool> implemen
         /**
          * Returns a model with all {@link SourceCodeRetention} strategies.
          *
-         * @param project
-         *         the project that is configured
          * @return a model with all {@link SourceCodeRetention} strategies.
          */
         @POST
-        public ListBoxModel doFillParserItems(@AncestorInPath final AbstractProject<?, ?> project) {
-            if (JENKINS.hasPermission(Item.CONFIGURE, project)) {
+        public ListBoxModel doFillParserItems() {
+            if (JENKINS.hasPermission(Jenkins.READ)) {
                 ListBoxModel options = new ListBoxModel();
                 add(options, Parser.JACOCO);
                 add(options, Parser.COBERTURA);
@@ -170,7 +169,7 @@ public class CoverageTool extends AbstractDescribableImpl<CoverageTool> implemen
          * @return the validation result
          */
         @POST
-        public FormValidation doCheckId(@AncestorInPath final AbstractProject<?, ?> project,
+        public FormValidation doCheckId(@AncestorInPath final BuildableItem project,
                 @QueryParameter final String id) {
             if (!new JenkinsFacade().hasPermission(Item.CONFIGURE, project)) {
                 return FormValidation.ok();
