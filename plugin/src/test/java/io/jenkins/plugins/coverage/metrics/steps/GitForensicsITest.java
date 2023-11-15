@@ -99,7 +99,7 @@ class GitForensicsITest extends AbstractCoverageITest {
             "PROJECT_DELTA, 1, 0.72",
             "MODIFIED_FILES, 60, 54.55",
             "MODIFIED_FILES_DELTA, -1, -1.91",
-            "MODIFIED_LINES, 50, 54.55",
+            "MODIFIED_LINES, 60, 50.00",
             "MODIFIED_LINES_DELTA, -1, -4.55"
     })
     @DisplayName("Should compute quality gates")
