@@ -5,6 +5,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.math.Fraction;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -13,14 +15,15 @@ import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 import edu.hm.hafner.coverage.Coverage;
-import edu.hm.hafner.coverage.Coverage.CoverageBuilder;
 import edu.hm.hafner.coverage.FileNode;
+import edu.hm.hafner.coverage.LinesOfCode;
 
 import org.jenkinsci.plugins.workflow.cps.CpsFlowDefinition;
 import org.jenkinsci.plugins.workflow.flow.FlowDefinition;
 import org.jenkinsci.plugins.workflow.job.WorkflowJob;
 import hudson.model.FreeStyleProject;
 import hudson.model.Node;
+import hudson.model.Result;
 import hudson.model.Run;
 import hudson.plugins.git.BranchSpec;
 import hudson.plugins.git.GitSCM;
@@ -90,6 +93,51 @@ class GitForensicsITest extends AbstractCoverageITest {
         verifyModifiedLinesCoverageApi(build);
     }
 
+    @ParameterizedTest(name = "Baseline {0}, Threshold {1}, Actual Value {2}")
+    @CsvSource({
+            "PROJECT, 60, 56.46",
+            "PROJECT_DELTA, 1, 0.72",
+            "MODIFIED_FILES, 60, 54.55",
+            "MODIFIED_FILES_DELTA, 5, +4.55",
+            "MODIFIED_LINES, 60, 50.00",
+            "MODIFIED_LINES_DELTA, -1, -4.55"
+    })
+    @DisplayName("Should compute quality gates")
+    void shouldVerifyQualityGate(final Baseline baseline, final double threshold, final double value) {
+        assumeThat(isWindows()).as("Running on Windows").isFalse();
+
+        Node agent = createDockerAgent(AGENT_CONTAINER);
+        String node = "node('" + DOCKER_AGENT_NAME + "')";
+        WorkflowJob project = createPipeline();
+        copySingleFileToAgentWorkspace(agent, project, JACOCO_REFERENCE_FILE, JACOCO_REFERENCE_FILE);
+        copySingleFileToAgentWorkspace(agent, project, JACOCO_FILE, JACOCO_FILE);
+
+        project.setDefinition(createPipelineForCommit(node, COMMIT_REFERENCE, JACOCO_REFERENCE_FILE));
+        Run<?, ?> referenceBuild = buildSuccessfully(project);
+        verifyGitRepositoryForCommit(referenceBuild, COMMIT_REFERENCE);
+
+        String qualityGate = String.format(", qualityGates: ["
+                + "     [threshold: %f, metric: 'LINE', baseline: '%s', criticality: 'UNSTABLE']]", threshold, baseline.name());
+        project.setDefinition(createPipelineForCommit(node, COMMIT, JACOCO_FILE, SourceCodeRetention.EVERY_BUILD, qualityGate));
+        Run<?, ?> build = buildWithResult(project, Result.UNSTABLE);
+
+        verifyCoverage(build.getAction(CoverageBuildAction.class), referenceBuild.getAction(CoverageBuildAction.class));
+
+        assertThat(getConsoleLog(build))
+                .contains("[Coverage] -> Some quality gates have been missed: overall result is UNSTABLE");
+        if (baseline == Baseline.PROJECT_DELTA
+                || baseline == Baseline.MODIFIED_FILES_DELTA
+                || baseline == Baseline.MODIFIED_LINES_DELTA) {
+            assertThat(getConsoleLog(build)).contains(String.format(
+                    "≪Unstable≫ - (Actual value: %+.2f%%, Quality gate: %.2f)", value, threshold));
+        }
+        else {
+            assertThat(getConsoleLog(build)).contains(String.format(
+                    "≪Unstable≫ - (Actual value: %.2f%%, Quality gate: %.2f)", value, threshold));
+
+        }
+    }
+
     @Test
     void shouldComputeDeltaInFreestyleJobOnDockerAgent() throws IOException {
         assumeThat(isWindows()).as("Running on Windows").isFalse();
@@ -143,57 +191,54 @@ class GitForensicsITest extends AbstractCoverageITest {
         CoverageBuildAction action = build.getAction(CoverageBuildAction.class);
         assertThat(action).isNotNull();
         assertThat(action.getReferenceBuild())
-                .isPresent()
-                .satisfies(reference ->
-                        assertThat(reference.get().getExternalizableId()).isEqualTo(
+                .isPresent().hasValueSatisfying(reference ->
+                        assertThat(reference.getExternalizableId()).isEqualTo(
                                 referenceBuild.getExternalizableId()));
         verifyCodeDelta(action);
-        verifyCoverage(action);
+        verifyCoverage(action, referenceBuild.getAction(CoverageBuildAction.class));
     }
 
-    /**
-     * Verifies the calculated coverage for the most important metrics line and branch coverage.
-     *
-     * @param action
-     *         The created Jenkins action
-     */
-    private void verifyCoverage(final CoverageBuildAction action) {
+    private void verifyCoverage(final CoverageBuildAction action, final CoverageBuildAction reference) {
         verifyOverallCoverage(action);
+        verifyModifiedFilesCoverage(action, reference);
         verifyModifiedLinesCoverage(action);
         verifyIndirectCoverageChanges(action);
     }
 
-    /**
-     * Verifies the calculated overall coverage including the coverage delta.
-     *
-     * @param action
-     *         The created Jenkins action
-     */
     private void verifyOverallCoverage(final CoverageBuildAction action) {
-        var builder = new CoverageBuilder();
         assertThat(action.getAllValues(Baseline.PROJECT)).contains(
-                builder.setMetric(LINE).setCovered(529).setMissed(408).build(),
-                builder.setMetric(BRANCH).setCovered(136).setMissed(94).build());
+                Coverage.valueOf(LINE, "529/937"),
+                Coverage.valueOf(BRANCH, "136/230"),
+                new LinesOfCode(937));
+        assertThat(action.getAllDeltas(Baseline.PROJECT_DELTA)).contains(
+                entry(LINE, Fraction.getFraction("6424/897646")),
+                entry(BRANCH, Fraction.getFraction("0/1")),
+                entry(LOC, Fraction.getFraction("-21/1")));
     }
 
-    /**
-     * Verifies the calculated modified lines coverage including the modified lines coverage delta.
-     *
-     * @param action
-     *         The created Jenkins action
-     */
+    private void verifyModifiedFilesCoverage(final CoverageBuildAction action, final CoverageBuildAction reference) {
+        assertThat(action.getAllValues(Baseline.MODIFIED_FILES)).contains(
+                Coverage.valueOf(LINE, "12/22"),
+                Coverage.valueOf(BRANCH, "1/2"),
+                new LinesOfCode(22));
+        var affectedFiles = action.getResult().filterByModifiedFiles().getFiles();
+        assertThat(reference.getResult().filterByFileNames(affectedFiles).aggregateValues()).contains(
+                Coverage.valueOf(LINE, "17/34"),
+                Coverage.valueOf(BRANCH, "1/2"),
+                new LinesOfCode(34));
+        assertThat(action.getAllDeltas(Baseline.MODIFIED_FILES_DELTA)).contains(
+                entry(LINE, Fraction.getFraction("17/374")),
+                entry(BRANCH, Fraction.getFraction("0/1")),
+                entry(LOC, Fraction.getFraction("-12/1")));
+    }
+
     private void verifyModifiedLinesCoverage(final CoverageBuildAction action) {
-        var builder = new CoverageBuilder();
         assertThat(action.getAllValues(Baseline.MODIFIED_LINES)).contains(
-                builder.setMetric(LINE).setCovered(1).setMissed(1).build());
+                Coverage.valueOf(LINE, "1/2"));
+        assertThat(action.getAllDeltas(Baseline.MODIFIED_LINES_DELTA)).contains(
+                entry(LINE, Fraction.getFraction("-1/22")));
     }
 
-    /**
-     * Verifies the calculated indirect coverage changes.
-     *
-     * @param action
-     *         The created Jenkins action
-     */
     private void verifyIndirectCoverageChanges(final CoverageBuildAction action) {
         assertThat(action.getAllValues(Baseline.INDIRECT))
                 .filteredOn(coverage -> coverage.getMetric().equals(LINE))
@@ -283,6 +328,11 @@ class GitForensicsITest extends AbstractCoverageITest {
      */
     private FlowDefinition createPipelineForCommit(final String node, final String commit, final String fileName,
             final SourceCodeRetention sourceCodeRetentionStrategy) {
+        return createPipelineForCommit(node, commit, fileName, sourceCodeRetentionStrategy, StringUtils.EMPTY);
+    }
+
+    private FlowDefinition createPipelineForCommit(final String node, final String commit, final String fileName,
+            final SourceCodeRetention sourceCodeRetentionStrategy, final String qualityGate) {
         return new CpsFlowDefinition(node + " {"
                 + "    checkout([$class: 'GitSCM', "
                 + "         branches: [[name: '" + commit + "' ]],\n"
@@ -290,7 +340,9 @@ class GitForensicsITest extends AbstractCoverageITest {
                 + "         extensions: [[$class: 'RelativeTargetDirectory', \n"
                 + "             relativeTargetDir: 'checkout']]])\n"
                 + "    recordCoverage tools: [[parser: 'JACOCO', pattern: '" + fileName + "']], "
-                + "         sourceCodeRetention: '" + sourceCodeRetentionStrategy.name() + "'\n"
+                + "         sourceCodeRetention: '" + sourceCodeRetentionStrategy.name() + "'"
+                + qualityGate
+                + "\n"
                 + "}", true);
     }
 

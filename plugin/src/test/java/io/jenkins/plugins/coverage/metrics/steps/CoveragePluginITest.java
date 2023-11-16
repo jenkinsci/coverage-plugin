@@ -158,8 +158,8 @@ class CoveragePluginITest extends AbstractCoverageITest {
                 .containsExactly(Metric.LINE, Metric.BRANCH, Metric.MUTATION, Metric.COMPLEXITY_DENSITY, Metric.LOC);
         assertThat(coverageResult.getAllValues(Baseline.PROJECT))
                 .contains(createLineCoverageBuilder()
-                        .setCovered(JACOCO_ANALYSIS_MODEL_COVERED)
-                        .setMissed(JACOCO_ANALYSIS_MODEL_TOTAL - JACOCO_ANALYSIS_MODEL_COVERED)
+                        .withCovered(JACOCO_ANALYSIS_MODEL_COVERED)
+                        .withMissed(JACOCO_ANALYSIS_MODEL_TOTAL - JACOCO_ANALYSIS_MODEL_COVERED)
                         .build());
     }
 
@@ -192,8 +192,8 @@ class CoveragePluginITest extends AbstractCoverageITest {
         CoverageBuildAction coverageResult = build.getAction(CoverageBuildAction.class);
         assertThat(coverageResult.getAllValues(Baseline.PROJECT))
                 .contains(createLineCoverageBuilder()
-                        .setCovered(JACOCO_ANALYSIS_MODEL_COVERED + JACOCO_CODING_STYLE_COVERED)
-                        .setMissed(JACOCO_ANALYSIS_MODEL_MISSED + JACOCO_CODING_STYLE_MISSED)
+                        .withCovered(JACOCO_ANALYSIS_MODEL_COVERED + JACOCO_CODING_STYLE_COVERED)
+                        .withMissed(JACOCO_ANALYSIS_MODEL_MISSED + JACOCO_CODING_STYLE_MISSED)
                         .build());
     }
 
@@ -225,9 +225,11 @@ class CoveragePluginITest extends AbstractCoverageITest {
     }
 
     private static void verifyCoberturaAction(final CoverageBuildAction coverageResult) {
-        assertThat(coverageResult.getAllValues(Baseline.PROJECT))
-                .contains(new CoverageBuilder().setMetric(Metric.LINE).setCovered(COBERTURA_COVERED_LINES)
-                        .setMissed(COBERTURA_MISSED_LINES)
+        assertThat(coverageResult.getAllValues(Baseline.PROJECT)).contains(
+                new CoverageBuilder()
+                        .withMetric(Metric.LINE)
+                        .withCovered(COBERTURA_COVERED_LINES)
+                        .withMissed(COBERTURA_MISSED_LINES)
                         .build());
     }
 
@@ -292,8 +294,8 @@ class CoveragePluginITest extends AbstractCoverageITest {
         CoverageBuildAction coverageResult = build.getAction(CoverageBuildAction.class);
         assertThat(coverageResult.getAllValues(Baseline.PROJECT))
                 .contains(createLineCoverageBuilder()
-                        .setCovered(JACOCO_ANALYSIS_MODEL_COVERED + COBERTURA_COVERED_LINES)
-                        .setMissed(JACOCO_ANALYSIS_MODEL_MISSED)
+                        .withCovered(JACOCO_ANALYSIS_MODEL_COVERED + COBERTURA_COVERED_LINES)
+                        .withMissed(JACOCO_ANALYSIS_MODEL_MISSED)
                         .build());
     }
 
@@ -318,7 +320,7 @@ class CoveragePluginITest extends AbstractCoverageITest {
     }
 
     private static CoverageBuilder createLineCoverageBuilder() {
-        return new CoverageBuilder().setMetric(Metric.LINE);
+        return new CoverageBuilder(Metric.LINE);
     }
 
     @Test

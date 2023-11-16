@@ -20,7 +20,7 @@ import static org.assertj.core.api.Assertions.*;
 class FileChangesProcessorTest extends AbstractModifiedFilesCoverageTest {
 
     @Test
-    void shouldAttachChangesCodeLines() {
+    void shouldAttachChangedCodeLines() {
         var tree = createCoverageTree();
 
         assertThat(tree.findByHashCode(Metric.FILE, getPathOfFileWithModifiedLines().hashCode()))

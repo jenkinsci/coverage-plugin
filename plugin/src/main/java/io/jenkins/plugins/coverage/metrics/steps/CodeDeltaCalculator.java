@@ -42,7 +42,7 @@ class CodeDeltaCalculator {
             "Unexpected behavior detected when comparing coverage data with the code delta "
                     + "- there are ambiguous paths when comparing new with former file paths: ";
 
-    static final String EMPTY_OLD_PATHS_WARNING = "File renamings have been detected for files which have not been "
+    static final String EMPTY_OLD_PATHS_WARNING = "File renaming has been detected for files which have not been "
             + "part of the reference coverage report. These files are skipped when calculating the coverage deltas:";
 
     private final Run<?, ?> build;

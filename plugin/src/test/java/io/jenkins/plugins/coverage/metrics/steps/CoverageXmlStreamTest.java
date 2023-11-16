@@ -67,18 +67,6 @@ class CoverageXmlStreamTest extends SerializableTest<Node> {
         Assertions.assertThat(restored).usingRecursiveComparison().isEqualTo(convertedNode);
 
         var xml = Input.from(saved);
-        assertThat(xml).nodesByXPath("//module/values/*")
-                .hasSize(4).extractingText()
-                .containsExactly("INSTRUCTION: 1260/1350",
-                        "BRANCH: 109/116",
-                        "LINE: 294/323",
-                        "COMPLEXITY: 160");
-        assertThat(xml).nodesByXPath("//module/values/*")
-                .hasSize(4).extractingText()
-                .containsExactly("INSTRUCTION: 1260/1350",
-                        "BRANCH: 109/116",
-                        "LINE: 294/323",
-                        "COMPLEXITY: 160");
         assertThat(xml).nodesByXPath("//file[./name = 'TreeStringBuilder.java']/values/*")
                 .hasSize(4).extractingText()
                 .containsExactly("INSTRUCTION: 229/233", "BRANCH: 17/18", "LINE: 51/53", "COMPLEXITY: 23");

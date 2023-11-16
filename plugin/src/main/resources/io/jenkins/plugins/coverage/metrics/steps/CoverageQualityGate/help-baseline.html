@@ -11,27 +11,30 @@
         <dt>Overall project (difference to reference job) - PROJECT_DELTA</dt>
         <dd>
             Difference between the project coverages of the current build and the reference build. Teams can use this delta
-            value to ensure that the coverage will not decrease.
+            value to ensure that the overall project coverage will not decrease.
+        </dd>
+        <dt>Modified files - MODIFIED_FILES</dt>
+        <dd>
+            Coverage of the modified files (e.g., within the files that have been touched in a pull or merge request)
+            will focus on new or modified files only.
+        </dd>
+        <dt>Modified files (difference to reference job) - MODIFIED_FILES_DELTA</dt>
+        <dd>
+            Difference between the file coverages of the current build and the reference build. Teams can use this delta
+            value to ensure that the overall coverage of all modified files will not decrease.
+            This also implies that the overall project coverage will not decrease, making this metric stricter
+            than the PROJECT_DELTA metric
         </dd>
         <dt>Modified code lines - MODIFIED_LINES</dt>
         <dd>
             Coverage of the modified lines (e.g., within the modified lines of a pull or merge request)
             will focus on new or modified code only.
         </dd>
-        <dt>Modified code lines (difference to overall project) - MODIFIED_LINES_DELTA</dt>
+        <dt>Modified code lines (difference to modified files) - MODIFIED_LINES_DELTA</dt>
         <dd>
-            Difference between the project coverage and the modified lines coverage of the current build. Teams can use this delta
-            value to ensure that the coverage of pull requests is better than the whole project coverage.
-        </dd>
-        <dt>Modified files - MODIFIED_FILES</dt>
-        <dd>
-            Coverage of the modified files (e.g., within the files that have been touched in a pull or merge request)
-            will focus on new or modified code only.
-        </dd>
-        <dt>Modified files (difference to overall project) - MODIFIED_FILES_DELTA</dt>
-        <dd>
-            Difference between the project coverage and the modified files coverage of the current build. Teams can use this delta
-            value to ensure that the coverage of pull requests is better than the whole project coverage.
+            Difference between the coverages of the modified lines and the modified files of the current build.
+            Teams can use this delta value to ensure that the coverage of pull requests is better than the
+            existing coverage of the modified files.
         </dd>
     </dl>
 </div>

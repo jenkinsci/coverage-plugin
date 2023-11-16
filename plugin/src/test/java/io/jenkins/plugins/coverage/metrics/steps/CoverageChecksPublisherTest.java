@@ -48,12 +48,21 @@ class CoverageChecksPublisherTest extends AbstractCoverageTest {
                 ChecksAnnotationScope.SKIP, createJenkins());
 
         var checkDetails = publisher.extractChecksDetails();
-        var expectedSummary = toString("coverage-publisher-quality-gate.checks-expected-result");
+
+        var expectedQualityGateSummary = toString("coverage-publisher-quality-gate.checks-expected-result");
         assertThat(checkDetails.getOutput()).isPresent().get().satisfies(output -> {
             assertThat(output.getSummary()).isPresent()
                     .get()
                     .asString()
-                    .containsIgnoringWhitespaces(expectedSummary);
+                    .containsIgnoringWhitespaces(expectedQualityGateSummary);
+        });
+
+        var expectedOverview = toString("coverage-publisher-overview.checks-expected-result");
+        assertThat(checkDetails.getOutput()).isPresent().get().satisfies(output -> {
+            assertThat(output.getSummary()).isPresent()
+                    .get()
+                    .asString()
+                    .containsIgnoringWhitespaces(expectedOverview);
         });
     }
 
@@ -181,9 +190,9 @@ class CoverageChecksPublisherTest extends AbstractCoverageTest {
     }
 
     private CoverageBuildAction createCoverageBuildAction(final Node result) {
-        var testCoverage = new CoverageBuilder().setMetric(Metric.LINE)
-                .setCovered(1)
-                .setMissed(1)
+        var testCoverage = new CoverageBuilder(Metric.LINE)
+                .withCovered(1)
+                .withMissed(1)
                 .build();
 
         var run = mock(Run.class);

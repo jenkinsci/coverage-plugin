@@ -175,10 +175,10 @@ abstract class SourceCodeITest extends AbstractCoverageITest {
     private void verifySourceCodeInBuild(final String pathPrefix, final Run<?, ?> build, final String acuCobolParserSourceCodeSnippet,
             final String pathUtilSourceCodeSnippet) {
         List<CoverageBuildAction> actions = build.getActions(CoverageBuildAction.class);
-        var builder = new CoverageBuilder().setMetric(Metric.LINE).setMissed(0);
+        var builder = new CoverageBuilder().withMetric(Metric.LINE).withMissed(0);
         assertThat(actions).hasSize(2).satisfiesExactly(
                 action -> {
-                    assertThat(action.getAllValues(Baseline.PROJECT)).contains(builder.setCovered(8).build());
+                    assertThat(action.getAllValues(Baseline.PROJECT)).contains(builder.withCovered(8).build());
                     var relativePath = getRelativePath(pathPrefix, ACU_COBOL_PARSER_SOURCE_FILE_PATH);
                     Optional<Node> fileNode = action.getResult().find(Metric.FILE, relativePath);
                     assertThat(fileNode).isNotEmpty().get()
@@ -188,7 +188,7 @@ abstract class SourceCodeITest extends AbstractCoverageITest {
                             .contains(acuCobolParserSourceCodeSnippet);
                 },
                 action -> {
-                    assertThat(action.getAllValues(Baseline.PROJECT)).contains(builder.setCovered(43).build());
+                    assertThat(action.getAllValues(Baseline.PROJECT)).contains(builder.withCovered(43).build());
                     var relativePath = getRelativePath(pathPrefix, PATH_UTIL_SOURCE_FILE_PATH);
                     Optional<Node> fileNode = action.getResult().find(Metric.FILE, relativePath);
                     assertThat(fileNode).isNotEmpty().get()

@@ -45,16 +45,16 @@ class CoverageSeriesBuilderTest extends ResourceTest {
         CoverageTrendChart trendChart = new CoverageTrendChart();
 
         BuildResult<CoverageStatistics> smallLineCoverage = createResult(1,
-                new CoverageBuilder().setMetric(Metric.LINE).setCovered(1).setMissed(1).build(),
-                new CoverageBuilder().setMetric(Metric.BRANCH).setCovered(3).setMissed(1).build());
+                new CoverageBuilder().withMetric(Metric.LINE).withCovered(1).withMissed(1).build(),
+                new CoverageBuilder().withMetric(Metric.BRANCH).withCovered(3).withMissed(1).build());
 
         LinesChartModel lineCoverage = trendChart.create(Collections.singletonList(smallLineCoverage),
                 createConfiguration());
         verifySeriesDetails(lineCoverage);
 
         BuildResult<CoverageStatistics> smallBranchCoverage = createResult(1,
-                new CoverageBuilder().setMetric(Metric.LINE).setCovered(3).setMissed(1).build(),
-                new CoverageBuilder().setMetric(Metric.BRANCH).setCovered(1).setMissed(1).build());
+                new CoverageBuilder().withMetric(Metric.LINE).withCovered(3).withMissed(1).build(),
+                new CoverageBuilder().withMetric(Metric.BRANCH).withCovered(1).withMissed(1).build());
 
         LinesChartModel branchCoverage = trendChart.create(Collections.singletonList(smallBranchCoverage),
                 createConfiguration());
@@ -85,8 +85,8 @@ class CoverageSeriesBuilderTest extends ResourceTest {
         CoverageSeriesBuilder builder = new CoverageSeriesBuilder();
 
         BuildResult<CoverageStatistics> singleResult = createResult(1,
-                new CoverageBuilder().setMetric(Metric.LINE).setCovered(1).setMissed(1).build(),
-                new CoverageBuilder().setMetric(Metric.BRANCH).setCovered(3).setMissed(1).build());
+                new CoverageBuilder().withMetric(Metric.LINE).withCovered(1).withMissed(1).build(),
+                new CoverageBuilder().withMetric(Metric.BRANCH).withCovered(3).withMissed(1).build());
 
         LinesDataSet dataSet = builder.createDataSet(createConfiguration(), Collections.singletonList(singleResult));
 
@@ -106,11 +106,11 @@ class CoverageSeriesBuilderTest extends ResourceTest {
         CoverageSeriesBuilder builder = new CoverageSeriesBuilder();
 
         BuildResult<CoverageStatistics> first = createResult(1,
-                new CoverageBuilder().setMetric(Metric.LINE).setCovered(1).setMissed(1).build(),
-                new CoverageBuilder().setMetric(Metric.BRANCH).setCovered(3).setMissed(1).build());
+                new CoverageBuilder().withMetric(Metric.LINE).withCovered(1).withMissed(1).build(),
+                new CoverageBuilder().withMetric(Metric.BRANCH).withCovered(3).withMissed(1).build());
         BuildResult<CoverageStatistics> second = createResult(2,
-                new CoverageBuilder().setMetric(Metric.LINE).setCovered(1).setMissed(3).build(),
-                new CoverageBuilder().setMetric(Metric.BRANCH).setCovered(1).setMissed(3).build());
+                new CoverageBuilder().withMetric(Metric.LINE).withCovered(1).withMissed(3).build(),
+                new CoverageBuilder().withMetric(Metric.BRANCH).withCovered(1).withMissed(3).build());
 
         LinesDataSet dataSet = builder.createDataSet(createConfiguration(), List.of(first, second));
 

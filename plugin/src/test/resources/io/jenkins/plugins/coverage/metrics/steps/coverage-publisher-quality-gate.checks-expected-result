@@ -11,5 +11,5 @@ Overall result: Failed
 - Overall project (difference to reference job) - Line Coverage: ≪Failed≫ - (Actual value: +5.00%, Quality gate: 10.00)
 - Modified code lines (difference to modified files) - File Coverage: ≪Failed≫ - (Actual value: -10.00%, Quality gate: 10.00)
 - Modified code lines (difference to modified files) - Line Coverage: ≪Failed≫ - (Actual value: +5.00%, Quality gate: 10.00)
-- Modified files (difference to overall project) - File Coverage: ≪Failed≫ - (Actual value: -10.00%, Quality gate: 10.00)
-- Modified files (difference to overall project) - Line Coverage: ≪Failed≫ - (Actual value: +5.00%, Quality gate: 10.00)
+- Modified files (difference to reference job) - File Coverage: ≪Failed≫ - (Actual value: -10.00%, Quality gate: 10.00)
+- Modified files (difference to reference job) - Line Coverage: ≪Failed≫ - (Actual value: +5.00%, Quality gate: 10.00)

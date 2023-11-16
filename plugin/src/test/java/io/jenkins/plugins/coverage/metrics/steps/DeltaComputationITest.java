@@ -107,13 +107,13 @@ class DeltaComputationITest extends AbstractCoverageITest {
     private void verifyPitProjectValues(final CoverageBuildAction pit) {
         CoverageBuilder builder = new CoverageBuilder();
         assertThat(pit.getAllValues(Baseline.PROJECT)).contains(
-                builder.setMetric(LINE)
-                        .setCovered(198)
-                        .setMissed(211 - 198)
+                builder.withMetric(LINE)
+                        .withCovered(198)
+                        .withMissed(211 - 198)
                         .build(),
-                builder.setMetric(MUTATION)
-                        .setCovered(222)
-                        .setMissed(246 - 222)
+                builder.withMetric(MUTATION)
+                        .withCovered(222)
+                        .withMissed(246 - 222)
                         .build(),
                 new LinesOfCode(211));
     }
@@ -123,13 +123,13 @@ class DeltaComputationITest extends AbstractCoverageITest {
 
         var builder = new CoverageBuilder();
         assertThat(action.getAllValues(Baseline.PROJECT)).contains(
-                builder.setMetric(LINE)
-                        .setCovered(JACOCO_ANALYSIS_MODEL_COVERED + JACOCO_CODING_STYLE_COVERED)
-                        .setMissed(JACOCO_ANALYSIS_MODEL_MISSED + JACOCO_CODING_STYLE_MISSED)
+                builder.withMetric(LINE)
+                        .withCovered(JACOCO_ANALYSIS_MODEL_COVERED + JACOCO_CODING_STYLE_COVERED)
+                        .withMissed(JACOCO_ANALYSIS_MODEL_MISSED + JACOCO_CODING_STYLE_MISSED)
                         .build(),
-                builder.setMetric(BRANCH)
-                        .setCovered(1544 + 109)
-                        .setMissed(1865 - (1544 + 109))
+                builder.withMetric(BRANCH)
+                        .withCovered(1544 + 109)
+                        .withMissed(1865 - (1544 + 109))
                         .build(),
                 new LinesOfCode(JACOCO_ANALYSIS_MODEL_TOTAL + JACOCO_CODING_STYLE_TOTAL),
                 new CyclomaticComplexity(2718));
@@ -138,13 +138,13 @@ class DeltaComputationITest extends AbstractCoverageITest {
     private void verifyJaCoCoProjectValues(final CoverageBuildAction action) {
         var builder = new CoverageBuilder();
         assertThat(action.getAllValues(Baseline.PROJECT)).contains(
-                builder.setMetric(LINE)
-                        .setCovered(JACOCO_CODING_STYLE_COVERED)
-                        .setMissed(JACOCO_CODING_STYLE_MISSED)
+                builder.withMetric(LINE)
+                        .withCovered(JACOCO_CODING_STYLE_COVERED)
+                        .withMissed(JACOCO_CODING_STYLE_MISSED)
                         .build(),
-                builder.setMetric(BRANCH)
-                        .setCovered(109)
-                        .setMissed(7)
+                builder.withMetric(BRANCH)
+                        .withCovered(109)
+                        .withMissed(7)
                         .build(),
                 new LinesOfCode(JACOCO_CODING_STYLE_TOTAL),
                 new CyclomaticComplexity(160));
