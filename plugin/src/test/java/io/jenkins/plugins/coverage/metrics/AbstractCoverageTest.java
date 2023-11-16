@@ -105,9 +105,9 @@ public abstract class AbstractCoverageTest extends ResourceTest {
     private static List<Value> fillValues() {
         var builder = new CoverageBuilder();
         return List.of(
-                builder.setMetric(Metric.FILE).setCovered(3).setMissed(1).build(),
-                builder.setMetric(Metric.LINE).setCovered(2).setMissed(2).build(),
-                builder.setMetric(Metric.BRANCH).setCovered(9).setMissed(1).build(),
+                builder.withMetric(Metric.FILE).withCovered(3).withMissed(1).build(),
+                builder.withMetric(Metric.LINE).withCovered(2).withMissed(2).build(),
+                builder.withMetric(Metric.BRANCH).withCovered(9).withMissed(1).build(),
                 new CyclomaticComplexity(150),
                 new CyclomaticComplexity(15, Metric.COMPLEXITY_MAXIMUM),
                 new LinesOfCode(1000)

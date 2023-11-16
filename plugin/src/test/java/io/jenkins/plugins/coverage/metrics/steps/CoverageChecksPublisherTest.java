@@ -181,9 +181,9 @@ class CoverageChecksPublisherTest extends AbstractCoverageTest {
     }
 
     private CoverageBuildAction createCoverageBuildAction(final Node result) {
-        var testCoverage = new CoverageBuilder().setMetric(Metric.LINE)
-                .setCovered(1)
-                .setMissed(1)
+        var testCoverage = new CoverageBuilder(Metric.LINE)
+                .withCovered(1)
+                .withMissed(1)
                 .build();
 
         var run = mock(Run.class);

@@ -37,6 +37,22 @@ class QualityGateITest extends AbstractCoverageITest {
 
         CoverageBuildAction coverageResult = build.getAction(CoverageBuildAction.class);
         assertThat(coverageResult.getQualityGateResult()).hasOverallStatus(QualityGateStatus.INACTIVE);
+        assertThat(coverageResult.getLog().getInfoMessages()).contains("No quality gates have been set - skipping");
+    }
+
+    @Test
+    void shouldNotHaveValuesForQualityGate() {
+        var qualityGates = List.of(new CoverageQualityGate(-100.0, Metric.LINE, Baseline.PROJECT_DELTA, QualityGateCriticality.UNSTABLE));
+        FreeStyleProject project = createFreestyleJob(Parser.JACOCO, r -> r.setQualityGates(qualityGates), JACOCO_ANALYSIS_MODEL_FILE);
+
+        Run<?, ?> build = buildWithResult(project, Result.SUCCESS);
+
+        CoverageBuildAction coverageResult = build.getAction(CoverageBuildAction.class);
+        assertThat(coverageResult.getQualityGateResult()).hasOverallStatus(QualityGateStatus.INACTIVE);
+        assertThat(coverageResult.getLog().getInfoMessages()).contains("Evaluating quality gates",
+                "-> All quality gates have been passed",
+                "-> Details for each quality gate:",
+                "-> [Overall project (difference to reference job) - Line Coverage]: ≪Not built≫ - (Actual value: n/a, Quality gate: -100.00)");
     }
 
     @Test
@@ -48,6 +64,10 @@ class QualityGateITest extends AbstractCoverageITest {
 
         CoverageBuildAction coverageResult = build.getAction(CoverageBuildAction.class);
         assertThat(coverageResult.getQualityGateResult()).hasOverallStatus(QualityGateStatus.PASSED);
+        assertThat(coverageResult.getLog().getInfoMessages()).contains("Evaluating quality gates",
+                "-> All quality gates have been passed",
+                "-> Details for each quality gate:",
+                "-> [Overall project - Line Coverage]: ≪Success≫ - (Actual value: 95.39%, Quality gate: -100.00)");
     }
 
     @Test
@@ -59,6 +79,10 @@ class QualityGateITest extends AbstractCoverageITest {
 
         CoverageBuildAction coverageResult = build.getAction(CoverageBuildAction.class);
         assertThat(coverageResult.getQualityGateResult()).hasOverallStatus(QualityGateStatus.WARNING);
+        assertThat(coverageResult.getLog().getInfoMessages()).contains("Evaluating quality gates",
+                "-> Some quality gates have been missed: overall result is UNSTABLE",
+                "-> Details for each quality gate:",
+                "-> [Overall project - Line Coverage]: ≪Unstable≫ - (Actual value: 95.39%, Quality gate: 100.00)");
     }
 
     @Test
@@ -70,6 +94,10 @@ class QualityGateITest extends AbstractCoverageITest {
 
         CoverageBuildAction coverageResult = build.getAction(CoverageBuildAction.class);
         assertThat(coverageResult.getQualityGateResult()).hasOverallStatus(QualityGateStatus.FAILED);
+        assertThat(coverageResult.getLog().getInfoMessages()).contains("Evaluating quality gates",
+                "-> Some quality gates have been missed: overall result is FAILURE",
+                "-> Details for each quality gate:",
+                "-> [Overall project - Line Coverage]: ≪Failed≫ - (Actual value: 95.39%, Quality gate: 100.00)");
     }
 
     @Test

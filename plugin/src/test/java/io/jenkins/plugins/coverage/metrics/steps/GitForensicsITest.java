@@ -98,7 +98,7 @@ class GitForensicsITest extends AbstractCoverageITest {
             "PROJECT, 60, 56.46",
             "PROJECT_DELTA, 1, 0.72",
             "MODIFIED_FILES, 60, 54.55",
-            "MODIFIED_FILES_DELTA, -1, -1.91",
+            "MODIFIED_FILES_DELTA, 5, +4.55",
             "MODIFIED_LINES, 60, 50.00",
             "MODIFIED_LINES_DELTA, -1, -4.55"
     })
@@ -120,6 +120,8 @@ class GitForensicsITest extends AbstractCoverageITest {
                 + "     [threshold: %f, metric: 'LINE', baseline: '%s', criticality: 'UNSTABLE']]", threshold, baseline.name());
         project.setDefinition(createPipelineForCommit(node, COMMIT, JACOCO_FILE, SourceCodeRetention.EVERY_BUILD, qualityGate));
         Run<?, ?> build = buildWithResult(project, Result.UNSTABLE);
+
+        verifyCoverage(build.getAction(CoverageBuildAction.class), referenceBuild.getAction(CoverageBuildAction.class));
 
         assertThat(getConsoleLog(build))
                 .contains("[Coverage] -> Some quality gates have been missed: overall result is UNSTABLE");
@@ -196,12 +198,6 @@ class GitForensicsITest extends AbstractCoverageITest {
         verifyCoverage(action, referenceBuild.getAction(CoverageBuildAction.class));
     }
 
-    /**
-     * Verifies the calculated coverage for the most important metrics line and branch coverage.
-     *
-     * @param action
-     *         The created Jenkins action
-     */
     private void verifyCoverage(final CoverageBuildAction action, final CoverageBuildAction reference) {
         verifyOverallCoverage(action);
         verifyModifiedFilesCoverage(action, reference);
@@ -225,16 +221,22 @@ class GitForensicsITest extends AbstractCoverageITest {
                 Coverage.valueOf(LINE, "12/22"),
                 Coverage.valueOf(BRANCH, "1/2"),
                 new LinesOfCode(22));
-        // FIXME: Modified files delta with respect to reference build needs to be computed first
-//        assertThat(action.getAllDeltas(Baseline.MODIFIED_FILES_DELTA)).contains(
-//                entry(LINE, Fraction.getFraction("-394/20614")),
-//                entry(BRANCH, Fraction.getFraction("-21/230")),
-//                entry(LOC, Fraction.getFraction("--915/1")));
+        var affectedFiles = action.getResult().filterByModifiedFiles().getFiles();
+        assertThat(reference.getResult().filterByFileNames(affectedFiles).aggregateValues()).contains(
+                Coverage.valueOf(LINE, "17/34"),
+                Coverage.valueOf(BRANCH, "1/2"),
+                new LinesOfCode(34));
+        assertThat(action.getAllDeltas(Baseline.MODIFIED_FILES_DELTA)).contains(
+                entry(LINE, Fraction.getFraction("17/374")),
+                entry(BRANCH, Fraction.getFraction("0/1")),
+                entry(LOC, Fraction.getFraction("-12/1")));
     }
 
     private void verifyModifiedLinesCoverage(final CoverageBuildAction action) {
         assertThat(action.getAllValues(Baseline.MODIFIED_LINES)).contains(
-                Coverage.valueOf(LINE, "1/1"));
+                Coverage.valueOf(LINE, "1/2"));
+        assertThat(action.getAllDeltas(Baseline.MODIFIED_LINES_DELTA)).contains(
+                entry(LINE, Fraction.getFraction("-1/22")));
     }
 
     private void verifyIndirectCoverageChanges(final CoverageBuildAction action) {
