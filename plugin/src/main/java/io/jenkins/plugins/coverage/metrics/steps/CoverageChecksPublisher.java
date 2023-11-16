@@ -355,6 +355,15 @@ class CoverageChecksPublisher {
     }
 
     private String getOverallCoverageSummary() {
+        if (rootNode.hasModifiedLines()) {
+            return createDeltaBaselinesOverview();
+        }
+        else {
+            return createProjectOverview();
+        }
+    }
+
+    private String createDeltaBaselinesOverview() {
         StringBuilder description = new StringBuilder(getSectionHeader(TITLE_HEADER_LEVEL, "Overview by baseline"));
 
         for (Baseline baseline : getBaselines()) {
@@ -371,6 +380,18 @@ class CoverageChecksPublisher {
                 }
             }
         }
+        description.append(NEW_LINE);
+        return description.toString();
+    }
+
+    private String createProjectOverview() {
+        StringBuilder description = new StringBuilder(getSectionHeader(TITLE_HEADER_LEVEL, "Project Overview")
+                + "No changes detected, that affect the code coverage.\n");
+
+        for (Value value : action.getValues(Baseline.PROJECT)) {
+            description.append(getBulletListItem(1, FORMATTER.formatDetailedValueWithMetric(value)));
+        }
+
         description.append(NEW_LINE);
         return description.toString();
     }

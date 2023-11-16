@@ -41,6 +41,7 @@ import io.jenkins.plugins.forensics.reference.ReferenceBuild;
 import io.jenkins.plugins.util.AbstractXmlStream;
 import io.jenkins.plugins.util.BuildAction;
 import io.jenkins.plugins.util.JenkinsFacade;
+import io.jenkins.plugins.util.JobAction;
 import io.jenkins.plugins.util.QualityGateResult;
 
 import static hudson.model.Run.*;
@@ -601,7 +602,7 @@ public final class CoverageBuildAction extends BuildAction<Node> implements Stap
     }
 
     @Override
-    protected CoverageJobAction createProjectAction() {
+    protected JobAction<? extends BuildAction<Node>> createProjectAction() {
         return new CoverageJobAction(getOwner().getParent(), getUrlName(), name, icon);
     }
 

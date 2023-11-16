@@ -64,8 +64,8 @@ class CoverageQualityGateEvaluatorTest extends AbstractCoverageTest {
                 "-> [Overall project (difference to reference job) - Line Coverage]: ≪Success≫ - (Actual value: +5.00%, Quality gate: -10.00)",
                 "-> [Modified code lines (difference to modified files) - File Coverage]: ≪Success≫ - (Actual value: -10.00%, Quality gate: -10.00)",
                 "-> [Modified code lines (difference to modified files) - Line Coverage]: ≪Success≫ - (Actual value: +5.00%, Quality gate: -10.00)",
-                "-> [Modified files (difference to overall project) - File Coverage]: ≪Success≫ - (Actual value: -10.00%, Quality gate: -10.00)",
-                "-> [Modified files (difference to overall project) - Line Coverage]: ≪Success≫ - (Actual value: +5.00%, Quality gate: -10.00)");
+                "-> [Modified files (difference to reference job) - File Coverage]: ≪Success≫ - (Actual value: -10.00%, Quality gate: -10.00)",
+                "-> [Modified files (difference to reference job) - Line Coverage]: ≪Success≫ - (Actual value: +5.00%, Quality gate: -10.00)");
     }
 
     @Test
@@ -89,7 +89,7 @@ class CoverageQualityGateEvaluatorTest extends AbstractCoverageTest {
                 "-> [Modified files - File Coverage]: ≪Not built≫ - (Actual value: n/a, Quality gate: 0.00)",
                 "-> [Overall project (difference to reference job) - Line Coverage]: ≪Not built≫ - (Actual value: n/a, Quality gate: 0.00)",
                 "-> [Modified code lines (difference to modified files) - File Coverage]: ≪Not built≫ - (Actual value: n/a, Quality gate: 0.00)",
-                "-> [Modified files (difference to overall project) - Line Coverage]: ≪Not built≫ - (Actual value: n/a, Quality gate: 0.00)");
+                "-> [Modified files (difference to reference job) - Line Coverage]: ≪Not built≫ - (Actual value: n/a, Quality gate: 0.00)");
     }
 
     @Test
@@ -135,8 +135,8 @@ class CoverageQualityGateEvaluatorTest extends AbstractCoverageTest {
                 "-> [Overall project (difference to reference job) - Line Coverage]: ≪Success≫ - (Actual value: +5.00%, Quality gate: 0.00)",
                 "-> [Modified code lines (difference to modified files) - File Coverage]: ≪Unstable≫ - (Actual value: -10.00%, Quality gate: 0.00)",
                 "-> [Modified code lines (difference to modified files) - Line Coverage]: ≪Success≫ - (Actual value: +5.00%, Quality gate: 0.00)",
-                "-> [Modified files (difference to overall project) - File Coverage]: ≪Unstable≫ - (Actual value: -10.00%, Quality gate: 0.00)",
-                "-> [Modified files (difference to overall project) - Line Coverage]: ≪Success≫ - (Actual value: +5.00%, Quality gate: 0.00)");
+                "-> [Modified files (difference to reference job) - File Coverage]: ≪Unstable≫ - (Actual value: -10.00%, Quality gate: 0.00)",
+                "-> [Modified files (difference to reference job) - Line Coverage]: ≪Success≫ - (Actual value: +5.00%, Quality gate: 0.00)");
     }
 
     @ParameterizedTest(name = "A quality gate of {0} should not be passed if the coverage drops by 10%")
@@ -232,8 +232,8 @@ class CoverageQualityGateEvaluatorTest extends AbstractCoverageTest {
                 "-> [Overall project (difference to reference job) - Line Coverage]: ≪Failed≫ - (Actual value: +5.00%, Quality gate: 10.00)",
                 "-> [Modified code lines (difference to modified files) - File Coverage]: ≪Failed≫ - (Actual value: -10.00%, Quality gate: 10.00)",
                 "-> [Modified code lines (difference to modified files) - Line Coverage]: ≪Failed≫ - (Actual value: +5.00%, Quality gate: 10.00)",
-                "-> [Modified files (difference to overall project) - File Coverage]: ≪Failed≫ - (Actual value: -10.00%, Quality gate: 10.00)",
-                "-> [Modified files (difference to overall project) - Line Coverage]: ≪Failed≫ - (Actual value: +5.00%, Quality gate: 10.00)");
+                "-> [Modified files (difference to reference job) - File Coverage]: ≪Failed≫ - (Actual value: -10.00%, Quality gate: 10.00)",
+                "-> [Modified files (difference to reference job) - Line Coverage]: ≪Failed≫ - (Actual value: +5.00%, Quality gate: 10.00)");
     }
 
     static QualityGateResult createQualityGateResult() {
