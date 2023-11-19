@@ -101,8 +101,6 @@ The Code Coverage Plug-in supports the following Jenkins project types:
 
 Enable the "Record code coverage results" publisher in the Post-build Actions section of your job. Select at least one coverage tool and specify the path to the report file. If you do not specify a path, the plugin will search for the report file in the workspace using the default pattern of the tool. 
 
-:warning: Since version 4.0.0 the old step "Publish code coverage results" has been marked as deprecated. This old step uses a deprecated internal model and is not supported anymore. Please migrate your jobs to the new step in order to benefit from the new features of the plugin.
-
 #### Pipeline example
 
 The recording step also supports pipeline configuration (scripted or declarative). The simplest way to generate the corresponding pipeline code is by using Jenkins' Snippet Generator: there you can configure all available properties of the step by using a rich user interface with inline help and validation. A sample step definition is given in the following code snippet. This step records coverage results of JaCoCo with the default file name pattern. The coverage information is rendered with the source code for every build, and quality gates have been set up for line and branch coverages. I.e., if the line or branch coverage does not reach the threshold of 60%, then the build will be marked as unstable.
