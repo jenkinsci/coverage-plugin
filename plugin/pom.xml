@@ -30,7 +30,7 @@
 
     <!-- Jenkins Plug-in Dependencies Versions -->
     <git-forensics.version>2.0.0</git-forensics.version>
-    <prism-api.version>1.29.0-8</prism-api.version>
+    <prism-api.version>1.29.0-9</prism-api.version>
 
     <!-- Test Library Dependencies Versions -->
     <xmlunit.version>2.9.1</xmlunit.version>
