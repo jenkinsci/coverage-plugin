@@ -1,4 +1,4 @@
-# Jenkins Coverage Plug-in
+# Jenkins Coverage Plugin
 
 [![Join the chat at Gitter/Matrix](https://badges.gitter.im/jenkinsci/code-coverage-api-plugin.svg)](https://gitter.im/jenkinsci/code-coverage-api-plugin?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
 [![Jenkins Plugin Installs](https://img.shields.io/jenkins/plugin/i/coverage.svg?color=red)](https://plugins.jenkins.io/coverage)
