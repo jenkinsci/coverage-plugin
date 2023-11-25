@@ -34,7 +34,7 @@
 
     <!-- Test Library Dependencies Versions -->
     <xmlunit.version>2.9.1</xmlunit.version>
-    <testcontainers.version>1.19.2</testcontainers.version>
+    <testcontainers.version>1.19.3</testcontainers.version>
     <job-dsl.version>1.87</job-dsl.version>
   </properties>
 
