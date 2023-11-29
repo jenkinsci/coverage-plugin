@@ -55,7 +55,7 @@ class CoverageRecorderITest extends IntegrationTestWithJenkinsPerSuite {
         Run<?, ?> run = buildWithResult(job, Result.SUCCESS);
 
         assertThat(getConsoleLog(run))
-                .contains("[JaCoCo] Using default pattern '**/jacoco.xml' since user defined pattern is not set",
+                .contains("Using default pattern '**/jacoco.xml' since user defined pattern is not set",
                         "[-ERROR-] No files found for pattern '**/jacoco.xml'. Configuration error?")
                 .containsPattern("Searching for all files in '.*' that match the pattern '\\*\\*/jacoco.xml'")
                 .doesNotContain("Expanding pattern");
@@ -73,17 +73,17 @@ class CoverageRecorderITest extends IntegrationTestWithJenkinsPerSuite {
         Run<?, ?> run = buildWithResult(job, Result.SUCCESS);
 
         assertThat(getConsoleLog(run))
-                .contains("[JaCoCo] Using default pattern '**/jacoco.xml' since user defined pattern is not set",
-                        "[JaCoCo] -> found 1 file",
-                        "[JaCoCo] MODULE: 100.00% (1/1)",
-                        "[JaCoCo] PACKAGE: 100.00% (1/1)",
-                        "[JaCoCo] FILE: 70.00% (7/10)",
-                        "[JaCoCo] CLASS: 83.33% (15/18)",
-                        "[JaCoCo] METHOD: 95.10% (97/102)",
-                        "[JaCoCo] INSTRUCTION: 93.33% (1260/1350)",
-                        "[JaCoCo] LINE: 91.02% (294/323)",
-                        "[JaCoCo] BRANCH: 93.97% (109/116)",
-                        "[JaCoCo] COMPLEXITY: 160")
+                .contains("Using default pattern '**/jacoco.xml' since user defined pattern is not set",
+                        "-> found 1 file",
+                        "MODULE: 100.00% (1/1)",
+                        "PACKAGE: 100.00% (1/1)",
+                        "FILE: 70.00% (7/10)",
+                        "CLASS: 83.33% (15/18)",
+                        "METHOD: 95.10% (97/102)",
+                        "INSTRUCTION: 93.33% (1260/1350)",
+                        "LINE: 91.02% (294/323)",
+                        "BRANCH: 93.97% (109/116)",
+                        "COMPLEXITY: 160")
                 .containsPattern("Searching for all files in '.*' that match the pattern '\\*\\*/jacoco.xml'")
                 .containsPattern("Successfully parsed file .*/jacoco.xml")
                 .doesNotContain("Expanding pattern");

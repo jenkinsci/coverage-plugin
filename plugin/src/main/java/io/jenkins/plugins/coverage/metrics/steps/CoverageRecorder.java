@@ -410,7 +410,8 @@ public class CoverageRecorder extends Recorder {
 
     private void perform(final Run<?, ?> run, final FilePath workspace, final TaskListener taskListener,
             final StageResultHandler resultHandler, final FilteredLog log, final LogHandler logHandler) throws InterruptedException {
-        Node aggregatedResult = recordCoverageResults(run, workspace, taskListener, resultHandler, log);
+        var results = recordCoverageResults(run, workspace, taskListener, resultHandler, log);
+        Node aggregatedResult = aggregateResults(log, results);
 
         if (!aggregatedResult.isEmpty()) {
             CoverageReporter reporter = new CoverageReporter();
@@ -461,9 +462,10 @@ public class CoverageRecorder extends Recorder {
         logHandler.log(log);
     }
 
-    private Node recordCoverageResults(final Run<?, ?> run, final FilePath workspace, final TaskListener taskListener,
+    private Map<Parser, List<ModuleNode>> recordCoverageResults(final Run<?, ?> run, final FilePath workspace, final TaskListener taskListener,
             final StageResultHandler resultHandler, final FilteredLog log) throws InterruptedException {
         Map<Parser, List<ModuleNode>> results = new HashMap<>();
+
         for (CoverageTool tool : tools) {
             LogHandler toolHandler = new LogHandler(taskListener, tool.getDisplayName());
             Parser parser = tool.getParser();
@@ -503,15 +505,30 @@ public class CoverageRecorder extends Recorder {
             toolHandler.log(log);
         }
 
-        var coverageTree = Node.merge(results.values().stream()
-                .flatMap(Collection::stream)
-                .collect(Collectors.toList()));
-        var tests = extractTests(results).stream()
-                .map(Node::getAllClassNodes)
-                .flatMap(Collection::stream)
-                .collect(Collectors.toList());
-        coverageTree.mapTests(tests);
-        return coverageTree;
+        return results;
+    }
+
+    private Node aggregateResults(final FilteredLog log, final Map<Parser, List<ModuleNode>> results) {
+        if (isEmpty(results)) {
+            log.logError("No coverage results were found! Configuration error?");
+
+            return new ModuleNode("Empty");
+        }
+        else {
+            var coverageTree = Node.merge(results.values().stream()
+                    .flatMap(Collection::stream)
+                    .collect(Collectors.toList()));
+            var tests = extractTests(results).stream()
+                    .map(Node::getAllClassNodes)
+                    .flatMap(Collection::stream)
+                    .collect(Collectors.toList());
+            coverageTree.mapTests(tests);
+            return coverageTree;
+        }
+    }
+
+    private boolean isEmpty(final Map<Parser, List<ModuleNode>> results) {
+        return results.values().stream().mapToInt(Collection::size).sum() == 0;
     }
 
     private List<ModuleNode> extractTests(final Map<Parser, List<ModuleNode>> results) {

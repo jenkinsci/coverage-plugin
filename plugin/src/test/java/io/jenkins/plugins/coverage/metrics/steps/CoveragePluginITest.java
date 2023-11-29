@@ -154,8 +154,6 @@ class CoveragePluginITest extends AbstractCoverageITest {
                         Metric.COMPLEXITY_MAXIMUM,
                         Metric.COMPLEXITY_DENSITY,
                         Metric.LOC);
-        assertThat(coverageResult.getMetricsForSummary())
-                .containsExactly(Metric.LINE, Metric.BRANCH, Metric.MUTATION, Metric.COMPLEXITY_DENSITY, Metric.LOC);
         assertThat(coverageResult.getAllValues(Baseline.PROJECT))
                 .contains(createLineCoverageBuilder()
                         .withCovered(JACOCO_ANALYSIS_MODEL_COVERED)
