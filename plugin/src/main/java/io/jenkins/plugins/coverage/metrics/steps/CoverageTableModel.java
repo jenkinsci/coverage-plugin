@@ -15,6 +15,7 @@ import edu.hm.hafner.coverage.FractionValue;
 import edu.hm.hafner.coverage.LinesOfCode;
 import edu.hm.hafner.coverage.Metric;
 import edu.hm.hafner.coverage.Node;
+import edu.hm.hafner.coverage.TestCount;
 
 import hudson.Functions;
 
@@ -122,6 +123,14 @@ class CoverageTableModel extends TableModel {
                 .withType(ColumnType.NUMBER)
                 .build();
         columns.add(loc);
+        if (root.containsMetric(Metric.TESTS)) {
+            TableColumn complexity = new ColumnBuilder().withHeaderLabel(Messages.Column_Tests())
+                    .withDataPropertyKey("tests")
+                    .withResponsivePriority(500)
+                    .withType(ColumnType.NUMBER)
+                    .build();
+            columns.add(complexity);
+        }
         if (root.containsMetric(Metric.COMPLEXITY)) {
             TableColumn complexity = new ColumnBuilder().withHeaderLabel(Messages.Column_Complexity())
                     .withDataPropertyKey("complexity")
@@ -195,6 +204,7 @@ class CoverageTableModel extends TableModel {
         private static final ElementFormatter FORMATTER = new ElementFormatter();
         private static final FractionValue ZERO_DENSITY = new FractionValue(Metric.COMPLEXITY_DENSITY, 0, 1);
         private static final LinesOfCode ZERO_LOC = new LinesOfCode(0);
+        private static final TestCount ZERO_TESTS = new TestCount(0);
         private static final CyclomaticComplexity ZERO_COMPLEXITY = new CyclomaticComplexity(0);
 
         private final FileNode file;
@@ -257,6 +267,10 @@ class CoverageTableModel extends TableModel {
 
         public int getLoc() {
             return file.getTypedValue(Metric.LOC, ZERO_LOC).getValue();
+        }
+
+        public int getTests() {
+            return file.getTypedValue(Metric.TESTS, ZERO_TESTS).getValue();
         }
 
         public int getComplexity() {

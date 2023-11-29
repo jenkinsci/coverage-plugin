@@ -9,23 +9,25 @@
 
 The Jenkins Coverage Plug-in collects reports of code coverage or mutation coverage tools. It has support for the following report formats:
 
-- [JaCoCo](https://www.jacoco.org/jacoco)
-- [Cobertura](https://cobertura.github.io/cobertura/)
-- [PIT](https://pitest.org/)
+- [JaCoCo](https://www.jacoco.org/jacoco): Code Coverage
+- [Cobertura](https://cobertura.github.io/cobertura/): Code Coverage
+- [PIT](https://pitest.org/): Mutation Coverage
+- [JUnit](https://ant.apache.org/manual/Tasks/junitreport.html): Test Results
 
-If your coverage tool is not yet supported by the code coverage plugin you can provide a pull request for the [Coverage Model](https://github.com/jenkinsci/coverage-model/pulls).
+If your coverage tool is not yet supported by the coverage plugin, feel free to provide a pull request for the [Coverage Model](https://github.com/jenkinsci/coverage-model/pulls).
 
-The plugin publishes a report of the code coverage and mutation coverage in your build, so you can navigate to a summary report from the main build page. From there you can also dive into the details:
-- tree charts that show the distribution of coverage by type (line, instruction, branch, method, class, etc.)
-- tabular listing of all files with their coverage 
+The plugin publishes a report of the code and mutation coverage in your build, so you can navigate to a summary report from the main build page. Additionally, the plugin gathers several metrics (lines of code, cyclomatic complexity, number of tests per class) and visualizes these results along with the coverage information. 
+From there you can also dive into the details:
+- tree charts that show the distribution of the metrics by type (line, branch, complexity, tests, etc.)
+- tabular listing of all files with their coverage, complexity and number of tests 
 - source code of the files with the coverage highlighted
 - trend charts of the coverage over time
 
-The initial version of this plugin has been developed by Shenyu Zheng in [GSoC 2018](https://jenkins.io/projects/gsoc/2018/code-coverage-api-plugin/). After several incompatible step and code improvements, we decided to move the whole source code to a clean and new plugin. The old plugin containing the deprecated steps and code is still available at [GitHub](https://github.com/jenkinsci/code-coverage-api-plugin) and [Jenkins](https://plugins.jenkins.io/code-coverage-api/).
+The initial version of this plugin has been developed by Shenyu Zheng in [GSoC 2018](https://jenkins.io/projects/gsoc/2018/code-coverage-api-plugin/). After several incompatible improvements of the pipeline steps and API classes, we decided to move the whole source code to a clean and new plugin. The old plugin containing the deprecated steps and code is still available at [GitHub](https://github.com/jenkinsci/code-coverage-api-plugin) and [Jenkins](https://plugins.jenkins.io/code-coverage-api/).
 
 ## Features
 
-The code coverage plug-in provides the following features when added as a post build action (or step) to a job:
+The code coverage plug-in provides the following features when added as a post-build action (or step) to a job:
 
 * Coverage analysis of projects and pull requests: The plugin now computes and shows the absolute coverage of the project, the coverage of the modified files and the coverage of the modified lines, so you can see how the changes actually affect the code coverage. Additionally, the delta values of these coverages with respect to the reference build are computed and the coverage changes created by changed test cases (indirect coverage changes).
 
@@ -35,7 +37,7 @@ The code coverage plug-in provides the following features when added as a post b
 
   ![Coverage overview and trend](./images/reportOverview_screen.PNG)
   
-* Colored project coverage tree map for line, branch, instruction and mutation coverage:
+* Colored project coverage tree map for line, branch, and mutation coverages and for cyclomatic complexity and number of tests
 
   ![Colored project coverage tree map](./images/reportTree_screen.PNG)
   

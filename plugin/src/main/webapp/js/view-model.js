@@ -167,6 +167,7 @@ const CoverageChartGenerator = function ($) {
     }
 
     function createFilesTreeMap(coverageTree, id, coverageMetric) {
+        const themedModel = echartsJenkinsApi.resolveJenkinsColors(JSON.stringify(coverageTree));
         function getLevelOption() {
             return [
                 {
@@ -282,7 +283,7 @@ const CoverageChartGenerator = function ($) {
                         shadowBlur: 3,
                     },
                     levels: getLevelOption(),
-                    data: [coverageTree]
+                    data: [JSON.parse(themedModel)]
                 }
             ]
         };

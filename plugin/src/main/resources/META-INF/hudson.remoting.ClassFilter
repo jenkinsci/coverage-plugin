@@ -24,6 +24,8 @@ edu.hm.hafner.coverage.PackageNode
 edu.hm.hafner.coverage.Percentage
 edu.hm.hafner.coverage.SafeFraction
 edu.hm.hafner.coverage.Value
+edu.hm.hafner.coverage.TestCount
+edu.hm.hafner.coverage.TestCase
 
 java.util.ImmutableCollections$ListN
 java.util.ImmutableCollections$SetN

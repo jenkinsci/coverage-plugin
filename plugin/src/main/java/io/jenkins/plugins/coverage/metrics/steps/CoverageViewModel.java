@@ -76,8 +76,8 @@ public class CoverageViewModel extends DefaultAsyncTableContentProvider implemen
     private static final String MODIFIED_LINES_API_URL = "modified";
 
     private static final ElementFormatter FORMATTER = new ElementFormatter();
-    private static final Set<Metric> TREE_METRICS = Set.of(Metric.LINE, Metric.INSTRUCTION, Metric.BRANCH,
-            Metric.MUTATION);
+    private static final Set<Metric> TREE_METRICS = Set.of(
+            Metric.LINE, Metric.BRANCH, Metric.MUTATION, Metric.COMPLEXITY, Metric.TESTS);
     private static final String UNDEFINED = "-";
     private final Run<?, ?> owner;
     private final String optionalName;
@@ -112,7 +112,6 @@ public class CoverageViewModel extends DefaultAsyncTableContentProvider implemen
 
         this.log = log;
 
-        // initialize filtered coverage trees so that they will not be calculated multiple times
         modifiedLinesCoverageTreeRoot = node.filterByModifiedLines();
         indirectCoverageChangesTreeRoot = node.filterByIndirectChanges();
         this.trendChartFunction = trendChartFunction;
@@ -230,7 +229,7 @@ public class CoverageViewModel extends DefaultAsyncTableContentProvider implemen
     }
 
     /**
-     * Returns the root of the tree of nodes for the ECharts treemap. This tree is used as model for the chart on the
+     * Returns the root of the tree of nodes for the ECharts treemap. This tree is used as a model for the chart on the
      * client side.
      *
      * @param coverageMetric
@@ -272,6 +271,9 @@ public class CoverageViewModel extends DefaultAsyncTableContentProvider implemen
         }
         if (text.contains("density")) {
             return Metric.COMPLEXITY_DENSITY;
+        }
+        if (text.contains("tests")) {
+            return Metric.TESTS;
         }
         return Metric.COMPLEXITY;
     }
