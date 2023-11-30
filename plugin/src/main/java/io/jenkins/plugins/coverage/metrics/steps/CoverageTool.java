@@ -91,7 +91,7 @@ public class CoverageTool extends AbstractDescribableImpl<CoverageTool> implemen
     }
 
     /**
-     * Sets the Ant file-set pattern of files to work with. If the pattern is undefined then the console log is
+     * Sets the Ant file-set pattern of files to work with. If the pattern is undefined, then the console log is
      * scanned.
      *
      * @param pattern
@@ -108,7 +108,7 @@ public class CoverageTool extends AbstractDescribableImpl<CoverageTool> implemen
     }
 
     /**
-     * Returns the actual pattern to work with. If no user defined pattern is given, then the default pattern is
+     * Returns the actual pattern to work with. If no user-defined pattern is given, then the default pattern is
      * returned.
      *
      * @return the name
@@ -149,6 +149,7 @@ public class CoverageTool extends AbstractDescribableImpl<CoverageTool> implemen
                 add(options, Parser.JACOCO);
                 add(options, Parser.COBERTURA);
                 add(options, Parser.PIT);
+                add(options, Parser.JUNIT);
                 return options;
             }
             return new ListBoxModel();
@@ -179,8 +180,8 @@ public class CoverageTool extends AbstractDescribableImpl<CoverageTool> implemen
         }
 
         /**
-         * Returns an optional help text that can provide useful hints on how to configure the coverage tool so that the
-         * report files could be parsed by Jenkins. This help can be a plain text message or an HTML snippet.
+         * Returns an optional help text that can provide useful hints on how to configure the coverage tool so that
+         * Jenkins could parse the report files. This help can be a plain text message or an HTML snippet.
          *
          * @return the help
          */
@@ -207,7 +208,9 @@ public class CoverageTool extends AbstractDescribableImpl<CoverageTool> implemen
         JACOCO(Messages._Parser_JaCoCo(), "**/jacoco.xml",
                 "symbol-footsteps-outline plugin-ionicons-api"),
         PIT(Messages._Parser_PIT(), "**/mutations.xml",
-                "symbol-solid/virus-slash plugin-font-awesome-api");
+                "symbol-solid/virus-slash plugin-font-awesome-api"),
+        JUNIT(Messages._Parser_Junit(), "**/TEST-*.xml",
+                "symbol-solid/list-check plugin-font-awesome-api");
 
         private final Localizable displayName;
         private final String defaultPattern;

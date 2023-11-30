@@ -4,6 +4,7 @@ import java.util.Optional;
 
 import edu.hm.hafner.coverage.Coverage;
 import edu.hm.hafner.coverage.FileNode;
+import edu.hm.hafner.coverage.IntegerValue;
 import edu.hm.hafner.coverage.Metric;
 import edu.hm.hafner.coverage.ModuleNode;
 import edu.hm.hafner.coverage.Node;
@@ -14,12 +15,14 @@ import edu.hm.hafner.echarts.TreeMapNode;
 
 import io.jenkins.plugins.coverage.metrics.color.ColorProvider;
 import io.jenkins.plugins.coverage.metrics.color.ColorProvider.DisplayColors;
+import io.jenkins.plugins.coverage.metrics.color.ColorProviderFactory;
 import io.jenkins.plugins.coverage.metrics.color.CoverageLevel;
 import io.jenkins.plugins.coverage.metrics.model.ElementFormatter;
+import io.jenkins.plugins.echarts.JenkinsPalette;
 
 /**
  * Converts a tree of {@link Node coverage nodes} to a corresponding tree of
- * {@link TreeMapNode ECharts tree map nodes}.
+ * {@link TreeMapNode ECharts tree map nodes}. The value of the tree map nodes is based on a given metric.
  *
  * @author Ullrich Hafner
  */
@@ -76,13 +79,17 @@ public class TreeMapNodeConverter {
             if (rootValue instanceof Coverage) {
                 return Optional.of(createCoverageTree((Coverage) rootValue, colorProvider, node, metric));
             }
+            if (rootValue instanceof IntegerValue) {
+                return Optional.of(createCoverageTree((IntegerValue) rootValue, node, metric));
+            }
+            throw new IllegalArgumentException("Unsupported value type: " + rootValue);
         }
 
         return Optional.empty();
     }
 
-    private LabeledTreeMapNode createCoverageTree(final Coverage coverage, final ColorProvider colorProvider, final Node node,
-            final Metric metric) {
+    private LabeledTreeMapNode createCoverageTree(final Coverage coverage, final ColorProvider colorProvider,
+            final Node node, final Metric metric) {
         double coveragePercentage = coverage.getCoveredPercentage().toDouble();
 
         DisplayColors colors = CoverageLevel.getDisplayColorsOfCoverageLevel(coveragePercentage, colorProvider);
@@ -90,23 +97,51 @@ public class TreeMapNodeConverter {
         String fillColor = colors.getFillColorAsRGBHex();
 
         Label label = new Label(true, lineColor);
-        Label upperLabel = new Label(true, lineColor);
 
-        var id = getId(node);
-        if (node instanceof FileNode) {
-            return new LabeledTreeMapNode(id, node.getName(), new ItemStyle(fillColor), label, upperLabel,
-                    String.valueOf(coverage.getTotal()), FORMATTER.getTooltip(coverage));
+        if (node instanceof FileNode) { // stop recursion and create a colored leaf
+            return createTreeNode(coverage, node, new ItemStyle(fillColor), label);
         }
 
-        ItemStyle packageStyle = new ItemStyle(fillColor, fillColor, 4);
-        LabeledTreeMapNode treeNode = new LabeledTreeMapNode(id, node.getName(), packageStyle, label, upperLabel,
-                String.valueOf(coverage.getTotal()), FORMATTER.getTooltip(coverage));
+        var boldFill = new ItemStyle(fillColor, fillColor, 4);
+        LabeledTreeMapNode treeNode = createTreeNode(coverage, node, boldFill, label);
 
         node.getChildren().stream()
                 .map(n -> toTreeMapNode(n, metric, colorProvider))
                 .flatMap(Optional::stream)
+                .forEach(treeNode::insertNode); // recursively build the tree
+
+        return treeNode;
+    }
+
+    private LabeledTreeMapNode createTreeNode(final Coverage coverage, final Node node,
+            final ItemStyle itemStyle, final Label label) {
+        return new LabeledTreeMapNode(getId(node), node.getName(), itemStyle, label, label,
+                String.valueOf(coverage.getTotal()), FORMATTER.getTooltip(coverage));
+    }
+
+    private LabeledTreeMapNode createCoverageTree(final IntegerValue coverage, final Node node,
+            final Metric metric) {
+        Label label = new Label(true, JenkinsPalette.BLACK.normal());
+
+        String fillColor = metric == Metric.TESTS ? JenkinsPalette.GREEN.light() : JenkinsPalette.ORANGE.normal();
+        if (node instanceof FileNode) {
+            return createValueNode(coverage, node, new ItemStyle(fillColor), label);
+        }
+
+        LabeledTreeMapNode treeNode = createValueNode(coverage, node,
+                new ItemStyle(fillColor, fillColor, 4), label);
+
+        node.getChildren().stream()
+                .map(n -> toTreeMapNode(n, metric, ColorProviderFactory.createDefaultColorProvider()))
+                .flatMap(Optional::stream)
                 .forEach(treeNode::insertNode);
 
         return treeNode;
+    }
+
+    private LabeledTreeMapNode createValueNode(final IntegerValue value, final Node node,
+            final ItemStyle itemStyle, final Label label) {
+        return new LabeledTreeMapNode(getId(node), node.getName(), itemStyle, label, label,
+                String.valueOf(value.getValue()), FORMATTER.getTooltip(value));
     }
 }

@@ -2,8 +2,11 @@ package io.jenkins.plugins.coverage.metrics.steps;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -307,7 +310,7 @@ public class CoverageRecorder extends Recorder {
 
     /**
      * Sets the paths to the directories that contain the source code. If not relative and thus not part of the
-     * workspace then these directories need to be added in Jenkins global configuration to prevent accessing of
+     * workspace, then these directories need to be added in Jenkins global configuration to prevent accessing of
      * forbidden resources.
      *
      * @param sourceCodeDirectories
@@ -407,23 +410,23 @@ public class CoverageRecorder extends Recorder {
 
     private void perform(final Run<?, ?> run, final FilePath workspace, final TaskListener taskListener,
             final StageResultHandler resultHandler, final FilteredLog log, final LogHandler logHandler) throws InterruptedException {
-        List<Node> results = recordCoverageResults(run, workspace, taskListener, resultHandler, log);
+        var results = recordCoverageResults(run, workspace, taskListener, resultHandler, log);
+        Node aggregatedResult = aggregateResults(log, results);
 
-        if (!results.isEmpty()) {
+        if (!aggregatedResult.isEmpty()) {
             CoverageReporter reporter = new CoverageReporter();
-            var rootNode = Node.merge(results);
 
-            var sources = rootNode.getSourceFolders();
+            var sources = aggregatedResult.getSourceFolders();
             sources.addAll(getSourceDirectoriesPaths());
 
-            resolveAbsolutePaths(rootNode, workspace, sources, log);
+            resolveAbsolutePaths(aggregatedResult, workspace, sources, log);
             logHandler.log(log);
 
-            var action = reporter.publishAction(getActualId(), getName(), getIcon(), rootNode, run,
+            var action = reporter.publishAction(getActualId(), getName(), getIcon(), aggregatedResult, run,
                     workspace, taskListener, getQualityGates(), getScm(),
                     getSourceCodeEncoding(), getSourceCodeRetention(), resultHandler);
             if (!skipPublishingChecks) {
-                var checksPublisher = new CoverageChecksPublisher(action, rootNode, getChecksName(), getChecksAnnotationScope());
+                var checksPublisher = new CoverageChecksPublisher(action, aggregatedResult, getChecksName(), getChecksAnnotationScope());
                 checksPublisher.publishCoverageReport(taskListener);
             }
         }
@@ -459,9 +462,10 @@ public class CoverageRecorder extends Recorder {
         logHandler.log(log);
     }
 
-    private List<Node> recordCoverageResults(final Run<?, ?> run, final FilePath workspace, final TaskListener taskListener,
+    private Map<Parser, List<ModuleNode>> recordCoverageResults(final Run<?, ?> run, final FilePath workspace, final TaskListener taskListener,
             final StageResultHandler resultHandler, final FilteredLog log) throws InterruptedException {
-        List<Node> results = new ArrayList<>();
+        Map<Parser, List<ModuleNode>> results = new HashMap<>();
+
         for (CoverageTool tool : tools) {
             LogHandler toolHandler = new LogHandler(taskListener, tool.getDisplayName());
             Parser parser = tool.getParser();
@@ -492,7 +496,7 @@ public class CoverageRecorder extends Recorder {
                         log.logInfo("Ignore errors and continue processing");
                     }
                 }
-                results.addAll(coverageResults);
+                results.put(tool.getParser(), coverageResults);
             }
             catch (IOException exception) {
                 log.logException(exception, "Exception while parsing with tool " + tool);
@@ -500,7 +504,40 @@ public class CoverageRecorder extends Recorder {
 
             toolHandler.log(log);
         }
+
         return results;
+    }
+
+    private Node aggregateResults(final FilteredLog log, final Map<Parser, List<ModuleNode>> results) {
+        if (isEmpty(results)) {
+            log.logError("No coverage results were found! Configuration error?");
+
+            return new ModuleNode("Empty");
+        }
+        else {
+            var coverageTree = Node.merge(results.values().stream()
+                    .flatMap(Collection::stream)
+                    .collect(Collectors.toList()));
+            var tests = extractTests(results).stream()
+                    .map(Node::getAllClassNodes)
+                    .flatMap(Collection::stream)
+                    .collect(Collectors.toList());
+            coverageTree.mapTests(tests);
+            return coverageTree;
+        }
+    }
+
+    private boolean isEmpty(final Map<Parser, List<ModuleNode>> results) {
+        return results.values().stream().mapToInt(Collection::size).sum() == 0;
+    }
+
+    private List<ModuleNode> extractTests(final Map<Parser, List<ModuleNode>> results) {
+        if (results.containsKey(Parser.JUNIT)) {
+            return results.remove(Parser.JUNIT);
+        }
+        else {
+            return List.of();
+        }
     }
 
     private ProcessingMode ignoreErrors() {

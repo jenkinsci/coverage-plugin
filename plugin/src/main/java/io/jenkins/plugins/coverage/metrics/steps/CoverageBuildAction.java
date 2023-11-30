@@ -570,7 +570,7 @@ public final class CoverageBuildAction extends BuildAction<Node> implements Stap
     @VisibleForTesting
     NavigableSet<Metric> getMetricsForSummary() {
         return new TreeSet<>(
-                Set.of(Metric.LINE, Metric.LOC, Metric.BRANCH, Metric.COMPLEXITY_DENSITY, Metric.MUTATION));
+                Set.of(Metric.LINE, Metric.LOC, Metric.BRANCH, Metric.COMPLEXITY_DENSITY, Metric.MUTATION, Metric.TESTS));
     }
 
     /**

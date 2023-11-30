@@ -48,6 +48,9 @@ public final class ElementFormatter {
      * @return the formatted value as plain text
      */
     public String getTooltip(final Value value) {
+        if (value instanceof IntegerValue) {
+            return String.format("%s: %d", getLabel(value.getMetric()), ((IntegerValue) value).getValue());
+        }
         return formatValueWithMetric(value) + " (" + formatAdditionalInformation(value) + ")";
     }
 
@@ -346,7 +349,8 @@ public final class ElementFormatter {
     public String formatDelta(final Fraction fraction, final Metric metric, final Locale locale) {
         if (metric.equals(Metric.COMPLEXITY)
                 || metric.equals(Metric.COMPLEXITY_MAXIMUM)
-                || metric.equals(Metric.LOC)) {
+                || metric.equals(Metric.LOC)
+                || metric.equals(Metric.TESTS)) {
             return String.format(locale, "%+d", fraction.intValue());
         }
         return String.format(locale, "%+.2f%%", new SafeFraction(fraction).multiplyBy(HUNDRED).doubleValue());
@@ -391,6 +395,8 @@ public final class ElementFormatter {
                 return Messages.Metric_COMPLEXITY_DENSITY();
             case LOC:
                 return Messages.Metric_LOC();
+            case TESTS:
+                return Messages.Metric_TESTS();
             default:
                 throw new NoSuchElementException("No display name found for metric " + metric);
         }
@@ -460,6 +466,8 @@ public final class ElementFormatter {
                 return Messages.Metric_Short_COMPLEXITY_DENSITY();
             case LOC:
                 return Messages.Metric_Short_LOC();
+            case TESTS:
+                return Messages.Metric_Short_TESTS();
             default:
                 throw new NoSuchElementException("No label found for metric " + metric);
         }
@@ -513,6 +521,7 @@ public final class ElementFormatter {
         add(options, Metric.COMPLEXITY);
         add(options, Metric.COMPLEXITY_MAXIMUM);
         add(options, Metric.LOC);
+        add(options, Metric.TESTS);
         return options;
     }
 
