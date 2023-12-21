@@ -295,6 +295,60 @@ class CoveragePluginITest extends AbstractCoverageITest {
                         .withCovered(JACOCO_ANALYSIS_MODEL_COVERED + COBERTURA_COVERED_LINES)
                         .withMissed(JACOCO_ANALYSIS_MODEL_MISSED)
                         .build());
+
+        assertThat(getConsoleLog(build)).contains(
+                "[Coverage] Recording coverage results",
+                "[Coverage] Creating parser for Cobertura Coverage Reports",
+                "that match the pattern 'cobertura-higher-coverage.xml'",
+                "Successfully processed file 'cobertura-higher-coverage.xml'",
+                "[Coverage] Creating parser for JaCoCo Coverage Reports",
+                "that match the pattern 'jacoco-analysis-model.xml'",
+                "Successfully processed file 'jacoco-analysis-model.xml'");
+        var log = coverageResult.getLog();
+        assertThat(log.getInfoMessages()).contains("Recording coverage results",
+                "Creating parser for Cobertura Coverage Reports",
+                "Successfully processed file 'cobertura-higher-coverage.xml'",
+                "Creating parser for JaCoCo Coverage Reports",
+                "Successfully processed file 'jacoco-analysis-model.xml'",
+                "Resolving source code files...",
+                "-> finished resolving of absolute paths (found: 0, not found: 308)",
+                "Obtaining action of reference build",
+                "Reference build recorder is not configured",
+                "-> Found no reference result in reference build",
+                "No quality gates have been set - skipping",
+                "Executing source code painting...",
+                "Painting 308 source files on agent",
+                "-> finished painting (0 files have been painted, 308 files failed)",
+                "Copying painted sources from agent to build folder",
+                "-> extracting...",
+                "-> done",
+                "Finished coverage processing - adding the action to the build...");
+        assertThat(log.getErrorMessages()).contains("Errors while recording code coverage:",
+                "Errors during source path resolving:",
+                "Errors while resolving source files on agent:",
+                "Removing non-workspace source directory '/Users/leobalter/dev/testing/solutions/3' - it has not been approved in Jenkins' global configuration.",
+                "- Source file 'edu/hm/hafner/analysis/parser/PerlCriticParser.java' not found",
+                "- Source file 'edu/hm/hafner/analysis/parser/StyleCopParser.java' not found",
+                "- Source file 'edu/hm/hafner/analysis/registry/RoboCopyDescriptor.java' not found",
+                "- Source file 'edu/hm/hafner/analysis/parser/fxcop/FxCopRuleSet.java' not found",
+                "- Source file 'edu/hm/hafner/analysis/registry/SpotBugsDescriptor.java' not found",
+                "- Source file 'edu/hm/hafner/analysis/parser/AcuCobolParser.java' not found",
+                "- Source file 'edu/hm/hafner/analysis/registry/FlexSdkDescriptor.java' not found",
+                "- Source file 'edu/hm/hafner/analysis/registry/BrakemanDescriptor.java' not found",
+                "- Source file 'edu/hm/hafner/analysis/registry/PyDocStyleDescriptor.java' not found",
+                "- Source file 'edu/hm/hafner/analysis/parser/AjcParser.java' not found",
+                "- Source file 'edu/hm/hafner/analysis/ReaderFactory.java' not found",
+                "- Source file 'edu/hm/hafner/analysis/parser/DiabCParser.java' not found",
+                "- Source file 'edu/hm/hafner/analysis/registry/OELintAdvDescriptor.java' not found",
+                "- Source file 'edu/hm/hafner/analysis/registry/GnuFortranDescriptor.java' not found",
+                "- Source file 'edu/hm/hafner/analysis/parser/Armcc5CompilerParser.java' not found",
+                "- Source file 'edu/hm/hafner/analysis/registry/DoxygenDescriptor.java' not found",
+                "- Source file 'edu/hm/hafner/analysis/registry/ProtoLintDescriptor.java' not found",
+                "- Source file 'edu/hm/hafner/analysis/registry/GoLintDescriptor.java' not found",
+                "- Source file 'edu/hm/hafner/analysis/ModuleResolver.java' not found",
+                "  ... skipped logging of 289 additional errors ...",
+                "  ... skipped logging of 289 additional errors ...",
+                "  ... skipped logging of 289 additional errors ...");
     }
 
     @Test

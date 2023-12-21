@@ -25,7 +25,6 @@ import io.jenkins.plugins.forensics.delta.Delta;
 import io.jenkins.plugins.forensics.delta.FileChanges;
 import io.jenkins.plugins.forensics.reference.ReferenceFinder;
 import io.jenkins.plugins.prism.SourceCodeRetention;
-import io.jenkins.plugins.util.LogHandler;
 import io.jenkins.plugins.util.QualityGateResult;
 import io.jenkins.plugins.util.StageResultHandler;
 
@@ -41,96 +40,131 @@ public class CoverageReporter {
     private static final List<Value> EMPTY_VALUES = List.of();
 
     @SuppressWarnings({"checkstyle:ParameterNumber", "checkstyle:JavaNCSS"})
-    CoverageBuildAction publishAction(final String id, final String optionalName, final String icon, final Node rootNode,
+    CoverageBuildAction publishAction(final String id, final String optionalName, final String icon,
+            final Node rootNode,
             final Run<?, ?> build, final FilePath workspace, final TaskListener listener,
             final List<CoverageQualityGate> qualityGates, final String scm, final String sourceCodeEncoding,
-            final SourceCodeRetention sourceCodeRetention, final StageResultHandler resultHandler)
+            final SourceCodeRetention sourceCodeRetention, final StageResultHandler resultHandler,
+            final FilteredLog log)
             throws InterruptedException {
-        FilteredLog log = new FilteredLog("Errors while reporting code coverage results:");
-
         Optional<CoverageBuildAction> possibleReferenceResult = getReferenceBuildAction(build, id, log);
 
-        List<FileNode> filesToStore;
         CoverageBuildAction action;
         if (possibleReferenceResult.isPresent()) {
-            CoverageBuildAction referenceAction = possibleReferenceResult.get();
-            Node referenceRoot = referenceAction.getResult();
-
-            log.logInfo("Calculating the code delta...");
-            CodeDeltaCalculator codeDeltaCalculator = new CodeDeltaCalculator(build, workspace, listener, scm);
-            Optional<Delta> delta = codeDeltaCalculator.calculateCodeDeltaToReference(referenceAction.getOwner(), log);
-            delta.ifPresent(value -> createDeltaReports(rootNode, log, referenceRoot, codeDeltaCalculator, value));
-
-            log.logInfo("Calculating coverage deltas...");
-
-            Node modifiedLinesCoverageRoot = rootNode.filterByModifiedLines();
-
-            NavigableMap<Metric, Fraction> modifiedLinesDelta;
-            List<Value> modifiedFilesValues;
-            NavigableMap<Metric, Fraction> modifiedFilesDelta;
-            if (hasModifiedLinesCoverage(modifiedLinesCoverageRoot)) {
-                Node modifiedFilesCoverageRoot = rootNode.filterByModifiedFiles();
-                modifiedFilesValues = modifiedFilesCoverageRoot.aggregateValues();
-                modifiedFilesDelta = modifiedFilesCoverageRoot.computeDelta(
-                        referenceRoot.filterByFileNames(modifiedFilesCoverageRoot.getFiles()));
-
-                modifiedLinesDelta = modifiedLinesCoverageRoot.computeDelta(modifiedFilesCoverageRoot);
-            }
-            else {
-                modifiedLinesDelta = EMPTY_DELTA;
-                modifiedFilesValues = EMPTY_VALUES;
-                modifiedFilesDelta = EMPTY_DELTA;
-
-                if (rootNode.hasModifiedLines()) {
-                    log.logInfo("No detected code changes affect the code coverage");
-                }
-            }
-
-            var overallValues = rootNode.aggregateValues();
-            NavigableMap<Metric, Fraction> overallDelta = rootNode.computeDelta(referenceRoot);
-            var modifiedLinesValues = modifiedLinesCoverageRoot.aggregateValues();
-
-            var statistics = new CoverageStatistics(overallValues, overallDelta,
-                    modifiedLinesValues, modifiedLinesDelta, modifiedFilesValues, modifiedFilesDelta);
-            QualityGateResult qualityGateResult = evaluateQualityGates(qualityGates, statistics, resultHandler, log);
-
-            if (sourceCodeRetention == SourceCodeRetention.MODIFIED) {
-                filesToStore = modifiedLinesCoverageRoot.getAllFileNodes();
-                log.logInfo("-> Selecting %d modified files for source code painting", filesToStore.size());
-            }
-            else {
-                filesToStore = rootNode.getAllFileNodes();
-            }
-
-            action = new CoverageBuildAction(build, id, optionalName, icon, rootNode, qualityGateResult, log,
-                    referenceAction.getOwner().getExternalizableId(), overallDelta,
-                    modifiedLinesValues, modifiedLinesDelta,
-                    modifiedFilesValues, modifiedFilesDelta,
-                    rootNode.filterByIndirectChanges().aggregateValues());
+            action = computeCoverageBasedOnReferenceBuild(id, optionalName, icon, rootNode, build, workspace,
+                    qualityGates, sourceCodeEncoding, sourceCodeRetention, resultHandler, possibleReferenceResult.get(),
+                    scm,
+                    listener,
+                    log);
         }
         else {
-            var statistics = new CoverageStatistics(rootNode.aggregateValues(),
-                    EMPTY_DELTA, EMPTY_VALUES, EMPTY_DELTA, EMPTY_VALUES, EMPTY_DELTA);
-            QualityGateResult qualityGateStatus = evaluateQualityGates(qualityGates,
-                    statistics, resultHandler, log);
-
-            filesToStore = rootNode.getAllFileNodes();
-
-            action = new CoverageBuildAction(build, id, optionalName, icon, rootNode, qualityGateStatus, log);
+            action = computeActionWithoutHistory(id, optionalName, icon, rootNode, build, workspace, qualityGates,
+                    sourceCodeEncoding,
+                    sourceCodeRetention, resultHandler, log);
         }
 
+        build.addAction(action);
+        return action;
+    }
+
+    @SuppressWarnings("checkstyle:ParameterNumber")
+    private CoverageBuildAction computeActionWithoutHistory(
+            final String id, final String optionalName, final String icon,
+            final Node rootNode, final Run<?, ?> build, final FilePath workspace,
+            final List<CoverageQualityGate> qualityGates, final String sourceCodeEncoding,
+            final SourceCodeRetention sourceCodeRetention, final StageResultHandler resultHandler,
+            final FilteredLog log) throws InterruptedException {
+        var statistics = new CoverageStatistics(rootNode.aggregateValues(),
+                EMPTY_DELTA, EMPTY_VALUES, EMPTY_DELTA, EMPTY_VALUES, EMPTY_DELTA);
+        QualityGateResult qualityGateStatus = evaluateQualityGates(qualityGates,
+                statistics, resultHandler, log);
+
+        paintSourceFiles(build, workspace, sourceCodeEncoding, sourceCodeRetention, id, rootNode,
+                rootNode.getAllFileNodes(), log);
+
+        return new CoverageBuildAction(build, id, optionalName, icon, rootNode, qualityGateStatus, log);
+    }
+
+    @SuppressWarnings("checkstyle:ParameterNumber")
+    private CoverageBuildAction computeCoverageBasedOnReferenceBuild(
+            final String id, final String optionalName, final String icon,
+            final Node rootNode, final Run<?, ?> build, final FilePath workspace,
+            final List<CoverageQualityGate> qualityGates, final String sourceCodeEncoding,
+            final SourceCodeRetention sourceCodeRetention, final StageResultHandler resultHandler,
+            final CoverageBuildAction referenceAction, final String scm,
+            final TaskListener listener, final FilteredLog log) throws InterruptedException {
+        log.logInfo("Calculating the code delta...");
+        CodeDeltaCalculator codeDeltaCalculator = new CodeDeltaCalculator(build, workspace, listener, scm);
+        Optional<Delta> delta = codeDeltaCalculator.calculateCodeDeltaToReference(referenceAction.getOwner(), log);
+
+        Node referenceRoot = referenceAction.getResult();
+        delta.ifPresent(value -> createDeltaReports(rootNode, log, referenceRoot, codeDeltaCalculator, value));
+
+        log.logInfo("Calculating coverage deltas...");
+
+        Node modifiedLinesCoverageRoot = rootNode.filterByModifiedLines();
+
+        NavigableMap<Metric, Fraction> modifiedLinesDelta;
+        List<Value> modifiedFilesValues;
+        NavigableMap<Metric, Fraction> modifiedFilesDelta;
+        if (hasModifiedLinesCoverage(modifiedLinesCoverageRoot)) {
+            Node modifiedFilesCoverageRoot = rootNode.filterByModifiedFiles();
+            modifiedFilesValues = modifiedFilesCoverageRoot.aggregateValues();
+            modifiedFilesDelta = modifiedFilesCoverageRoot.computeDelta(
+                    referenceRoot.filterByFileNames(modifiedFilesCoverageRoot.getFiles()));
+
+            modifiedLinesDelta = modifiedLinesCoverageRoot.computeDelta(modifiedFilesCoverageRoot);
+        }
+        else {
+            modifiedLinesDelta = EMPTY_DELTA;
+            modifiedFilesValues = EMPTY_VALUES;
+            modifiedFilesDelta = EMPTY_DELTA;
+
+            if (rootNode.hasModifiedLines()) {
+                log.logInfo("No detected code changes affect the code coverage");
+            }
+        }
+
+        var overallValues = rootNode.aggregateValues();
+        NavigableMap<Metric, Fraction> overallDelta = rootNode.computeDelta(referenceRoot);
+        var modifiedLinesValues = modifiedLinesCoverageRoot.aggregateValues();
+
+        var statistics = new CoverageStatistics(overallValues, overallDelta,
+                modifiedLinesValues, modifiedLinesDelta, modifiedFilesValues, modifiedFilesDelta);
+        QualityGateResult qualityGateResult = evaluateQualityGates(qualityGates, statistics, resultHandler, log);
+
+        var filesToStore = computePaintedFiles(rootNode, sourceCodeRetention, log, modifiedLinesCoverageRoot);
+        paintSourceFiles(build, workspace, sourceCodeEncoding, sourceCodeRetention, id, rootNode, filesToStore, log);
+
+        return new CoverageBuildAction(build, id, optionalName, icon, rootNode, qualityGateResult, log,
+                referenceAction.getOwner().getExternalizableId(), overallDelta,
+                modifiedLinesValues, modifiedLinesDelta,
+                modifiedFilesValues, modifiedFilesDelta,
+                rootNode.filterByIndirectChanges().aggregateValues());
+    }
+
+    private List<FileNode> computePaintedFiles(final Node rootNode, final SourceCodeRetention sourceCodeRetention,
+            final FilteredLog log, final Node modifiedLinesCoverageRoot) {
+        List<FileNode> filesToStore;
+        if (sourceCodeRetention == SourceCodeRetention.MODIFIED) {
+            filesToStore = modifiedLinesCoverageRoot.getAllFileNodes();
+            log.logInfo("-> Selecting %d modified files for source code painting", filesToStore.size());
+        }
+        else {
+            filesToStore = rootNode.getAllFileNodes();
+        }
+        return filesToStore;
+    }
+
+    @SuppressWarnings("checkstyle:ParameterNumber")
+    private void paintSourceFiles(final Run<?, ?> build, final FilePath workspace, final String sourceCodeEncoding,
+            final SourceCodeRetention sourceCodeRetention, final String id, final Node rootNode,
+            final List<FileNode> filesToStore, final FilteredLog log) throws InterruptedException {
         log.logInfo("Executing source code painting...");
         SourceCodePainter sourceCodePainter = new SourceCodePainter(build, workspace, id);
         sourceCodePainter.processSourceCodePainting(rootNode, filesToStore,
                 sourceCodeEncoding, sourceCodeRetention, log);
-
         log.logInfo("Finished coverage processing - adding the action to the build...");
-
-        LogHandler logHandler = new LogHandler(listener, "Coverage");
-        logHandler.log(log);
-
-        build.addAction(action);
-        return action;
     }
 
     private void createDeltaReports(final Node rootNode, final FilteredLog log, final Node referenceRoot,
@@ -198,7 +232,8 @@ public class CoverageReporter {
         return ((edu.hm.hafner.coverage.Coverage) value).isSet();
     }
 
-    private Optional<CoverageBuildAction> getReferenceBuildAction(final Run<?, ?> build, final String id, final FilteredLog log) {
+    private Optional<CoverageBuildAction> getReferenceBuildAction(final Run<?, ?> build, final String id,
+            final FilteredLog log) {
         log.logInfo("Obtaining action of reference build");
 
         ReferenceFinder referenceFinder = new ReferenceFinder();
@@ -236,7 +271,8 @@ public class CoverageReporter {
         return Optional.of(referenceAction);
     }
 
-    private Optional<CoverageBuildAction> getPreviousResult(final String id, @CheckForNull final Run<?, ?> startSearch) {
+    private Optional<CoverageBuildAction> getPreviousResult(final String id,
+            @CheckForNull final Run<?, ?> startSearch) {
         for (Run<?, ?> build = startSearch; build != null; build = build.getPreviousBuild()) {
             List<CoverageBuildAction> actions = build.getActions(CoverageBuildAction.class);
             for (CoverageBuildAction action : actions) {
