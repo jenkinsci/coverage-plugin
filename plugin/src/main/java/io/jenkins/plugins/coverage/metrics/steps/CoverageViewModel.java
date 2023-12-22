@@ -27,6 +27,7 @@ import edu.hm.hafner.coverage.Node;
 import edu.hm.hafner.coverage.Percentage;
 import edu.hm.hafner.echarts.LabeledTreeMapNode;
 import edu.hm.hafner.util.FilteredLog;
+import edu.hm.hafner.util.VisibleForTesting;
 import edu.umd.cs.findbugs.annotations.CheckForNull;
 
 import org.kohsuke.stapler.StaplerRequest;
@@ -115,6 +116,11 @@ public class CoverageViewModel extends DefaultAsyncTableContentProvider implemen
         modifiedLinesCoverageTreeRoot = node.filterByModifiedLines();
         indirectCoverageChangesTreeRoot = node.filterByIndirectChanges();
         this.trendChartFunction = trendChartFunction;
+    }
+
+    @VisibleForTesting
+    FilteredLog getLog() {
+        return log;
     }
 
     public String getId() {
@@ -440,16 +446,16 @@ public class CoverageViewModel extends DefaultAsyncTableContentProvider implemen
     }
 
     /**
-     * Returns a new sub-page for the selected link.
+     * Returns a new subpage for the selected link.
      *
      * @param link
-     *         the link to identify the sub-page to show
+     *         the link to identify the subpage to show
      * @param request
      *         Stapler request
      * @param response
      *         Stapler response
      *
-     * @return the new sub-page
+     * @return the new subpage
      */
     @SuppressWarnings("unused") // Called by jelly view
     @CheckForNull

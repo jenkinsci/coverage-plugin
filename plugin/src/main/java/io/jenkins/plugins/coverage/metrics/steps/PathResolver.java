@@ -132,11 +132,11 @@ public class PathResolver {
                         mapping.size(), relativePaths.size() - mapping.size());
             }
 
-            var changedFilesMapping = mapping.entrySet()
+            var changedFileMapping = mapping.entrySet()
                     .stream()
                     .filter(entry -> !entry.getKey().equals(entry.getValue()))
                     .collect(Collectors.toMap(Entry::getKey, Entry::getValue));
-            var result = new RemoteResultWrapper<>(new HashMap<>(changedFilesMapping), "Errors during source path resolving:");
+            var result = new RemoteResultWrapper<>(new HashMap<>(changedFileMapping), "Errors during source path resolving:");
             result.merge(log);
             return result;
         }
@@ -149,7 +149,6 @@ public class PathResolver {
 
         private Optional<String> locateSource(final String relativePath, final FilePath workspace,
                 final Set<String> sourceSearchDirectories, final FilteredLog log) {
-
             try {
                 FilePath absolutePath = new FilePath(new File(relativePath));
                 if (absolutePath.exists()) {

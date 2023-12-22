@@ -401,7 +401,6 @@ public class CoverageRecorder extends Recorder {
             else {
                 perform(run, workspace, taskListener, resultHandler, log, logHandler);
             }
-
         }
         else {
             logHandler.log("Skipping execution of coverage recorder since overall result is '%s'", overallResult);
@@ -410,7 +409,7 @@ public class CoverageRecorder extends Recorder {
 
     private void perform(final Run<?, ?> run, final FilePath workspace, final TaskListener taskListener,
             final StageResultHandler resultHandler, final FilteredLog log, final LogHandler logHandler) throws InterruptedException {
-        var results = recordCoverageResults(run, workspace, taskListener, resultHandler, log);
+        var results = recordCoverageResults(run, workspace, resultHandler, log, logHandler);
         Node aggregatedResult = aggregateResults(log, results);
 
         if (!aggregatedResult.isEmpty()) {
@@ -424,7 +423,9 @@ public class CoverageRecorder extends Recorder {
 
             var action = reporter.publishAction(getActualId(), getName(), getIcon(), aggregatedResult, run,
                     workspace, taskListener, getQualityGates(), getScm(),
-                    getSourceCodeEncoding(), getSourceCodeRetention(), resultHandler);
+                    getSourceCodeEncoding(), getSourceCodeRetention(), resultHandler, log);
+            logHandler.log(log);
+
             if (!skipPublishingChecks) {
                 var checksPublisher = new CoverageChecksPublisher(action, aggregatedResult, getChecksName(), getChecksAnnotationScope());
                 checksPublisher.publishCoverageReport(taskListener);
@@ -462,15 +463,15 @@ public class CoverageRecorder extends Recorder {
         logHandler.log(log);
     }
 
-    private Map<Parser, List<ModuleNode>> recordCoverageResults(final Run<?, ?> run, final FilePath workspace, final TaskListener taskListener,
-            final StageResultHandler resultHandler, final FilteredLog log) throws InterruptedException {
+    private Map<Parser, List<ModuleNode>> recordCoverageResults(final Run<?, ?> run, final FilePath workspace,
+            final StageResultHandler resultHandler, final FilteredLog log, final LogHandler logHandler) throws InterruptedException {
         Map<Parser, List<ModuleNode>> results = new HashMap<>();
 
         for (CoverageTool tool : tools) {
-            LogHandler toolHandler = new LogHandler(taskListener, tool.getDisplayName());
             Parser parser = tool.getParser();
+            log.logInfo("Creating parser for %s", tool.getDisplayName());
             if (StringUtils.isBlank(tool.getPattern())) {
-                toolHandler.log("Using default pattern '%s' since user defined pattern is not set",
+                log.logInfo("Using default pattern '%s' since user defined pattern is not set",
                         parser.getDefaultPattern());
             }
 
@@ -502,7 +503,7 @@ public class CoverageRecorder extends Recorder {
                 log.logException(exception, "Exception while parsing with tool " + tool);
             }
 
-            toolHandler.log(log);
+            logHandler.log(log);
         }
 
         return results;
