@@ -401,7 +401,6 @@ public class CoverageRecorder extends Recorder {
             else {
                 perform(run, workspace, taskListener, resultHandler, log, logHandler);
             }
-
         }
         else {
             logHandler.log("Skipping execution of coverage recorder since overall result is '%s'", overallResult);

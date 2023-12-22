@@ -149,7 +149,6 @@ public class PathResolver {
 
         private Optional<String> locateSource(final String relativePath, final FilePath workspace,
                 final Set<String> sourceSearchDirectories, final FilteredLog log) {
-
             try {
                 FilePath absolutePath = new FilePath(new File(relativePath));
                 if (absolutePath.exists()) {

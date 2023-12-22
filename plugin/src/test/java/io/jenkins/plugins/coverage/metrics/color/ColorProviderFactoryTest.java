@@ -15,7 +15,6 @@ import static org.assertj.core.api.Assertions.*;
  * @author Florian Orendi
  */
 class ColorProviderFactoryTest {
-
     private static final String TEST_COLOR_HEX = "#ffffff";
     private static final Color TEST_COLOR = Color.decode(TEST_COLOR_HEX);
 

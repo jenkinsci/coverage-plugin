@@ -10,7 +10,6 @@ import java.awt.*;
  * @author Florian Orendi
  */
 public enum CoverageColorPalette {
-
     WHITE(ColorId.WHITE, new Color(255, 255, 255), new Color(0, 0, 0)),
     BLACK(ColorId.BLACK, new Color(0, 0, 0), new Color(255, 255, 255)),
 

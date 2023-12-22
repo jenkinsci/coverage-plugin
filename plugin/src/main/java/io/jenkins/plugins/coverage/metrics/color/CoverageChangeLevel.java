@@ -10,7 +10,6 @@ import io.jenkins.plugins.coverage.metrics.color.ColorProvider.DisplayColors;
  * @author Florian Orendi
  */
 public enum CoverageChangeLevel {
-
     INCREASE_5(5.0, ColorId.EXCELLENT),
     INCREASE_2(2.0, ColorId.VERY_GOOD),
     EQUALS(0.0, ColorId.AVERAGE),

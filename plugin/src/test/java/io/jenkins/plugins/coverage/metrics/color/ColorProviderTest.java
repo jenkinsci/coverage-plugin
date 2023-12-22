@@ -15,7 +15,6 @@ import static org.assertj.core.api.Assertions.*;
  * @author Florian Orendi
  */
 class ColorProviderTest {
-
     @Test
     void shouldGetDisplayColorsOfId() {
         ColorProvider colorProvider = createDefaultColorProvider();

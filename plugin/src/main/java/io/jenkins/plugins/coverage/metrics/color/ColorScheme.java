@@ -6,7 +6,6 @@ package io.jenkins.plugins.coverage.metrics.color;
  * @author Florian Orendi
  */
 public enum ColorScheme {
-
     /**
      * The default colors.
      */

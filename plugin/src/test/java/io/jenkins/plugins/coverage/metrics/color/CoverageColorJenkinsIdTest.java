@@ -11,7 +11,6 @@ import static org.assertj.core.api.Assertions.*;
  * @author Florian Orendi
  */
 class CoverageColorJenkinsIdTest {
-
     @Test
     void shouldGetAllIds() {
         assertThat(getAll().size()).isEqualTo(values().length);

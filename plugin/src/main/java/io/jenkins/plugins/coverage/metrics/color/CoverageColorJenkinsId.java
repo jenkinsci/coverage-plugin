@@ -11,7 +11,6 @@ import java.util.stream.Collectors;
  * @author Florian Orendi
  */
 public enum CoverageColorJenkinsId {
-
     GREEN("--green"),
     LIGHT_GREEN("--light-green"),
     YELLOW("--yellow"),

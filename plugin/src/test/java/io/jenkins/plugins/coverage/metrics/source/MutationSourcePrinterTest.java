@@ -57,5 +57,4 @@ class MutationSourcePrinterTest extends AbstractCoverageTest {
         XmlAssert.assertThat(renderedLine).nodesByXPath("/tr/td[3]")
                 .extractingText().containsExactly(CoverageSourcePrinterTest.RENDERED_CODE);
     }
-
 }
