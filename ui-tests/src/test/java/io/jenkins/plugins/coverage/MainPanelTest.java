@@ -13,7 +13,6 @@ import static org.assertj.core.api.Assertions.*;
  * Contains static test-methods which can also be used other classes, especially used {@link SmokeTests}.
  */
 public class MainPanelTest extends UiTest {
-
     /**
      * Test for MainPanel of job with some builds with reports.
      * Verifies TrendChart in MainPanel is displayed and has correct values.
@@ -56,6 +55,5 @@ public class MainPanelTest extends UiTest {
         String trendChart = mainPanel.getCoverageTrendChart();
         TrendChartTestUtil.verifyTrendChart(trendChart, firstBuildInChartNumber, lastBuildInChartNumber);
     }
-
 }
 

@@ -31,7 +31,7 @@ class UiTest extends AbstractJUnitTest {
      *
      * @return a job without any reports
      */
-    FreeStyleJob getJobWithoutAnyReports(InCaseNoReportsConfiguration configuration) {
+    FreeStyleJob getJobWithoutAnyReports(final InCaseNoReportsConfiguration configuration) {
         if (configuration == InCaseNoReportsConfiguration.FAIL) {
             return createJobWithConfiguration(JobConfiguration.NO_REPORTS_SHOULD_FAIL);
         }
@@ -92,8 +92,8 @@ class UiTest extends AbstractJUnitTest {
      *
      * @return Job with threshold and jacoco adapter.
      */
-    FreeStyleJob getJobWithAdapterThresholdAndFailOnUnhealthySetter(int unhealthyThreshold, int unstableThreshold,
-            boolean failUnhealthy, ThresholdLevel thresholdLevel) {
+    FreeStyleJob getJobWithAdapterThresholdAndFailOnUnhealthySetter(final int unhealthyThreshold, final int unstableThreshold,
+            final boolean failUnhealthy, final ThresholdLevel thresholdLevel) {
         FreeStyleJob job = jenkins.getJobs().create(FreeStyleJob.class);
         CoveragePublisher coveragePublisher = job.addPublisher(CoveragePublisher.class);
         Adapter jacocoAdapter = coveragePublisher.createAdapterPageArea("Jacoco");
@@ -139,7 +139,6 @@ class UiTest extends AbstractJUnitTest {
      * @return job with chosen configuration
      */
     private FreeStyleJob createJobWithConfiguration(final JobConfiguration jobConfiguration) {
-
         FreeStyleJob job = jenkins.getJobs().create(FreeStyleJob.class);
         CoveragePublisher coveragePublisher = job.addPublisher(CoveragePublisher.class);
 
@@ -151,7 +150,6 @@ class UiTest extends AbstractJUnitTest {
 
             job.save();
             return job;
-
         }
 
         Adapter jacocoAdapter = coveragePublisher.createAdapterPageArea("Jacoco");
@@ -259,5 +257,4 @@ class UiTest extends AbstractJUnitTest {
         ADAPTER,
         GLOBAL
     }
-
 }

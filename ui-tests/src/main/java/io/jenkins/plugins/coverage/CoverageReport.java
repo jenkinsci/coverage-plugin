@@ -34,7 +34,7 @@ public class CoverageReport extends PageObject {
      * @param parent
      *         build of wanted CoverageReport.
      */
-    public CoverageReport(Build parent) {
+    public CoverageReport(final Build parent) {
         super(parent, parent.url(RELATIVE_PATH_BUILD_TO_REPORT));
     }
 
@@ -166,7 +166,7 @@ public class CoverageReport extends PageObject {
      * @param absoluteUrl of href of tab
      * @return relative url.
      */
-    private String extractRelativeUrl(String absoluteUrl) {
+    private String extractRelativeUrl(final String absoluteUrl) {
         return "#" + StringUtils.substringAfterLast(absoluteUrl, "#");
     }
 
@@ -208,7 +208,7 @@ public class CoverageReport extends PageObject {
          *
          * @param id of tab
          */
-        Tab(String id) {
+        Tab(final String id) {
             this.id = id;
         }
 
@@ -219,7 +219,7 @@ public class CoverageReport extends PageObject {
          * @return the tab
          * @throws NoSuchElementException if the tab could not be found
          */
-        static Tab valueWithHref(String href) {
+        static Tab valueWithHref(final String href) {
             for (Tab tab : Tab.values()) {
                 if (tab.id.equals(href.substring(1))) {
                     return tab;
@@ -237,5 +237,4 @@ public class CoverageReport extends PageObject {
             return By.xpath("//a[@href='#" + id + "']");
         }
     }
-
 }
