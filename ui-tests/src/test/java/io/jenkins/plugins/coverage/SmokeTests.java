@@ -1,56 +1,43 @@
 package io.jenkins.plugins.coverage;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-
 import org.junit.Test;
 
-import org.jenkinsci.test.acceptance.po.Build;
 import org.jenkinsci.test.acceptance.po.FreeStyleJob;
 
 /**
- * Smoke Test to test the most used features of coverage plugin.
+ * Smoke Test for the most used features of the coverage plugin.
  */
 public class SmokeTests extends UiTest {
-
-    /**
-     * Creates two successful builds. Tests the reference values in summary, coverage report and main panel.
-     */
+    /** Verifies that the toggle for failing builds is working when there are no reports. */
     @Test
-    public void testCodeCoveragePlugin() {
-        FreeStyleJob job = getJobWithFirstBuildAndDifferentReports(InCaseCoverageDecreasedConfiguration.DONT_FAIL);
-        Build secondBuild = buildSuccessfully(job);
+    public void shouldToggleFailingIfThereAreNoReportsFound() {
+        FreeStyleJob job = jenkins.getJobs().create(FreeStyleJob.class);
+        var publisher = job.addPublisher(CoveragePublisher.class);
+        job.save();
 
-        HashMap<String, Double> expectedCoverageFifthBuild = new HashMap<>();
-        expectedCoverageFifthBuild.put("Line", 91.02);
-        expectedCoverageFifthBuild.put("Branch", 93.97);
-        List<Double> expectedReferenceCoverageFifthBuild = new ArrayList<>();
-        expectedReferenceCoverageFifthBuild.add(-4.5);
-        expectedReferenceCoverageFifthBuild.add(5.38);
+        buildSuccessfully(job);
 
-        CoverageSummaryTest.verifySummaryWithReferenceBuild(secondBuild, expectedCoverageFifthBuild,
-                expectedReferenceCoverageFifthBuild);
+        job.configure(() -> publisher.setFailOnError(true));
 
-        CoverageReport report = new CoverageReport(secondBuild);
-        report.open();
+        buildWithErrors(job);
+    }
 
-        FileCoverageTable fileCoverageTable = report.openFileCoverageTable();
-        CoverageReportTest.verifyFileCoverageTableContent(fileCoverageTable,
-                new String[] {"edu.hm.hafner.util", "edu.hm.hafner.util", "edu.hm.hafner.util"},
-                new String[] {"Ensure.java", "FilteredLog.java", "Generated.java"},
-                new String[] {"80.00%", "100.00%", "n/a"},
-                new String[] {"86.96%", "100.00%", "n/a"});
-        CoverageReportTest.verifyFileCoverageTableNumberOfMaxEntries(fileCoverageTable, 10);
+    /** Verifies that the toggle for ignoring parsing errors is working when a report with errors is read. */
+    @Test
+    public void shouldToggleFailingIfTheCoverageFileIsInvalid() {
+        FreeStyleJob job = jenkins.getJobs().create(FreeStyleJob.class);
 
-        String coverageTree = report.getCoverageTree();
-        CoverageReportTest.verifyCoverageTreeAfterSomeBuildsWithReports(coverageTree);
+        job.copyResource("/cobertura-duplicate-methods.xml");
 
-        String coverageOverview = report.getCoverageOverview();
-        CoverageReportTest.verifyCoverageOverviewAfterSomeBuildsWithReports(coverageOverview);
+        var publisher = job.addPublisher(CoveragePublisher.class);
+        publisher.setTool("Cobertura", "cobertura-*.xml");
+        job.save();
 
-        MainPanel mainPanel = new MainPanel(job);
-        MainPanelTest.verifyTrendChartWithTwoReports(mainPanel, 1, 2);
+        buildWithErrors(job);
+
+        job.configure(() -> publisher.setIgnoreParsingErrors(true));
+
+        buildSuccessfully(job);
     }
 }
 

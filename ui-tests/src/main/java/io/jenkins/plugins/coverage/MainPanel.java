@@ -6,8 +6,6 @@ import org.hamcrest.MatcherAssert;
 import org.jenkinsci.test.acceptance.po.Job;
 import org.jenkinsci.test.acceptance.po.PageObject;
 
-import io.jenkins.plugins.coverage.util.ChartUtil;
-
 /**
  * {@link PageObject} representing the Job status on the build page of a job.
  */
@@ -20,7 +18,7 @@ public class MainPanel extends PageObject {
      * @param parent
      *         job of wanted MainPanel.
      */
-    public MainPanel(Job parent) {
+    public MainPanel(final Job parent) {
         super(parent, parent.url);
     }
 

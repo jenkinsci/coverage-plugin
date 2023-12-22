@@ -1,6 +1,4 @@
-package io.jenkins.plugins.coverage.CoveragePublisher.Threshold;
-
-import io.jenkins.plugins.coverage.CoveragePublisher.CoveragePublisher;
+package io.jenkins.plugins.coverage;
 
 /**
  * Global Threshold used in {@link CoveragePublisher}.

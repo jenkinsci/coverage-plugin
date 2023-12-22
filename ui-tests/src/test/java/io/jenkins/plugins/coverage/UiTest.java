@@ -6,11 +6,9 @@ import org.jenkinsci.test.acceptance.po.Build;
 import org.jenkinsci.test.acceptance.po.FreeStyleJob;
 import org.jenkinsci.test.acceptance.po.Job;
 
-import io.jenkins.plugins.coverage.CoveragePublisher.Adapter;
-import io.jenkins.plugins.coverage.CoveragePublisher.CoveragePublisher;
-import io.jenkins.plugins.coverage.CoveragePublisher.CoveragePublisher.SourceFileResolver;
-import io.jenkins.plugins.coverage.CoveragePublisher.Threshold.AdapterThreshold.AdapterThresholdTarget;
-import io.jenkins.plugins.coverage.CoveragePublisher.Threshold.GlobalThreshold.GlobalThresholdTarget;
+import io.jenkins.plugins.coverage.AdapterThreshold.AdapterThresholdTarget;
+import io.jenkins.plugins.coverage.CoveragePublisher.SourceFileResolver;
+import io.jenkins.plugins.coverage.GlobalThreshold.GlobalThresholdTarget;
 
 /**
  * Base class for all UI tests. Provides several helper methods that can be used by all tests.
@@ -31,7 +29,7 @@ class UiTest extends AbstractJUnitTest {
      *
      * @return a job without any reports
      */
-    FreeStyleJob getJobWithoutAnyReports(InCaseNoReportsConfiguration configuration) {
+    FreeStyleJob getJobWithoutAnyReports(final InCaseNoReportsConfiguration configuration) {
         if (configuration == InCaseNoReportsConfiguration.FAIL) {
             return createJobWithConfiguration(JobConfiguration.NO_REPORTS_SHOULD_FAIL);
         }
@@ -92,8 +90,8 @@ class UiTest extends AbstractJUnitTest {
      *
      * @return Job with threshold and jacoco adapter.
      */
-    FreeStyleJob getJobWithAdapterThresholdAndFailOnUnhealthySetter(int unhealthyThreshold, int unstableThreshold,
-            boolean failUnhealthy, ThresholdLevel thresholdLevel) {
+    FreeStyleJob getJobWithAdapterThresholdAndFailOnUnhealthySetter(final int unhealthyThreshold, final int unstableThreshold,
+            final boolean failUnhealthy, final ThresholdLevel thresholdLevel) {
         FreeStyleJob job = jenkins.getJobs().create(FreeStyleJob.class);
         CoveragePublisher coveragePublisher = job.addPublisher(CoveragePublisher.class);
         Adapter jacocoAdapter = coveragePublisher.createAdapterPageArea("Jacoco");

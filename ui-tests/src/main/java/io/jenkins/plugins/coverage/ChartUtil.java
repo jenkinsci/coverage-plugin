@@ -1,4 +1,4 @@
-package io.jenkins.plugins.coverage.util;
+package io.jenkins.plugins.coverage;
 
 import java.util.Objects;
 

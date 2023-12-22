@@ -7,8 +7,6 @@ import org.junit.Test;
 import org.jenkinsci.test.acceptance.po.Build;
 import org.jenkinsci.test.acceptance.po.FreeStyleJob;
 
-import io.jenkins.plugins.coverage.CoveragePublisher.Adapter;
-import io.jenkins.plugins.coverage.CoveragePublisher.CoveragePublisher;
 import io.jenkins.plugins.coverage.FileCoverageTable.Header;
 
 import static net.javacrumbs.jsonunit.assertj.JsonAssertions.*;
