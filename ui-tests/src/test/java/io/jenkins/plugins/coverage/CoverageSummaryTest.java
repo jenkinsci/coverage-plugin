@@ -3,6 +3,7 @@ package io.jenkins.plugins.coverage;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.junit.Test;
 import org.openqa.selenium.WebDriver;
@@ -28,10 +29,10 @@ public class CoverageSummaryTest extends UiTest {
      *         map of expected values to be present in summary
      */
     public static void verifySummaryOnSuccessfulBuild(final Build build,
-            final HashMap<String, Double> expectedCoverage) {
+            final Map<String, Double> expectedCoverage) {
         build.open();
         CoverageSummary cs = new CoverageSummary(build, "coverage");
-        HashMap<String, Double> coverage = cs.getCoverage();
+        Map<String, Double> coverage = cs.getCoverage();
 
         assertThat(coverage).isEqualTo(expectedCoverage);
     }
@@ -47,11 +48,11 @@ public class CoverageSummaryTest extends UiTest {
      *         List of expected values for coverage changes
      */
     public static void verifySummaryWithReferenceBuild(final Build build,
-            final HashMap<String, Double> expectedCoverage, final List<Double> expectedChanges) {
+            final Map<String, Double> expectedCoverage, final List<Double> expectedChanges) {
         build.open();
         CoverageSummary cs = new CoverageSummary(build, "coverage");
 
-        HashMap<String, Double> coverage = cs.getCoverage();
+        Map<String, Double> coverage = cs.getCoverage();
         List<Double> changes = cs.getCoverageChanges();
 
         assertThat(coverage).isEqualTo(expectedCoverage);
@@ -70,10 +71,10 @@ public class CoverageSummaryTest extends UiTest {
      * @param expectedCoverage
      *         expected coverage of build
      */
-    public static void verifySummaryOnFailedBuild(final Build build, final HashMap<String, Double> expectedCoverage) {
+    public static void verifySummaryOnFailedBuild(final Build build, final Map<String, Double> expectedCoverage) {
         build.open();
         CoverageSummary cs = new CoverageSummary(build, "coverage");
-        HashMap<String, Double> coverage = cs.getCoverage();
+        Map<String, Double> coverage = cs.getCoverage();
 
         assertThat(coverage).isEqualTo(expectedCoverage);
     }
