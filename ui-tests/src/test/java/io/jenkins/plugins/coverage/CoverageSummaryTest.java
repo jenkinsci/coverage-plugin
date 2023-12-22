@@ -3,6 +3,7 @@ package io.jenkins.plugins.coverage;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.junit.Test;
 import org.openqa.selenium.WebDriver;
@@ -19,7 +20,6 @@ import static org.assertj.core.api.Assertions.*;
  * Acceptance tests for Summary.
  */
 public class CoverageSummaryTest extends UiTest {
-
     /**
      * Verifies if summary of first successful build of Project is correct.
      *
@@ -28,11 +28,11 @@ public class CoverageSummaryTest extends UiTest {
      * @param expectedCoverage
      *         map of expected values to be present in summary
      */
-    public static void verifySummaryOnSuccessfulBuild(Build build,
-            HashMap<String, Double> expectedCoverage) {
+    public static void verifySummaryOnSuccessfulBuild(final Build build,
+            final Map<String, Double> expectedCoverage) {
         build.open();
         CoverageSummary cs = new CoverageSummary(build, "coverage");
-        HashMap<String, Double> coverage = cs.getCoverage();
+        Map<String, Double> coverage = cs.getCoverage();
 
         assertThat(coverage).isEqualTo(expectedCoverage);
     }
@@ -47,12 +47,12 @@ public class CoverageSummaryTest extends UiTest {
      * @param expectedChanges
      *         List of expected values for coverage changes
      */
-    public static void verifySummaryWithReferenceBuild(Build build,
-            HashMap<String, Double> expectedCoverage, List<Double> expectedChanges) {
+    public static void verifySummaryWithReferenceBuild(final Build build,
+            final Map<String, Double> expectedCoverage, final List<Double> expectedChanges) {
         build.open();
         CoverageSummary cs = new CoverageSummary(build, "coverage");
 
-        HashMap<String, Double> coverage = cs.getCoverage();
+        Map<String, Double> coverage = cs.getCoverage();
         List<Double> changes = cs.getCoverageChanges();
 
         assertThat(coverage).isEqualTo(expectedCoverage);
@@ -71,13 +71,12 @@ public class CoverageSummaryTest extends UiTest {
      * @param expectedCoverage
      *         expected coverage of build
      */
-    public static void verifySummaryOnFailedBuild(Build build, HashMap<String, Double> expectedCoverage) {
+    public static void verifySummaryOnFailedBuild(final Build build, final Map<String, Double> expectedCoverage) {
         build.open();
         CoverageSummary cs = new CoverageSummary(build, "coverage");
-        HashMap<String, Double> coverage = cs.getCoverage();
+        Map<String, Double> coverage = cs.getCoverage();
 
         assertThat(coverage).isEqualTo(expectedCoverage);
-
     }
 
     /**
@@ -90,8 +89,8 @@ public class CoverageSummaryTest extends UiTest {
      * @param unstableThreshold
      *         of project
      */
-    public static void verifyFailMessage(Build build, float unhealthyThreshold,
-            float unstableThreshold) {
+    public static void verifyFailMessage(final Build build, final float unhealthyThreshold,
+            final float unstableThreshold) {
         build.open();
         CoverageSummary cs = new CoverageSummary(build, "coverage");
         String failMsg = cs.getFailMsg();
@@ -108,7 +107,6 @@ public class CoverageSummaryTest extends UiTest {
         Build build = buildWithErrors(job);
         WebDriver open = build.open();
         assertThat(CoverageSummary.isSummaryDisplayed(open, "coverage")).isFalse();
-
     }
 
     /**

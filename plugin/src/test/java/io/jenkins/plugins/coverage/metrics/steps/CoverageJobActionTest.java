@@ -24,7 +24,6 @@ import static org.mockito.Mockito.*;
  * @author Ullrich Hafner
  */
 class CoverageJobActionTest {
-
     private static final String URL = "coverage";
 
     @Test

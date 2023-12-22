@@ -129,7 +129,6 @@ class CodeDeltaCalculator {
                 .filter(change -> reportPaths.contains(pathMapping.get(change.getFileName())))
                 .collect(Collectors.toMap(
                         fileChange -> pathMapping.get(fileChange.getFileName()), Function.identity()));
-
     }
 
     /**

@@ -116,7 +116,6 @@ class CoverageChecksPublisher {
         var baseline = selectBaseline();
         return action.getValueForMetric(baseline, metric)
                 .map(value -> formatValue(baseline, metric, value));
-
     }
 
     private Baseline selectBaseline() {
@@ -335,7 +334,6 @@ class CoverageChecksPublisher {
     private String createBranchMessage(final int line, final int missed) {
         if (missed == 1) {
             return String.format("Line %d is only partially covered, one branch is missing", line);
-
         }
         return String.format("Line %d is only partially covered, %d branches are missing", line, missed);
     }

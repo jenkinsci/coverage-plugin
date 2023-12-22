@@ -55,7 +55,7 @@ public class FileCoverageTable {
      *
      * @return the table row
      */
-    protected FileCoverageTableRow createRow(WebElement row) {
+    protected FileCoverageTableRow createRow(final WebElement row) {
         return new FileCoverageTableRow(row, this);
     }
 
@@ -69,7 +69,7 @@ public class FileCoverageTable {
      * @return the row
      * @see #createRow(WebElement)
      */
-    public FileCoverageTableRow getRow(int rowIndex) {
+    public FileCoverageTableRow getRow(final int rowIndex) {
         return getTableRows().get(rowIndex);
     }
 
@@ -115,7 +115,7 @@ public class FileCoverageTable {
      * @param pageNumber
      *         the number representing the page to open
      */
-    public void openTablePage(int pageNumber) {
+    public void openTablePage(final int pageNumber) {
         WebElement webElement = coverageReport.find(
                 By.xpath("//a[@class='page-link' and @data-dt-idx='" + (pageNumber - 1) + "']"));
         webElement.click();
@@ -151,7 +151,7 @@ public class FileCoverageTable {
 
         private final String title;
 
-        Header(String property) {
+        Header(final String property) {
             title = property;
         }
 
@@ -159,5 +159,4 @@ public class FileCoverageTable {
             return title;
         }
     }
-
 }

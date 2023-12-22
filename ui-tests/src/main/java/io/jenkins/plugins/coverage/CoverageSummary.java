@@ -3,6 +3,7 @@ package io.jenkins.plugins.coverage;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.openqa.selenium.By;
 import org.openqa.selenium.NoSuchElementException;
@@ -17,7 +18,6 @@ import org.jenkinsci.test.acceptance.po.PageObject;
  */
 public class CoverageSummary extends PageObject {
     private final WebElement coverageReportLink;
-    private final WebElement summary;
     private final WebElement referenceBuild;
     private final List<WebElement> coverage;
     private final WebElement failMsg;
@@ -31,16 +31,15 @@ public class CoverageSummary extends PageObject {
      * @param id
      *         the type of the result page (e.g. simian, checkstyle, cpd, etc.)
      */
-    public CoverageSummary(Build parent, String id) {
+    public CoverageSummary(final Build parent, final String id) {
         super(parent, parent.url(id));
 
-        this.summary = getElement(By.id(id + "-summary"));
+        var summary = getElement(By.id(id + "-summary"));
         this.coverageReportLink = getElement(By.id("coverage-hrefCoverageReport"));
         this.referenceBuild = getElement(By.id("coverage-reference"));
-        this.coverage = this.summary.findElements(by.id("project-coverage"));
+        this.coverage = summary.findElements(by.id("project-coverage"));
         this.failMsg = getElement(By.id("coverage-fail-msg"));
-        this.coverageChanges = this.summary.findElements(by.id("project-coverage-delta"));
-
+        this.coverageChanges = summary.findElements(by.id("project-coverage-delta"));
     }
 
     public WebElement getCoverageReportLink() {
@@ -61,15 +60,15 @@ public class CoverageSummary extends PageObject {
      *
      * @return Hashmap with coverage and value
      */
-    public HashMap<String, Double> getCoverage() {
-        HashMap<String, Double> coverage = new HashMap<>();
+    public Map<String, Double> getCoverage() {
+        Map<String, Double> coverageMapping = new HashMap<>();
         for (WebElement result : this.coverage) {
             String message = result.getText();
-            String type = message.substring(0, message.indexOf(":")).trim();
-            double value = Double.parseDouble(message.substring(message.indexOf(":") + 1, message.indexOf("%")).trim());
-            coverage.put(type, value);
+            String type = message.substring(0, message.indexOf(':')).trim();
+            double value = Double.parseDouble(message.substring(message.indexOf(':') + 1, message.indexOf('%')).trim());
+            coverageMapping.put(type, value);
         }
-        return coverage;
+        return coverageMapping;
     }
 
     /**
@@ -81,7 +80,7 @@ public class CoverageSummary extends PageObject {
         List<Double> changes = new ArrayList<>();
         for (WebElement result : this.coverageChanges) {
             String message = result.getText();
-            double value = Double.parseDouble(message.substring(1, message.indexOf("%")).trim());
+            double value = Double.parseDouble(message.substring(1, message.indexOf('%')).trim());
             changes.add(value);
         }
         return changes;
@@ -115,14 +114,24 @@ public class CoverageSummary extends PageObject {
         return openPage(a, CoverageReport.class);
     }
 
-    private <T extends PageObject> T openPage(WebElement link, Class<T> type) {
+    private <T extends PageObject> T openPage(final WebElement link, final Class<T> type) {
         String href = link.getAttribute("href");
         T result = newInstance(type, url(href));
         link.click();
         return result;
     }
 
-    public static boolean isSummaryDisplayed(WebDriver pageObject, String elementId) {
+    /**
+     * Returns whether the summary is displayed or not.
+     *
+     * @param pageObject
+     *         the page object that shows the build
+     * @param elementId
+     *         the id of the summary element
+     *
+     * @return {@code true} if the summary is displayed, {@code false} otherwise
+     */
+    public static boolean isSummaryDisplayed(final WebDriver pageObject, final String elementId) {
         try {
             WebElement summary = pageObject.findElement(By.id(elementId));
             return summary != null && summary.isDisplayed();
@@ -131,5 +140,4 @@ public class CoverageSummary extends PageObject {
             return false;
         }
     }
-
 }

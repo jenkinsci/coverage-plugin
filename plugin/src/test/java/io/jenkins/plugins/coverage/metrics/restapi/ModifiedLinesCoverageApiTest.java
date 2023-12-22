@@ -18,7 +18,6 @@ import static org.assertj.core.api.Assertions.*;
  */
 
 class ModifiedLinesCoverageApiTest extends AbstractModifiedFilesCoverageTest {
-
     /**
      * Test to assert that all modified lines and their respective coverage types are correctly extracted from the
      * coverage tree created by the {@link #createCoverageTree()} method.
@@ -36,7 +35,6 @@ class ModifiedLinesCoverageApiTest extends AbstractModifiedFilesCoverageTest {
         var expectedFileWithChangedLines = new FileWithModifiedLines("test/example/Test1.java", expectedLineBlocks);
 
         assertThat(filesWithChangedLines).containsExactly(expectedFileWithChangedLines);
-
     }
 
     @Test
@@ -90,5 +88,4 @@ class ModifiedLinesCoverageApiTest extends AbstractModifiedFilesCoverageTest {
         }
         return modifiedLinesBlocks;
     }
-
 }

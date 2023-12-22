@@ -10,7 +10,6 @@ import io.jenkins.plugins.coverage.metrics.color.ColorProvider.DisplayColors;
  * @author Florian Orendi
  */
 public enum CoverageLevel {
-
     LVL_95(95.0, ColorId.EXCELLENT),
     LVL_90(90.0, ColorId.VERY_GOOD),
     LVL_80(85.0, ColorId.GOOD),

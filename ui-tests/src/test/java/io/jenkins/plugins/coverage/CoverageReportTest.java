@@ -19,7 +19,6 @@ import static org.assertj.core.api.Assertions.*;
  * static test-methods which can also be used other classes, especially used {@link SmokeTests}.
  */
 public class CoverageReportTest extends UiTest {
-
     /**
      * Test for CoverageReport of job with no reports does not exist. Verifies CoverageReport can't be opened.
      */
@@ -75,7 +74,6 @@ public class CoverageReportTest extends UiTest {
      */
     @Test
     public void testCoverageReportAfterOneBuildWithReport() {
-
         Build secondBuild = buildSuccessfully(getJobWithReportInConfiguration());
 
         CoverageReport report = new CoverageReport(secondBuild);
@@ -89,7 +87,6 @@ public class CoverageReportTest extends UiTest {
 
         String coverageOverview = report.getCoverageOverview();
         CoverageReportTest.verifyCoverageOverviewAfterOneBuildWithReport(coverageOverview);
-
     }
 
     /**
@@ -98,7 +95,6 @@ public class CoverageReportTest extends UiTest {
      */
     @Test
     public void testCoverageTableWithMultiplePages() {
-
         Build secondBuild = buildSuccessfully(getJobWithReportInConfiguration());
 
         CoverageReport report = new CoverageReport(secondBuild);
@@ -171,7 +167,6 @@ public class CoverageReportTest extends UiTest {
     public static void verifyFileCoverageTableNumberOfMaxEntries(final FileCoverageTable fileCoverageTable,
             final int shouldValue) {
         assertThat(fileCoverageTable.getTotals()).isEqualTo(shouldValue);
-
     }
 
     /**
@@ -298,6 +293,5 @@ public class CoverageReportTest extends UiTest {
                 .contains("[6306, 6023]")
                 .contains("[62, 60]");
     }
-
 }
 

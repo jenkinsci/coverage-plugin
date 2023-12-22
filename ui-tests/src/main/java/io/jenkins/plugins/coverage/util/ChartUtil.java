@@ -102,7 +102,5 @@ public class ChartUtil {
         catch (NoSuchElementException exception) {
             return false;
         }
-
     }
-
 }

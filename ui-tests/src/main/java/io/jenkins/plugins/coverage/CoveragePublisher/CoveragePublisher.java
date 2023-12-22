@@ -16,7 +16,6 @@ import io.jenkins.plugins.coverage.CoveragePublisher.Threshold.GlobalThreshold.G
  */
 @Describable("Publish Coverage Report")
 public class CoveragePublisher extends AbstractStep implements PostBuildStep {
-
     private final Control adapter = control("hetero-list-add[adapters]");
     private final Control advancedOptions = control("advanced-button");
     private final Control applyThresholdRecursively = control("applyThresholdRecursively");

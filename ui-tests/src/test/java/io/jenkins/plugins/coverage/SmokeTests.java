@@ -13,7 +13,6 @@ import org.jenkinsci.test.acceptance.po.FreeStyleJob;
  * Smoke Test to test the most used features of coverage plugin.
  */
 public class SmokeTests extends UiTest {
-
     /**
      * Creates two successful builds. Tests the reference values in summary, coverage report and main panel.
      */

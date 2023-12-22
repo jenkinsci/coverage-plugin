@@ -14,7 +14,6 @@ import static org.assertj.core.api.Assertions.*;
  * @author Florian Orendi
  */
 class CoverageChangeLevelTest {
-
     private static final ColorProvider COLOR_PROVIDER = ColorProviderFactory.createDefaultColorProvider();
 
     @Test

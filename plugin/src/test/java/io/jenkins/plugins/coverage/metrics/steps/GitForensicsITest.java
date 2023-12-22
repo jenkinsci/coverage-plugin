@@ -134,7 +134,6 @@ class GitForensicsITest extends AbstractCoverageITest {
         else {
             assertThat(getConsoleLog(build)).contains(String.format(
                     "≪Unstable≫ - (Actual value: %.2f%%, Quality gate: %.2f)", value, threshold));
-
         }
     }
 

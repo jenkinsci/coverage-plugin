@@ -10,7 +10,6 @@ import io.jenkins.plugins.coverage.metrics.color.ColorProvider.DisplayColors;
  * @author Florian Orendi
  */
 public enum CoverageChangeTendency {
-
     INCREASED(ColorId.EXCELLENT),
     EQUALS(ColorId.AVERAGE),
     DECREASED(ColorId.INSUFFICIENT),

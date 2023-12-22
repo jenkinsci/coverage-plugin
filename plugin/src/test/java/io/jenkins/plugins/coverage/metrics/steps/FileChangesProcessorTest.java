@@ -18,7 +18,6 @@ import static org.assertj.core.api.Assertions.*;
  * @author Florian Orendi
  */
 class FileChangesProcessorTest extends AbstractModifiedFilesCoverageTest {
-
     @Test
     void shouldAttachChangedCodeLines() {
         var tree = createCoverageTree();

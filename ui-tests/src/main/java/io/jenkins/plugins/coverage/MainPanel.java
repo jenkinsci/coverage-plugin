@@ -20,7 +20,7 @@ public class MainPanel extends PageObject {
      * @param parent
      *         job of wanted MainPanel.
      */
-    public MainPanel(Job parent) {
+    public MainPanel(final Job parent) {
         super(parent, parent.url);
     }
 
@@ -51,5 +51,4 @@ public class MainPanel extends PageObject {
                 CoreMatchers.anyOf(CoreMatchers.containsString(this.url.toString()),
                         CoreMatchers.containsString(this.url + "/")));
     }
-
 }

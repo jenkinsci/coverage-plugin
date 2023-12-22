@@ -96,6 +96,5 @@ class CoverageSourcePrinterTest extends AbstractCoverageTest {
                 .extractingText().containsExactly(StringUtils.EMPTY);
         XmlAssert.assertThat(skippedLine).nodesByXPath("/tr/td[3]")
                 .extractingText().containsExactly("package io.jenkins.plugins.coverage.metrics.source;");
-
     }
 }
