@@ -31,6 +31,7 @@
     <!-- Jenkins Plug-in Dependencies Versions -->
     <git-forensics.version>2.0.0</git-forensics.version>
     <prism-api.version>1.29.0-8</prism-api.version>
+    <plugin-util-api.version>3.9.0-rc847.81820ecdfde2</plugin-util-api.version>
 
     <!-- Test Library Dependencies Versions -->
     <xmlunit.version>2.9.1</xmlunit.version>
@@ -149,7 +150,7 @@
     <dependency>
       <groupId>io.jenkins.plugins</groupId>
       <artifactId>plugin-util-api</artifactId>
-      <version>3.9.0-rc842.1b_8b_0d4e2a_69</version>
+      <version>${plugin-util-api.version}</version>
     </dependency>
     <dependency>
       <groupId>io.jenkins.plugins</groupId>

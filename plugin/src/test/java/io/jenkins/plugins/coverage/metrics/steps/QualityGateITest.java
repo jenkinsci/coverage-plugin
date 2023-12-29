@@ -53,7 +53,7 @@ class QualityGateITest extends AbstractCoverageITest {
         assertThat(coverageResult.getLog().getInfoMessages()).contains("Evaluating quality gates",
                 "-> All quality gates have been passed",
                 "-> Details for each quality gate:",
-                "-> [Overall project (difference to reference job) - Line Coverage]: ≪Not built≫ - (Actual value: n/a, Quality gate: -100.00)");
+                "   - [Overall project (difference to reference job) - Line Coverage]: ≪Not built≫ - (Actual value: n/a, Quality gate: -100.00)");
     }
 
     @Test
@@ -68,7 +68,7 @@ class QualityGateITest extends AbstractCoverageITest {
         assertThat(coverageResult.getLog().getInfoMessages()).contains("Evaluating quality gates",
                 "-> All quality gates have been passed",
                 "-> Details for each quality gate:",
-                "-> [Overall project - Line Coverage]: ≪Success≫ - (Actual value: 95.39%, Quality gate: -100.00)");
+                "   - [Overall project - Line Coverage]: ≪Success≫ - (Actual value: 95.39%, Quality gate: -100.00)");
     }
 
     @Test
@@ -83,7 +83,7 @@ class QualityGateITest extends AbstractCoverageITest {
         assertThat(coverageResult.getLog().getInfoMessages()).contains("Evaluating quality gates",
                 "-> Some quality gates have been missed: overall result is UNSTABLE",
                 "-> Details for each quality gate:",
-                "-> [Overall project - Line Coverage]: ≪Unstable≫ - (Actual value: 95.39%, Quality gate: 100.00)");
+                "   - [Overall project - Line Coverage]: ≪Unstable≫ - (Actual value: 95.39%, Quality gate: 100.00)");
     }
 
     @Test
@@ -98,7 +98,7 @@ class QualityGateITest extends AbstractCoverageITest {
         assertThat(coverageResult.getLog().getInfoMessages()).contains("Evaluating quality gates",
                 "-> Some quality gates have been missed: overall result is FAILURE",
                 "-> Details for each quality gate:",
-                "-> [Overall project - Line Coverage]: ≪Failed≫ - (Actual value: 95.39%, Quality gate: 100.00)");
+                "   - [Overall project - Line Coverage]: ≪Failed≫ - (Actual value: 95.39%, Quality gate: 100.00)");
     }
 
     @Test
@@ -120,8 +120,8 @@ class QualityGateITest extends AbstractCoverageITest {
         assertThat(coverageResult.getLog().getInfoMessages()).contains("Evaluating quality gates",
                 "-> Some quality gates have been missed: overall result is UNSTABLE",
                 "-> Details for each quality gate:",
-                "-> [Overall project - Line Coverage]: ≪Success≫ - (Actual value: 95.39%, Quality gate: 90.00)",
-                "-> [Overall project - Branch Coverage]: ≪Unstable≫ - (Actual value: 88.28%, Quality gate: 90.00)");
+                "   - [Overall project - Line Coverage]: ≪Success≫ - (Actual value: 95.39%, Quality gate: 90.00)",
+                "   - [Overall project - Branch Coverage]: ≪Unstable≫ - (Actual value: 88.28%, Quality gate: 90.00)");
 
         assertThatFlowNodeHasWarningAction(build);
     }
@@ -145,8 +145,8 @@ class QualityGateITest extends AbstractCoverageITest {
         assertThat(coverageResult.getLog().getInfoMessages()).contains("Evaluating quality gates",
                 "-> Some quality gates have been missed: overall result is UNSTABLE",
                 "-> Details for each quality gate:",
-                "-> [Overall project - Line Coverage]: ≪Success≫ - (Actual value: 95.39%, Quality gate: 90.00)",
-                "-> [Overall project - Branch Coverage]: ≪Unstable≫ - (Actual value: 88.28%, Quality gate: 90.00)");
+                "   - [Overall project - Line Coverage]: ≪Success≫ - (Actual value: 95.39%, Quality gate: 90.00)",
+                "   - [Overall project - Branch Coverage]: ≪Unstable≫ - (Actual value: 88.28%, Quality gate: 90.00)");
 
         assertThatFlowNodeHasWarningAction(build);
     }

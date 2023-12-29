@@ -362,7 +362,7 @@ public class CoverageStep extends Step implements Serializable {
             recorder.setSourceDirectories(List.copyOf(step.getSourceDirectories()));
             recorder.setSourceCodeRetention(step.getSourceCodeRetention());
 
-            recorder.perform(getRun(), getWorkspace(), getTaskListener(), createQualityGateNotifier());
+            recorder.perform(getRun(), getWorkspace(), getTaskListener(), createResultHandler());
 
             return UNUSED;
         }
