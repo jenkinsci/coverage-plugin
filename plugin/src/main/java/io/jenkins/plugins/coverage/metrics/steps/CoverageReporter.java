@@ -25,8 +25,8 @@ import io.jenkins.plugins.forensics.delta.Delta;
 import io.jenkins.plugins.forensics.delta.FileChanges;
 import io.jenkins.plugins.forensics.reference.ReferenceFinder;
 import io.jenkins.plugins.prism.SourceCodeRetention;
+import io.jenkins.plugins.util.QualityGateNotifier;
 import io.jenkins.plugins.util.QualityGateResult;
-import io.jenkins.plugins.util.StageResultHandler;
 
 /**
  * Transforms the old model to the new model and invokes all steps that work on the new model. Currently, only the
@@ -44,7 +44,7 @@ public class CoverageReporter {
             final Node rootNode,
             final Run<?, ?> build, final FilePath workspace, final TaskListener listener,
             final List<CoverageQualityGate> qualityGates, final String scm, final String sourceCodeEncoding,
-            final SourceCodeRetention sourceCodeRetention, final StageResultHandler resultHandler,
+            final SourceCodeRetention sourceCodeRetention, final QualityGateNotifier notifier,
             final FilteredLog log)
             throws InterruptedException {
         Optional<CoverageBuildAction> possibleReferenceResult = getReferenceBuildAction(build, id, log);
@@ -52,7 +52,7 @@ public class CoverageReporter {
         CoverageBuildAction action;
         if (possibleReferenceResult.isPresent()) {
             action = computeCoverageBasedOnReferenceBuild(id, optionalName, icon, rootNode, build, workspace,
-                    qualityGates, sourceCodeEncoding, sourceCodeRetention, resultHandler, possibleReferenceResult.get(),
+                    qualityGates, sourceCodeEncoding, sourceCodeRetention, notifier, possibleReferenceResult.get(),
                     scm,
                     listener,
                     log);
@@ -60,7 +60,7 @@ public class CoverageReporter {
         else {
             action = computeActionWithoutHistory(id, optionalName, icon, rootNode, build, workspace, qualityGates,
                     sourceCodeEncoding,
-                    sourceCodeRetention, resultHandler, log);
+                    sourceCodeRetention, notifier, log);
         }
 
         build.addAction(action);
@@ -72,12 +72,12 @@ public class CoverageReporter {
             final String id, final String optionalName, final String icon,
             final Node rootNode, final Run<?, ?> build, final FilePath workspace,
             final List<CoverageQualityGate> qualityGates, final String sourceCodeEncoding,
-            final SourceCodeRetention sourceCodeRetention, final StageResultHandler resultHandler,
+            final SourceCodeRetention sourceCodeRetention, final QualityGateNotifier notifier,
             final FilteredLog log) throws InterruptedException {
         var statistics = new CoverageStatistics(rootNode.aggregateValues(),
                 EMPTY_DELTA, EMPTY_VALUES, EMPTY_DELTA, EMPTY_VALUES, EMPTY_DELTA);
         QualityGateResult qualityGateStatus = evaluateQualityGates(qualityGates,
-                statistics, resultHandler, log);
+                statistics, notifier, log);
 
         paintSourceFiles(build, workspace, sourceCodeEncoding, sourceCodeRetention, id, rootNode,
                 rootNode.getAllFileNodes(), log);
@@ -90,7 +90,7 @@ public class CoverageReporter {
             final String id, final String optionalName, final String icon,
             final Node rootNode, final Run<?, ?> build, final FilePath workspace,
             final List<CoverageQualityGate> qualityGates, final String sourceCodeEncoding,
-            final SourceCodeRetention sourceCodeRetention, final StageResultHandler resultHandler,
+            final SourceCodeRetention sourceCodeRetention, final QualityGateNotifier notifier,
             final CoverageBuildAction referenceAction, final String scm,
             final TaskListener listener, final FilteredLog log) throws InterruptedException {
         log.logInfo("Calculating the code delta...");
@@ -131,7 +131,7 @@ public class CoverageReporter {
 
         var statistics = new CoverageStatistics(overallValues, overallDelta,
                 modifiedLinesValues, modifiedLinesDelta, modifiedFilesValues, modifiedFilesDelta);
-        QualityGateResult qualityGateResult = evaluateQualityGates(qualityGates, statistics, resultHandler, log);
+        QualityGateResult qualityGateResult = evaluateQualityGates(qualityGates, statistics, notifier, log);
 
         var filesToStore = computePaintedFiles(rootNode, sourceCodeRetention, log, modifiedLinesCoverageRoot);
         paintSourceFiles(build, workspace, sourceCodeEncoding, sourceCodeRetention, id, rootNode, filesToStore, log);
@@ -196,7 +196,7 @@ public class CoverageReporter {
     }
 
     private QualityGateResult evaluateQualityGates(final List<CoverageQualityGate> qualityGates,
-            final CoverageStatistics statistics, final StageResultHandler resultHandler, final FilteredLog log) {
+            final CoverageStatistics statistics, final QualityGateNotifier notifier, final FilteredLog log) {
         CoverageQualityGateEvaluator evaluator = new CoverageQualityGateEvaluator(qualityGates, statistics);
         var qualityGateStatus = evaluator.evaluate();
         if (qualityGateStatus.isInactive() && qualityGates.isEmpty()) {
@@ -211,7 +211,7 @@ public class CoverageReporter {
                 var message = String.format("-> Some quality gates have been missed: overall result is %s",
                         qualityGateStatus.getOverallStatus().getResult());
                 log.logInfo(message);
-                resultHandler.setResult(qualityGateStatus.getOverallStatus().getResult(), message);
+                notifier.publishResult(qualityGateStatus.getOverallStatus(), message);
             }
             log.logInfo("-> Details for each quality gate:");
             qualityGateStatus.getMessages().forEach(log::logInfo);

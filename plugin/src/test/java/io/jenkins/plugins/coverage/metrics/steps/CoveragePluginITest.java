@@ -323,8 +323,7 @@ class CoveragePluginITest extends AbstractCoverageITest {
                 "-> extracting...",
                 "-> done",
                 "Finished coverage processing - adding the action to the build...");
-        assertThat(log.getErrorMessages()).contains("Errors while recording code coverage:",
-                "Errors during source path resolving:",
+        assertThat(log.getErrorMessages()).contains(
                 "Errors while resolving source files on agent:",
                 "Removing non-workspace source directory '/Users/leobalter/dev/testing/solutions/3' - it has not been approved in Jenkins' global configuration.",
                 "- Source file 'edu/hm/hafner/analysis/parser/PerlCriticParser.java' not found",
@@ -346,8 +345,6 @@ class CoveragePluginITest extends AbstractCoverageITest {
                 "- Source file 'edu/hm/hafner/analysis/registry/ProtoLintDescriptor.java' not found",
                 "- Source file 'edu/hm/hafner/analysis/registry/GoLintDescriptor.java' not found",
                 "- Source file 'edu/hm/hafner/analysis/ModuleResolver.java' not found",
-                "  ... skipped logging of 289 additional errors ...",
-                "  ... skipped logging of 289 additional errors ...",
                 "  ... skipped logging of 289 additional errors ...");
     }
 

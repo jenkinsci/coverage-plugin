@@ -271,6 +271,20 @@ class CoverageQualityGateEvaluatorTest extends AbstractCoverageTest {
     }
 
     @Test
+    void shouldOverwriteStageStatus() {
+        Collection<CoverageQualityGate> qualityGates = new ArrayList<>();
+
+        qualityGates.add(new CoverageQualityGate(76.0, Metric.FILE, Baseline.PROJECT, QualityGateCriticality.NOTE));
+        qualityGates.add(new CoverageQualityGate(51.0, Metric.LINE, Baseline.PROJECT, QualityGateCriticality.UNSTABLE));
+
+        CoverageQualityGateEvaluator evaluator = new CoverageQualityGateEvaluator(qualityGates, createStatistics());
+        QualityGateResult result = evaluator.evaluate();
+        assertThat(result).hasOverallStatus(QualityGateStatus.WARNING).isNotSuccessful().hasMessages(
+                "-> [Overall project - File Coverage]: ≪Unstable≫ - (Actual value: 75.00%, Quality gate: 76.00)",
+                "-> [Overall project - Line Coverage]: ≪Unstable≫ - (Actual value: 50.00%, Quality gate: 51.00)");
+    }
+
+    @Test
     void shouldAddAllQualityGates() {
         Collection<CoverageQualityGate> qualityGates = List.of(
                 new CoverageQualityGate(76.0, Metric.FILE, Baseline.PROJECT, QualityGateCriticality.UNSTABLE),

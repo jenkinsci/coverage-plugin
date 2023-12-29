@@ -502,7 +502,9 @@ class CoverageChecksPublisher {
             case PASSED:
                 return ChecksConclusion.SUCCESS;
             case FAILED:
+            case ERROR:
             case WARNING:
+            case NOTE:
                 return ChecksConclusion.FAILURE;
             default:
                 throw new IllegalArgumentException("Unsupported quality gate status: " + status);
