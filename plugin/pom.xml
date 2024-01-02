@@ -31,7 +31,7 @@
     <!-- Jenkins Plug-in Dependencies Versions -->
     <git-forensics.version>2.0.0</git-forensics.version>
     <prism-api.version>1.29.0-8</prism-api.version>
-    <plugin-util-api.version>3.9.0-rc849.401125b_7782e</plugin-util-api.version>
+    <plugin-util-api.version>3.9.0-rc851.d8f87eccd5b_e</plugin-util-api.version>
 
     <!-- Test Library Dependencies Versions -->
     <xmlunit.version>2.9.1</xmlunit.version>
