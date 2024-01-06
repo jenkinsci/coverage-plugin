@@ -56,7 +56,8 @@ class CoverageApiITest extends AbstractCoverageITest {
 
     @Test
     void shouldShowQualityGatesInRemoteApi() {
-        var qualityGate = new CoverageQualityGate(100, Metric.LINE);
+        var qualityGate = new CoverageQualityGate(Metric.LINE);
+        qualityGate.setThreshold(100);
         qualityGate.setBaseline(Baseline.PROJECT);
         qualityGate.setCriticality(QualityGateCriticality.UNSTABLE);
         var qualityGates = List.of(qualityGate);
@@ -83,7 +84,7 @@ class CoverageApiITest extends AbstractCoverageITest {
                 JACOCO_ANALYSIS_MODEL_FILE, JACOCO_CODING_STYLE_FILE);
 
         buildSuccessfully(project);
-        // update parser pattern to pick only the coding style results
+        // update the parser pattern to pick only the coding style results
         project.getPublishersList().get(CoverageRecorder.class).getTools().get(0).setPattern(JACOCO_CODING_STYLE_FILE);
         Run<?, ?> secondBuild = buildSuccessfully(project);
 
