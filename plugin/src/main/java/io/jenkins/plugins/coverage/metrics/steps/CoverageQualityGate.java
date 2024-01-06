@@ -33,21 +33,23 @@ public class CoverageQualityGate extends QualityGate {
     /**
      * Creates a new instance of {@link CoverageQualityGate}.
      *
-     * @param threshold
-     *         minimum or maximum value that triggers this quality gate
      * @param metric
      *         the metric to compare
      */
     @DataBoundConstructor
-    public CoverageQualityGate(final double threshold, final Metric metric) {
-        super(threshold);
+    public CoverageQualityGate(final Metric metric) {
+        this(metric, 0.0);
+    }
+
+    CoverageQualityGate(final Metric metric, final double threshold) {
+        setThreshold(threshold);
 
         this.metric = metric;
     }
 
     CoverageQualityGate(final double threshold, final Metric metric,
             final Baseline baseline, final QualityGateCriticality criticality) {
-        this(threshold, metric);
+        this(metric, threshold);
 
         setBaseline(baseline);
         setCriticality(criticality);
