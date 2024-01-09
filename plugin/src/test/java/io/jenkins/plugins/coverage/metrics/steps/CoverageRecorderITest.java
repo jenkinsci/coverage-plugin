@@ -1,7 +1,7 @@
 package io.jenkins.plugins.coverage.metrics.steps;
 
 import org.junit.jupiter.api.Test;
-import org.jvnet.hudson.test.Issue;
+import org.junitpioneer.jupiter.Issue;
 
 import org.jenkinsci.plugins.workflow.cps.CpsFlowDefinition;
 import org.jenkinsci.plugins.workflow.job.WorkflowJob;

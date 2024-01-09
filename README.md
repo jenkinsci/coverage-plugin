@@ -25,6 +25,14 @@ From there you can also dive into the details:
 
 The initial version of this plugin has been developed by Shenyu Zheng in [GSoC 2018](https://jenkins.io/projects/gsoc/2018/code-coverage-api-plugin/). After several incompatible improvements of the pipeline steps and API classes, we decided to move the whole source code to a clean and new plugin. The old plugin containing the deprecated steps and code is still available at [GitHub](https://github.com/jenkinsci/code-coverage-api-plugin) and [Jenkins](https://plugins.jenkins.io/code-coverage-api/).
 
+This code of this plugin is also available as a standalone GitHub or GitLab action that runs without Jenkins now:
+- [Quality Monitor GitHub Action](https://github.com/uhafner/quality-monitor): action that monitors the quality of projects based on a configurable set of metrics and gives feedback on pull requests (or single commits) in GitHub.
+- [GitHub Autograding action](https://github.com/uhafner/autograding-github-action): action that automatically grades student software projects based on a configurable set of metrics and gives feedback on pull requests (or single commits) in GitHub.
+- [GitLab Autograding action](https://github.com/uhafner/autograding-gitlab-action): action that automatically grades student software projects based on a configurable set of metrics and gives feedback on merge requests (or single commits) in GitLab.
+
+![Quality Monitor GitHub Action](images/quality-monitor.png)
+
+
 ## Features
 
 The code coverage plug-in provides the following features when added as a post-build action (or step) to a job:
