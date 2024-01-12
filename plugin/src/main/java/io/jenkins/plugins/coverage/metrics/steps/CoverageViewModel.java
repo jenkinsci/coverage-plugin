@@ -81,7 +81,7 @@ public class CoverageViewModel extends DefaultAsyncTableContentProvider implemen
             Metric.LINE, Metric.BRANCH, Metric.MUTATION, Metric.COMPLEXITY, Metric.TESTS);
     private static final String UNDEFINED = "-";
     private final Run<?, ?> owner;
-    private final String optionalName;
+    private final String displayName;
     private final CoverageStatistics statistics;
     private final QualityGateResult qualityGateResult;
     private final String referenceBuild;
@@ -96,7 +96,7 @@ public class CoverageViewModel extends DefaultAsyncTableContentProvider implemen
     private ColorProvider colorProvider = ColorProviderFactory.createDefaultColorProvider();
 
     @SuppressWarnings("checkstyle:ParameterNumber")
-    CoverageViewModel(final Run<?, ?> owner, final String id, final String optionalName, final Node node,
+    CoverageViewModel(final Run<?, ?> owner, final String id, final String displayName, final Node node,
             final CoverageStatistics statistics, final QualityGateResult qualityGateResult,
             final String referenceBuild, final FilteredLog log, final Function<String, String> trendChartFunction) {
         super();
@@ -104,7 +104,7 @@ public class CoverageViewModel extends DefaultAsyncTableContentProvider implemen
         this.owner = owner;
 
         this.id = id;
-        this.optionalName = optionalName;
+        this.displayName = displayName;
 
         this.node = node;
         this.statistics = statistics;
@@ -144,6 +144,7 @@ public class CoverageViewModel extends DefaultAsyncTableContentProvider implemen
      *
      * @return the value metrics
      */
+    @SuppressWarnings("unused")
     public NavigableSet<Metric> getTreeMetrics() {
         var valueMetrics = node.getValueMetrics();
         valueMetrics.retainAll(TREE_METRICS);
@@ -152,16 +153,10 @@ public class CoverageViewModel extends DefaultAsyncTableContentProvider implemen
 
     @Override
     public String getDisplayName() {
-        if (StringUtils.isBlank(node.getName()) || UNDEFINED.equals(node.getName())) {
-            if (StringUtils.isBlank(optionalName)) {
-                return Messages.Coverage_Link_Name();
-            }
-            return optionalName;
+        if (StringUtils.isBlank(displayName)) {
+            return Messages.Coverage_Link_Name();
         }
-        if (StringUtils.isBlank(optionalName)) {
-            return Messages.Coverage_Title(node.getName());
-        }
-        return String.format("%s: %s", optionalName, node.getName());
+        return displayName;
     }
 
     /**

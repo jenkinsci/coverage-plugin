@@ -56,8 +56,8 @@ public class CoverageReportScanner extends AgentFileVisitor<ModuleNode> {
     @Override
     protected Optional<ModuleNode> processFile(final Path file, final Charset charset, final FilteredLog log) {
         try {
-            CoverageParser xmlParser = parser.createParser(processingMode);
-            ModuleNode node = xmlParser.parse(Files.newBufferedReader(file, charset), log);
+            CoverageParser coverageParser = parser.createParser(processingMode);
+            ModuleNode node = coverageParser.parse(Files.newBufferedReader(file, charset), log);
             log.logInfo("Successfully parsed file '%s'", PATH_UTIL.getAbsolutePath(file));
             node.aggregateValues().forEach(v -> log.logInfo("%s", v));
             return Optional.of(node);
