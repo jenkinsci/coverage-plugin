@@ -17,6 +17,8 @@ import edu.hm.hafner.coverage.Metric;
 import edu.hm.hafner.coverage.Node;
 import edu.hm.hafner.coverage.TestCount;
 
+import j2html.tags.ContainerTag;
+
 import hudson.Functions;
 
 import io.jenkins.plugins.coverage.metrics.color.ColorProvider;
@@ -379,10 +381,20 @@ class CoverageTableModel extends TableModel {
 
         @Override
         public String renderFileName(final String fileName, final String path) {
+            ContainerTag cell;
             if (SOURCE_CODE_FACADE.canRead(buildFolder, resultsId, path)) {
-                return a().withHref(String.valueOf(path.hashCode())).withText(fileName).render();
+                cell = a().withHref(String.valueOf(path.hashCode())).withText(fileName);
             }
-            return fileName;
+            else {
+                cell = div().withText(fileName);
+            }
+            return renderWithToolTip(cell, path);
+        }
+
+        static String renderWithToolTip(final ContainerTag cell, final String path) {
+            return cell.attr("data-bs-toggle", "tooltip")
+                    .attr("data-bs-placement", "top")
+                    .withTitle(path).render();
         }
     }
 
@@ -397,7 +409,7 @@ class CoverageTableModel extends TableModel {
 
         @Override
         public String renderFileName(final String fileName, final String path) {
-            return fileName;
+            return LinkedRowRenderer.renderWithToolTip(div().withText(fileName), path);
         }
     }
 
