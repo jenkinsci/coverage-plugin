@@ -244,7 +244,7 @@ public class CoverageTool extends AbstractDescribableImpl<CoverageTool> implemen
          * @return the parser
          */
         public CoverageParser createParser(final ProcessingMode processingMode) {
-            return new ParserRegistry().getParser(name(), processingMode);
+            return new ParserRegistry().get(name(), processingMode);
         }
     }
 }
