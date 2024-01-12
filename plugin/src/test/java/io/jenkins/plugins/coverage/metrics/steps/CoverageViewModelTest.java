@@ -14,6 +14,7 @@ import edu.hm.hafner.util.FilteredLog;
 import hudson.model.Run;
 
 import io.jenkins.plugins.coverage.metrics.AbstractCoverageTest;
+import io.jenkins.plugins.coverage.metrics.steps.CoverageTableModel.CoverageRow;
 import io.jenkins.plugins.util.QualityGateResult;
 
 import static io.jenkins.plugins.coverage.metrics.steps.CoverageViewModel.*;
@@ -59,6 +60,13 @@ class CoverageViewModelTest extends AbstractCoverageTest {
         assertThatJson(overview).node("metrics").isArray().containsExactly(expectedMetrics);
         assertThatJson(overview).node("covered").isArray().containsExactlyElementsOf(expectedCovered);
         assertThatJson(overview).node("missed").isArray().containsExactlyElementsOf(expectedMissed);
+
+        assertThat(model.getTableModel(ABSOLUTE_COVERAGE_TABLE_ID).getRows()).anySatisfy(
+                row -> assertThat(row).isInstanceOfSatisfying(CoverageRow.class,
+                        coverageRow -> assertThat(coverageRow.getFileName().getDisplay())
+                                .contains("title=\"edu/hm/hafner/util/",
+                                        "data-bs-toggle=\"tooltip\" data-bs-placement=\"top\""))
+        );
     }
 
     private static void ensureValidPercentages(final List<Double> percentages) {
@@ -92,7 +100,8 @@ class CoverageViewModelTest extends AbstractCoverageTest {
     @Test
     void shouldProvideRightTableModelById() {
         CoverageViewModel model = createModelFromCodingStyleReport();
-        assertThat(model.getTableModel(MODIFIED_LINES_COVERAGE_TABLE_ID)).isInstanceOf(ModifiedLinesCoverageTableModel.class);
+        assertThat(model.getTableModel(MODIFIED_LINES_COVERAGE_TABLE_ID)).isInstanceOf(
+                ModifiedLinesCoverageTableModel.class);
         assertThat(model.getTableModel(INDIRECT_COVERAGE_TABLE_ID)).isInstanceOf(IndirectCoverageChangesTable.class);
         assertThat(model.getTableModel(ABSOLUTE_COVERAGE_TABLE_ID)).isInstanceOf(CoverageTableModel.class);
 
