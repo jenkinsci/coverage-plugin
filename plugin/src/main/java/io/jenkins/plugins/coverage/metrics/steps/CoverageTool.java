@@ -148,7 +148,7 @@ public class CoverageTool extends AbstractDescribableImpl<CoverageTool> implemen
                 ListBoxModel options = new ListBoxModel();
                 add(options, Parser.JACOCO);
                 add(options, Parser.COBERTURA);
-                add(options, Parser.OPEN_COVER);
+                add(options, Parser.OPENCOVER);
                 add(options, Parser.PIT);
                 add(options, Parser.JUNIT);
                 return options;
@@ -208,7 +208,7 @@ public class CoverageTool extends AbstractDescribableImpl<CoverageTool> implemen
                 "symbol-footsteps-outline plugin-ionicons-api"),
         JACOCO(Messages._Parser_JaCoCo(), "**/jacoco.xml",
                 "symbol-footsteps-outline plugin-ionicons-api"),
-        OPEN_COVER(Messages._Parser_JaCoCo(), "**/jacoco.xml",
+        OPENCOVER(Messages._Parser_OpenCover(), "**/*opencover.xml",
                 "symbol-footsteps-outline plugin-ionicons-api"),
         PIT(Messages._Parser_PIT(), "**/mutations.xml",
                 "symbol-solid/virus-slash plugin-font-awesome-api"),

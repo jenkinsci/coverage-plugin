@@ -346,9 +346,23 @@ class CoveragePluginITest extends AbstractCoverageITest {
                 "- Source file 'edu/hm/hafner/analysis/registry/ProtoLintDescriptor.java' not found",
                 "- Source file 'edu/hm/hafner/analysis/registry/GoLintDescriptor.java' not found",
                 "- Source file 'edu/hm/hafner/analysis/ModuleResolver.java' not found",
-                "  ... skipped logging of 289 additional errors ...",
-                "  ... skipped logging of 289 additional errors ...",
                 "  ... skipped logging of 289 additional errors ...");
+    }
+
+    @Test
+    void shouldRecordOneOpenCoverResultInFreestyleJob() {
+        FreeStyleProject project = createFreestyleJob(Parser.OPENCOVER, "opencover.xml");
+
+        Run<?, ?> build = buildSuccessfully(project);
+
+        CoverageBuildAction coverageResult = build.getAction(CoverageBuildAction.class);
+        assertThat(coverageResult.getAllValues(Baseline.PROJECT))
+                .filteredOn(Value::getMetric, Metric.LINE)
+                .first()
+                .isInstanceOfSatisfying(Coverage.class, m -> {
+                    assertThat(m.getCovered()).isEqualTo(9);
+                    assertThat(m.getTotal()).isEqualTo(15);
+                });
     }
 
     @Test
