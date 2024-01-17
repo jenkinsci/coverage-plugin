@@ -369,6 +369,13 @@ class CoveragePluginITest extends AbstractCoverageITest {
                     assertThat(m.getCovered()).isEqualTo(222);
                     assertThat(m.getTotal()).isEqualTo(246);
                 });
+        assertThat(coverageResult.getAllValues(Baseline.PROJECT))
+                .filteredOn(Value::getMetric, Metric.TEST_STRENGTH)
+                .first()
+                .isInstanceOfSatisfying(Coverage.class, m -> {
+                    assertThat(m.getCovered()).isEqualTo(222);
+                    assertThat(m.getTotal()).isEqualTo(230);
+                });
     }
 
     private static CoverageBuilder createLineCoverageBuilder() {
