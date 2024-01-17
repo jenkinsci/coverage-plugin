@@ -136,9 +136,9 @@ public final class ElementFormatter {
 
     /**
      * Formats additional information for a generic value using a specific rendering method. This information can be
-     * added as a tooltip. The type of the given {@link Value} instance is used to select the best matching rendering
-     * method. This non-object-oriented approach is required since the {@link Value} instances are provided by a library
-     * that is not capable of localizing these values for the user.
+     * added as a tooltip. The type of the given {@link Value} instance is used to select the best matching
+     * rendering method. This non-object-oriented approach is required since the {@link Value} instances are
+     * provided by a library that is not capable of localizing these values for the user.
      *
      * @param value
      *         the value to format
@@ -149,7 +149,8 @@ public final class ElementFormatter {
         if (value instanceof Coverage) {
             var coverage = (Coverage) value;
             if (coverage.isSet()) {
-                if (coverage.getMetric() == Metric.MUTATION) {
+                if (coverage.getMetric() == Metric.MUTATION
+                        || coverage.getMetric() == Metric.TEST_STRENGTH) {
                     return formatCoverage(coverage, Messages.Metric_MUTATION_Killed(),
                             Messages.Metric_MUTATION_Survived());
                 }
@@ -158,7 +159,6 @@ public final class ElementFormatter {
                             Messages.Metric_Coverage_Missed());
                 }
             }
-            return StringUtils.EMPTY;
         }
         return StringUtils.EMPTY;
     }
@@ -387,6 +387,8 @@ public final class ElementFormatter {
                 return Messages.Metric_INSTRUCTION();
             case MUTATION:
                 return Messages.Metric_MUTATION();
+            case TEST_STRENGTH:
+                return Messages.Metric_TEST_STRENGTH();
             case COMPLEXITY:
                 return Messages.Metric_COMPLEXITY();
             case COMPLEXITY_MAXIMUM:
@@ -458,6 +460,8 @@ public final class ElementFormatter {
                 return Messages.Metric_Short_INSTRUCTION();
             case MUTATION:
                 return Messages.Metric_Short_MUTATION();
+            case TEST_STRENGTH:
+                return Messages.Metric_Short_TEST_STRENGTH();
             case COMPLEXITY:
                 return Messages.Metric_Short_COMPLEXITY();
             case COMPLEXITY_MAXIMUM:
@@ -518,6 +522,7 @@ public final class ElementFormatter {
         add(options, Metric.BRANCH);
         add(options, Metric.INSTRUCTION);
         add(options, Metric.MUTATION);
+        add(options, Metric.TEST_STRENGTH);
         add(options, Metric.COMPLEXITY);
         add(options, Metric.COMPLEXITY_MAXIMUM);
         add(options, Metric.LOC);

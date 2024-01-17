@@ -78,7 +78,7 @@ public class CoverageViewModel extends DefaultAsyncTableContentProvider implemen
 
     private static final ElementFormatter FORMATTER = new ElementFormatter();
     private static final Set<Metric> TREE_METRICS = Set.of(
-            Metric.LINE, Metric.BRANCH, Metric.MUTATION, Metric.COMPLEXITY, Metric.TESTS);
+            Metric.LINE, Metric.BRANCH, Metric.MUTATION, Metric.TEST_STRENGTH, Metric.COMPLEXITY, Metric.TESTS);
     private static final String UNDEFINED = "-";
     private final Run<?, ?> owner;
     private final String displayName;

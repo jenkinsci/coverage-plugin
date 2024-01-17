@@ -7,6 +7,7 @@
 * **[Overall project (difference to reference job)](http://127.0.0.1:8080/job/pipeline-coding-style/job/5/coverage#overview)**
   * Line Coverage: 93.84% (198/211) - Delta: +50.00%
   * Mutation Coverage: 90.24% (222/246)
+  * Test Strength: 96.52% (222/230)
   * Lines of Code: 211
 * **[Modified files (difference to reference job)](http://127.0.0.1:8080/job/pipeline-coding-style/job/5/coverage#modifiedFilesCoverage)**
   * Line Coverage: 50.00% (1/2) - Delta: +50.00%

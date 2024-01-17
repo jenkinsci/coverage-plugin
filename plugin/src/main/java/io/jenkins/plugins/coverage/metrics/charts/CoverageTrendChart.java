@@ -23,9 +23,6 @@ import io.jenkins.plugins.echarts.JenkinsPalette;
  * @see JacksonFacade
  */
 public class CoverageTrendChart {
-    private static final String LINE_COVERAGE_COLOR = JenkinsPalette.GREEN.normal();
-    private static final String BRANCH_COVERAGE_COLOR = JenkinsPalette.GREEN.dark();
-
     /**
      * Creates the chart for the specified results.
      *
@@ -45,24 +42,28 @@ public class CoverageTrendChart {
         LinesChartModel model = new LinesChartModel(dataSet);
         if (dataSet.isNotEmpty()) {
             LineSeries lineSeries = new LineSeries(Messages.Metric_LINE(),
-                    LINE_COVERAGE_COLOR, StackedMode.SEPARATE_LINES, FilledMode.FILLED,
+                    JenkinsPalette.GREEN.normal(), StackedMode.SEPARATE_LINES, FilledMode.FILLED,
                     dataSet.getSeries(CoverageSeriesBuilder.LINE_COVERAGE));
             model.addSeries(lineSeries);
             model.useContinuousRangeAxis();
             model.setRangeMax(100);
             model.setRangeMin(dataSet.getMinimumValue());
 
-            addSecondSeries(dataSet, model, Messages.Metric_BRANCH(), CoverageSeriesBuilder.BRANCH_COVERAGE);
-            addSecondSeries(dataSet, model, Messages.Metric_MUTATION(), CoverageSeriesBuilder.MUTATION_COVERAGE);
+            addSeries(dataSet, model, Messages.Metric_BRANCH(), CoverageSeriesBuilder.BRANCH_COVERAGE,
+                    JenkinsPalette.GREEN.dark());
+            addSeries(dataSet, model, Messages.Metric_MUTATION(), CoverageSeriesBuilder.MUTATION_COVERAGE,
+                    JenkinsPalette.GREEN.dark());
+            addSeries(dataSet, model, Messages.Metric_TEST_STRENGTH(), CoverageSeriesBuilder.TEST_STRENGTH,
+                    JenkinsPalette.GREEN.light());
         }
         return model;
     }
 
-    private static void addSecondSeries(final LinesDataSet dataSet, final LinesChartModel model,
-            final String name, final String seriesId) {
+    private static void addSeries(final LinesDataSet dataSet, final LinesChartModel model,
+            final String name, final String seriesId, final String color) {
         if (dataSet.containsSeries(seriesId)) {
             LineSeries branchSeries = new LineSeries(name,
-                    BRANCH_COVERAGE_COLOR, StackedMode.SEPARATE_LINES, FilledMode.FILLED,
+                    color, StackedMode.SEPARATE_LINES, FilledMode.FILLED,
                     dataSet.getSeries(seriesId));
 
             model.addSeries(branchSeries);
