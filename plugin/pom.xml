@@ -364,6 +364,11 @@
         </dependencies>
       </plugin>
       <plugin>
+        <groupId>com.arcmutate</groupId>
+        <artifactId>pitest-git-maven-plugin</artifactId>
+        <version>1.0.12</version>
+      </plugin>
+      <plugin>
         <groupId>org.revapi</groupId>
         <artifactId>revapi-maven-plugin</artifactId>
         <configuration>
