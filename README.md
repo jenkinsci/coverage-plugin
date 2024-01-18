@@ -11,6 +11,7 @@ The Jenkins Coverage Plug-in collects reports of code coverage or mutation cover
 
 - [JaCoCo](https://www.jacoco.org/jacoco): Code Coverage
 - [Cobertura](https://cobertura.github.io/cobertura/): Code Coverage
+- [OpenCover](https://github.com/OpenCover/opencover): Code Coverage
 - [PIT](https://pitest.org/): Mutation Coverage
 - [JUnit](https://ant.apache.org/manual/Tasks/junitreport.html): Test Results
 

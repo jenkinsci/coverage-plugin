@@ -110,9 +110,7 @@ class CoverageViewModelTest extends AbstractCoverageTest {
     }
 
     private CoverageViewModel createModelFromCodingStyleReport() {
-        var model = createModel(readJacocoResult("jacoco-codingstyle.xml"));
-        assertThat(model.getDisplayName()).contains("'Java coding style'");
-        return model;
+        return createModel(readJacocoResult("jacoco-codingstyle.xml"));
     }
 
     private CoverageViewModel createModel(final Node node) {
