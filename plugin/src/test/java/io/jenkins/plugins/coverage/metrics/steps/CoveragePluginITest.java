@@ -22,6 +22,7 @@ import jenkins.model.ParameterizedJobMixIn.ParameterizedJob;
 import io.jenkins.plugins.coverage.metrics.AbstractCoverageITest;
 import io.jenkins.plugins.coverage.metrics.model.Baseline;
 import io.jenkins.plugins.coverage.metrics.steps.CoverageTool.Parser;
+import io.jenkins.plugins.datatables.TableModel;
 
 import static io.jenkins.plugins.coverage.metrics.AbstractCoverageTest.*;
 import static org.assertj.core.api.Assertions.*;
@@ -159,6 +160,21 @@ class CoveragePluginITest extends AbstractCoverageITest {
                         .withCovered(JACOCO_ANALYSIS_MODEL_COVERED)
                         .withMissed(JACOCO_ANALYSIS_MODEL_TOTAL - JACOCO_ANALYSIS_MODEL_COVERED)
                         .build());
+        assertThat(coverageResult.getTarget().getTableModel(CoverageViewModel.ABSOLUTE_COVERAGE_TABLE_ID))
+                .extracting(TableModel::getColumns).asList()
+                .extracting("headerLabel")
+                .containsExactly("Hash",
+                        "Modified",
+                        "File",
+                        "Package",
+                        "Line",
+                        "Line Δ",
+                        "Branch",
+                        "Branch Δ",
+                        "LOC",
+                        "Complexity",
+                        "Max. Complexity",
+                        "Complexity / LOC");
     }
 
     @Test
@@ -376,6 +392,20 @@ class CoveragePluginITest extends AbstractCoverageITest {
                     assertThat(m.getCovered()).isEqualTo(222);
                     assertThat(m.getTotal()).isEqualTo(230);
                 });
+        assertThat(coverageResult.getTarget().getTableModel(CoverageViewModel.ABSOLUTE_COVERAGE_TABLE_ID))
+                .extracting(TableModel::getColumns).asList()
+                .extracting("headerLabel")
+                .containsExactly("Hash",
+                        "Modified",
+                        "File",
+                        "Package",
+                        "Line",
+                        "Line Δ",
+                        "Mutation",
+                        "Mutation Δ",
+                        "Test Strength",
+                        "Test Strength Δ",
+                        "LOC");
     }
 
     private static CoverageBuilder createLineCoverageBuilder() {
