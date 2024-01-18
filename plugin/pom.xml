@@ -36,6 +36,8 @@
     <xmlunit.version>2.9.1</xmlunit.version>
     <testcontainers.version>1.19.3</testcontainers.version>
     <job-dsl.version>1.87</job-dsl.version>
+
+    <arcmutate.git.version>1.2.0</arcmutate.git.version>
   </properties>
 
   <developers>
@@ -364,11 +366,6 @@
         </dependencies>
       </plugin>
       <plugin>
-        <groupId>com.arcmutate</groupId>
-        <artifactId>pitest-git-maven-plugin</artifactId>
-        <version>1.0.12</version>
-      </plugin>
-      <plugin>
         <groupId>org.revapi</groupId>
         <artifactId>revapi-maven-plugin</artifactId>
         <configuration>
@@ -376,6 +373,21 @@
         </configuration>
       </plugin>
     </plugins>
+    <pluginManagement>
+      <plugins>
+        <plugin>
+          <groupId>com.arcmutate</groupId>
+          <artifactId>pitest-git-maven-plugin</artifactId>
+          <version>${arcmutate.git.version}</version>
+        </plugin>
+        <!-- provides direct integration with github when accepting PRs from trusted branches -->
+        <plugin>
+          <groupId>com.arcmutate</groupId>
+          <artifactId>pitest-github-maven-plugin</artifactId>
+          <version>${arcmutate.git.version}</version>
+        </plugin>
+      </plugins>
+    </pluginManagement>
   </build>
 
   <profiles>
