@@ -1,10 +1,10 @@
-name: PIT Update PR
+name: PIT PR Updater
 
 # read-write repo token
 # access to secrets
 on:
   workflow_run:
-    workflows: ["Receive"]
+    workflows: ["PIT"]
     types:
       - completed
 
