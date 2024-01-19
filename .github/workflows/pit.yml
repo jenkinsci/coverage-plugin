@@ -29,7 +29,7 @@ jobs:
       - name: Aggregate PIT coverage files
         run: mvn -e -B com.arcmutate:pitest-git-maven-plugin:aggregate
       - name: Upload PIT results as artifact
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: pitest
           path: target/pit-reports-ci/
