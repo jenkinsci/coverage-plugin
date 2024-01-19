@@ -78,7 +78,7 @@ public class CoverageViewModel extends DefaultAsyncTableContentProvider implemen
 
     private static final ElementFormatter FORMATTER = new ElementFormatter();
     private static final Set<Metric> TREE_METRICS = Set.of(
-            Metric.LINE, Metric.BRANCH, Metric.MUTATION, Metric.COMPLEXITY, Metric.TESTS);
+            Metric.LINE, Metric.BRANCH, Metric.MUTATION, Metric.TEST_STRENGTH, Metric.COMPLEXITY, Metric.TESTS);
     private static final String UNDEFINED = "-";
     private final Run<?, ?> owner;
     private final String displayName;
@@ -246,14 +246,15 @@ public class CoverageViewModel extends DefaultAsyncTableContentProvider implemen
     }
 
     /**
-     * Gets the {@link Metric} from a String representation used in the frontend. Only 'Line' and 'Branch' is possible.
-     * 'Line' is used as a default.
+     * Gets the {@link Metric} from a String representation used in the frontend.
      *
      * @param text
      *         The coverage metric as String
      *
      * @return the coverage metric
+     * @throws IllegalArgumentException if the coverage metric is unknown
      */
+    @SuppressWarnings({"PMD.CyclomaticComplexity", "PMD.NPathComplexity"})
     private Metric getCoverageMetricFromText(final String text) {
         if (text.contains("line")) {
             return Metric.LINE;
@@ -267,6 +268,9 @@ public class CoverageViewModel extends DefaultAsyncTableContentProvider implemen
         if (text.contains("mutation")) {
             return Metric.MUTATION;
         }
+        if (text.contains("strength")) {
+            return Metric.TEST_STRENGTH;
+        }
         if (text.contains("loc")) {
             return Metric.LOC;
         }
@@ -276,7 +280,10 @@ public class CoverageViewModel extends DefaultAsyncTableContentProvider implemen
         if (text.contains("tests")) {
             return Metric.TESTS;
         }
-        return Metric.COMPLEXITY;
+        if (text.contains("complexity")) {
+            return Metric.COMPLEXITY;
+        }
+        throw new IllegalArgumentException("Unknown coverage metric: " + text);
     }
 
     /**

@@ -2,6 +2,7 @@ package io.jenkins.plugins.coverage.metrics.steps;
 
 import java.util.List;
 
+import org.assertj.core.api.AbstractStringAssert;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -21,7 +22,10 @@ import jenkins.model.ParameterizedJobMixIn.ParameterizedJob;
 
 import io.jenkins.plugins.coverage.metrics.AbstractCoverageITest;
 import io.jenkins.plugins.coverage.metrics.model.Baseline;
+import io.jenkins.plugins.coverage.metrics.steps.CoverageTableModel.CoverageRow;
 import io.jenkins.plugins.coverage.metrics.steps.CoverageTool.Parser;
+import io.jenkins.plugins.datatables.DetailedCell;
+import io.jenkins.plugins.datatables.TableModel;
 
 import static io.jenkins.plugins.coverage.metrics.AbstractCoverageTest.*;
 import static org.assertj.core.api.Assertions.*;
@@ -140,7 +144,7 @@ class CoveragePluginITest extends AbstractCoverageITest {
         verifyJaCoCoAction(build.getAction(CoverageBuildAction.class));
     }
 
-    private static void verifyJaCoCoAction(final CoverageBuildAction coverageResult) {
+    private void verifyJaCoCoAction(final CoverageBuildAction coverageResult) {
         assertThat(coverageResult.getAllValues(Baseline.PROJECT)).extracting(Value::getMetric)
                 .containsExactly(Metric.MODULE,
                         Metric.PACKAGE,
@@ -159,6 +163,45 @@ class CoveragePluginITest extends AbstractCoverageITest {
                         .withCovered(JACOCO_ANALYSIS_MODEL_COVERED)
                         .withMissed(JACOCO_ANALYSIS_MODEL_TOTAL - JACOCO_ANALYSIS_MODEL_COVERED)
                         .build());
+        var tableModel = coverageResult.getTarget().getTableModel(CoverageViewModel.ABSOLUTE_COVERAGE_TABLE_ID);
+        assertThat(tableModel)
+                .extracting(TableModel::getColumns).asList()
+                .extracting("headerLabel")
+                .containsExactly("Hash",
+                        "Modified",
+                        "File",
+                        "Package",
+                        "Line",
+                        "Line Δ",
+                        "Branch",
+                        "Branch Δ",
+                        "LOC",
+                        "Complexity",
+                        "Max. Complexity",
+                        "Complexity / LOC");
+        assertThat(tableModel.getRows())
+                .hasSize(307)
+                .first()
+                .isInstanceOfSatisfying(CoverageRow.class, this::assertContentOfFirstJacocoRow);
+    }
+
+    private void assertContentOfFirstJacocoRow(final CoverageRow r) {
+        assertThatCell(r.getFileName())
+                .contains("title=\"edu/hm/hafner/analysis/parser/dry/simian/SimianParser.java\"");
+        assertThat(r.getPackageName()).isEqualTo("edu.hm.hafner.analysis.parser.dry.simian");
+        assertThat(r.getTests()).isEqualTo(0);
+        assertThat(r.getComplexity()).isEqualTo(6);
+        assertThat(r.getLoc()).isEqualTo(28);
+        assertThat(r.getMaxComplexity()).isEqualTo(3);
+        assertThatCell(r.getLineCoverage()).contains("title=\"Covered: 26 - Missed: 2\">92.86%");
+        assertThatCell(r.getLineCoverageDelta()).contains("n/a");
+        assertThatCell(r.getBranchCoverage()).contains("title=\"Covered: 4 - Missed: 0\">100.00%");
+        assertThatCell(r.getBranchCoverageDelta()).contains("n/a");
+        assertThatCell(r.getMutationCoverage()).contains("n/a");
+        assertThatCell(r.getMutationCoverageDelta()).contains("n/a");
+        assertThatCell(r.getTestStrength()).contains("n/a");
+        assertThatCell(r.getTestStrengthDelta()).contains("n/a");
+        assertThatCell(r.getDensity()).contains("0.21");
     }
 
     @Test
@@ -383,6 +426,56 @@ class CoveragePluginITest extends AbstractCoverageITest {
                     assertThat(m.getCovered()).isEqualTo(222);
                     assertThat(m.getTotal()).isEqualTo(246);
                 });
+        assertThat(coverageResult.getAllValues(Baseline.PROJECT))
+                .filteredOn(Value::getMetric, Metric.TEST_STRENGTH)
+                .first()
+                .isInstanceOfSatisfying(Coverage.class, m -> {
+                    assertThat(m.getCovered()).isEqualTo(222);
+                    assertThat(m.getTotal()).isEqualTo(230);
+                });
+
+        var tableModel = coverageResult.getTarget().getTableModel(CoverageViewModel.ABSOLUTE_COVERAGE_TABLE_ID);
+        assertThat(tableModel)
+                .extracting(TableModel::getColumns).asList()
+                .extracting("headerLabel")
+                .containsExactly("Hash",
+                        "Modified",
+                        "File",
+                        "Package",
+                        "Line",
+                        "Line Δ",
+                        "Mutation",
+                        "Mutation Δ",
+                        "Test Strength",
+                        "Test Strength Δ",
+                        "LOC");
+        assertThat(tableModel.getRows())
+                .hasSize(10)
+                .first()
+                .isInstanceOfSatisfying(CoverageRow.class, this::assertContentOfFirstPitRow);
+    }
+
+    private void assertContentOfFirstPitRow(final CoverageRow r) {
+        assertThatCell(r.getFileName())
+                .contains("title=\"edu/hm/hafner/coverage/CoverageNode.java\"");
+        assertThat(r.getPackageName()).isEqualTo("edu.hm.hafner.coverage");
+        assertThat(r.getTests()).isEqualTo(0);
+        assertThat(r.getComplexity()).isEqualTo(0);
+        assertThat(r.getLoc()).isEqualTo(87);
+        assertThat(r.getMaxComplexity()).isEqualTo(0);
+        assertThatCell(r.getLineCoverage()).contains("title=\"Covered: 85 - Missed: 2\">97.70%");
+        assertThatCell(r.getLineCoverageDelta()).contains("n/a");
+        assertThatCell(r.getMutationCoverage()).contains("Killed: 95 - Survived: 2\">97.94%");
+        assertThatCell(r.getMutationCoverageDelta()).contains("n/a");
+        assertThatCell(r.getTestStrength()).contains("Killed: 95 - Survived: 0\">100.00%");
+        assertThatCell(r.getTestStrengthDelta()).contains("n/a");
+        assertThatCell(r.getBranchCoverage()).contains("n/a");
+        assertThatCell(r.getBranchCoverageDelta()).contains("n/a");
+        assertThatCell(r.getDensity()).contains("0.0");
+    }
+
+    private AbstractStringAssert<?> assertThatCell(final DetailedCell<?> cell) {
+        return assertThat(cell).extracting(DetailedCell::getDisplay).asString();
     }
 
     private static CoverageBuilder createLineCoverageBuilder() {

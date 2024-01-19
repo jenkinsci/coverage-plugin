@@ -19,19 +19,24 @@ public class CoverageSeriesBuilder extends SeriesBuilder<CoverageStatistics> {
     static final String LINE_COVERAGE = "line";
     static final String BRANCH_COVERAGE = "branch";
     static final String MUTATION_COVERAGE = "mutation";
+    static final String TEST_STRENGTH = "test-strength";
 
     @Override
     protected Map<String, Double> computeSeries(final CoverageStatistics statistics) {
         Map<String, Double> series = new HashMap<>();
 
         series.put(LINE_COVERAGE, getRoundedPercentage(statistics, Metric.LINE));
-        if (statistics.containsValue(Baseline.PROJECT, Metric.BRANCH)) {
-            series.put(BRANCH_COVERAGE, getRoundedPercentage(statistics, Metric.BRANCH));
-        }
-        if (statistics.containsValue(Baseline.PROJECT, Metric.MUTATION)) {
-            series.put(MUTATION_COVERAGE, getRoundedPercentage(statistics, Metric.MUTATION));
-        }
+        add(statistics, Metric.BRANCH, BRANCH_COVERAGE, series);
+        add(statistics, Metric.MUTATION, MUTATION_COVERAGE, series);
+        add(statistics, Metric.TEST_STRENGTH, TEST_STRENGTH, series);
         return series;
+    }
+
+    private void add(final CoverageStatistics statistics, final Metric metric, final String chartId,
+            final Map<String, Double> series) {
+        if (statistics.containsValue(Baseline.PROJECT, metric)) {
+            series.put(chartId, getRoundedPercentage(statistics, metric));
+        }
     }
 
     private double getRoundedPercentage(final CoverageStatistics statistics, final Metric metric) {
