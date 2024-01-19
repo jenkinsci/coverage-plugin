@@ -1,14 +1,4 @@
-#
-# Part two of two stage process for updating PRs with pitest results when accepting PRs from untrusted forks.
-#
-# The version of this file that runs is the version in the main/master branch, NOT the version in the PR. It must therefore
-# be committed to main/master before the process can run for the first time.
-#
-# This workflow takes an artifact containing pitest results generated in part one, and updated the PR. It runs with
-# write access.
-#
-
-name: Comment on the pull request
+name: PIT Update PR
 
 # read-write repo token
 # access to secrets
@@ -20,6 +10,7 @@ on:
 
 jobs:
   pitest-update-pr:
+    name: Write PIT results as pull request comment
     if: ${{ github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
     steps:
@@ -43,8 +34,5 @@ jobs:
           name: pitest
           path: target/pit-reports-ci
           workflow_conclusion: success
-      - name: update pull request
-        # The updatePR maven goal is used here with an explicit version. This allows us to upload without checking out
-        # the code, but does mean the version here must be maintained. An alternative would be to checkout the code and use
-        # the github goal. This will work as long as the artifact is extracted to the maven target directory
+      - name: Update pull request
         run: mvn -DrepoToken=${{ secrets.GITHUB_TOKEN }} com.groupcdg:pitest-github-maven-plugin:1.1.4:updatePR

@@ -1,17 +1,13 @@
 name: 'PIT'
 
 on:
-  push:
-    branches:
-      - master
-      - main
   pull_request:
 
 jobs:
   coverage:
 
     runs-on: ubuntu-latest
-    name: Create and archive coverage report
+    name: Create and archive PIT report
 
     steps:
       - uses: actions/checkout@v4
