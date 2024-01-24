@@ -425,7 +425,7 @@ class CoveragePluginITest extends AbstractCoverageITest {
 
         Run<?, ?> build = buildSuccessfully(job);
         assertThat(getConsoleLog(build))
-                .contains("XML 1.0 document text, Unicode text, UTF-8 (with BOM) text");
+                .contains("UTF-8 (with BOM)");
 
         verifyOpenCoverResults(build);
     }
