@@ -59,7 +59,7 @@ public class CoverageReportScanner extends AgentFileVisitor<ModuleNode> {
     protected Optional<ModuleNode> processFile(final Path file, final Charset charset, final FilteredLog log) {
         CoverageParser coverageParser = parser.createParser(processingMode);
         try (var inputStream = BOMInputStream.builder().setFile(file.toFile()).setCharset(charset).get();
-                var reader = new InputStreamReader(inputStream)) {
+                var reader = new InputStreamReader(inputStream, charset)) {
             ModuleNode node = coverageParser.parse(reader, log);
             log.logInfo("Successfully parsed file '%s'", PATH_UTIL.getAbsolutePath(file));
             node.aggregateValues().forEach(v -> log.logInfo("%s", v));
