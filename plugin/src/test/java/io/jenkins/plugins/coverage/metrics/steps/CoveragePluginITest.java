@@ -7,6 +7,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
+import org.junitpioneer.jupiter.Issue;
 
 import edu.hm.hafner.coverage.Coverage;
 import edu.hm.hafner.coverage.Coverage.CoverageBuilder;
@@ -366,8 +367,7 @@ class CoveragePluginITest extends AbstractCoverageITest {
                 "-> extracting...",
                 "-> done",
                 "Finished coverage processing - adding the action to the build...");
-        assertThat(log.getErrorMessages()).contains("Errors while recording code coverage:",
-                "Errors during source path resolving:",
+        assertThat(log.getErrorMessages()).contains(
                 "Errors while resolving source files on agent:",
                 "Removing non-workspace source directory '/Users/leobalter/dev/testing/solutions/3' - it has not been approved in Jenkins' global configuration.",
                 "- Source file 'edu/hm/hafner/analysis/parser/PerlCriticParser.java' not found",
@@ -398,6 +398,10 @@ class CoveragePluginITest extends AbstractCoverageITest {
 
         Run<?, ?> build = buildSuccessfully(project);
 
+        verifyOpenCoverResults(build);
+    }
+
+    private void verifyOpenCoverResults(final Run<?, ?> build) {
         CoverageBuildAction coverageResult = build.getAction(CoverageBuildAction.class);
         assertThat(coverageResult.getAllValues(Baseline.PROJECT))
                 .filteredOn(Value::getMetric, Metric.LINE)
@@ -406,6 +410,24 @@ class CoveragePluginITest extends AbstractCoverageITest {
                     assertThat(m.getCovered()).isEqualTo(9);
                     assertThat(m.getTotal()).isEqualTo(15);
                 });
+    }
+
+    @Test @Issue("JENKINS-72595")
+    void shouldGracefullyHandleBomEncodedFiles() {
+        var fileName = "opencover-with-bom.xml";
+        WorkflowJob job = createPipelineWithWorkspaceFiles(fileName);
+
+        setPipelineScript(job,
+                "sh '''#!/bin/bash\n"
+                        + "file opencover-with-bom.xml\n"
+                        + "'''\n"
+                        + "recordCoverage tools: [[parser: 'OPENCOVER', pattern: '" + fileName + "']]");
+
+        Run<?, ?> build = buildSuccessfully(job);
+        assertThat(getConsoleLog(build))
+                .contains("XML 1.0 document text, Unicode text, UTF-8 (with BOM) text");
+
+        verifyOpenCoverResults(build);
     }
 
     @Test

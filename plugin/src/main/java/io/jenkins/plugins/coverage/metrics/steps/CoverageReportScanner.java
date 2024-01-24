@@ -1,10 +1,12 @@
 package io.jenkins.plugins.coverage.metrics.steps;
 
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.nio.charset.Charset;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Optional;
+
+import org.apache.commons.io.input.BOMInputStream;
 
 import edu.hm.hafner.coverage.CoverageParser;
 import edu.hm.hafner.coverage.CoverageParser.ProcessingMode;
@@ -55,9 +57,10 @@ public class CoverageReportScanner extends AgentFileVisitor<ModuleNode> {
 
     @Override
     protected Optional<ModuleNode> processFile(final Path file, final Charset charset, final FilteredLog log) {
-        try {
-            CoverageParser coverageParser = parser.createParser(processingMode);
-            ModuleNode node = coverageParser.parse(Files.newBufferedReader(file, charset), log);
+        CoverageParser coverageParser = parser.createParser(processingMode);
+        try (var inputStream = BOMInputStream.builder().setFile(file.toFile()).setCharset(charset).get();
+                var reader = new InputStreamReader(inputStream)) {
+            ModuleNode node = coverageParser.parse(reader, log);
             log.logInfo("Successfully parsed file '%s'", PATH_UTIL.getAbsolutePath(file));
             node.aggregateValues().forEach(v -> log.logInfo("%s", v));
             return Optional.of(node);

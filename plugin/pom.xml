@@ -5,7 +5,7 @@
   <parent>
     <groupId>org.jvnet.hudson.plugins</groupId>
     <artifactId>analysis-pom</artifactId>
-    <version>6.17.0</version>
+    <version>7.0.0</version>
     <relativePath />
   </parent>
 
@@ -25,7 +25,7 @@
     <gitHubRepo>jenkinsci/coverage-plugin</gitHubRepo>
 
     <!-- Library Dependencies Versions -->
-    <coverage-model.version>0.38.0</coverage-model.version>
+    <coverage-model.version>0.39.0</coverage-model.version>
     <jsoup.version>1.17.2</jsoup.version>
 
     <!-- Jenkins Plug-in Dependencies Versions -->
