@@ -415,6 +415,8 @@ class CoveragePluginITest extends AbstractCoverageITest {
 
     @Test @Issue("JENKINS-72595")
     void shouldGracefullyHandleBomEncodedFiles() {
+        assumeThatTestIsRunningOnUnix();
+
         var fileName = "opencover-with-bom.xml";
         WorkflowJob job = createPipelineWithWorkspaceFiles(fileName);
 
@@ -426,7 +428,7 @@ class CoveragePluginITest extends AbstractCoverageITest {
 
         Run<?, ?> build = buildSuccessfully(job);
         assertThat(getConsoleLog(build))
-                .contains("UTF-8 (with BOM)");
+                .contains("XML 1.0 document text, Unicode text, UTF-8 (with BOM) text");
 
         verifyOpenCoverResults(build);
     }
