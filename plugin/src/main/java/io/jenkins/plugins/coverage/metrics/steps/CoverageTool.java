@@ -151,6 +151,7 @@ public class CoverageTool extends AbstractDescribableImpl<CoverageTool> implemen
                 add(options, Parser.OPENCOVER);
                 add(options, Parser.PIT);
                 add(options, Parser.JUNIT);
+                add(options, Parser.NUNIT);
                 return options;
             }
             return new ListBoxModel();
@@ -213,6 +214,8 @@ public class CoverageTool extends AbstractDescribableImpl<CoverageTool> implemen
         PIT(Messages._Parser_PIT(), "**/mutations.xml",
                 "symbol-solid/virus-slash plugin-font-awesome-api"),
         JUNIT(Messages._Parser_Junit(), "**/TEST-*.xml",
+                "symbol-solid/list-check plugin-font-awesome-api"),
+        NUNIT(Messages._Parser_Nunit(), "**/nunit.xml,**/TestResult.xml",
                 "symbol-solid/list-check plugin-font-awesome-api");
 
         private final Localizable displayName;

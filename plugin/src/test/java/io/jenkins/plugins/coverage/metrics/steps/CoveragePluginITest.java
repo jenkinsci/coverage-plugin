@@ -12,6 +12,7 @@ import org.junitpioneer.jupiter.Issue;
 import edu.hm.hafner.coverage.Coverage;
 import edu.hm.hafner.coverage.Coverage.CoverageBuilder;
 import edu.hm.hafner.coverage.Metric;
+import edu.hm.hafner.coverage.TestCount;
 import edu.hm.hafner.coverage.Value;
 
 import org.jenkinsci.plugins.workflow.cps.CpsFlowDefinition;
@@ -428,6 +429,21 @@ class CoveragePluginITest extends AbstractCoverageITest {
                 .contains("UTF-8 (with BOM)");
 
         verifyOpenCoverResults(build);
+    }
+
+    @Test
+    void shouldRecordOneNUnitResultInFreestyleJob() {
+        FreeStyleProject project = createFreestyleJob(Parser.NUNIT, "nunit.xml");
+
+        Run<?, ?> build = buildSuccessfully(project);
+
+        CoverageBuildAction coverageResult = build.getAction(CoverageBuildAction.class);
+        assertThat(coverageResult.getAllValues(Baseline.PROJECT))
+                .filteredOn(Value::getMetric, Metric.TESTS)
+                .first()
+                .isInstanceOfSatisfying(TestCount.class, m -> {
+                    assertThat(m.getValue()).isEqualTo(4);
+                });
     }
 
     @Test
