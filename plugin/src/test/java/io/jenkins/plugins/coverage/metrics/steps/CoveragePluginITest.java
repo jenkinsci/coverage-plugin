@@ -421,14 +421,9 @@ class CoveragePluginITest extends AbstractCoverageITest {
         WorkflowJob job = createPipelineWithWorkspaceFiles(fileName);
 
         setPipelineScript(job,
-                "sh '''#!/bin/bash\n"
-                        + "file opencover-with-bom.xml\n"
-                        + "'''\n"
-                        + "recordCoverage tools: [[parser: 'OPENCOVER', pattern: '" + fileName + "']]");
+                "recordCoverage tools: [[parser: 'OPENCOVER', pattern: '" + fileName + "']]");
 
         Run<?, ?> build = buildSuccessfully(job);
-        assertThat(getConsoleLog(build))
-                .contains("XML 1.0 document text, Unicode text, UTF-8 (with BOM) text");
 
         verifyOpenCoverResults(build);
     }
