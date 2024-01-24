@@ -14,6 +14,7 @@ The Jenkins Coverage Plug-in collects reports of code coverage or mutation cover
 - [OpenCover](https://github.com/OpenCover/opencover): Code Coverage
 - [PIT](https://pitest.org/): Mutation Coverage
 - [JUnit](https://ant.apache.org/manual/Tasks/junitreport.html): Test Results
+- [NUnit](https://nunit.org/): Test Results
 
 If your coverage tool is not yet supported by the coverage plugin, feel free to provide a pull request for the [Coverage Model](https://github.com/jenkinsci/coverage-model/pulls).
 

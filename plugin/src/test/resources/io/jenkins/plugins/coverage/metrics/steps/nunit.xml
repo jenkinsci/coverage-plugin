@@ -1,0 +1,29 @@
+<test-run id="2" duration="0.46225700000000003" testcasecount="4" total="4" passed="2" failed="1" inconclusive="0" skipped="1" result="Failed" start-time="2024-01-23T 12:33:37Z" end-time="2024-01-23T 12:33:47Z">
+  <test-suite type="Assembly" name="test.dll" fullname="/home/jenkins/bin/Debug/net8.0/test.dll" total="4" passed="2" failed="1" inconclusive="0" skipped="1" result="Failed" start-time="2024-01-23T 12:33:46Z" end-time="2024-01-23T 12:33:47Z" duration="0.462257">
+    <test-suite type="TestSuite" name="test" fullname="test" total="4" passed="2" failed="1" inconclusive="0" skipped="1" result="Failed" start-time="2024-01-23T 12:33:46Z" end-time="2024-01-23T 12:33:47Z" duration="0.462257">
+      <test-suite type="TestFixture" name="Tests" fullname="test.Tests" classname="test.Tests" total="4" passed="2" failed="1" inconclusive="0" skipped="1" result="Failed" start-time="2024-01-23T 12:33:46Z" end-time="2024-01-23T 12:33:47Z" duration="0.462257">
+        <test-case name="FailedTEst" fullname="test.Tests.FailedTEst" methodname="FailedTEst" classname="Tests" result="Failed" start-time="2024-01-23T 12:33:46Z" end-time="2024-01-23T 12:33:46Z" duration="0.057283" asserts="0" seed="1556857297">
+          <failure>
+            <message>  Expected string length 4 but was 5. Strings differ at index 4.
+  Expected: "Test"
+  But was:  "Test1"
+  ---------------^
+</message>
+            <stack-trace>   at test.Tests.FailedTEst() in /home/jenkins/Tests.cs:line 50
+
+1)    at test.Tests.FailedTEst() in /home/jenkins/Tests.cs:line 50
+
+</stack-trace>
+          </failure>
+        </test-case>
+        <test-case name="IgnoredTest" fullname="test.Tests.IgnoredTest" methodname="IgnoredTest" classname="Tests" result="Skipped" start-time="2024-01-23T 12:33:46Z" end-time="2024-01-23T 12:33:46Z" duration="0.000378" asserts="0" seed="1438305193">
+          <output><![CDATA[Skipping this test
+]]></output>
+        </test-case>
+        <test-case name="ShouldConnectToDatabase" fullname="test.Tests.ShouldConnectToDatabase" methodname="ShouldConnectToDatabase" classname="Tests" result="Passed" start-time="2024-01-23T 12:33:46Z" end-time="2024-01-23T 12:33:47Z" duration="0.404245" asserts="0" seed="802014458" />
+        <test-case name="ShouldCreateItem" fullname="test.Tests.ShouldCreateItem" methodname="ShouldCreateItem" classname="Tests" result="Passed" start-time="2024-01-23T 12:33:47Z" end-time="2024-01-23T 12:33:47Z" duration="0.000351" asserts="0" seed="606875445" />
+      </test-suite>
+    </test-suite>
+    <errors />
+  </test-suite>
+</test-run>
