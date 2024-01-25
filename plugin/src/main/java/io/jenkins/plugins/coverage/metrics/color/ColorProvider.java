@@ -14,7 +14,6 @@ import edu.umd.cs.findbugs.annotations.NonNull;
  * @author Florian Orendi
  */
 public class ColorProvider {
-
     /**
      * Default color that is provided if no color is found in order to guarantee a proper colorization.
      */
@@ -167,11 +166,8 @@ public class ColorProvider {
 
     /**
      * Wraps the fill color and the line color that should be used in order to visualize coverage values.
-     *
-     * @author Florian Orendi
      */
     public static class DisplayColors {
-
         private final Color lineColor;
         private final Color fillColor;
 

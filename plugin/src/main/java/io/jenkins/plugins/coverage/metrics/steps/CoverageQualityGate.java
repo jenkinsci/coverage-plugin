@@ -42,6 +42,8 @@ public class CoverageQualityGate extends QualityGate {
     }
 
     CoverageQualityGate(final Metric metric, final double threshold) {
+        super();
+
         setThreshold(threshold);
 
         this.metric = metric;
