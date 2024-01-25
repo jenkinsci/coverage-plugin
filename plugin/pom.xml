@@ -20,12 +20,12 @@
   <url>https://github.com/jenkinsci/coverage-plugin</url>
 
   <properties>
-    <revision>1.9.0</revision>
+    <revision>1.11.0</revision>
     <changelist>-SNAPSHOT</changelist>
     <gitHubRepo>jenkinsci/coverage-plugin</gitHubRepo>
 
     <!-- Library Dependencies Versions -->
-    <coverage-model.version>0.37.0</coverage-model.version>
+    <coverage-model.version>0.39.0</coverage-model.version>
     <jsoup.version>1.17.2</jsoup.version>
 
     <!-- Jenkins Plug-in Dependencies Versions -->
@@ -37,6 +37,8 @@
     <xmlunit.version>2.9.1</xmlunit.version>
     <testcontainers.version>1.19.3</testcontainers.version>
     <job-dsl.version>1.87</job-dsl.version>
+
+    <arcmutate.git.version>1.2.0</arcmutate.git.version>
   </properties>
 
   <developers>
@@ -347,6 +349,23 @@
             <param>*jmh_generated*</param>
           </excludedTestClasses>
         </configuration>
+        <dependencies>
+          <dependency>
+            <groupId>com.groupcdg.pitest</groupId>
+            <artifactId>pitest-accelerator-junit5</artifactId>
+            <version>1.0.6</version>
+          </dependency>
+          <dependency>
+            <groupId>org.pitest</groupId>
+            <artifactId>pitest-junit5-plugin</artifactId>
+            <version>1.2.1</version>
+          </dependency>
+          <dependency>
+            <groupId>com.groupcdg</groupId>
+            <artifactId>pitest-git-plugin</artifactId>
+            <version>1.1.4</version>
+          </dependency>
+        </dependencies>
       </plugin>
       <plugin>
         <groupId>org.revapi</groupId>
@@ -356,6 +375,21 @@
         </configuration>
       </plugin>
     </plugins>
+    <pluginManagement>
+      <plugins>
+        <plugin>
+          <groupId>com.arcmutate</groupId>
+          <artifactId>pitest-git-maven-plugin</artifactId>
+          <version>${arcmutate.git.version}</version>
+        </plugin>
+        <!-- provides direct integration with github when accepting PRs from trusted branches -->
+        <plugin>
+          <groupId>com.arcmutate</groupId>
+          <artifactId>pitest-github-maven-plugin</artifactId>
+          <version>${arcmutate.git.version}</version>
+        </plugin>
+      </plugins>
+    </pluginManagement>
   </build>
 
   <profiles>

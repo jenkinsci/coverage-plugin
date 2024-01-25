@@ -148,8 +148,10 @@ public class CoverageTool extends AbstractDescribableImpl<CoverageTool> implemen
                 ListBoxModel options = new ListBoxModel();
                 add(options, Parser.JACOCO);
                 add(options, Parser.COBERTURA);
+                add(options, Parser.OPENCOVER);
                 add(options, Parser.PIT);
                 add(options, Parser.JUNIT);
+                add(options, Parser.NUNIT);
                 return options;
             }
             return new ListBoxModel();
@@ -207,9 +209,13 @@ public class CoverageTool extends AbstractDescribableImpl<CoverageTool> implemen
                 "symbol-footsteps-outline plugin-ionicons-api"),
         JACOCO(Messages._Parser_JaCoCo(), "**/jacoco.xml",
                 "symbol-footsteps-outline plugin-ionicons-api"),
+        OPENCOVER(Messages._Parser_OpenCover(), "**/*opencover.xml",
+                "symbol-footsteps-outline plugin-ionicons-api"),
         PIT(Messages._Parser_PIT(), "**/mutations.xml",
                 "symbol-solid/virus-slash plugin-font-awesome-api"),
         JUNIT(Messages._Parser_Junit(), "**/TEST-*.xml",
+                "symbol-solid/list-check plugin-font-awesome-api"),
+        NUNIT(Messages._Parser_Nunit(), "**/nunit.xml,**/TestResult.xml",
                 "symbol-solid/list-check plugin-font-awesome-api");
 
         private final Localizable displayName;

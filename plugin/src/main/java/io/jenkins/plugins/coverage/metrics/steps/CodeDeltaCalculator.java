@@ -87,7 +87,7 @@ class CodeDeltaCalculator {
     }
 
     /**
-     * Gets all code changes which are relevant for the coverage (added, renamed and modified files).
+     * Gets all code changes that are relevant for the coverage (added, renamed and modified files).
      *
      * @param delta
      *         The calculated code {@link Delta}
@@ -103,7 +103,7 @@ class CodeDeltaCalculator {
     }
 
     /**
-     * Maps the passed {@link FileChanges code changes} to the corresponding fully qualified names as they are used by
+     * Maps the given {@link FileChanges code changes} to the corresponding fully qualified names as they are used by
      * the coverage reporting tools - usually the fully qualified name of the file.
      *
      * @param changes

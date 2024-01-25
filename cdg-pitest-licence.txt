@@ -1,0 +1,7 @@
+#Licence file for pitest extensions
+#Wed Feb 15 09:10:38 GMT 2023
+expires=15/02/2025
+keyVersion=1
+signature=WNcWFSjNGwU6BHwu1ENo9Mas9nHhZ0LmAS+TLx/2UKmNC1u2TFya2CaDZjqVPQ4PdlE0GOj5zNWLH0RXwtoJ6kIMb2nbcOlFaOV+xDAmTxgILoC25nzKKpF+YkBH6I2LpCceHUkov4ow8ZtqjKfMOQ2pHt/SHgdAYIF8VWfV6og\=
+packages=io.jenkins.plugins.coverage.*,io.jenkins.plugins.analysis.*
+type=OSSS

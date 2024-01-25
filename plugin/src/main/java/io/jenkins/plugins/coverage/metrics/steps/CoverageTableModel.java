@@ -119,6 +119,8 @@ class CoverageTableModel extends TableModel {
                 Messages.Column_DeltaBranchCoverage("Δ"), columns);
         configureValueColumn("mutationCoverage", Metric.MUTATION, Messages.Column_MutationCoverage(),
                 Messages.Column_DeltaMutationCoverage("Δ"), columns);
+        configureValueColumn("testStrength", Metric.TEST_STRENGTH, Messages.Column_TestStrength(),
+                Messages.Column_DeltaTestStrength("Δ"), columns);
         TableColumn loc = new ColumnBuilder().withHeaderLabel(Messages.Column_LinesOfCode())
                 .withDataPropertyKey("loc")
                 .withResponsivePriority(200)
@@ -251,6 +253,10 @@ class CoverageTableModel extends TableModel {
             return createColoredCoverageColumn(getCoverageOfNode(Metric.MUTATION));
         }
 
+        public DetailedCell<?> getTestStrength() {
+            return createColoredCoverageColumn(getCoverageOfNode(Metric.TEST_STRENGTH));
+        }
+
         Coverage getCoverageOfNode(final Metric metric) {
             return file.getTypedValue(metric, Coverage.nullObject(metric));
         }
@@ -265,6 +271,10 @@ class CoverageTableModel extends TableModel {
 
         public DetailedCell<?> getMutationCoverageDelta() {
             return createColoredFileCoverageDeltaColumn(Metric.MUTATION);
+        }
+
+        public DetailedCell<?> getTestStrengthDelta() {
+            return createColoredFileCoverageDeltaColumn(Metric.TEST_STRENGTH);
         }
 
         public int getLoc() {

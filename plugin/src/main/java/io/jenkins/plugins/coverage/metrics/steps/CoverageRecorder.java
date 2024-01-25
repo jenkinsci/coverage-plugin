@@ -449,7 +449,11 @@ public class CoverageRecorder extends Recorder {
     }
 
     private String getIcon() {
-        var icons = tools.stream().map(CoverageTool::getParser).map(Parser::getIcon).collect(Collectors.toSet());
+        var icons = tools.stream()
+                .map(CoverageTool::getParser)
+                .filter(parser -> parser != Parser.JUNIT)
+                .map(Parser::getIcon)
+                .collect(Collectors.toSet());
         if (icons.size() == 1) {
             return icons.iterator().next(); // unique icon
         }
