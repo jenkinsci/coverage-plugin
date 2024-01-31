@@ -7,6 +7,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
+import org.junitpioneer.jupiter.Issue;
 
 import edu.hm.hafner.coverage.Coverage;
 import edu.hm.hafner.coverage.Coverage.CoverageBuilder;
@@ -398,6 +399,10 @@ class CoveragePluginITest extends AbstractCoverageITest {
 
         Run<?, ?> build = buildSuccessfully(project);
 
+        verifyOpenCoverResults(build);
+    }
+
+    private void verifyOpenCoverResults(final Run<?, ?> build) {
         CoverageBuildAction coverageResult = build.getAction(CoverageBuildAction.class);
         assertThat(coverageResult.getAllValues(Baseline.PROJECT))
                 .filteredOn(Value::getMetric, Metric.LINE)
@@ -406,6 +411,21 @@ class CoveragePluginITest extends AbstractCoverageITest {
                     assertThat(m.getCovered()).isEqualTo(9);
                     assertThat(m.getTotal()).isEqualTo(15);
                 });
+    }
+
+    @Test @Issue("JENKINS-72595")
+    void shouldGracefullyHandleBomEncodedFiles() {
+        assumeThatTestIsRunningOnUnix();
+
+        var fileName = "opencover-with-bom.xml";
+        WorkflowJob job = createPipelineWithWorkspaceFiles(fileName);
+
+        setPipelineScript(job,
+                "recordCoverage tools: [[parser: 'OPENCOVER', pattern: '" + fileName + "']]");
+
+        Run<?, ?> build = buildSuccessfully(job);
+
+        verifyOpenCoverResults(build);
     }
 
     @Test
