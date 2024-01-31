@@ -1,0 +1,29 @@
+<assemblies timestamp="01/26/2024 13:49:51">
+    <assembly name="/home/jenkins/test2/bin/Debug/net8.0/test2.dll" run-date="2024-01-26" run-time="13:49:51" total="3" passed="1" failed="1" skipped="1" time="1.100" errors="0">
+      <errors />
+      <collection total="3" passed="1" failed="1" skipped="1" name="Test collection for test.Tests2" time="0.005">
+        <test name="test.Tests2.ShouldCreateItem" type="test.Tests2" method="ShouldCreateItem" time="0.0026206" result="Pass">
+          <traits />
+        </test>
+        <test name="test.Tests2.ShouldCreateItem3" type="test.Tests2" method="ShouldCreateItem3" time="0.0010000" result="Skip">
+          <reason><![CDATA[specific reason]]></reason>
+          <output>specific reason
+  </output>
+          <traits />
+        </test>
+        <test name="test.Tests2.ShouldCreateItem2" type="test.Tests2" method="ShouldCreateItem2" time="0.0010159" result="Fail">
+          <failure>
+            <message>Assert.Equal() Failure
+                ↓ (pos 4)
+  Expected: Test3
+  Actual:   Test
+                ↑ (pos 4)</message>
+            <stack-trace>   at test.Tests2.ShouldCreateItem2() in /home/jenkins/test2/Tests2.cs:line 36
+     at System.RuntimeMethodHandle.InvokeMethod(Object target, Void** arguments, Signature sig, Boolean isConstructor)
+     at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)</stack-trace>
+          </failure>
+          <traits />
+        </test>
+      </collection>
+    </assembly>
+  </assemblies>
