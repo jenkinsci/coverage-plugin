@@ -10,6 +10,7 @@ import hudson.model.FreeStyleProject;
 
 import io.jenkins.plugins.coverage.metrics.steps.CoverageRecorder;
 import io.jenkins.plugins.coverage.metrics.steps.CoverageTool.Parser;
+import io.jenkins.plugins.forensics.reference.SimpleReferenceRecorder;
 import io.jenkins.plugins.util.IntegrationTestWithJenkinsPerSuite;
 
 /**
@@ -26,6 +27,7 @@ public abstract class AbstractCoverageITest extends IntegrationTestWithJenkinsPe
             final Consumer<CoverageRecorder> configuration, final String... fileNames) {
         FreeStyleProject project = createFreeStyleProjectWithWorkspaceFiles(fileNames);
 
+        project.getPublishersList().add(new SimpleReferenceRecorder());
         addCoverageRecorder(project, parser, "**/*xml", configuration);
 
         return project;

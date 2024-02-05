@@ -13,7 +13,6 @@ import edu.hm.hafner.coverage.Metric;
 import edu.hm.hafner.coverage.Node;
 import edu.hm.hafner.coverage.Value;
 import edu.hm.hafner.util.FilteredLog;
-import edu.umd.cs.findbugs.annotations.CheckForNull;
 
 import hudson.FilePath;
 import hudson.model.Run;
@@ -45,17 +44,14 @@ public class CoverageReporter {
             final Run<?, ?> build, final FilePath workspace, final TaskListener listener,
             final List<CoverageQualityGate> qualityGates, final String scm, final String sourceCodeEncoding,
             final SourceCodeRetention sourceCodeRetention, final ResultHandler notifier,
-            final FilteredLog log)
-            throws InterruptedException {
+            final FilteredLog log) throws InterruptedException {
         Optional<CoverageBuildAction> possibleReferenceResult = getReferenceBuildAction(build, id, log);
 
         CoverageBuildAction action;
         if (possibleReferenceResult.isPresent()) {
             action = computeCoverageBasedOnReferenceBuild(id, optionalName, icon, rootNode, build, workspace,
                     qualityGates, sourceCodeEncoding, sourceCodeRetention, notifier, possibleReferenceResult.get(),
-                    scm,
-                    listener,
-                    log);
+                    scm, listener, log);
         }
         else {
             action = computeActionWithoutHistory(id, optionalName, icon, rootNode, build, workspace, qualityGates,
@@ -211,51 +207,31 @@ public class CoverageReporter {
 
     private Optional<CoverageBuildAction> getReferenceBuildAction(final Run<?, ?> build, final String id,
             final FilteredLog log) {
-        log.logInfo("Obtaining action of reference build");
+        log.logInfo("Obtaining result action of reference build");
 
         ReferenceFinder referenceFinder = new ReferenceFinder();
         Optional<Run<?, ?>> reference = referenceFinder.findReference(build, log);
 
-        Optional<CoverageBuildAction> previousResult;
         if (reference.isPresent()) {
             Run<?, ?> referenceBuild = reference.get();
+
             log.logInfo("-> Using reference build '%s'", referenceBuild);
-            previousResult = getPreviousResult(id, reference.get());
-            if (previousResult.isPresent()) {
-                Run<?, ?> fallbackBuild = previousResult.get().getOwner();
-                if (!fallbackBuild.equals(referenceBuild)) {
-                    log.logInfo("-> Reference build has no action, falling back to last build with action: '%s'",
-                            fallbackBuild.getDisplayName());
-                }
+            Optional<CoverageBuildAction> possibleResult = getAction(id, reference.get());
+            if (possibleResult.isEmpty()) {
+                log.logInfo("-> Reference build has no action for ID '%s'", id);
             }
+            return possibleResult;
         }
-        else {
-            previousResult = getPreviousResult(id, build.getPreviousBuild());
-            previousResult.ifPresent(coverageBuildAction ->
-                    log.logInfo("-> No reference build defined, falling back to previous build: '%s'",
-                            coverageBuildAction.getOwner().getDisplayName()));
-        }
+        log.logInfo("-> Found no reference build");
 
-        if (previousResult.isEmpty()) {
-            log.logInfo("-> Found no reference result in reference build");
-
-            return Optional.empty();
-        }
-
-        CoverageBuildAction referenceAction = previousResult.get();
-        log.logInfo("-> Found reference result in build '%s'", referenceAction.getOwner().getDisplayName());
-
-        return Optional.of(referenceAction);
+        return Optional.empty();
     }
 
-    private Optional<CoverageBuildAction> getPreviousResult(final String id,
-            @CheckForNull final Run<?, ?> startSearch) {
-        for (Run<?, ?> build = startSearch; build != null; build = build.getPreviousBuild()) {
-            List<CoverageBuildAction> actions = build.getActions(CoverageBuildAction.class);
-            for (CoverageBuildAction action : actions) {
-                if (action.getUrlName().equals(id)) {
-                    return Optional.of(action);
-                }
+    private Optional<CoverageBuildAction> getAction(final String id, final Run<?, ?> build) {
+        List<CoverageBuildAction> actions = build.getActions(CoverageBuildAction.class);
+        for (CoverageBuildAction action : actions) {
+            if (action.getUrlName().equals(id)) {
+                return Optional.of(action);
             }
         }
         return Optional.empty();

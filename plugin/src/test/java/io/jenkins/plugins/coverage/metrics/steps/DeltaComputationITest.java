@@ -24,6 +24,8 @@ import static org.assertj.core.api.Assertions.*;
  * Integration test for delta computation of reference builds.
  */
 class DeltaComputationITest extends AbstractCoverageITest {
+    private static final String REFERENCE_BUILD = "discoverReferenceBuild()\n";
+
     @Test
     void shouldComputeDeltaInFreestyleJob() {
         FreeStyleProject project = createFreestyleJob(Parser.JACOCO,
@@ -48,8 +50,8 @@ class DeltaComputationITest extends AbstractCoverageITest {
         Run<?, ?> firstBuild = buildSuccessfully(job);
         verifyFirstBuild(firstBuild);
 
-        setPipelineScript(job,
-                "recordCoverage tools: [[parser: 'JACOCO', pattern: '" + JACOCO_CODING_STYLE_FILE + "']]");
+        setPipelineScript(job, REFERENCE_BUILD
+                + "recordCoverage tools: [[parser: 'JACOCO', pattern: '" + JACOCO_CODING_STYLE_FILE + "']]");
 
         Run<?, ?> secondBuild = buildSuccessfully(job);
         var action = secondBuild.getAction(CoverageBuildAction.class);
@@ -65,7 +67,8 @@ class DeltaComputationITest extends AbstractCoverageITest {
 
         // Create a build with two different actions
         setPipelineScript(job,
-                "recordCoverage tools: [[parser: '" + Parser.PIT.name()
+                REFERENCE_BUILD
+                        + "recordCoverage tools: [[parser: '" + Parser.PIT.name()
                         + "', pattern: '**/mutations*.xml']], id: 'pit'\n"
                         + "recordCoverage tools: [[parser: '" + Parser.JACOCO.name()
                         + "', pattern: '**/jacoco*xml']]\n");
@@ -73,7 +76,8 @@ class DeltaComputationITest extends AbstractCoverageITest {
         Run<?, ?> firstBuild = buildSuccessfully(job);
 
         setPipelineScript(job,
-                "recordCoverage tools: [[parser: '" + Parser.PIT.name()
+                REFERENCE_BUILD
+                        + "recordCoverage tools: [[parser: '" + Parser.PIT.name()
                         + "', pattern: '**/mutations.xml']], id: 'pit'\n"
                         + "recordCoverage tools: [[parser: 'JACOCO', pattern: '" + JACOCO_CODING_STYLE_FILE + "']]");
 

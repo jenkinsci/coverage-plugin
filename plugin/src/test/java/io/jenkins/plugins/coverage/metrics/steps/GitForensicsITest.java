@@ -338,6 +338,7 @@ class GitForensicsITest extends AbstractCoverageITest {
                 + "         userRemoteConfigs: [[url: '" + REPOSITORY + "']],\n"
                 + "         extensions: [[$class: 'RelativeTargetDirectory', \n"
                 + "             relativeTargetDir: 'checkout']]])\n"
+                + "    discoverGitReferenceBuild()\n"
                 + "    recordCoverage tools: [[parser: 'JACOCO', pattern: '" + fileName + "']], "
                 + "         sourceCodeRetention: '" + sourceCodeRetentionStrategy.name() + "'"
                 + qualityGate
