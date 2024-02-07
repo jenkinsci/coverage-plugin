@@ -32,7 +32,7 @@
     <prism-api.version>1.29.0-8</prism-api.version>
     <plugin-util-api.version>3.9.0-rc875.a_d0273a_e2df1</plugin-util-api.version>
     <forensics-api.version>2.4.0-rc1561.1f746b_248f63</forensics-api.version>
-    <git-forensics.version>2.1.0-20240205.180020-1</git-forensics.version>
+    <git-forensics.version>2.1.0-20240207.074913-2</git-forensics.version>
 
     <!-- Test Library Dependencies Versions -->
     <xmlunit.version>2.9.1</xmlunit.version>
