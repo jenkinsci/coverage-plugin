@@ -444,6 +444,21 @@ class CoveragePluginITest extends AbstractCoverageITest {
     }
 
     @Test
+    void shouldRecordOneXUnitResultInFreestyleJob() {
+        FreeStyleProject project = createFreestyleJob(Parser.XUNIT, "xunit.xml");
+
+        Run<?, ?> build = buildSuccessfully(project);
+
+        CoverageBuildAction coverageResult = build.getAction(CoverageBuildAction.class);
+        assertThat(coverageResult.getAllValues(Baseline.PROJECT))
+                .filteredOn(Value::getMetric, Metric.TESTS)
+                .first()
+                .isInstanceOfSatisfying(TestCount.class, m -> {
+                    assertThat(m.getValue()).isEqualTo(3);
+                });
+    }
+
+    @Test
     void shouldRecordOnePitResultInFreestyleJob() {
         FreeStyleProject project = createFreestyleJob(Parser.PIT, "mutations.xml");
 

@@ -216,6 +216,8 @@ public class CoverageTool extends AbstractDescribableImpl<CoverageTool> implemen
         JUNIT(Messages._Parser_Junit(), "**/TEST-*.xml",
                 "symbol-solid/list-check plugin-font-awesome-api"),
         NUNIT(Messages._Parser_Nunit(), "**/nunit.xml,**/TestResult.xml",
+                "symbol-solid/list-check plugin-font-awesome-api"),
+        XUNIT(Messages._Parser_Xunit(), "**/xunit.xml,**/TestResult.xml",
                 "symbol-solid/list-check plugin-font-awesome-api");
 
         private final Localizable displayName;
