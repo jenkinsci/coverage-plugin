@@ -92,6 +92,6 @@
   <c:chart-setup id="coverage-history"/>
 
   <st:bind var="proxy" value="${it}" />
-  <st:adjunct includes="io.jenkins.plugins.coverage.metrics.steps.init-view-model"/>
+  <st:adjunct includes="io.jenkins.plugins.coverage.metrics.steps.CoverageViewModel.init-view-model"/>
 
 </j:jelly>
