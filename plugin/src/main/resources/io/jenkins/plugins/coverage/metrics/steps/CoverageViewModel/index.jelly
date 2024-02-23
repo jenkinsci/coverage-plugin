@@ -91,15 +91,7 @@
 
   <c:chart-setup id="coverage-history"/>
 
-  <script>
-    const viewProxy =<st:bind value="${it}"/>;
-    const coverageChartGenerator = new CoverageChartGenerator(jQuery3);
-    viewProxy.getJenkinsColorIDs(function (colors) {
-        const jenkinsColors = getJenkinsColors(colors.responseObject());
-        const colorJson = JSON.stringify(Object.fromEntries(jenkinsColors));
-        viewProxy.setJenkinsColors(colorJson, function(t) {});
-        coverageChartGenerator.populateDetailsCharts(jenkinsColors);
-    });
-  </script>
+  <st:bind var="proxy" value="${it}" />
+  <st:adjunct includes="io.jenkins.plugins.coverage.metrics.steps.CoverageViewModel.init-view-model"/>
 
 </j:jelly>
