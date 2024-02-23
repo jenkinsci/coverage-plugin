@@ -7,6 +7,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
+import org.junitpioneer.jupiter.Issue;
 
 import edu.hm.hafner.coverage.Coverage;
 import edu.hm.hafner.coverage.Coverage.CoverageBuilder;
@@ -356,9 +357,9 @@ class CoveragePluginITest extends AbstractCoverageITest {
                 "Successfully processed file 'jacoco-analysis-model.xml'",
                 "Resolving source code files...",
                 "-> finished resolving of absolute paths (found: 0, not found: 308)",
-                "Obtaining action of reference build",
+                "Obtaining result action of reference build",
                 "Reference build recorder is not configured",
-                "-> Found no reference result in reference build",
+                "-> Found no reference build",
                 "No quality gates have been set - skipping",
                 "Executing source code painting...",
                 "Painting 308 source files on agent",
@@ -367,8 +368,7 @@ class CoveragePluginITest extends AbstractCoverageITest {
                 "-> extracting...",
                 "-> done",
                 "Finished coverage processing - adding the action to the build...");
-        assertThat(log.getErrorMessages()).contains("Errors while recording code coverage:",
-                "Errors during source path resolving:",
+        assertThat(log.getErrorMessages()).contains(
                 "Errors while resolving source files on agent:",
                 "Removing non-workspace source directory '/Users/leobalter/dev/testing/solutions/3' - it has not been approved in Jenkins' global configuration.",
                 "- Source file 'edu/hm/hafner/analysis/parser/PerlCriticParser.java' not found",
@@ -399,6 +399,10 @@ class CoveragePluginITest extends AbstractCoverageITest {
 
         Run<?, ?> build = buildSuccessfully(project);
 
+        verifyOpenCoverResults(build);
+    }
+
+    private void verifyOpenCoverResults(final Run<?, ?> build) {
         CoverageBuildAction coverageResult = build.getAction(CoverageBuildAction.class);
         assertThat(coverageResult.getAllValues(Baseline.PROJECT))
                 .filteredOn(Value::getMetric, Metric.LINE)
@@ -407,6 +411,21 @@ class CoveragePluginITest extends AbstractCoverageITest {
                     assertThat(m.getCovered()).isEqualTo(9);
                     assertThat(m.getTotal()).isEqualTo(15);
                 });
+    }
+
+    @Test @Issue("JENKINS-72595")
+    void shouldGracefullyHandleBomEncodedFiles() {
+        assumeThatTestIsRunningOnUnix();
+
+        var fileName = "opencover-with-bom.xml";
+        WorkflowJob job = createPipelineWithWorkspaceFiles(fileName);
+
+        setPipelineScript(job,
+                "recordCoverage tools: [[parser: 'OPENCOVER', pattern: '" + fileName + "']]");
+
+        Run<?, ?> build = buildSuccessfully(job);
+
+        verifyOpenCoverResults(build);
     }
 
     @Test

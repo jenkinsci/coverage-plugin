@@ -13,7 +13,6 @@ import edu.hm.hafner.coverage.Metric;
 import edu.hm.hafner.coverage.Node;
 import edu.hm.hafner.coverage.Value;
 import edu.hm.hafner.util.FilteredLog;
-import edu.umd.cs.findbugs.annotations.CheckForNull;
 
 import hudson.FilePath;
 import hudson.model.Run;
@@ -26,7 +25,7 @@ import io.jenkins.plugins.forensics.delta.FileChanges;
 import io.jenkins.plugins.forensics.reference.ReferenceFinder;
 import io.jenkins.plugins.prism.SourceCodeRetention;
 import io.jenkins.plugins.util.QualityGateResult;
-import io.jenkins.plugins.util.StageResultHandler;
+import io.jenkins.plugins.util.ResultHandler;
 
 /**
  * Transforms the old model to the new model and invokes all steps that work on the new model. Currently, only the
@@ -44,23 +43,20 @@ public class CoverageReporter {
             final Node rootNode,
             final Run<?, ?> build, final FilePath workspace, final TaskListener listener,
             final List<CoverageQualityGate> qualityGates, final String scm, final String sourceCodeEncoding,
-            final SourceCodeRetention sourceCodeRetention, final StageResultHandler resultHandler,
-            final FilteredLog log)
-            throws InterruptedException {
+            final SourceCodeRetention sourceCodeRetention, final ResultHandler notifier,
+            final FilteredLog log) throws InterruptedException {
         Optional<CoverageBuildAction> possibleReferenceResult = getReferenceBuildAction(build, id, log);
 
         CoverageBuildAction action;
         if (possibleReferenceResult.isPresent()) {
             action = computeCoverageBasedOnReferenceBuild(id, optionalName, icon, rootNode, build, workspace,
-                    qualityGates, sourceCodeEncoding, sourceCodeRetention, resultHandler, possibleReferenceResult.get(),
-                    scm,
-                    listener,
-                    log);
+                    qualityGates, sourceCodeEncoding, sourceCodeRetention, notifier, possibleReferenceResult.get(),
+                    scm, listener, log);
         }
         else {
             action = computeActionWithoutHistory(id, optionalName, icon, rootNode, build, workspace, qualityGates,
                     sourceCodeEncoding,
-                    sourceCodeRetention, resultHandler, log);
+                    sourceCodeRetention, notifier, log);
         }
 
         build.addAction(action);
@@ -72,12 +68,12 @@ public class CoverageReporter {
             final String id, final String optionalName, final String icon,
             final Node rootNode, final Run<?, ?> build, final FilePath workspace,
             final List<CoverageQualityGate> qualityGates, final String sourceCodeEncoding,
-            final SourceCodeRetention sourceCodeRetention, final StageResultHandler resultHandler,
+            final SourceCodeRetention sourceCodeRetention, final ResultHandler notifier,
             final FilteredLog log) throws InterruptedException {
         var statistics = new CoverageStatistics(rootNode.aggregateValues(),
                 EMPTY_DELTA, EMPTY_VALUES, EMPTY_DELTA, EMPTY_VALUES, EMPTY_DELTA);
-        QualityGateResult qualityGateStatus = evaluateQualityGates(qualityGates,
-                statistics, resultHandler, log);
+        var evaluator = new CoverageQualityGateEvaluator(qualityGates, statistics);
+        QualityGateResult qualityGateStatus = evaluator.evaluate(notifier, log);
 
         paintSourceFiles(build, workspace, sourceCodeEncoding, sourceCodeRetention, id, rootNode,
                 rootNode.getAllFileNodes(), log);
@@ -90,7 +86,7 @@ public class CoverageReporter {
             final String id, final String optionalName, final String icon,
             final Node rootNode, final Run<?, ?> build, final FilePath workspace,
             final List<CoverageQualityGate> qualityGates, final String sourceCodeEncoding,
-            final SourceCodeRetention sourceCodeRetention, final StageResultHandler resultHandler,
+            final SourceCodeRetention sourceCodeRetention, final ResultHandler notifier,
             final CoverageBuildAction referenceAction, final String scm,
             final TaskListener listener, final FilteredLog log) throws InterruptedException {
         log.logInfo("Calculating the code delta...");
@@ -131,7 +127,8 @@ public class CoverageReporter {
 
         var statistics = new CoverageStatistics(overallValues, overallDelta,
                 modifiedLinesValues, modifiedLinesDelta, modifiedFilesValues, modifiedFilesDelta);
-        QualityGateResult qualityGateResult = evaluateQualityGates(qualityGates, statistics, resultHandler, log);
+        var evaluator = new CoverageQualityGateEvaluator(qualityGates, statistics);
+        QualityGateResult qualityGateResult = evaluator.evaluate(notifier, log);
 
         var filesToStore = computePaintedFiles(rootNode, sourceCodeRetention, log, modifiedLinesCoverageRoot);
         paintSourceFiles(build, workspace, sourceCodeEncoding, sourceCodeRetention, id, rootNode, filesToStore, log);
@@ -195,30 +192,6 @@ public class CoverageReporter {
         }
     }
 
-    private QualityGateResult evaluateQualityGates(final List<CoverageQualityGate> qualityGates,
-            final CoverageStatistics statistics, final StageResultHandler resultHandler, final FilteredLog log) {
-        CoverageQualityGateEvaluator evaluator = new CoverageQualityGateEvaluator(qualityGates, statistics);
-        var qualityGateStatus = evaluator.evaluate();
-        if (qualityGateStatus.isInactive() && qualityGates.isEmpty()) {
-            log.logInfo("No quality gates have been set - skipping");
-        }
-        else {
-            log.logInfo("Evaluating quality gates");
-            if (qualityGateStatus.isSuccessful()) {
-                log.logInfo("-> All quality gates have been passed");
-            }
-            else {
-                var message = String.format("-> Some quality gates have been missed: overall result is %s",
-                        qualityGateStatus.getOverallStatus().getResult());
-                log.logInfo(message);
-                resultHandler.setResult(qualityGateStatus.getOverallStatus().getResult(), message);
-            }
-            log.logInfo("-> Details for each quality gate:");
-            qualityGateStatus.getMessages().forEach(log::logInfo);
-        }
-        return qualityGateStatus;
-    }
-
     private boolean hasModifiedLinesCoverage(final Node modifiedLinesCoverageRoot) {
         Optional<Value> lineCoverage = modifiedLinesCoverageRoot.getValue(Metric.LINE);
         if (lineCoverage.isPresent() && hasLineCoverageSet(lineCoverage.get())) {
@@ -234,51 +207,31 @@ public class CoverageReporter {
 
     private Optional<CoverageBuildAction> getReferenceBuildAction(final Run<?, ?> build, final String id,
             final FilteredLog log) {
-        log.logInfo("Obtaining action of reference build");
+        log.logInfo("Obtaining result action of reference build");
 
         ReferenceFinder referenceFinder = new ReferenceFinder();
         Optional<Run<?, ?>> reference = referenceFinder.findReference(build, log);
 
-        Optional<CoverageBuildAction> previousResult;
         if (reference.isPresent()) {
             Run<?, ?> referenceBuild = reference.get();
+
             log.logInfo("-> Using reference build '%s'", referenceBuild);
-            previousResult = getPreviousResult(id, reference.get());
-            if (previousResult.isPresent()) {
-                Run<?, ?> fallbackBuild = previousResult.get().getOwner();
-                if (!fallbackBuild.equals(referenceBuild)) {
-                    log.logInfo("-> Reference build has no action, falling back to last build with action: '%s'",
-                            fallbackBuild.getDisplayName());
-                }
+            Optional<CoverageBuildAction> possibleResult = getAction(id, reference.get());
+            if (possibleResult.isEmpty()) {
+                log.logInfo("-> Reference build has no action for ID '%s'", id);
             }
+            return possibleResult;
         }
-        else {
-            previousResult = getPreviousResult(id, build.getPreviousBuild());
-            previousResult.ifPresent(coverageBuildAction ->
-                    log.logInfo("-> No reference build defined, falling back to previous build: '%s'",
-                            coverageBuildAction.getOwner().getDisplayName()));
-        }
+        log.logInfo("-> Found no reference build");
 
-        if (previousResult.isEmpty()) {
-            log.logInfo("-> Found no reference result in reference build");
-
-            return Optional.empty();
-        }
-
-        CoverageBuildAction referenceAction = previousResult.get();
-        log.logInfo("-> Found reference result in build '%s'", referenceAction.getOwner().getDisplayName());
-
-        return Optional.of(referenceAction);
+        return Optional.empty();
     }
 
-    private Optional<CoverageBuildAction> getPreviousResult(final String id,
-            @CheckForNull final Run<?, ?> startSearch) {
-        for (Run<?, ?> build = startSearch; build != null; build = build.getPreviousBuild()) {
-            List<CoverageBuildAction> actions = build.getActions(CoverageBuildAction.class);
-            for (CoverageBuildAction action : actions) {
-                if (action.getUrlName().equals(id)) {
-                    return Optional.of(action);
-                }
+    private Optional<CoverageBuildAction> getAction(final String id, final Run<?, ?> build) {
+        List<CoverageBuildAction> actions = build.getActions(CoverageBuildAction.class);
+        for (CoverageBuildAction action : actions) {
+            if (action.getUrlName().equals(id)) {
+                return Optional.of(action);
             }
         }
         return Optional.empty();

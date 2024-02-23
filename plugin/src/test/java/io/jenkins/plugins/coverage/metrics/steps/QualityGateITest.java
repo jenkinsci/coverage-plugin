@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Objects;
 
 import org.junit.jupiter.api.Test;
+import org.junitpioneer.jupiter.Issue;
 
 import edu.hm.hafner.coverage.Metric;
 
@@ -52,7 +53,7 @@ class QualityGateITest extends AbstractCoverageITest {
         assertThat(coverageResult.getLog().getInfoMessages()).contains("Evaluating quality gates",
                 "-> All quality gates have been passed",
                 "-> Details for each quality gate:",
-                "-> [Overall project (difference to reference job) - Line Coverage]: ≪Not built≫ - (Actual value: n/a, Quality gate: -100.00)");
+                "   - [Overall project (difference to reference job) - Line Coverage]: ≪Not built≫ - (Actual value: n/a, Quality gate: -100.00)");
     }
 
     @Test
@@ -67,7 +68,7 @@ class QualityGateITest extends AbstractCoverageITest {
         assertThat(coverageResult.getLog().getInfoMessages()).contains("Evaluating quality gates",
                 "-> All quality gates have been passed",
                 "-> Details for each quality gate:",
-                "-> [Overall project - Line Coverage]: ≪Success≫ - (Actual value: 95.39%, Quality gate: -100.00)");
+                "   - [Overall project - Line Coverage]: ≪Success≫ - (Actual value: 95.39%, Quality gate: -100.00)");
     }
 
     @Test
@@ -82,7 +83,7 @@ class QualityGateITest extends AbstractCoverageITest {
         assertThat(coverageResult.getLog().getInfoMessages()).contains("Evaluating quality gates",
                 "-> Some quality gates have been missed: overall result is UNSTABLE",
                 "-> Details for each quality gate:",
-                "-> [Overall project - Line Coverage]: ≪Unstable≫ - (Actual value: 95.39%, Quality gate: 100.00)");
+                "   - [Overall project - Line Coverage]: ≪Unstable≫ - (Actual value: 95.39%, Quality gate: 100.00)");
     }
 
     @Test
@@ -97,7 +98,7 @@ class QualityGateITest extends AbstractCoverageITest {
         assertThat(coverageResult.getLog().getInfoMessages()).contains("Evaluating quality gates",
                 "-> Some quality gates have been missed: overall result is FAILURE",
                 "-> Details for each quality gate:",
-                "-> [Overall project - Line Coverage]: ≪Failed≫ - (Actual value: 95.39%, Quality gate: 100.00)");
+                "   - [Overall project - Line Coverage]: ≪Failed≫ - (Actual value: 95.39%, Quality gate: 100.00)");
     }
 
     @Test
@@ -119,15 +120,45 @@ class QualityGateITest extends AbstractCoverageITest {
         assertThat(coverageResult.getLog().getInfoMessages()).contains("Evaluating quality gates",
                 "-> Some quality gates have been missed: overall result is UNSTABLE",
                 "-> Details for each quality gate:",
-                "-> [Overall project - Line Coverage]: ≪Success≫ - (Actual value: 95.39%, Quality gate: 90.00)",
-                "-> [Overall project - Branch Coverage]: ≪Unstable≫ - (Actual value: 88.28%, Quality gate: 90.00)");
+                "   - [Overall project - Line Coverage]: ≪Success≫ - (Actual value: 95.39%, Quality gate: 90.00)",
+                "   - [Overall project - Branch Coverage]: ≪Unstable≫ - (Actual value: 88.28%, Quality gate: 90.00)");
 
+        assertThatFlowNodeHasWarningAction(build);
+    }
+
+    @Test @Issue("JENKINS-72059")
+    void shouldUseStageQualityGateInPipeline() {
+        WorkflowJob project = createPipelineWithWorkspaceFiles(JACOCO_ANALYSIS_MODEL_FILE);
+
+        setPipelineScript(project,
+                "recordCoverage("
+                        + "tools: [[parser: '" + Parser.JACOCO.name() + "', pattern: '**/*xml']],\n"
+                        + "qualityGates: ["
+                        + "     [threshold: 90.0, metric: 'LINE', baseline: 'PROJECT', criticality: 'NOTE'], "
+                        + "     [threshold: 90.0, metric: 'BRANCH', baseline: 'PROJECT', criticality: 'NOTE']])\n");
+
+        WorkflowRun build = (WorkflowRun)buildSuccessfully(project);
+
+        CoverageBuildAction coverageResult = build.getAction(CoverageBuildAction.class);
+        assertThat(coverageResult.getQualityGateResult()).hasOverallStatus(QualityGateStatus.NOTE);
+
+        assertThat(coverageResult.getLog().getInfoMessages()).contains("Evaluating quality gates",
+                "-> Some quality gates have been missed: overall result is UNSTABLE",
+                "-> Details for each quality gate:",
+                "   - [Overall project - Line Coverage]: ≪Success≫ - (Actual value: 95.39%, Quality gate: 90.00)",
+                "   - [Overall project - Branch Coverage]: ≪Unstable≫ - (Actual value: 88.28%, Quality gate: 90.00)");
+
+        assertThatFlowNodeHasWarningAction(build);
+    }
+
+    private void assertThatFlowNodeHasWarningAction(final WorkflowRun build) {
         FlowNode flowNode = new DepthFirstScanner().findFirstMatch(build.getExecution(),
                 node -> "recordCoverage".equals(Objects.requireNonNull(node).getDisplayFunctionName()));
         assertThat(flowNode).isNotNull();
 
         WarningAction warningAction = flowNode.getPersistentAction(WarningAction.class);
         assertThat(warningAction).isNotNull();
+        assertThat(warningAction.getResult()).isEqualTo(Result.UNSTABLE);
         assertThat(warningAction.getMessage()).isEqualTo(
                 "-> Some quality gates have been missed: overall result is UNSTABLE");
     }

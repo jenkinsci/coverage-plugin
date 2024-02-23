@@ -22,7 +22,6 @@ import io.jenkins.plugins.forensics.delta.FileEditType;
  * @author Florian Orendi
  */
 public abstract class AbstractModifiedFilesCoverageTest extends AbstractCoverageTest {
-
     private static final String TEST_FILE_MODIFIED = "Test1.java";
     private static final String TEST_FILE_NOT_MODIFIED = "Main.java";
     private static final String TEST_FILE_MODIFIED_PATH = "test/example/" + TEST_FILE_MODIFIED;

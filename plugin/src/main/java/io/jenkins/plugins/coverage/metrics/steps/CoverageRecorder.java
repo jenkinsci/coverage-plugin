@@ -54,8 +54,8 @@ import io.jenkins.plugins.util.AgentFileVisitor.FileVisitorResult;
 import io.jenkins.plugins.util.EnvironmentResolver;
 import io.jenkins.plugins.util.JenkinsFacade;
 import io.jenkins.plugins.util.LogHandler;
+import io.jenkins.plugins.util.ResultHandler;
 import io.jenkins.plugins.util.RunResultHandler;
-import io.jenkins.plugins.util.StageResultHandler;
 import io.jenkins.plugins.util.ValidationUtilities;
 
 /**
@@ -383,7 +383,7 @@ public class CoverageRecorder extends Recorder {
     }
 
     void perform(final Run<?, ?> run, final FilePath workspace, final TaskListener taskListener,
-            final StageResultHandler resultHandler) throws InterruptedException {
+            final ResultHandler resultHandler) throws InterruptedException {
         Result overallResult = run.getResult();
         LogHandler logHandler = new LogHandler(taskListener, "Coverage");
         if (enabledForFailure || overallResult == null || overallResult.isBetterOrEqualTo(Result.UNSTABLE)) {
@@ -408,7 +408,7 @@ public class CoverageRecorder extends Recorder {
     }
 
     private void perform(final Run<?, ?> run, final FilePath workspace, final TaskListener taskListener,
-            final StageResultHandler resultHandler, final FilteredLog log, final LogHandler logHandler) throws InterruptedException {
+            final ResultHandler resultHandler, final FilteredLog log, final LogHandler logHandler) throws InterruptedException {
         var results = recordCoverageResults(run, workspace, resultHandler, log, logHandler);
         Node aggregatedResult = aggregateResults(log, results);
 
@@ -460,15 +460,15 @@ public class CoverageRecorder extends Recorder {
         return ICON;
     }
 
-    private static void failStage(final StageResultHandler resultHandler, final LogHandler logHandler,
+    private static void failStage(final ResultHandler resultHandler, final LogHandler logHandler,
             final FilteredLog log, final String message) {
         log.logError(message);
-        resultHandler.setResult(Result.FAILURE, message);
+        resultHandler.publishResult(Result.FAILURE, message);
         logHandler.log(log);
     }
 
     private Map<Parser, List<ModuleNode>> recordCoverageResults(final Run<?, ?> run, final FilePath workspace,
-            final StageResultHandler resultHandler, final FilteredLog log, final LogHandler logHandler) throws InterruptedException {
+            final ResultHandler resultHandler, final FilteredLog log, final LogHandler logHandler) throws InterruptedException {
         Map<Parser, List<ModuleNode>> results = new HashMap<>();
 
         for (CoverageTool tool : tools) {
@@ -495,7 +495,7 @@ public class CoverageRecorder extends Recorder {
                     if (isFailOnError()) {
                         var errorMessage = "Failing build due to some errors during recording of the coverage";
                         log.logInfo(errorMessage);
-                        resultHandler.setResult(Result.FAILURE, errorMessage);
+                        resultHandler.publishResult(Result.FAILURE, errorMessage);
                     }
                     else {
                         log.logInfo("Ignore errors and continue processing");
