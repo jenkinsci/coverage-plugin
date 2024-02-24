@@ -1,4 +1,4 @@
-/* global jQuery3, viewProxy, echartsJenkinsApi, bootstrap5 */
+/* global jQuery3, proxy, echartsJenkinsApi, bootstrap5 */
 
 getJenkinsColors = function (colors) {
     // TODO: also handle HSL colors and parse them to hex in order to use dark mode colors
@@ -12,7 +12,7 @@ getJenkinsColors = function (colors) {
     return colorHexMapping;
 };
 
-const CoverageChartGenerator = function ($) {
+const CoverageChartGenerator = function ($, proxy) {
     var selectedTreeNode;
 
     function printPercentage(value, minimumFractionDigits = 2) {
@@ -20,7 +20,7 @@ const CoverageChartGenerator = function ($) {
     }
 
     const openBuild = function (build) {
-        viewProxy.getUrlForBuild(build, window.location.href, function (buildUrl) {
+        proxy.getUrlForBuild(build, window.location.href, function (buildUrl) {
             if (buildUrl.responseJSON.startsWith('http')) {
                 window.location.assign(buildUrl.responseJSON);
             }
@@ -350,14 +350,14 @@ const CoverageChartGenerator = function ($) {
         function initializeCharts() {
             renderTrendChart();
 
-            viewProxy.getOverview(function (t) {
+            proxy.getOverview(function (t) {
                 createOverview(t.responseObject(), 'coverage-overview');
             });
 
             $('.tree-chart').each(function () {
                 const id = $(this).attr('id');
                 const name = $(this).attr('data-item-name');
-                viewProxy.getCoverageTree(id, function (t) {
+                proxy.getCoverageTree(id, function (t) {
                     createFilesTreeMap(t.responseObject(), id, name);
                 });
             });
@@ -369,7 +369,7 @@ const CoverageChartGenerator = function ($) {
 
         function renderTrendChart() {
             const configuration = JSON.stringify(echartsJenkinsApi.readFromLocalStorage('jenkins-echarts-chart-configuration-coverage-history'));
-            viewProxy.getTrendChart(configuration, function (t) {
+            proxy.getTrendChart(configuration, function (t) {
                 echartsJenkinsApi.renderConfigurableZoomableTrendChart('coverage-trend', t.responseJSON, 'chart-configuration-coverage-history', openBuild);
                 resizeChartOf('#coverage-trend');
             });
@@ -430,7 +430,7 @@ const CoverageChartGenerator = function ($) {
                     showSourceCode();
                     sourceView.html('Loading...');
                     const rowData = datatable.rows(indexes).data().toArray();
-                    viewProxy.getSourceCode(rowData[0].fileHash, tableId + '-table', function (t) {
+                    proxy.getSourceCode(rowData[0].fileHash, tableId + '-table', function (t) {
                         const sourceCode = t.responseObject();
                         if (sourceCode === "n/a") {
                             showNoSourceCode();
@@ -462,7 +462,7 @@ const CoverageChartGenerator = function ($) {
             window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', event => {
                 redrawCharts();
 
-                viewProxy.getOverview(function (t) {
+                proxy.getOverview(function (t) {
                     createOverview(t.responseObject(), 'coverage-overview');
                 });
             });
