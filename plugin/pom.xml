@@ -20,7 +20,7 @@
   <url>https://github.com/jenkinsci/coverage-plugin</url>
 
   <properties>
-    <revision>1.12.0</revision>
+    <revision>1.11.1</revision>
     <changelist>-SNAPSHOT</changelist>
     <gitHubRepo>jenkinsci/coverage-plugin</gitHubRepo>
 
