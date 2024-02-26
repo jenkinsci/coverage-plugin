@@ -12,7 +12,7 @@
           <cov:coverage-summary baseline="${baseline}" />
         </j:forEach>
         <j:if test="${it.referenceBuild.present}">
-          <span id="coverage-reference">
+          <span id="coverage-reference-${it.urlName}">
             <li>
               Reference build:
               <j:out value="${it.referenceBuildLink}"/>
