@@ -149,7 +149,7 @@ In order to compute this classification, the plugin requires a reference build (
 
 ### Selecting a baseline from the current job
 
-When a team wants to investigate how the coverage of the project changes over the time, we need to simply look back in the history of the same Jenkins job and select another build that we can use to compare the results with. Such a Jenkins job typically builds the main branch of the source control system. This can be achieved by using `discoverReferenceBuild` before the step to record the coverage coverage:
+When a team wants to investigate how the coverage of the project changes over the time, we need to simply look back in the history of the same Jenkins job and select another build that we can use to compare the results with. Such a Jenkins job typically builds the main branch of the source control system. This can be achieved by using `discoverReferenceBuild` before the step to record the code coverage:
 
 ```groovy
 discoverReferenceBuild()
