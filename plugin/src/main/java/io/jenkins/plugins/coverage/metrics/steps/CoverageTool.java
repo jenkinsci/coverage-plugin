@@ -152,6 +152,7 @@ public class CoverageTool extends AbstractDescribableImpl<CoverageTool> implemen
                 add(options, Parser.PIT);
                 add(options, Parser.JUNIT);
                 add(options, Parser.NUNIT);
+                add(options, Parser.XUNIT);
                 return options;
             }
             return new ListBoxModel();
