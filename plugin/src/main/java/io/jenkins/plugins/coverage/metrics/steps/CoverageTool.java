@@ -1,6 +1,9 @@
 package io.jenkins.plugins.coverage.metrics.steps;
 
 import java.io.Serializable;
+import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.apache.commons.lang3.StringUtils;
 
@@ -24,6 +27,7 @@ import hudson.model.Descriptor;
 import hudson.model.Item;
 import hudson.util.FormValidation;
 import hudson.util.ListBoxModel;
+import hudson.util.ListBoxModel.Option;
 import jenkins.model.Jenkins;
 
 import io.jenkins.plugins.prism.SourceCodeRetention;
@@ -144,22 +148,14 @@ public class CoverageTool extends AbstractDescribableImpl<CoverageTool> implemen
          */
         @POST
         public ListBoxModel doFillParserItems() {
-            if (JENKINS.hasPermission(Jenkins.READ)) {
-                ListBoxModel options = new ListBoxModel();
-                add(options, Parser.JACOCO);
-                add(options, Parser.COBERTURA);
-                add(options, Parser.OPENCOVER);
-                add(options, Parser.PIT);
-                add(options, Parser.JUNIT);
-                add(options, Parser.NUNIT);
-                add(options, Parser.XUNIT);
-                return options;
+            if (!JENKINS.hasPermission(Jenkins.READ)) {
+                return new ListBoxModel();
             }
-            return new ListBoxModel();
-        }
 
-        private void add(final ListBoxModel options, final Parser parser) {
-            options.add(parser.getDisplayName(), parser.name());
+            List<Option> options = Stream.of(Parser.values())
+                    .map(p -> new Option(p.getDisplayName(), p.name()))
+                    .collect(Collectors.toList());
+            return new ListBoxModel(options);
         }
 
         /**
@@ -202,38 +198,56 @@ public class CoverageTool extends AbstractDescribableImpl<CoverageTool> implemen
         }
     }
 
+    public enum ParserType {
+        COVERAGE,
+        TEST
+    }
+
     /**
      * Supported coverage parsers.
      */
     public enum Parser {
-        COBERTURA(Messages._Parser_Cobertura(), "**/cobertura.xml",
+        COBERTURA(Messages._Parser_Cobertura(), ParserType.COVERAGE,
+                "**/cobertura.xml",
                 "symbol-footsteps-outline plugin-ionicons-api"),
-        JACOCO(Messages._Parser_JaCoCo(), "**/jacoco.xml",
+        JACOCO(Messages._Parser_JaCoCo(), ParserType.COVERAGE,
+                "**/jacoco.xml",
                 "symbol-footsteps-outline plugin-ionicons-api"),
-        OPENCOVER(Messages._Parser_OpenCover(), "**/*opencover.xml",
+        OPENCOVER(Messages._Parser_OpenCover(), ParserType.COVERAGE,
+                "**/*opencover.xml",
                 "symbol-footsteps-outline plugin-ionicons-api"),
-        PIT(Messages._Parser_PIT(), "**/mutations.xml",
+        PIT(Messages._Parser_PIT(), ParserType.TEST,
+                "**/mutations.xml",
                 "symbol-solid/virus-slash plugin-font-awesome-api"),
-        JUNIT(Messages._Parser_Junit(), "**/TEST-*.xml",
+        JUNIT(Messages._Parser_Junit(), ParserType.TEST,
+                "**/TEST-*.xml",
                 "symbol-solid/list-check plugin-font-awesome-api"),
-        NUNIT(Messages._Parser_Nunit(), "**/nunit.xml,**/TestResult.xml",
+        NUNIT(Messages._Parser_Nunit(), ParserType.TEST,
+                "**/nunit.xml,**/TestResult.xml",
                 "symbol-solid/list-check plugin-font-awesome-api"),
-        XUNIT(Messages._Parser_Xunit(), "**/xunit.xml,**/TestResult.xml",
+        XUNIT(Messages._Parser_Xunit(), ParserType.TEST,
+                "**/xunit.xml,**/TestResult.xml",
                 "symbol-solid/list-check plugin-font-awesome-api");
 
         private final Localizable displayName;
+        private final ParserType parserType;
         private final String defaultPattern;
         private final String icon;
 
-        Parser(final Localizable displayName, final String defaultPattern,
-                final String icon) {
+        Parser(final Localizable displayName, final ParserType parserType,
+                final String defaultPattern, final String icon) {
             this.displayName = displayName;
+            this.parserType = parserType;
             this.defaultPattern = defaultPattern;
             this.icon = icon;
         }
 
         public String getDisplayName() {
             return displayName.toString();
+        }
+
+        public ParserType getParserType() {
+            return parserType;
         }
 
         public String getDefaultPattern() {

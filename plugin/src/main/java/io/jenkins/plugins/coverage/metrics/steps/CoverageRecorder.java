@@ -48,6 +48,7 @@ import hudson.util.ListBoxModel;
 import jenkins.model.Jenkins;
 
 import io.jenkins.plugins.coverage.metrics.steps.CoverageTool.Parser;
+import io.jenkins.plugins.coverage.metrics.steps.CoverageTool.ParserType;
 import io.jenkins.plugins.prism.SourceCodeDirectory;
 import io.jenkins.plugins.prism.SourceCodeRetention;
 import io.jenkins.plugins.util.AgentFileVisitor.FileVisitorResult;
@@ -451,7 +452,7 @@ public class CoverageRecorder extends Recorder {
     private String getIcon() {
         var icons = tools.stream()
                 .map(CoverageTool::getParser)
-                .filter(parser -> parser != Parser.JUNIT)
+                .filter(parser -> parser.getParserType() != ParserType.TEST)
                 .map(Parser::getIcon)
                 .collect(Collectors.toSet());
         if (icons.size() == 1) {
@@ -537,12 +538,16 @@ public class CoverageRecorder extends Recorder {
     }
 
     private List<ModuleNode> extractTests(final Map<Parser, List<ModuleNode>> results) {
-        if (results.containsKey(Parser.JUNIT)) {
-            return results.remove(Parser.JUNIT);
-        }
-        else {
+        // return an empty list if there are no test parsers
+        if (results.keySet().stream().noneMatch(parser -> parser.getParserType() == ParserType.TEST)) {
             return List.of();
         }
+
+        // extract all ModuleNodes from the test parsers
+        return results.entrySet().stream()
+                .filter(entry -> entry.getKey().getParserType() == ParserType.TEST)
+                .flatMap(entry -> entry.getValue().stream())
+                .collect(Collectors.toList());
     }
 
     private ProcessingMode ignoreErrors() {
