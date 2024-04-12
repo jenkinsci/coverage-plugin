@@ -198,6 +198,9 @@ public class CoverageTool extends AbstractDescribableImpl<CoverageTool> implemen
         }
     }
 
+    /**
+     * Parser types.
+     */
     public enum ParserType {
         COVERAGE,
         TEST
