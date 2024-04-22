@@ -219,7 +219,7 @@ public class CoverageTool extends AbstractDescribableImpl<CoverageTool> implemen
         OPENCOVER(Messages._Parser_OpenCover(), ParserType.COVERAGE,
                 "**/*opencover.xml",
                 "symbol-footsteps-outline plugin-ionicons-api"),
-        PIT(Messages._Parser_PIT(), ParserType.TEST,
+        PIT(Messages._Parser_PIT(), ParserType.COVERAGE,
                 "**/mutations.xml",
                 "symbol-solid/virus-slash plugin-font-awesome-api"),
         JUNIT(Messages._Parser_Junit(), ParserType.TEST,

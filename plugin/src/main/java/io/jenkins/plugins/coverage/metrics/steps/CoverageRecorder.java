@@ -7,14 +7,17 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
 
+import edu.hm.hafner.coverage.ClassNode;
 import edu.hm.hafner.coverage.CoverageParser.ProcessingMode;
 import edu.hm.hafner.coverage.ModuleNode;
 import edu.hm.hafner.coverage.Node;
+import edu.hm.hafner.coverage.PackageNode;
 import edu.hm.hafner.util.FilteredLog;
 import edu.hm.hafner.util.TreeStringBuilder;
 import edu.umd.cs.findbugs.annotations.NonNull;
@@ -521,16 +524,50 @@ public class CoverageRecorder extends Recorder {
             return new ModuleNode("Empty");
         }
         else {
-            var coverageTree = Node.merge(results.values().stream()
+            var testCases = results.entrySet().stream().filter(entry -> entry.getKey().getParserType() == ParserType.TEST)
+                    .map(Entry::getValue)
                     .flatMap(Collection::stream)
-                    .collect(Collectors.toList()));
-            var tests = extractTests(results).stream()
                     .map(Node::getAllClassNodes)
                     .flatMap(Collection::stream)
                     .collect(Collectors.toList());
-            coverageTree.mapTests(tests);
+            var coverageNodes = results.entrySet()
+                    .stream()
+                    .filter(entry -> entry.getKey().getParserType() == ParserType.COVERAGE)
+                    .map(Entry::getValue)
+                    .flatMap(Collection::stream)
+                    .collect(Collectors.toList());
+            if (coverageNodes.isEmpty()) {
+                log.logError("No coverage results were found, just tests! Configuration error?");
+
+                var tests = new ModuleNode("Tests");
+                tests.addAllChildren(testCases);
+                return tests;
+            }
+
+            var coverageTree = Node.merge(coverageNodes);
+            var unmappedNodes = coverageTree.mergeTests(testCases);
+
+            unmappedNodes.forEach(node -> mapTests(node, coverageTree));
+
             return coverageTree;
         }
+    }
+
+    private void mapTests(final ClassNode classNode, final Node coverageTree) {
+        var normalizedPackageName = PackageNode.normalizePackageName(classNode.getPackageName());
+
+        coverageTree.findPackage(normalizedPackageName)
+                .orElseGet(() -> createPackage(coverageTree, normalizedPackageName)).addChild(classNode);
+    }
+
+    private PackageNode createPackage(final Node coverageTree, final String normalizedPackageName) {
+        var packageNode = new PackageNode(normalizedPackageName);
+        coverageTree.addChild(packageNode);
+        return packageNode;
+    }
+
+    private PackageNode createPackageNode(final String normalizedPackageName) {
+        return null;
     }
 
     private boolean isEmpty(final Map<Parser, List<ModuleNode>> results) {
