@@ -1,11 +1,11 @@
-package io.jenkins.plugins.coverage.CoveragePublisher;
+package io.jenkins.plugins.coverage.publisher;
 
 import org.jenkinsci.test.acceptance.po.Control;
 import org.jenkinsci.test.acceptance.po.PageArea;
 import org.jenkinsci.test.acceptance.po.PageAreaImpl;
 
-import io.jenkins.plugins.coverage.CoveragePublisher.Threshold.AdapterThreshold;
-import io.jenkins.plugins.coverage.CoveragePublisher.Threshold.AdapterThreshold.AdapterThresholdTarget;
+import io.jenkins.plugins.coverage.publisher.threshold.AdapterThreshold;
+import io.jenkins.plugins.coverage.publisher.threshold.AdapterThreshold.AdapterThresholdTarget;
 
 /**
  * Adapter which can be added in the configuration of the {@link CoveragePublisher} of a FreeStyle Project.
@@ -26,7 +26,7 @@ public class Adapter extends PageAreaImpl {
      * @param path
      *         of parent page
      */
-    public Adapter(PageArea reportPublisher, String path) {
+    public Adapter(final PageArea reportPublisher, final String path) {
         super(reportPublisher, path);
     }
 
@@ -36,7 +36,7 @@ public class Adapter extends PageAreaImpl {
      * @param reportFilePath
      *         path to report file.
      */
-    public void setReportFilePath(String reportFilePath) {
+    public void setReportFilePath(final String reportFilePath) {
         this.reportFilePath.set(reportFilePath);
     }
 
@@ -46,7 +46,7 @@ public class Adapter extends PageAreaImpl {
      * @param mergeReports
      *         boolean for merging to one report
      */
-    public void setMergeToOneReport(boolean mergeReports) {
+    public void setMergeToOneReport(final boolean mergeReports) {
         ensureAdvancedOptionsIsActivated();
         mergeToOneReport.check(mergeReports);
     }
@@ -69,8 +69,8 @@ public class Adapter extends PageAreaImpl {
      * @param failUnhealthy value for setting if build should fail on unhealthy
      * @return threshold
      */
-    public AdapterThreshold createThresholdsPageArea(AdapterThresholdTarget thresholdTarget, double unhealthyThreshold,
-            double unstableThreshold, boolean failUnhealthy) {
+    public AdapterThreshold createThresholdsPageArea(final AdapterThresholdTarget thresholdTarget, final double unhealthyThreshold,
+            final double unstableThreshold, final boolean failUnhealthy) {
         ensureAdvancedOptionsIsActivated();
         String path = createPageArea("thresholds", () -> this.threshold.click());
         AdapterThreshold adapterThreshold = new AdapterThreshold(this, path);

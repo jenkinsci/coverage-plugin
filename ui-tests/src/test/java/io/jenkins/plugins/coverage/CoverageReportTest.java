@@ -7,9 +7,9 @@ import org.junit.Test;
 import org.jenkinsci.test.acceptance.po.Build;
 import org.jenkinsci.test.acceptance.po.FreeStyleJob;
 
-import io.jenkins.plugins.coverage.CoveragePublisher.Adapter;
-import io.jenkins.plugins.coverage.CoveragePublisher.CoveragePublisher;
 import io.jenkins.plugins.coverage.FileCoverageTable.Header;
+import io.jenkins.plugins.coverage.publisher.Adapter;
+import io.jenkins.plugins.coverage.publisher.CoveragePublisher;
 
 import static net.javacrumbs.jsonunit.assertj.JsonAssertions.*;
 import static org.assertj.core.api.Assertions.*;
@@ -134,6 +134,7 @@ public class CoverageReportTest extends UiTest {
      * @param shouldBranchCoverages
      *         string array of expected values in branch coverage column
      */
+    @SuppressWarnings("PMD.UseVarargs")
     public static void verifyFileCoverageTableContent(final FileCoverageTable fileCoverageTable,
             final String[] shouldPackage, final String[] shouldFiles,
             final String[] shouldLineCoverages, final String[] shouldBranchCoverages) {

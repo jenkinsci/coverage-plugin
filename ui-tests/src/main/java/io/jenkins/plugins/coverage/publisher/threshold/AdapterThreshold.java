@@ -1,7 +1,7 @@
-package io.jenkins.plugins.coverage.CoveragePublisher.Threshold;
+package io.jenkins.plugins.coverage.publisher.threshold;
 
-import io.jenkins.plugins.coverage.CoveragePublisher.Adapter;
-import io.jenkins.plugins.coverage.CoveragePublisher.CoveragePublisher;
+import io.jenkins.plugins.coverage.publisher.Adapter;
+import io.jenkins.plugins.coverage.publisher.CoveragePublisher;
 
 /**
  * Threshold used in {@link Adapter} in {@link CoveragePublisher}.
@@ -17,7 +17,7 @@ public class AdapterThreshold extends AbstractThreshold {
      * @param path
      *         to threshold
      */
-    public AdapterThreshold(Adapter adapter, String path) {
+    public AdapterThreshold(final Adapter adapter, final String path) {
         super(adapter, path);
         this.adapter = adapter;
     }
@@ -28,7 +28,7 @@ public class AdapterThreshold extends AbstractThreshold {
      * @param adapterThresholdTarget
      *         of threshold
      */
-    public void setThresholdTarget(AdapterThresholdTarget adapterThresholdTarget) {
+    public void setThresholdTarget(final AdapterThresholdTarget adapterThresholdTarget) {
         ensureAdvancedOptionsIsActivated();
         this.getThresholdTarget().select(adapterThresholdTarget.getValue());
     }
@@ -64,7 +64,7 @@ public class AdapterThreshold extends AbstractThreshold {
          * @param value
          *         is value-attribute of option-tag.
          */
-        AdapterThresholdTarget(String value) {
+        AdapterThresholdTarget(final String value) {
             this.value = value;
         }
 

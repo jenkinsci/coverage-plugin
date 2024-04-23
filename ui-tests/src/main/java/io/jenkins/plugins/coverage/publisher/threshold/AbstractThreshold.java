@@ -1,4 +1,4 @@
-package io.jenkins.plugins.coverage.CoveragePublisher.Threshold;
+package io.jenkins.plugins.coverage.publisher.threshold;
 
 import org.jenkinsci.test.acceptance.po.Control;
 import org.jenkinsci.test.acceptance.po.PageArea;
@@ -12,7 +12,7 @@ abstract class AbstractThreshold extends PageAreaImpl {
     private final Control unhealthyThreshold = control("unhealthyThreshold");
     private final Control unstableThreshold = control("unstableThreshold");
     private final Control failUnhealthy = control("failUnhealthy");
-    private final Control delete = control("repeatable-delete");
+    private final Control deleteButton = control("repeatable-delete");
     /**
      * Constructor of an AbstractThreshold.
      *
@@ -22,7 +22,7 @@ abstract class AbstractThreshold extends PageAreaImpl {
      *         to threshold
      */
 
-    protected AbstractThreshold(PageArea parent, String path) {
+    protected AbstractThreshold(final PageArea parent, final String path) {
         super(parent, path);
     }
 
@@ -32,7 +32,7 @@ abstract class AbstractThreshold extends PageAreaImpl {
      * @param threshold
      *         for unhealthy
      */
-    public void setUnhealthyThreshold(double threshold) {
+    public void setUnhealthyThreshold(final double threshold) {
         ensureAdvancedOptionsIsActivated();
         unhealthyThreshold.set(threshold);
     }
@@ -43,7 +43,7 @@ abstract class AbstractThreshold extends PageAreaImpl {
      * @param threshold
      *         for unstable
      */
-    public void setUnstableThreshold(double threshold) {
+    public void setUnstableThreshold(final double threshold) {
         ensureAdvancedOptionsIsActivated();
         unstableThreshold.set(threshold);
     }
@@ -54,7 +54,7 @@ abstract class AbstractThreshold extends PageAreaImpl {
      * @param failOnUnhealthy
      *         boolean for failing on unhealthy
      */
-    public void setFailUnhealthy(boolean failOnUnhealthy) {
+    public void setFailUnhealthy(final boolean failOnUnhealthy) {
         ensureAdvancedOptionsIsActivated();
         failUnhealthy.check(failOnUnhealthy);
     }
@@ -64,7 +64,7 @@ abstract class AbstractThreshold extends PageAreaImpl {
      */
     public void delete() {
         ensureAdvancedOptionsIsActivated();
-        delete.click();
+        deleteButton.click();
     }
 
     /**

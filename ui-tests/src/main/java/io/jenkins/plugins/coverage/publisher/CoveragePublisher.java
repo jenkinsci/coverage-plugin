@@ -1,4 +1,4 @@
-package io.jenkins.plugins.coverage.CoveragePublisher;
+package io.jenkins.plugins.coverage.publisher;
 
 import org.jenkinsci.test.acceptance.po.AbstractStep;
 import org.jenkinsci.test.acceptance.po.Control;
@@ -8,8 +8,8 @@ import org.jenkinsci.test.acceptance.po.PageArea;
 import org.jenkinsci.test.acceptance.po.PageAreaImpl;
 import org.jenkinsci.test.acceptance.po.PostBuildStep;
 
-import io.jenkins.plugins.coverage.CoveragePublisher.Threshold.GlobalThreshold;
-import io.jenkins.plugins.coverage.CoveragePublisher.Threshold.GlobalThreshold.GlobalThresholdTarget;
+import io.jenkins.plugins.coverage.publisher.threshold.GlobalThreshold;
+import io.jenkins.plugins.coverage.publisher.threshold.GlobalThreshold.GlobalThresholdTarget;
 
 /**
  * Coverage Publisher which can be added in the configuration of a FreeStyle Project.
@@ -180,8 +180,7 @@ public class CoveragePublisher extends AbstractStep implements PostBuildStep {
      */
     public Adapter createAdapterPageArea(final String adapterName) {
         String path = createPageArea("adapters", () -> this.adapter.selectDropdownMenu(adapterName));
-        Adapter newAdapter = new Adapter(this, path);
-        return newAdapter;
+        return new Adapter(this, path);
     }
 
     /**
@@ -191,7 +190,7 @@ public class CoveragePublisher extends AbstractStep implements PostBuildStep {
      */
     public GlobalThreshold createGlobalThresholdsPageArea() {
         ensureAdvancedOptionsIsActivated();
-        String path = createPageArea("globalthresholds", () -> this.globalThreshold.click());
+        String path = createPageArea("globalthresholds", this.globalThreshold::click);
         return new GlobalThreshold(this, path);
     }
 
@@ -213,7 +212,7 @@ public class CoveragePublisher extends AbstractStep implements PostBuildStep {
             final double unhealthyThreshold,
             final double unstableThreshold, final boolean failOnUnhealthy) {
         ensureAdvancedOptionsIsActivated();
-        String path = createPageArea("globalThresholds", () -> this.globalThreshold.click());
+        String path = createPageArea("globalThresholds", this.globalThreshold::click);
         GlobalThreshold threshold = new GlobalThreshold(this, path);
         threshold.setThresholdTarget(thresholdTarget);
         threshold.setUnhealthyThreshold(unhealthyThreshold);
@@ -238,7 +237,7 @@ public class CoveragePublisher extends AbstractStep implements PostBuildStep {
      */
     public enum SourceFileResolver {
         NEVER_STORE("NEVER_STORE"),
-        STORE_LAST_BUIlD("STORE_LAST_BUILD"),
+        STORE_LAST_BUILD("STORE_LAST_BUILD"),
         STORE_ALL_BUILD("STORE_ALL_BUILD");
 
         private final String value;

@@ -16,7 +16,7 @@ public class FileCoverageTableRow {
     private final WebElement row;
     private final FileCoverageTable table;
 
-    FileCoverageTableRow(WebElement row, FileCoverageTable table) {
+    FileCoverageTableRow(final WebElement row, final FileCoverageTable table) {
         this.row = row;
         this.table = table;
     }

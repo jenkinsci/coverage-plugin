@@ -7,7 +7,7 @@ import org.jenkinsci.test.acceptance.junit.WithPlugins;
 import org.jenkinsci.test.acceptance.po.Build;
 import org.jenkinsci.test.acceptance.po.FreeStyleJob;
 
-import io.jenkins.plugins.coverage.CoveragePublisher.CoveragePublisher.SourceFileResolver;
+import io.jenkins.plugins.coverage.publisher.CoveragePublisher.SourceFileResolver;
 
 import static org.assertj.core.api.AssertionsForClassTypes.*;
 
@@ -75,7 +75,7 @@ public class CoveragePublisherTest extends UiTest {
     @Test
     @WithPlugins("git")
     public void testSourceFileStoringLevelLastBuild() {
-        FreeStyleJob job = getJobWithReportAndSourceCode(SourceFileResolver.STORE_LAST_BUIlD);
+        FreeStyleJob job = getJobWithReportAndSourceCode(SourceFileResolver.STORE_LAST_BUILD);
         Build firstBuild = buildSuccessfully(job);
         Build secondBuild = buildSuccessfully(job);
         Build thirdBuild = buildSuccessfully(job);

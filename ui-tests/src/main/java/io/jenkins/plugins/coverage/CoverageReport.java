@@ -185,7 +185,7 @@ public class CoverageReport extends PageObject {
                 fileTable = getElement(By.id("source-file"));
             }
             else {
-                fileTable = getElement((By.id("source-file-unavailable")));
+                fileTable = getElement(By.id("source-file-unavailable"));
             }
             return fileTable != null && fileTable.isDisplayed();
         }
