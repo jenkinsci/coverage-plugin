@@ -9,7 +9,6 @@ import static net.javacrumbs.jsonunit.assertj.JsonAssertions.*;
  * Due to Coverage TrendChart is displayed twice, in ({@link CoverageReport} and {@link MainPanel}, this helper class
  * provides static verifying methods that can be used in all tests for a specific TrendChart.
  */
-@SuppressWarnings("hideutilityclassconstructor")
 public class TrendChartTestUtil {
     private static final int FIRST_LINE_COVERAGE = 96;
     private static final int FIRST_BRANCH_COVERAGE = 89;
@@ -54,7 +53,7 @@ public class TrendChartTestUtil {
     }
 
     /**
-     * Verifies if specific a generated TrendChart has the correct number of builds in its axis and the right coverage
+     * Verifies if a generated TrendChart has the correct number of builds in its axis and the right coverage
      * values for its builds.
      *
      * @param trendChart
@@ -78,5 +77,9 @@ public class TrendChartTestUtil {
                         a -> a.node("series[1].name").isEqualTo(BRANCH_COVERAGE),
                         a -> a.node("series[1].data").isArray().contains(FIRST_BRANCH_COVERAGE)
                 );
+    }
+
+    private TrendChartTestUtil() {
+        // prevent instantiation
     }
 }

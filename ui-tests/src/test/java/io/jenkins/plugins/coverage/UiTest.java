@@ -6,11 +6,11 @@ import org.jenkinsci.test.acceptance.po.Build;
 import org.jenkinsci.test.acceptance.po.FreeStyleJob;
 import org.jenkinsci.test.acceptance.po.Job;
 
-import io.jenkins.plugins.coverage.CoveragePublisher.Adapter;
-import io.jenkins.plugins.coverage.CoveragePublisher.CoveragePublisher;
-import io.jenkins.plugins.coverage.CoveragePublisher.CoveragePublisher.SourceFileResolver;
-import io.jenkins.plugins.coverage.CoveragePublisher.Threshold.AdapterThreshold.AdapterThresholdTarget;
-import io.jenkins.plugins.coverage.CoveragePublisher.Threshold.GlobalThreshold.GlobalThresholdTarget;
+import io.jenkins.plugins.coverage.publisher.Adapter;
+import io.jenkins.plugins.coverage.publisher.CoveragePublisher;
+import io.jenkins.plugins.coverage.publisher.CoveragePublisher.SourceFileResolver;
+import io.jenkins.plugins.coverage.publisher.threshold.AdapterThreshold.AdapterThresholdTarget;
+import io.jenkins.plugins.coverage.publisher.threshold.GlobalThreshold.GlobalThresholdTarget;
 
 /**
  * Base class for all UI tests. Provides several helper methods that can be used by all tests.

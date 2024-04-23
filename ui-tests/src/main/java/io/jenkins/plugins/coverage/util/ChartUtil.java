@@ -103,4 +103,8 @@ public class ChartUtil {
             return false;
         }
     }
+
+    private ChartUtil() {
+        // prevents instantiation
+    }
 }

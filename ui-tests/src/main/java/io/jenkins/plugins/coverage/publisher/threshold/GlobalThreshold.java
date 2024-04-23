@@ -1,15 +1,15 @@
-package io.jenkins.plugins.coverage.CoveragePublisher.Threshold;
+package io.jenkins.plugins.coverage.publisher.threshold;
 
-import io.jenkins.plugins.coverage.CoveragePublisher.CoveragePublisher;
+import io.jenkins.plugins.coverage.publisher.CoveragePublisher;
 
 /**
- * Global Threshold used in {@link CoveragePublisher}.
+ * Global Threshold used in {@code CoveragePublisher}.
  */
 public class GlobalThreshold extends AbstractThreshold {
     private final CoveragePublisher coveragePublisher;
 
     /**
-     * Constructor of a GlobalThreshold in {@link CoveragePublisher}.
+     * Constructor of a GlobalThreshold in {@code CoveragePublisher}.
      *
      * @param coveragePublisher
      *         of threshold
