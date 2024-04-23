@@ -68,7 +68,7 @@ public abstract class AbstractCoverageTest extends ResourceTest {
      */
     protected Node readResult(final String fileName, final CoverageParser parser) {
         try {
-            var node = parser.parse(Files.newBufferedReader(getResourceAsFile(fileName)), log);
+            var node = parser.parse(Files.newBufferedReader(getResourceAsFile(fileName)), fileName, log);
             node.splitPackages();
             return node;
         }
