@@ -566,25 +566,8 @@ public class CoverageRecorder extends Recorder {
         return packageNode;
     }
 
-    private PackageNode createPackageNode(final String normalizedPackageName) {
-        return null;
-    }
-
     private boolean isEmpty(final Map<Parser, List<ModuleNode>> results) {
         return results.values().stream().mapToInt(Collection::size).sum() == 0;
-    }
-
-    private List<ModuleNode> extractTests(final Map<Parser, List<ModuleNode>> results) {
-        // return an empty list if there are no test parsers
-        if (results.keySet().stream().noneMatch(parser -> parser.getParserType() == ParserType.TEST)) {
-            return List.of();
-        }
-
-        // extract all ModuleNodes from the test parsers
-        return results.entrySet().stream()
-                .filter(entry -> entry.getKey().getParserType() == ParserType.TEST)
-                .flatMap(entry -> entry.getValue().stream())
-                .collect(Collectors.toList());
     }
 
     private ProcessingMode ignoreErrors() {
