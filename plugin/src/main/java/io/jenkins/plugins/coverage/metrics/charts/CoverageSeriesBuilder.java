@@ -20,6 +20,9 @@ public class CoverageSeriesBuilder extends SeriesBuilder<CoverageStatistics> {
     static final String BRANCH_COVERAGE = "branch";
     static final String MUTATION_COVERAGE = "mutation";
     static final String TEST_STRENGTH = "test-strength";
+    static final String MCDC_PAIR_COVERAGE = "mcdc-pair";
+    static final String FUNCTION_CALL_COVERAGE = "function-call";
+    static final String FUNCTION_COVERAGE = "function";
 
     @Override
     protected Map<String, Double> computeSeries(final CoverageStatistics statistics) {
@@ -29,6 +32,9 @@ public class CoverageSeriesBuilder extends SeriesBuilder<CoverageStatistics> {
         add(statistics, Metric.BRANCH, BRANCH_COVERAGE, series);
         add(statistics, Metric.MUTATION, MUTATION_COVERAGE, series);
         add(statistics, Metric.TEST_STRENGTH, TEST_STRENGTH, series);
+        add(statistics, Metric.MCDC_PAIR, MCDC_PAIR_COVERAGE, series);    
+        add(statistics, Metric.FUNCTION_CALL, FUNCTION_CALL_COVERAGE, series);                
+        add(statistics, Metric.FUNCTION, FUNCTION_COVERAGE, series);
         return series;
     }
 

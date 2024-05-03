@@ -117,6 +117,15 @@ class CoverageTableModel extends TableModel {
                 Messages.Column_DeltaLineCoverage("Δ"), columns);
         configureValueColumn("branchCoverage", Metric.BRANCH, Messages.Column_BranchCoverage(),
                 Messages.Column_DeltaBranchCoverage("Δ"), columns);
+                
+        /* VectorCAST metrics */
+        configureValueColumn("mcdcPairCoverage", Metric.MCDC_PAIR, Messages.Column_MCDCPairs(), 
+                null, columns);
+        configureValueColumn("functionCallCoverage", Metric.FUNCTION_CALL, Messages.Column_FunctionCall(), 
+                null, columns);
+        configureValueColumn("functionCoverage", Metric.FUNCTION, Messages.Column_Function(), 
+                null, columns);
+
         configureValueColumn("mutationCoverage", Metric.MUTATION, Messages.Column_MutationCoverage(),
                 Messages.Column_DeltaMutationCoverage("Δ"), columns);
         configureValueColumn("testStrength", Metric.TEST_STRENGTH, Messages.Column_TestStrength(),
@@ -247,6 +256,18 @@ class CoverageTableModel extends TableModel {
 
         public DetailedCell<?> getBranchCoverage() {
             return createColoredCoverageColumn(getCoverageOfNode(Metric.BRANCH));
+        }
+
+        public DetailedCell<?> getMcdcPairCoverage() {
+            return createColoredCoverageColumn(getCoverageOfNode(Metric.MCDC_PAIR));
+        }
+
+        public DetailedCell<?> getFunctionCoverage() {
+            return createColoredCoverageColumn(getCoverageOfNode(Metric.FUNCTION));
+        }
+
+        public DetailedCell<?> getFunctionCallCoverage() {
+            return createColoredCoverageColumn(getCoverageOfNode(Metric.FUNCTION_CALL));
         }
 
         public DetailedCell<?> getMutationCoverage() {

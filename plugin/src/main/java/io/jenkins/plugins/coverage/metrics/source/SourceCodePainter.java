@@ -206,6 +206,9 @@ public class SourceCodePainter {
                 Path fullSourcePath = paintedFilesFolder.resolve(sanitizedFileName);
                 try (BufferedWriter output = Files.newBufferedWriter(fullSourcePath)) {
                     List<String> lines = Files.readAllLines(Paths.get(resolvedPath.getRemote()), charset);
+                    
+                    // added a header to display what is being shown in each column
+                    output.write(paint.getColumnHeader());
                     for (int line = 0; line < lines.size(); line++) {
                         output.write(paint.renderLine(line + 1, lines.get(line)));
                     }
