@@ -36,7 +36,7 @@
     <testcontainers.version>1.19.7</testcontainers.version>
     <job-dsl.version>1.87</job-dsl.version>
 
-    <arcmutate.git.version>1.2.1</arcmutate.git.version>
+    <arcmutate.git.version>1.3.1</arcmutate.git.version>
   </properties>
 
   <developers>
