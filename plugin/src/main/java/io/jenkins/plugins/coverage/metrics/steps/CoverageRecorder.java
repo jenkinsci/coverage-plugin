@@ -536,7 +536,6 @@ public class CoverageRecorder extends Recorder {
                     .map(Entry::getValue)
                     .flatMap(Collection::stream)
                     .collect(Collectors.toList());
-
             if (coverageNodes.isEmpty()) {
                 log.logError("No coverage results were found, just tests! Configuration error?");
 
@@ -560,6 +559,7 @@ public class CoverageRecorder extends Recorder {
         coverageTree.findPackage(normalizedPackageName)
                 .orElseGet(() -> createPackage(coverageTree, normalizedPackageName)).addChild(classNode);
     }
+
     private PackageNode createPackage(final Node coverageTree, final String normalizedPackageName) {
         var packageNode = new PackageNode(normalizedPackageName);
         coverageTree.addChild(packageNode);
