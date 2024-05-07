@@ -182,13 +182,15 @@ class CoverageTableModel extends TableModel {
                     .withResponsivePriority(1)
                     .build();
             columns.add(lineCoverage);
-            TableColumn lineCoverageDelta = new ColumnBuilder().withHeaderLabel(deltaHeaderLabel)
-                    .withDataPropertyKey(key + "Delta")
-                    .withDetailedCell()
-                    .withType(ColumnType.NUMBER)
-                    .withResponsivePriority(2)
-                    .build();
-            columns.add(lineCoverageDelta);
+            if (deltaHeaderLabel != null) {
+                TableColumn lineCoverageDelta = new ColumnBuilder().withHeaderLabel(deltaHeaderLabel)
+                        .withDataPropertyKey(key + "Delta")
+                        .withDetailedCell()
+                        .withType(ColumnType.NUMBER)
+                        .withResponsivePriority(2)
+                        .build();
+                columns.add(lineCoverageDelta);
+            }
         }
     }
 
