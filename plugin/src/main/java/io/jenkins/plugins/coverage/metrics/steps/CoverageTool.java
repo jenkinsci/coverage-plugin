@@ -46,7 +46,7 @@ public class CoverageTool extends AbstractDescribableImpl<CoverageTool> implemen
     private JenkinsFacade jenkins = new JenkinsFacade();
 
     private String pattern = StringUtils.EMPTY;
-    private Parser parser = Parser.JACOCO;
+    private Parser parser;
 
     /**
      * Creates a new {@link io.jenkins.plugins.coverage.metrics.steps.CoverageTool}.

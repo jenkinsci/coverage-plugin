@@ -147,4 +147,8 @@ class CoverageRecorderITest extends IntegrationTestWithJenkinsPerSuite {
                 .containsPattern("Successfully parsed file .*/cobertura-higher-coverage.xml");
 
     }
+<<<<<<< Updated upstream
+=======
+
+>>>>>>> Stashed changes
 }

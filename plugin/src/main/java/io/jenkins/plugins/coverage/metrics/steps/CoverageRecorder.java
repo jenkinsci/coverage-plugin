@@ -398,13 +398,8 @@ public class CoverageRecorder extends Recorder {
             if (validation.kind != Kind.OK) {
                 failStage(resultHandler, logHandler, log, validation.getLocalizedMessage());
             }
-            if (tools.isEmpty()) {
-                failStage(resultHandler, logHandler, log,
-                        "No tools defined that will record the coverage files");
-            }
-            else {
-                perform(run, workspace, taskListener, resultHandler, log, logHandler);
-            }
+
+            perform(run, workspace, taskListener, resultHandler, log, logHandler);
         }
         else {
             logHandler.log("Skipping execution of coverage recorder since overall result is '%s'", overallResult);
@@ -471,50 +466,108 @@ public class CoverageRecorder extends Recorder {
         logHandler.log(log);
     }
 
+    /**
+     * Iterates over the expansions of the {@code tools} items. For a given tool's expanded set it does the following logging behavior:
+     * - All fail -&gt; Logs all messages
+     * - At least 1 success -&gt; Logs all messages from the successful combination(s), and a simplified error message for the failed combinations
+     * The simplified error messages are in the following format: Attempted parser <PARSER> with pattern <PATTERN>, but was unsuccessful.
+     */
     private Map<Parser, List<ModuleNode>> recordCoverageResults(final Run<?, ?> run, final FilePath workspace,
-            final ResultHandler resultHandler, final FilteredLog log, final LogHandler logHandler) throws InterruptedException {
+                                                                final StageResultHandler resultHandler, final FilteredLog log, final LogHandler logHandler) throws InterruptedException {
         Map<Parser, List<ModuleNode>> results = new HashMap<>();
 
-        for (CoverageTool tool : tools) {
-            Parser parser = tool.getParser();
-            log.logInfo("Creating parser for %s", tool.getDisplayName());
-            if (StringUtils.isBlank(tool.getPattern())) {
-                log.logInfo("Using default pattern '%s' since user defined pattern is not set",
-                        parser.getDefaultPattern());
-            }
+        CoverageToolExpander covToolExpander = new CoverageToolExpander(this.tools, log, logHandler);
+        HashMap<CoverageTool, FilteredLog> parsersErrLogs = new HashMap<>();
+        boolean anySucceed = false;
+        while (covToolExpander.hasNextTool()) {
+            CoverageTool toolKey = covToolExpander.getNextTool();
+            CoverageToolExpander.CoverageToolSet toolSet = covToolExpander.getCoverageToolSet(toolKey);
+            FilteredLog localLog;
+            for (CoverageTool tool: toolSet) {
+                localLog = new FilteredLog(String.format("Errors for tool: %s", tool.toString()));
+                Parser parser = tool.getParser();
+                localLog.logInfo("Creating parser for %s", tool.getDisplayName());
+                if (StringUtils.isBlank(tool.getPattern())) {
+                    localLog.logInfo("Using default pattern '%s' since user defined pattern is not set",
+                            parser.getDefaultPattern());
+                }
 
-            String expandedPattern = expandPattern(run, tool.getActualPattern());
-            if (!expandedPattern.equals(tool.getActualPattern())) {
-                log.logInfo("Expanding pattern '%s' to '%s'", tool.getActualPattern(), expandedPattern);
-            }
+                String expandedPattern = expandPattern(run, tool.getActualPattern());
+                if (!expandedPattern.equals(tool.getActualPattern())) {
+                    localLog.logInfo("Expanding pattern '%s' to '%s'", tool.getActualPattern(), expandedPattern);
+                }
 
-            try {
-                FileVisitorResult<ModuleNode> result = workspace.act(
-                        new CoverageReportScanner(parser, expandedPattern, "UTF-8", isSkipSymbolicLinks(),
-                                ignoreErrors()));
-                log.merge(result.getLog());
+                try {
+                    FileVisitorResult<ModuleNode> result = workspace.act(
+                            new CoverageReportScanner(parser, expandedPattern, "UTF-8", isSkipSymbolicLinks(),
+                                    ignoreErrors()));
+                    localLog.merge(result.getLog());
 
-                var coverageResults = result.getResults();
-                if (result.hasErrors()) {
-                    if (isFailOnError()) {
-                        var errorMessage = "Failing build due to some errors during recording of the coverage";
-                        log.logInfo(errorMessage);
-                        resultHandler.publishResult(Result.FAILURE, errorMessage);
+                    var coverageResults = result.getResults();
+                    if (result.hasErrors()) {
+                        if (isFailOnError() && !toolSet.isExpanded()) {
+                            var errorMessage = "Failing build due to some errors during recording of the coverage";
+                            localLog.logInfo(errorMessage);
+                            resultHandler.setResult(Result.FAILURE, errorMessage);
+                        }
+                        else {
+                            localLog.logInfo("Ignore errors and continue processing");
+                        }
+                    } else if (toolKey != null && toolKey.getPattern() != null && toolKey.getParser() == null) { // for input tools with pattern but no parser, update the tool with the successful parser type
+                        toolKey.setParser(tool.getParser());
                     }
-                    else {
-                        log.logInfo("Ignore errors and continue processing");
+                    results.put(tool.getParser(), coverageResults);
+                }
+                catch (IOException exception) {
+                    localLog.logException(exception, "Exception while parsing with tool " + tool);
+                    parsersErrLogs.put(tool, localLog);
+                }
+                catch (InterruptedException | RuntimeException exception) {
+                    if (toolSet.isExpanded()) {
+                        localLog.logException(exception, "Exception while parsing with tool " + tool);
+                        parsersErrLogs.put(tool, localLog);
+                    } else {
+                        throw exception;
                     }
                 }
-                results.put(tool.getParser(), coverageResults);
+                if (localLog != null) {
+                    if (!localLog.hasErrors() || !toolSet.isExpanded()) { // immediately dump logs of successful or non-expansions tries
+                        anySucceed = true;
+                        log.merge(localLog);
+                        logHandler.log(log);
+                    } else { // else store logs until end of expanded set
+                        parsersErrLogs.put(tool, localLog);
+                    }
+                }
             }
-            catch (IOException exception) {
-                log.logException(exception, "Exception while parsing with tool " + tool);
-            }
-
-            logHandler.log(log);
+            resolveToolSetLogs(parsersErrLogs, anySucceed, toolSet.isExpanded(), log, logHandler, resultHandler);
         }
-
         return results;
+    }
+
+    /*
+     * Resolve logs after the completion of a set of expanded tools
+     */
+    private void resolveToolSetLogs(HashMap<CoverageTool, FilteredLog> parsersErrLogs, boolean anySucceed, boolean isExpansionSet, FilteredLog log, LogHandler logHandler, StageResultHandler resultHandler) {
+        if (isExpansionSet) {
+            for (CoverageTool tool: parsersErrLogs.keySet()) {
+                if (anySucceed) { // if any succeed, print simplified failure msg
+                    logHandler.log("Attempted parser %s with pattern %s, but was unsuccessful.", tool.getParser().name(), tool.getActualPattern());
+                } else {  // if all failed, dump all logs
+                    log.merge(parsersErrLogs.get(tool));
+                    logHandler.log(log);
+                }
+            }
+            if (!anySucceed) {
+                var errorMessage = "Attempted all parsers and none succeeded.";
+                LOGGER.info(errorMessage);
+                logHandler.log(errorMessage);
+                if (isFailOnError()) {
+                    resultHandler.setResult(Result.FAILURE, errorMessage);
+                }
+            }
+            parsersErrLogs.clear();
+        }
     }
 
     private Node aggregateResults(final FilteredLog log, final Map<Parser, List<ModuleNode>> results) {
