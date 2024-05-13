@@ -41,24 +41,6 @@ class CoveragePluginITest extends AbstractCoverageITest {
     private static final int COBERTURA_MISSED_LINES = 0;
     private static final String NO_FILES_FOUND_ERROR_MESSAGE = "[-ERROR-] No files found for pattern '**/*xml'. Configuration error?";
 
-    @Test
-    void shouldFailWithoutParserInFreestyleJob() {
-        FreeStyleProject project = createFreeStyleProject();
-
-        project.getPublishersList().add(new CoverageRecorder());
-
-        verifyNoParserError(project);
-    }
-
-    @Test
-    void shouldFailWithoutParserInPipeline() {
-        WorkflowJob job = createPipeline();
-
-        setPipelineScript(job, "recordCoverage()");
-
-        verifyNoParserError(job);
-    }
-
     private void verifyNoParserError(final ParameterizedJob<?, ?> project) {
         Run<?, ?> run = buildWithResult(project, Result.FAILURE);
 

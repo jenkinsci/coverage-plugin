@@ -88,4 +88,63 @@ class CoverageRecorderITest extends IntegrationTestWithJenkinsPerSuite {
                 .containsPattern("Successfully parsed file .*/jacoco.xml")
                 .doesNotContain("Expanding pattern");
     }
+
+    @Test
+    void shouldDumpAllLogsOnEmptyParser() {
+        WorkflowJob job = createPipeline();
+        job.setDefinition(new CpsFlowDefinition(
+                "node {\n"
+                        + "    recordCoverage tools: []\n"
+                        + " }\n", true));
+
+        Run<?, ?> run = buildWithResult(job, Result.SUCCESS);
+
+        assertThat(getConsoleLog(run))
+                .contains("No tool defined, trying all possible parsers.",
+                        "Attempted all parsers and none succeeded.",
+                        "Creating parser for Cobertura Coverage Reports",
+                        "Creating parser for JaCoCo Coverage Reports",
+                        "Creating parser for OpenCover Coverage Reports",
+                        "Creating parser for PIT Mutation Testing Reports");
+    }
+
+    @Test
+    void shouldParseJacocoAndSimplifiedErrorLogsOnEmptyParser() {
+        WorkflowJob job = createPipeline();
+        copyFilesToWorkspace(job, "jacoco.xml");
+        job.setDefinition(new CpsFlowDefinition(
+                "node {\n"
+                        + "    recordCoverage tools: []\n"
+                        + " }\n", true));
+
+        Run<?, ?> run = buildWithResult(job, Result.SUCCESS);
+
+        assertThat(getConsoleLog(run))
+                .contains("No tool defined, trying all possible parsers.")
+                .containsPattern("Successfully parsed file .*/jacoco.xml")
+                .containsPattern("Attempted parser COBERTURA with pattern .*, but was unsuccessful.")
+                .containsPattern("Attempted parser OPENCOVER with pattern .*, but was unsuccessful.")
+                .containsPattern("Attempted parser PIT with pattern .*, but was unsuccessful.");
+    }
+
+    @Test
+    void shouldTryEachInputPatternWithEachParserOnEmptyParser() {
+
+        WorkflowJob job = createPipeline();
+        copyFilesToWorkspace(job, "jacoco.xml");
+        copyFilesToWorkspace(job, "cobertura-higher-coverage.xml");
+        job.setDefinition(new CpsFlowDefinition(
+                "node {\n"
+                        + "    recordCoverage(tools: [[pattern: '*jacoco.xml'], [pattern: '*cobertura*.xml']])\n"
+                        + " }\n", true));
+
+        Run<?, ?> run = buildWithResult(job, Result.SUCCESS);
+
+        assertThat(getConsoleLog(run))
+                .contains("No parser defined for pattern [*jacoco.xml], trying with all possible parsers.",
+                        "No parser defined for pattern [*cobertura*.xml], trying with all possible parsers.")
+                .containsPattern("Successfully parsed file .*/jacoco.xml")
+                .containsPattern("Successfully parsed file .*/cobertura-higher-coverage.xml");
+
+    }
 }
