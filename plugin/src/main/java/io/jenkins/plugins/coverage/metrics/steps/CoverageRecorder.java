@@ -560,7 +560,6 @@ public class CoverageRecorder extends Recorder {
             }
             if (!anySucceed) {
                 var errorMessage = "Attempted all parsers and none succeeded.";
-                LOGGER.info(errorMessage);
                 logHandler.log(errorMessage);
                 if (isFailOnError()) {
                     resultHandler.setResult(Result.FAILURE, errorMessage);
