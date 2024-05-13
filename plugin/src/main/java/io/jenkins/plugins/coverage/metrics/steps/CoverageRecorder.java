@@ -473,7 +473,7 @@ public class CoverageRecorder extends Recorder {
      * The simplified error messages are in the following format: Attempted parser <PARSER> with pattern <PATTERN>, but was unsuccessful.
      */
     private Map<Parser, List<ModuleNode>> recordCoverageResults(final Run<?, ?> run, final FilePath workspace,
-                                                                final StageResultHandler resultHandler, final FilteredLog log, final LogHandler logHandler) throws InterruptedException {
+                                                                final ResultHandler resultHandler, final FilteredLog log, final LogHandler logHandler) throws InterruptedException {
         Map<Parser, List<ModuleNode>> results = new HashMap<>();
 
         CoverageToolExpander covToolExpander = new CoverageToolExpander(this.tools, log, logHandler);
@@ -508,7 +508,7 @@ public class CoverageRecorder extends Recorder {
                         if (isFailOnError() && !toolSet.isExpanded()) {
                             var errorMessage = "Failing build due to some errors during recording of the coverage";
                             localLog.logInfo(errorMessage);
-                            resultHandler.setResult(Result.FAILURE, errorMessage);
+                            resultHandler.publishResult(Result.FAILURE, errorMessage);
                         }
                         else {
                             localLog.logInfo("Ignore errors and continue processing");
@@ -548,7 +548,7 @@ public class CoverageRecorder extends Recorder {
     /*
      * Resolve logs after the completion of a set of expanded tools
      */
-    private void resolveToolSetLogs(HashMap<CoverageTool, FilteredLog> parsersErrLogs, boolean anySucceed, boolean isExpansionSet, FilteredLog log, LogHandler logHandler, StageResultHandler resultHandler) {
+    private void resolveToolSetLogs(HashMap<CoverageTool, FilteredLog> parsersErrLogs, boolean anySucceed, boolean isExpansionSet, FilteredLog log, LogHandler logHandler, ResultHandler resultHandler) {
         if (isExpansionSet) {
             for (CoverageTool tool: parsersErrLogs.keySet()) {
                 if (anySucceed) { // if any succeed, print simplified failure msg
@@ -562,7 +562,7 @@ public class CoverageRecorder extends Recorder {
                 var errorMessage = "Attempted all parsers and none succeeded.";
                 logHandler.log(errorMessage);
                 if (isFailOnError()) {
-                    resultHandler.setResult(Result.FAILURE, errorMessage);
+                    resultHandler.publishResult(Result.FAILURE, errorMessage);
                 }
             }
             parsersErrLogs.clear();

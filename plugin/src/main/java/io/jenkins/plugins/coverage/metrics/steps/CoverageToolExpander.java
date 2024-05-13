@@ -164,7 +164,6 @@ public class CoverageToolExpander {
             return tools.get(index++);
         }
 
-        @org.jetbrains.annotations.NotNull
         @Override
         public Iterator<CoverageTool> iterator() {
             return new CoverageToolIterator();
