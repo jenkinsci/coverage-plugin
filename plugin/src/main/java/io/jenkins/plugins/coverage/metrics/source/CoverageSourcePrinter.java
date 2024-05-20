@@ -322,7 +322,7 @@ class CoverageSourcePrinter implements Serializable {
     
     public Boolean hasAnyMcdcPairCoverage() {
         Boolean hasMcDc = false;
-        for (Metric.MCDC_PAIRint i = 0; i < mcdcPairCoveredPerLine.length && !hasMcDc; i++) {
+        for (int i = 0; i < mcdcPairCoveredPerLine.length && !hasMcDc; i++) {
             if ((mcdcPairCoveredPerLine[i] + mcdcPairMissedPerLine[i]) > 0) {
                 hasMcDc = true;
             }
