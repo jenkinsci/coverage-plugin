@@ -52,44 +52,47 @@ class CoverageSourcePrinter implements Serializable {
         functionCallMissedPerLine = file.getFunctionCallMissedCounters();
     }
     
+    private String getColumnHeader(String third) {
+        return tr().withClass(CoverageSourcePrinter.UNDEFINED).with(
+                td().withClass("line").with(text("Line")),
+                td().withClass("line").with(text("St/Br")),
+                td().withClass("line").with(text(third)),
+                td().withClass("line").with(text(NBSP))
+            ).render();
+    }
+    
+    private String getColumnHeader(String third, String fourth) {
+        return tr().withClass(CoverageSourcePrinter.UNDEFINED).with(
+                td().withClass("line").with(text("Line")),
+                td().withClass("line").with(text("St/Br")),
+                td().withClass("line").with(text(third)),
+                td().withClass("line").with(text(fourth)),
+                td().withClass("line").with(text(NBSP))
+            ).render();
+
+    }
+    
     // adding column header so show what is being presented in the file view
     public String getColumnHeader() {
         var hasMcdc = hasAnyMcdcPairCoverage();
         var hasFc   = hasAnyFunctionCallCoverage();
-        String trString = "";
+        String trString;
         
         // If this file only has Line, St/Br, and FunctionCall
         if (!hasMcdc && hasFc) {
-            trString = tr().withClass(CoverageSourcePrinter.UNDEFINED).with(
-                td().withClass("line").with(text("Line")),
-                td().withClass("line").with(text("St/Br")),
-                td().withClass("line").with(text("FCall")),
-                td().withClass("line").with(text(NBSP))
-            ).render();
+            trString = getColumnHeader("FCall");
         }
         // If this file only has Line, St/Br, and MCDC
         else if (hasMcdc && !hasFc) {
-            trString = tr().withClass(CoverageSourcePrinter.UNDEFINED).with(
-                td().withClass("line").with(text("Line")),
-                td().withClass("line").with(text("St/Br")),
-                td().withClass("line").with(text("MC/DC")),
-                td().withClass("line").with(text(NBSP))
-            ).render();
+            trString = getColumnHeader("MC/DC");
         }
         // If this file only has Line, St/Br, FunctionCall and MCDC
         else if (hasMcdc && hasFc) {
-            trString = tr().withClass(CoverageSourcePrinter.UNDEFINED).with(
-                td().withClass("line").with(text("Line")),
-                td().withClass("line").with(text("St/Br")),
-                td().withClass("line").with(text("FCall")),                
-                td().withClass("line").with(text("MC/DC")),
-                td().withClass("line").with(text(NBSP))
-            ).render();
+            trString = getColumnHeader("FCall", "MC/DC");
+        } 
         // If this file only has Line and St/Br
-        } else {
-            
+        else {            
             // this is the original metrics so maybe don't print header?
-            
             trString = tr().withClass(CoverageSourcePrinter.UNDEFINED).with(
                 td().withClass("line").with(text("Line ")),
                 td().withClass("line").with(text("St/Br")),
@@ -100,79 +103,77 @@ class CoverageSourcePrinter implements Serializable {
         return trString;    
     }
 
+    private String getTr (final int line, final String sourceCode, final boolean isPainted) {
+        return tr()
+            .withClass(isPainted ? getColorClass(line) : CoverageSourcePrinter.UNDEFINED)
+            .condAttr(isPainted, "data-html-tooltip", isPainted ? getTooltip(line) : StringUtils.EMPTY)
+            .with(
+                    td().withClass("line")
+                            .with(a().withName(String.valueOf(line)).withText(String.valueOf(line))),
+                    td().withClass("hits")
+                            .with(isPainted ? text(getSummaryColumn(line)) : text(StringUtils.EMPTY)),
+                    td().withClass("code")
+                            .with(rawHtml(SANITIZER.render(cleanupCode(sourceCode)))))
+            .render();
+    }
+    
+    private String getTr (final int line, final String sourceCode, final boolean isPainted, String third, String fouth) {
+        return tr()
+            .withClass(isPainted ? getColorClass(line) : CoverageSourcePrinter.UNDEFINED)
+            .condAttr(isPainted, "data-html-tooltip", isPainted ? getTooltip(line) : StringUtils.EMPTY)
+            .with(
+                    td().withClass("line")
+                            .with(a().withName(String.valueOf(line)).withText(String.valueOf(line))),
+                    td().withClass("hits")
+                            .with(isPainted ? text(getSummaryColumn(line)) : text(StringUtils.EMPTY)),
+                    td().withClass("hits")
+                            .with(isPainted ? text(third) : text(StringUtils.EMPTY)),
+                    td().withClass("hits")
+                            .with(isPainted ? text(fouth) : text(StringUtils.EMPTY)),
+                    td().withClass("code")
+                            .with(rawHtml(SANITIZER.render(cleanupCode(sourceCode)))))
+            .render();
+    }
+    
+    private String getTr (final int line, final String sourceCode, final boolean isPainted, String third) {
+        return tr().withClass(isPainted ? getColorClass(line) : CoverageSourcePrinter.UNDEFINED)
+                .condAttr(isPainted, "data-html-tooltip", isPainted ? getTooltip(line) : StringUtils.EMPTY)
+                .with(td().withClass("line").with(a().withName(String.valueOf(line)).withText(String.valueOf(line))),
+                    td().withClass("hits")
+                            .with(isPainted ? text(getSummaryColumn(line)) : text(StringUtils.EMPTY)),
+                    td().withClass("hits")
+                            .with(isPainted ? text(third) : text(StringUtils.EMPTY)),
+                    td().withClass("code")
+                            .with(rawHtml(SANITIZER.render(cleanupCode(sourceCode)))))
+            .render();    
+    }
+    
+    
     public String renderLine(final int line, final String sourceCode) {
         var isPainted = isPainted(line);
         var hasMcdc = hasAnyMcdcPairCoverage();
         var hasFc   = hasAnyFunctionCallCoverage();
         
-        String trString = "";
+        String trString;
         
         // If this file only has Line, St/Br, and FunctionCall
         if (!hasMcdc && hasFc) {
-            trString = tr()
-            .withClass(isPainted ? getColorClass(line) : CoverageSourcePrinter.UNDEFINED)
-            .condAttr(isPainted, "data-html-tooltip", isPainted ? getTooltip(line) : StringUtils.EMPTY)
-            .with(
-                    td().withClass("line")
-                            .with(a().withName(String.valueOf(line)).withText(String.valueOf(line))),
-                    td().withClass("hits")
-                            .with(isPainted ? text(getSummaryColumn(line)) : text(StringUtils.EMPTY)),
-                    td().withClass("hits")
-                            .with(isPainted ? text(getFunctionCallSummaryColumn(line)) : text(StringUtils.EMPTY)),
-                    td().withClass("code")
-                            .with(rawHtml(SANITIZER.render(cleanupCode(sourceCode)))))
-            .render();
+            trString = getTr(line, sourceCode, isPainted, getFunctionCallSummaryColumn(line));
         }
         
         // If this file only has Line, St/Br, and MCDC
         else if (hasMcdc && !hasFc) {
-            trString = tr()
-            .withClass(isPainted ? getColorClass(line) : CoverageSourcePrinter.UNDEFINED)
-            .condAttr(isPainted, "data-html-tooltip", isPainted ? getTooltip(line) : StringUtils.EMPTY)
-            .with(
-                    td().withClass("line")
-                            .with(a().withName(String.valueOf(line)).withText(String.valueOf(line))),
-                    td().withClass("hits")
-                            .with(isPainted ? text(getSummaryColumn(line)) : text(StringUtils.EMPTY)),
-                    td().withClass("hits")
-                            .with(isPainted ? text(getMcdcPairSummaryColumn(line)) : text(StringUtils.EMPTY)),
-                    td().withClass("code")
-                            .with(rawHtml(SANITIZER.render(cleanupCode(sourceCode)))))
-            .render();
+            trString = getTr(line, sourceCode, isPainted, getMcdcPairSummaryColumn(line));
         }
         
         // If this file only has Line, St/Br, FunctionCall and MCDC
         else if (hasMcdc && hasFc) {
-            trString = tr()
-            .withClass(isPainted ? getColorClass(line) : CoverageSourcePrinter.UNDEFINED)
-            .condAttr(isPainted, "data-html-tooltip", isPainted ? getTooltip(line) : StringUtils.EMPTY)
-            .with(
-                    td().withClass("line")
-                            .with(a().withName(String.valueOf(line)).withText(String.valueOf(line))),
-                    td().withClass("hits")
-                            .with(isPainted ? text(getSummaryColumn(line)) : text(StringUtils.EMPTY)),
-                    td().withClass("hits")
-                            .with(isPainted ? text(getFunctionCallSummaryColumn(line)) : text(StringUtils.EMPTY)),
-                    td().withClass("hits")
-                            .with(isPainted ? text(getMcdcPairSummaryColumn(line)) : text(StringUtils.EMPTY)),
-                    td().withClass("code")
-                            .with(rawHtml(SANITIZER.render(cleanupCode(sourceCode)))))
-            .render();
+            trString = getTr(line, sourceCode, isPainted, getFunctionCallSummaryColumn(line), getMcdcPairSummaryColumn(line));
         } 
         
         // If this file only has Line and St/Br
         else {
-            trString = tr()
-            .withClass(isPainted ? getColorClass(line) : CoverageSourcePrinter.UNDEFINED)
-            .condAttr(isPainted, "data-html-tooltip", isPainted ? getTooltip(line) : StringUtils.EMPTY)
-            .with(
-                    td().withClass("line")
-                            .with(a().withName(String.valueOf(line)).withText(String.valueOf(line))),
-                    td().withClass("hits")
-                            .with(isPainted ? text(getSummaryColumn(line)) : text(StringUtils.EMPTY)),
-                    td().withClass("code")
-                            .with(rawHtml(SANITIZER.render(cleanupCode(sourceCode)))))
-            .render();
+            trString = getTr(line, sourceCode, isPainted);
         }            
                 
         return trString;

@@ -23,7 +23,7 @@ import io.jenkins.plugins.echarts.JenkinsPalette;
  * @see JacksonFacade
  */
 public class CoverageTrendChart {
-    
+    /* Line Mode used to indicate whether is hsould be a filled line chart or line chart */
     private static FilledMode lineMode;
     
     /**
@@ -33,15 +33,15 @@ public class CoverageTrendChart {
      *
      */
     
-    private void setLineMode(LinesDataSet dataSet) {
-        
+    private void setLineMode(final LinesDataSet dataSet) {
         // If the dataset contains MCDC, Function or Function Call Coverage
-        if (dataSet.containsSeries(CoverageSeriesBuilder.MCDC_PAIR_COVERAGE) || 
-            dataSet.containsSeries(CoverageSeriesBuilder.FUNCTION_COVERAGE) || 
-            dataSet.containsSeries(CoverageSeriesBuilder.FUNCTION_CALL_COVERAGE) ) 
+        if (dataSet.containsSeries(CoverageSeriesBuilder.MCDC_PAIR_COVERAGE) 
+                || dataSet.containsSeries(CoverageSeriesBuilder.FUNCTION_COVERAGE) 
+                || dataSet.containsSeries(CoverageSeriesBuilder.FUNCTION_CALL_COVERAGE)) 
         {        
             lineMode = FilledMode.LINES;
-        } else {
+        } 
+        else {
             lineMode = FilledMode.FILLED;
         }
     }
@@ -87,8 +87,6 @@ public class CoverageTrendChart {
                     JenkinsPalette.RED.normal());
             addSeries(dataSet, model, Messages.Metric_FUNCTION_CALL(), CoverageSeriesBuilder.FUNCTION_CALL_COVERAGE,
                     JenkinsPalette.RED.dark());
-
-
         }
         return model;
     }

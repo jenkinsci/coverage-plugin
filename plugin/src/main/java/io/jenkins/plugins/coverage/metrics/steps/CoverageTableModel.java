@@ -120,11 +120,11 @@ class CoverageTableModel extends TableModel {
                 
         /* VectorCAST metrics */
         configureValueColumn("mcdcPairCoverage", Metric.MCDC_PAIR, Messages.Column_MCDCPairs(), 
-                null, columns);
+                "", columns);
         configureValueColumn("functionCallCoverage", Metric.FUNCTION_CALL, Messages.Column_FunctionCall(), 
-                null, columns);
+                "", columns);
         configureValueColumn("functionCoverage", Metric.FUNCTION, Messages.Column_Function(), 
-                null, columns);
+                "", columns);
 
         configureValueColumn("mutationCoverage", Metric.MUTATION, Messages.Column_MutationCoverage(),
                 Messages.Column_DeltaMutationCoverage("Δ"), columns);
@@ -182,7 +182,7 @@ class CoverageTableModel extends TableModel {
                     .withResponsivePriority(1)
                     .build();
             columns.add(lineCoverage);
-            if (deltaHeaderLabel != null) {
+            if (deltaHeaderLabel != null && deltaHeaderLabel != "") {
                 TableColumn lineCoverageDelta = new ColumnBuilder().withHeaderLabel(deltaHeaderLabel)
                         .withDataPropertyKey(key + "Delta")
                         .withDetailedCell()
