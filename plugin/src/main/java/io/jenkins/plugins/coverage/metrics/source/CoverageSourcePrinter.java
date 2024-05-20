@@ -43,8 +43,6 @@ class CoverageSourcePrinter implements Serializable {
         coveredPerLine = file.getCoveredCounters();
         missedPerLine = file.getMissedCounters();
         
-        // adding in VectorCAST metrics
-        
         mcdcPairCoveredPerLine = file.getMcdcPairCoveredCounters();
         mcdcPairMissedPerLine = file.getMcdcPairMissedCounters();
         
@@ -52,7 +50,7 @@ class CoverageSourcePrinter implements Serializable {
         functionCallMissedPerLine = file.getFunctionCallMissedCounters();
     }
     
-    private String getColumnHeader(String third) {
+    private String getColumnHeader(final String third) {
         return tr().withClass(CoverageSourcePrinter.UNDEFINED).with(
                 td().withClass("line").with(text("Line")),
                 td().withClass("line").with(text("St/Br")),
@@ -61,7 +59,7 @@ class CoverageSourcePrinter implements Serializable {
             ).render();
     }
     
-    private String getColumnHeader(String third, String fourth) {
+    private String getColumnHeader(final String third, final String fourth) {
         return tr().withClass(CoverageSourcePrinter.UNDEFINED).with(
                 td().withClass("line").with(text("Line")),
                 td().withClass("line").with(text("St/Br")),
@@ -69,7 +67,6 @@ class CoverageSourcePrinter implements Serializable {
                 td().withClass("line").with(text(fourth)),
                 td().withClass("line").with(text(NBSP))
             ).render();
-
     }
     
     // adding column header so show what is being presented in the file view
@@ -103,7 +100,7 @@ class CoverageSourcePrinter implements Serializable {
         return trString;    
     }
 
-    private String getTr (final int line, final String sourceCode, final boolean isPainted) {
+    private String getTr(final int line, final String sourceCode, final boolean isPainted) {
         return tr()
             .withClass(isPainted ? getColorClass(line) : CoverageSourcePrinter.UNDEFINED)
             .condAttr(isPainted, "data-html-tooltip", isPainted ? getTooltip(line) : StringUtils.EMPTY)
@@ -117,7 +114,7 @@ class CoverageSourcePrinter implements Serializable {
             .render();
     }
     
-    private String getTr (final int line, final String sourceCode, final boolean isPainted, String third, String fouth) {
+    private String getTr(final int line, final String sourceCode, final boolean isPainted, final String third, final String fouth) {
         return tr()
             .withClass(isPainted ? getColorClass(line) : CoverageSourcePrinter.UNDEFINED)
             .condAttr(isPainted, "data-html-tooltip", isPainted ? getTooltip(line) : StringUtils.EMPTY)
@@ -135,7 +132,7 @@ class CoverageSourcePrinter implements Serializable {
             .render();
     }
     
-    private String getTr (final int line, final String sourceCode, final boolean isPainted, String third) {
+    private String getTr(final int line, final String sourceCode, final boolean isPainted, String third) {
         return tr().withClass(isPainted ? getColorClass(line) : CoverageSourcePrinter.UNDEFINED)
                 .condAttr(isPainted, "data-html-tooltip", isPainted ? getTooltip(line) : StringUtils.EMPTY)
                 .with(td().withClass("line").with(a().withName(String.valueOf(line)).withText(String.valueOf(line))),
@@ -160,24 +157,19 @@ class CoverageSourcePrinter implements Serializable {
         if (!hasMcdc && hasFc) {
             trString = getTr(line, sourceCode, isPainted, getFunctionCallSummaryColumn(line));
         }
-        
         // If this file only has Line, St/Br, and MCDC
         else if (hasMcdc && !hasFc) {
             trString = getTr(line, sourceCode, isPainted, getMcdcPairSummaryColumn(line));
         }
-        
         // If this file only has Line, St/Br, FunctionCall and MCDC
         else if (hasMcdc && hasFc) {
             trString = getTr(line, sourceCode, isPainted, getFunctionCallSummaryColumn(line), getMcdcPairSummaryColumn(line));
         } 
-        
         // If this file only has Line and St/Br
         else {
             trString = getTr(line, sourceCode, isPainted);
-        }            
-                
+        }
         return trString;
-                
     }
 
     private String cleanupCode(final String content) {
@@ -229,15 +221,15 @@ class CoverageSourcePrinter implements Serializable {
         var mcdcPairCovered = getMcdcPairCovered(line);
         var mcdcPairMissed  = getMcdcPairMissed(line);
         String mcdcPairTooltip = "";
+        
         if (mcdcPairCovered + mcdcPairMissed > 1) {
             if (mcdcPairMissed == 0) {
                 mcdcPairTooltip = String.format("All MC/DC pairs covered: %d/%d", mcdcPairCovered, mcdcPairCovered + mcdcPairMissed);
-            } else {
+            } 
+            else {
                 mcdcPairTooltip = String.format("MC/DC pairs partially covered: %d/%d", mcdcPairCovered, mcdcPairCovered + mcdcPairMissed);
             }
-            
         }
-        
         return mcdcPairTooltip;
     }
     
@@ -249,14 +241,14 @@ class CoverageSourcePrinter implements Serializable {
         if (functionCallCovered + functionCallMissed > 1) {
             if (functionCallMissed == 0) {
                 functionCallTooltip = String.format("All function calls covered: %d/%d", functionCallCovered, functionCallCovered + functionCallMissed);
-            } else {
+            } 
+            else {
                 functionCallTooltip = String.format("Function calls partially covered: %d/%d", functionCallCovered, functionCallCovered + functionCallMissed);
             }
-            
-        } else if (functionCallCovered == 1) {
+        } 
+        else if (functionCallCovered == 1) {
             functionCallTooltip = "Function call covered";
         }
-        
         return functionCallTooltip;
     }
     
@@ -330,7 +322,7 @@ class CoverageSourcePrinter implements Serializable {
     
     public Boolean hasAnyMcdcPairCoverage() {
         Boolean hasMcDc = false;
-        for ( int i = 0; i < mcdcPairCoveredPerLine.length && !hasMcDc; i++) {
+        for (Metric.MCDC_PAIRint i = 0; i < mcdcPairCoveredPerLine.length && !hasMcDc; i++) {
             if ((mcdcPairCoveredPerLine[i] + mcdcPairMissedPerLine[i]) > 0) {
                 hasMcDc = true;
             }
@@ -341,7 +333,7 @@ class CoverageSourcePrinter implements Serializable {
 
     public Boolean hasAnyFunctionCallCoverage() {
         Boolean hasFc = false;
-        for ( int i = 0; i < functionCallMissedPerLine.length && !hasFc; i++) {
+        for (int i = 0; i < functionCallMissedPerLine.length && !hasFc; i++) {
             if ((functionCallCoveredPerLine[i] + functionCallMissedPerLine[i]) > 0) {
                 hasFc = true;
             }

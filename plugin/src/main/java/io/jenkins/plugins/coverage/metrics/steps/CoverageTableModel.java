@@ -182,7 +182,7 @@ class CoverageTableModel extends TableModel {
                     .withResponsivePriority(1)
                     .build();
             columns.add(lineCoverage);
-            if (deltaHeaderLabel != null && deltaHeaderLabel != "") {
+            if (deltaHeaderLabel != null && deltaHeaderLabel.compareTo("") != 0) {
                 TableColumn lineCoverageDelta = new ColumnBuilder().withHeaderLabel(deltaHeaderLabel)
                         .withDataPropertyKey(key + "Delta")
                         .withDetailedCell()

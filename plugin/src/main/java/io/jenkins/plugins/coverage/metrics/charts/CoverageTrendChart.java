@@ -37,8 +37,7 @@ public class CoverageTrendChart {
         // If the dataset contains MCDC, Function or Function Call Coverage
         if (dataSet.containsSeries(CoverageSeriesBuilder.MCDC_PAIR_COVERAGE) 
                 || dataSet.containsSeries(CoverageSeriesBuilder.FUNCTION_COVERAGE) 
-                || dataSet.containsSeries(CoverageSeriesBuilder.FUNCTION_CALL_COVERAGE)) 
-        {        
+                || dataSet.containsSeries(CoverageSeriesBuilder.FUNCTION_CALL_COVERAGE)) {        
             lineMode = FilledMode.LINES;
         } 
         else {
