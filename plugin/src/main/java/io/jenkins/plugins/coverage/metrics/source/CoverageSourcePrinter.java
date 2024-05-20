@@ -15,6 +15,7 @@ import static j2html.TagCreator.*;
  * Provides all required information for a {@link FileNode} so that its source code can be rendered together with the
  * line and branch coverage in HTML.
  */
+@SuppressWarnings({"PMD.GodClass", "PMD.CyclomaticComplexity"})
 class CoverageSourcePrinter implements Serializable {
     private static final long serialVersionUID = -6044649044983631852L;
     private static final Sanitizer SANITIZER = new Sanitizer();
@@ -132,7 +133,7 @@ class CoverageSourcePrinter implements Serializable {
             .render();
     }
     
-    private String getTr(final int line, final String sourceCode, final boolean isPainted, String third) {
+    private String getTr(final int line, final String sourceCode, final boolean isPainted, final String third) {
         return tr().withClass(isPainted ? getColorClass(line) : CoverageSourcePrinter.UNDEFINED)
                 .condAttr(isPainted, "data-html-tooltip", isPainted ? getTooltip(line) : StringUtils.EMPTY)
                 .with(td().withClass("line").with(a().withName(String.valueOf(line)).withText(String.valueOf(line))),
@@ -144,7 +145,6 @@ class CoverageSourcePrinter implements Serializable {
                             .with(rawHtml(SANITIZER.render(cleanupCode(sourceCode)))))
             .render();    
     }
-    
     
     public String renderLine(final int line, final String sourceCode) {
         var isPainted = isPainted(line);
