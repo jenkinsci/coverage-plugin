@@ -21,7 +21,7 @@ import static j2html.TagCreator.*;
  * Provides all required information for a {@link FileNode} so that its source code can be rendered together with the
  * line and mutation coverage in HTML.
  */
-class MutationSourcePrinter extends CoverageSourcePrinter {
+final class MutationSourcePrinter extends CoverageSourcePrinter {
     private static final long serialVersionUID = -2215657894423024907L;
 
     private final int[] survivedPerLine;

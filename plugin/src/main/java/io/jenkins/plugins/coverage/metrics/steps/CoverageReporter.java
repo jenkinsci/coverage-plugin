@@ -33,7 +33,7 @@ import io.jenkins.plugins.util.ResultHandler;
  *
  * @author Ullrich Hafner
  */
-@SuppressWarnings({"checkstyle:ClassDataAbstractionCoupling", "PMD.LooseCoupling"})
+@SuppressWarnings({"checkstyle:ClassDataAbstractionCoupling", "PMD.LooseCoupling", "PMD.CouplingBetweenObjects"})
 public class CoverageReporter {
     private static final NavigableMap<Metric, Fraction> EMPTY_DELTA = new TreeMap<>();
     private static final List<Value> EMPTY_VALUES = List.of();

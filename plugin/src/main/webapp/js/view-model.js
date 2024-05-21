@@ -1,6 +1,6 @@
 /* global jQuery3, proxy, echartsJenkinsApi, bootstrap5 */
 
-getJenkinsColors = function (colors) {
+getJenkinsColors = function (colors) { // NOPMD
     // TODO: also handle HSL colors and parse them to hex in order to use dark mode colors
     const colorHexMapping = new Map;
     colors.forEach(function (jenkinsId) {
@@ -12,14 +12,14 @@ getJenkinsColors = function (colors) {
     return colorHexMapping;
 };
 
-const CoverageChartGenerator = function ($, proxy) {
-    var selectedTreeNode;
+const CoverageChartGenerator = function ($, proxy) { // NOPMD
+    let selectedTreeNode;
 
     function printPercentage(value, minimumFractionDigits = 2) {
         return Number(value / 100.0).toLocaleString(undefined, {style: 'percent', minimumFractionDigits: minimumFractionDigits});
     }
 
-    const openBuild = function (build) {
+    const openBuild = function (build) { // NOPMD
         proxy.getUrlForBuild(build, window.location.href, function (buildUrl) {
             if (buildUrl.responseJSON.startsWith('http')) {
                 window.location.assign(buildUrl.responseJSON);
@@ -47,7 +47,7 @@ const CoverageChartGenerator = function ($, proxy) {
                 },
                 formatter: function (obj) {
                     if (Array.isArray(obj)) {
-                        if (obj.length === 2) {
+                        if (obj.length === 2) { // NOPMD
                             return ['<b>' + obj[0].name + '</b>',
                                 obj[0].seriesName + ': ' + overview.covered[obj[0].dataIndex],
                                 obj[1].seriesName + ': ' + overview.missed[obj[1].dataIndex],
@@ -173,7 +173,7 @@ const CoverageChartGenerator = function ($, proxy) {
                 {
                     itemStyle: {
                         borderWidth: 0,
-                        gapWidth: 5,
+                        gapWidth: 5
                     },
                     upperLabel: {
                         show: false
@@ -181,49 +181,49 @@ const CoverageChartGenerator = function ($, proxy) {
                 },
                 {
                     itemStyle: {
-                        gapWidth: 3,
+                        gapWidth: 3
                     }
                 },
                 {
                     itemStyle: {
-                        gapWidth: 1,
+                        gapWidth: 1
                     }
                 },
                 {
                     itemStyle: {
-                        gapWidth: 1,
+                        gapWidth: 1
                     }
                 },
                 {
                     itemStyle: {
-                        gapWidth: 1,
+                        gapWidth: 1
                     }
                 },
                 {
                     itemStyle: {
-                        gapWidth: 1,
+                        gapWidth: 1
                     }
                 },
                 {
                     itemStyle: {
-                        gapWidth: 1,
+                        gapWidth: 1
                     }
                 },
                 {
                     itemStyle: {
-                        gapWidth: 1,
+                        gapWidth: 1
                     }
                 },
                 {
                     itemStyle: {
-                        gapWidth: 1,
+                        gapWidth: 1
                     }
                 },
                 {
                     itemStyle: {
-                        gapWidth: 1,
+                        gapWidth: 1
                     }
-                },
+                }
             ];
         }
 
@@ -241,14 +241,14 @@ const CoverageChartGenerator = function ($, proxy) {
                     for (let i = 2; i < treePathInfo.length; i++) {
                         treePath.push(treePathInfo[i].name);
                     }
-                    selectedTreeNode = info.id;
+                    selectedTreeNode = info.id; // NOPMD
                     const values = info.value;
                     const total = values[0];
                     const tooltip = values[1];
 
                     const title = '<div class="jenkins-tooltip healthReportDetails jenkins-tooltip--table-wrapper">' + formatUtil.encodeHTML(treePath.join('.')) + '</div>';
                     if (total === 0) {
-                        return [title, coverageMetric + ': n/a',].join('');
+                        return [title, coverageMetric + ': n/a'].join('');
                     }
                     return [title, tooltip].join('');
                 }
@@ -264,7 +264,7 @@ const CoverageChartGenerator = function ($, proxy) {
                         emphasis: {
                             itemStyle: {
                                 opacity: 0.6
-                            },
+                            }
                         }
                     },
                     width: '100%',
@@ -272,15 +272,15 @@ const CoverageChartGenerator = function ($, proxy) {
                     top: 'top',
                     label: {
                         show: true,
-                        formatter: '{b}',
+                        formatter: '{b}'
                     },
                     upperLabel: {
                         show: true,
-                        height: 30,
+                        height: 30
                     },
                     itemStyle: {
                         shadowColor: '#000',
-                        shadowBlur: 3,
+                        shadowBlur: 3
                     },
                     levels: getLevelOption(),
                     data: [JSON.parse(themedModel)]
