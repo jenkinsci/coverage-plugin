@@ -41,6 +41,7 @@ class CoverageViewModelTest extends AbstractCoverageTest {
     }
 
     @Test
+    @SuppressWarnings("PMD.ConfusingArgumentToVarargsMethod")
     void shouldReportOverview() {
         CoverageViewModel model = createModelFromCodingStyleReport();
 
@@ -115,7 +116,7 @@ class CoverageViewModelTest extends AbstractCoverageTest {
 
     private CoverageViewModel createModel(final Node node) {
         return new CoverageViewModel(mock(Run.class), "id", StringUtils.EMPTY,
-                node, AbstractCoverageTest.createStatistics(), new QualityGateResult(), "-", new FilteredLog("Errors"),
+                node, createStatistics(), new QualityGateResult(), "-", new FilteredLog("Errors"),
                 i -> i);
     }
 }

@@ -47,7 +47,7 @@ import io.jenkins.plugins.util.QualityGateStatus;
  *
  * @author Florian Orendi
  */
-@SuppressWarnings({"PMD.GodClass", "PMD.CyclomaticComplexity"})
+@SuppressWarnings({"PMD.GodClass", "PMD.CyclomaticComplexity", "PMD.CouplingBetweenObjects"})
 class CoverageChecksPublisher {
     private static final ElementFormatter FORMATTER = new ElementFormatter();
     private static final int TITLE_HEADER_LEVEL = 4;
@@ -383,8 +383,8 @@ class CoverageChecksPublisher {
     }
 
     private String createProjectOverview() {
-        StringBuilder description = new StringBuilder(getSectionHeader(TITLE_HEADER_LEVEL, "Project Overview")
-                + "No changes detected, that affect the code coverage.\n");
+        StringBuilder description = new StringBuilder(getSectionHeader(TITLE_HEADER_LEVEL, "Project Overview"));
+        description.append("No changes detected, that affect the code coverage.\n");
 
         for (Value value : action.getValues(Baseline.PROJECT)) {
             description.append(getBulletListItem(1, FORMATTER.formatDetailedValueWithMetric(value)));

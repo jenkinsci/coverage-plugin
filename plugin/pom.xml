@@ -5,7 +5,7 @@
   <parent>
     <groupId>org.jvnet.hudson.plugins</groupId>
     <artifactId>analysis-pom</artifactId>
-    <version>7.4.0</version>
+    <version>8.4.0</version>
     <relativePath />
   </parent>
 
@@ -142,7 +142,6 @@
     <dependency>
       <groupId>io.jenkins.plugins</groupId>
       <artifactId>data-tables-api</artifactId>
-      <version>2.0.6-1</version>
     </dependency>
     <dependency>
       <groupId>io.jenkins.plugins</groupId>
@@ -313,6 +312,111 @@
 
   <build>
     <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-pmd-plugin</artifactId>
+        <version>${maven-pmd-plugin.version}</version>
+        <configuration>
+          <linkXRef>false</linkXRef>
+          <targetJdk>${java.version}</targetJdk>
+          <skip>true</skip>
+        </configuration>
+        <dependencies>
+          <dependency>
+            <groupId>net.sourceforge.pmd</groupId>
+            <artifactId>pmd-core</artifactId>
+            <version>${pmd.version}</version>
+          </dependency>
+          <dependency>
+            <groupId>net.sourceforge.pmd</groupId>
+            <artifactId>pmd-java</artifactId>
+            <version>${pmd.version}</version>
+          </dependency>
+          <dependency>
+            <groupId>net.sourceforge.pmd</groupId>
+            <artifactId>pmd-javascript</artifactId>
+            <version>${pmd.version}</version>
+          </dependency>
+          <dependency>
+            <groupId>edu.hm.hafner</groupId>
+            <artifactId>codingstyle</artifactId>
+            <version>${codingstyle.config.version}</version>
+            <classifier>config</classifier>
+          </dependency>
+        </dependencies>
+        <executions>
+          <execution>
+            <id>run-pmd-java</id>
+            <goals>
+              <goal>pmd</goal>
+              <goal>check</goal>
+              <goal>cpd</goal>
+            </goals>
+            <phase>verify</phase>
+            <configuration>
+              <targetDirectory>${project.build.directory}/pmd-java</targetDirectory>
+              <rulesets>
+                <ruleset>pmd-java-configuration.xml</ruleset>
+              </rulesets>
+              <includeTests>false</includeTests>
+              <minimumTokens>50</minimumTokens>
+              <skip>${pmd.skip}</skip>
+              <excludes>
+                <exclude>**/steps/CoverageMetricColumn*</exclude>
+              </excludes>
+            </configuration>
+          </execution>
+          <execution>
+            <id>run-pmd-tests</id>
+            <goals>
+              <goal>pmd</goal>
+              <goal>check</goal>
+              <goal>cpd</goal>
+            </goals>
+            <phase>verify</phase>
+            <configuration>
+              <targetDirectory>${project.build.directory}/pmd-tests</targetDirectory>
+              <rulesets>
+                <ruleset>pmd-tests-configuration.xml</ruleset>
+              </rulesets>
+              <includeTests>true</includeTests>
+              <minimumTokens>100</minimumTokens>
+              <excludeRoots>
+                <excludeRoot>src/main/java</excludeRoot>
+                <excludeRoot>${project.build.directory}/generated-test-sources/injected</excludeRoot>
+                <excludeRoot>${project.build.directory}/generated-test-sources/test-annotations</excludeRoot>
+                <excludeRoot>${project.build.directory}/generated-test-sources/assertj-assertions</excludeRoot>
+              </excludeRoots>
+              <skip>${pmd.skip}</skip>
+            </configuration>
+          </execution>
+          <execution>
+            <id>run-pmd-javascript</id>
+            <goals>
+              <goal>pmd</goal>
+              <goal>check</goal>
+            </goals>
+            <phase>verify</phase>
+            <configuration>
+              <targetDirectory>${project.build.directory}/pmd-javascript</targetDirectory>
+              <rulesets>
+                <ruleset>pmd-javascript-configuration.xml</ruleset>
+              </rulesets>
+              <includeTests>false</includeTests>
+              <language>javascript</language>
+              <compileSourceRoots>
+                <compileSourceRoot>src/main/resources</compileSourceRoot>
+                <compileSourceRoot>src/main/webapp/js</compileSourceRoot>
+              </compileSourceRoots>
+              <includes>
+                <include>**/*.js</include>
+              </includes>
+              <skip>${pmd.skip}</skip>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
       <plugin>
         <groupId>org.assertj</groupId>
         <artifactId>assertj-assertions-generator-maven-plugin</artifactId>
