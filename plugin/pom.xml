@@ -362,7 +362,6 @@
               <minimumTokens>50</minimumTokens>
               <skip>${pmd.skip}</skip>
               <excludes>
-                <exclude>**/steps/CoverageMetricColumn*</exclude>
               </excludes>
             </configuration>
           </execution>
