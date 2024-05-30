@@ -52,14 +52,9 @@ class CoverageSourcePrinter implements Serializable {
     }
     
     private String getColumnHeader(final String third) {
-        return tr().withClass(CoverageSourcePrinter.UNDEFINED).with(
-                td().withClass("line").with(text("Line")),
-                td().withClass("line").with(text("St/Br")),
-                td().withClass("line").with(text(third)),
-                td().withClass("line").with(text(NBSP))
-            ).render();
+        return getColumnHeader(third, NBSP);
     }
-    
+
     private String getColumnHeader(final String third, final String fourth) {
         return tr().withClass(CoverageSourcePrinter.UNDEFINED).with(
                 td().withClass("line").with(text("Line")),
@@ -101,49 +96,36 @@ class CoverageSourcePrinter implements Serializable {
         return trString;    
     }
 
-    private String getTr(final int line, final String sourceCode, final boolean isPainted) {
-        return tr()
+    private String getTr(final int line, final String sourceCode, final boolean isPainted, final String third, final String fouth) {
+        var trData = tr()
             .withClass(isPainted ? getColorClass(line) : CoverageSourcePrinter.UNDEFINED)
-            .condAttr(isPainted, "data-html-tooltip", isPainted ? getTooltip(line) : StringUtils.EMPTY)
+            .condAttr(isPainted, "data-html-tooltip", isPainted ? getTooltip(line) : StringUtils.EMPTY);
+            
+        trData
             .with(
-                    td().withClass("line")
-                            .with(a().withName(String.valueOf(line)).withText(String.valueOf(line))),
-                    td().withClass("hits")
-                            .with(isPainted ? text(getSummaryColumn(line)) : text(StringUtils.EMPTY)),
-                    td().withClass("code")
-                            .with(rawHtml(SANITIZER.render(cleanupCode(sourceCode)))))
-            .render();
+                    td().withClass("line").with(a().withName(String.valueOf(line)).withText(String.valueOf(line))),
+                    td().withClass("hits").with(isPainted ? text(getSummaryColumn(line)) : text(StringUtils.EMPTY))
+            );
+                    
+        if (!third.equals(StringUtils.EMPTY)) {
+            trData.with (td().withClass("hits").with(isPainted ? text(third) : text(StringUtils.EMPTY)));
+        }
+        if (!fouth.equals(StringUtils.EMPTY)) {
+            trData.with (td().withClass("hits").with(isPainted ? text(fouth) : text(StringUtils.EMPTY)));
+        }
+        
+        trData.with (td().withClass("code").with(rawHtml(SANITIZER.render(cleanupCode(sourceCode)))));
+            
+        return trData.render();
     }
     
-    private String getTr(final int line, final String sourceCode, final boolean isPainted, final String third, final String fouth) {
-        return tr()
-            .withClass(isPainted ? getColorClass(line) : CoverageSourcePrinter.UNDEFINED)
-            .condAttr(isPainted, "data-html-tooltip", isPainted ? getTooltip(line) : StringUtils.EMPTY)
-            .with(
-                    td().withClass("line")
-                            .with(a().withName(String.valueOf(line)).withText(String.valueOf(line))),
-                    td().withClass("hits")
-                            .with(isPainted ? text(getSummaryColumn(line)) : text(StringUtils.EMPTY)),
-                    td().withClass("hits")
-                            .with(isPainted ? text(third) : text(StringUtils.EMPTY)),
-                    td().withClass("hits")
-                            .with(isPainted ? text(fouth) : text(StringUtils.EMPTY)),
-                    td().withClass("code")
-                            .with(rawHtml(SANITIZER.render(cleanupCode(sourceCode)))))
-            .render();
+    private String getTr(final int line, final String sourceCode, final boolean isPainted) {
+        return getTr(line, sourceCode, isPainted, StringUtils.EMPTY, StringUtils.EMPTY);        
     }
+    
     
     private String getTr(final int line, final String sourceCode, final boolean isPainted, final String third) {
-        return tr().withClass(isPainted ? getColorClass(line) : CoverageSourcePrinter.UNDEFINED)
-                .condAttr(isPainted, "data-html-tooltip", isPainted ? getTooltip(line) : StringUtils.EMPTY)
-                .with(td().withClass("line").with(a().withName(String.valueOf(line)).withText(String.valueOf(line))),
-                    td().withClass("hits")
-                            .with(isPainted ? text(getSummaryColumn(line)) : text(StringUtils.EMPTY)),
-                    td().withClass("hits")
-                            .with(isPainted ? text(third) : text(StringUtils.EMPTY)),
-                    td().withClass("code")
-                            .with(rawHtml(SANITIZER.render(cleanupCode(sourceCode)))))
-            .render();    
+        return getTr(line, sourceCode, isPainted, third, StringUtils.EMPTY);
     }
     
     public String renderLine(final int line, final String sourceCode) {
@@ -215,43 +197,42 @@ class CoverageSourcePrinter implements Serializable {
             return "Not covered";
         }
     }
-    
+
+    public String getTooltip(final int line, final int covered, final int missed, final boolean checkAny, final String description) {
+        String tooltip = "";
+        
+        if (covered + missed > 1) {
+            if (missed == 0) {
+                tooltip = String.format("All %s covered: %d/%d", description, covered, covered + missed);
+            }
+            else {
+                tooltip = String.format("%s partially covered: %d/%d", description, covered, covered + missed);
+                return "No branches covered";
+            }
+        }
+        else if (checkAny && (covered == 1))  {
+            tooltip = String.format("%s covered", description, covered,  missed);
+        }
+        
+        return tooltip;
+    }
+
     // Tooltip for MC/DC Pair coverage
     public String getMcdcPairTooltop(final int line) {
         var mcdcPairCovered = getMcdcPairCovered(line);
         var mcdcPairMissed  = getMcdcPairMissed(line);
-        String mcdcPairTooltip = "";
-        
-        if (mcdcPairCovered + mcdcPairMissed > 1) {
-            if (mcdcPairMissed == 0) {
-                mcdcPairTooltip = String.format("All MC/DC pairs covered: %d/%d", mcdcPairCovered, mcdcPairCovered + mcdcPairMissed);
-            } 
-            else {
-                mcdcPairTooltip = String.format("MC/DC pairs partially covered: %d/%d", mcdcPairCovered, mcdcPairCovered + mcdcPairMissed);
-            }
-        }
-        return mcdcPairTooltip;
+
+        return getTooltip(line, mcdcPairCovered, mcdcPairMissed, false, "MC/DC pairs");
     }
     
     // Tooltip for function call coverage
     public String getfunctionCallTooltop(final int line) {
         var functionCallCovered = getFunctionCallCovered(line);
         var functionCallMissed  = getFunctionCallMissed(line);
-        String functionCallTooltip = "";
-        if (functionCallCovered + functionCallMissed > 1) {
-            if (functionCallMissed == 0) {
-                functionCallTooltip = String.format("All function calls covered: %d/%d", functionCallCovered, functionCallCovered + functionCallMissed);
-            } 
-            else {
-                functionCallTooltip = String.format("Function calls partially covered: %d/%d", functionCallCovered, functionCallCovered + functionCallMissed);
-            }
-        } 
-        else if (functionCallCovered == 1) {
-            functionCallTooltip = "Function call covered";
-        }
-        return functionCallTooltip;
+        
+        return getTooltip(line, functionCallCovered, functionCallMissed, true, "Function calls");        
     }
-    
+
     // Updated to incoorporate all coverage types present
     public String getTooltip(final int line) {
         String toolTipString = "";

@@ -23,7 +23,7 @@ import io.jenkins.plugins.echarts.JenkinsPalette;
  * @see JacksonFacade
  */
 public class CoverageTrendChart {
-    /* Line Mode used to indicate whether is hsould be a filled line chart or line chart */
+    /* Line Mode used to indicate whether is should be a filled line chart or line chart */
     private static FilledMode lineMode;
     
     /**
