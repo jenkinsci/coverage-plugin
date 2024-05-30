@@ -91,6 +91,11 @@ public class SourceCodePainter {
     private CoverageSourcePrinter createFileModel(final Node rootNode, final FileNode fileNode) {
         if (rootNode.getValue(Metric.MUTATION).isPresent()) {
             return new MutationSourcePrinter(fileNode);
+        }        
+        else if (rootNode.getValue(Metric.MCDC_PAIR).isPresent() 
+                || rootNode.getValue(Metric.FUNCTION_CALL).isPresent() 
+                || rootNode.getValue(Metric.FUNCTION).isPresent()) {
+            return new VectorCastSourcePrinter(fileNode);
         }
         else {
             return new CoverageSourcePrinter(fileNode);
