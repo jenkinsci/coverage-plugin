@@ -35,6 +35,7 @@ import io.jenkins.plugins.datatables.TableColumn.ColumnType;
 import io.jenkins.plugins.datatables.TableConfiguration;
 import io.jenkins.plugins.datatables.TableConfiguration.SelectStyle;
 import io.jenkins.plugins.datatables.TableModel;
+import org.apache.commons.lang3.StringUtils;
 
 import static j2html.TagCreator.*;
 
