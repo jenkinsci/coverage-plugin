@@ -5,11 +5,13 @@ import org.apache.commons.lang3.StringUtils;
 import edu.hm.hafner.coverage.FileNode;
 
 import static j2html.TagCreator.*;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
 /**
  * Provides all required information for a {@link FileNode} so that its source code can be rendered together with the
  * line and mutation coverage in HTML.
  */
+@SuppressWarnings("PMD.GodClass")
 public class VectorCastSourcePrinter extends CoverageSourcePrinter {
     private static final long serialVersionUID = 7204367145168517936L;
 
@@ -29,8 +31,8 @@ public class VectorCastSourcePrinter extends CoverageSourcePrinter {
     }
 
     /**
-     * Gets the tr HTML tag for this source line. Used for case where both MCDC and FCC  are present
-     *
+     * Gets the tr HTML tag for this source line. Used for case where both MCDC and FCC are present.
+     *.
      * @param line
      *         line number for the summary data
      *
@@ -72,7 +74,7 @@ public class VectorCastSourcePrinter extends CoverageSourcePrinter {
     }
     
     /**
-     * Gets the tr HTML tag for this source line. Used for case where neither MCDC or FCC  are present
+     * Gets the tr HTML tag for this source line. Used for case where neither MCDC or FCC  are present.
      *
      * @param line
      *         line number for the summary data
@@ -91,7 +93,7 @@ public class VectorCastSourcePrinter extends CoverageSourcePrinter {
     }
     
     /**
-     * Gets the tr HTML tag for this source line. Used for MCDC or FCC but not both
+     * Gets the tr HTML tag for this source line. Used for MCDC or FCC but not both.
      *
      * @param line
      *         line number for the summary data
@@ -113,7 +115,7 @@ public class VectorCastSourcePrinter extends CoverageSourcePrinter {
     }
     
     /**
-     * Main call to render the source line in HTML table format
+     * Main call to render the source line in HTML table format.
      *
      * @param line
      *         line number for the summary data
@@ -152,7 +154,7 @@ public class VectorCastSourcePrinter extends CoverageSourcePrinter {
     }
 
     /**
-     * Gets the column header given MCDC or FCC but not both
+     * Gets the column header given MCDC or FCC but not both.
      *
      * @param third
      *         third column string.  
@@ -165,12 +167,12 @@ public class VectorCastSourcePrinter extends CoverageSourcePrinter {
     }
 
     /**
-     * Gets the column header
+     * Gets the column header.
      *
      * @param third
      *         third column string.  
      *
-     * @param third
+     * @param fourth
      *         fourth column string.  
      *
      * @return string for the column header
@@ -224,7 +226,7 @@ public class VectorCastSourcePrinter extends CoverageSourcePrinter {
     }
     
     /**
-     * Gets the color class depending on coverage types
+     * Gets the color class depending on coverage types.
      *
      * @param line
      *         line number for the summary data
@@ -246,7 +248,7 @@ public class VectorCastSourcePrinter extends CoverageSourcePrinter {
     }
 
     /**
-     * Constructs the tooltip depending on the coverage
+     * Constructs the tooltip depending on the coverage.
      *
      * @param line
      *         line number for the summary data
@@ -262,7 +264,7 @@ public class VectorCastSourcePrinter extends CoverageSourcePrinter {
     }
     
     /**
-     * Constructs the tooltip depending on the coverage
+     * Constructs the tooltip depending on the coverage.
      *
      * @param line
      *         line number for the summary data
@@ -279,7 +281,7 @@ public class VectorCastSourcePrinter extends CoverageSourcePrinter {
     }
     
     /**
-     * Constructs the tooltip depending on the coverage
+     * Constructs the tooltip depending on the coverage.
      *
      * @param covered
      *         count of the covered coverage
@@ -315,7 +317,7 @@ public class VectorCastSourcePrinter extends CoverageSourcePrinter {
     }
     
     /**
-     * Constructs the tooltip depending on the coverage
+     * Constructs the tooltip depending on the coverage.
      *
      * @param line
      *         line number for the summary data
@@ -351,7 +353,7 @@ public class VectorCastSourcePrinter extends CoverageSourcePrinter {
     }
     
     /**
-     * Returns true if there is any MCDC Pair coverage
+     * Returns true if there is any MCDC Pair coverage.
      *
      * @return 
      *         true if there is any MCDC Pair coverage
@@ -368,7 +370,7 @@ public class VectorCastSourcePrinter extends CoverageSourcePrinter {
     }
 
     /**
-     * Returns true if there is any Function Call coverage
+     * Returns true if there is any Function Call coverage.
      *
      * @return 
      *         true if there is any Function Call coverage
@@ -386,7 +388,7 @@ public class VectorCastSourcePrinter extends CoverageSourcePrinter {
     }
 
     /**
-     * Returns the count of covered MCDC Pairs on a line
+     * Returns the count of covered MCDC Pairs on a line.
      *
      * @param line
      *         line number for the summary data
@@ -398,7 +400,7 @@ public class VectorCastSourcePrinter extends CoverageSourcePrinter {
     }
 
     /**
-     * Returns the count of missed MCDC Pairs on a line
+     * Returns the count of missed MCDC Pairs on a line.
      *
      * @param line
      *         line number for the summary data
@@ -410,7 +412,7 @@ public class VectorCastSourcePrinter extends CoverageSourcePrinter {
     }
 
     /**
-     * Returns the count of covered Function Calls on a line
+     * Returns the count of covered Function Calls on a line.
      *
      * @param line
      *         line number for the summary data
@@ -422,7 +424,7 @@ public class VectorCastSourcePrinter extends CoverageSourcePrinter {
     }
 
     /**
-     * Returns the count of missed Function Calls on a line
+     * Returns the count of missed Function Calls on a line.
      *
      * @param line
      *         line number for the summary data
@@ -433,9 +435,8 @@ public class VectorCastSourcePrinter extends CoverageSourcePrinter {
         return getCounter(line, functionCallMissedPerLine);
     }
 
-    
     /**
-     * Creates the MCDC Pairs summary column
+     * Creates the MCDC Pairs summary column.
      *
      * @param line
      *         line number for the summary data
@@ -452,7 +453,7 @@ public class VectorCastSourcePrinter extends CoverageSourcePrinter {
     }
     
     /**
-     * Creates the function call summary column
+     * Creates the function call summary column.
      *
      * @param line
      *         line number for the summary data
