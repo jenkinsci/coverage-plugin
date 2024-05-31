@@ -5,7 +5,6 @@ import org.apache.commons.lang3.StringUtils;
 import edu.hm.hafner.coverage.FileNode;
 
 import static j2html.TagCreator.*;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
 /**
  * Provides all required information for a {@link FileNode} so that its source code can be rendered together with the
@@ -32,14 +31,14 @@ public class VectorCastSourcePrinter extends CoverageSourcePrinter {
 
     /**
      * Gets the tr HTML tag for this source line. Used for case where both MCDC and FCC are present.
-     *.
+     *
      * @param line
      *         line number for the summary data
      *
      * @param sourceCode
      *         line of source code
      *
-     * @param isPainted
+     * @param isPainted 
      *         indicator of if the line should be painted
      *
      * @param third
@@ -189,7 +188,7 @@ public class VectorCastSourcePrinter extends CoverageSourcePrinter {
     }
 
     /**
-     * Gets the source code column header
+     * Gets the source code column header.
      *
      * @return string of the column header
      *         
