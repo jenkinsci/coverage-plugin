@@ -11,7 +11,7 @@ import static j2html.TagCreator.*;
  * line and mutation coverage in HTML.
  */
 public class VectorCastSourcePrinter extends CoverageSourcePrinter {
-    //private static final long serialVersionUID = 7204367145168517936L;
+    private static final long serialVersionUID = 7204367145168517936L;
 
     private final int[] mcdcPairCoveredPerLine;
     private final int[] mcdcPairMissedPerLine;
@@ -34,10 +34,10 @@ public class VectorCastSourcePrinter extends CoverageSourcePrinter {
      * @param line
      *         line number for the summary data
      *
-     * @param sourceCode`
+     * @param sourceCode
      *         line of source code
      *
-     * @param isPainted`
+     * @param isPainted
      *         indicator of if the line should be painted
      *
      * @param third
@@ -49,16 +49,15 @@ public class VectorCastSourcePrinter extends CoverageSourcePrinter {
      * @return string for the html row
      *         
      */      
-        private String getTr(final int line, final String sourceCode, final boolean isPainted, final String third, final String fouth) {
+    private String getTr(final int line, final String sourceCode, final boolean isPainted, final String third, final String fouth) {
         var trData = tr()
                 .withClass(isPainted ? getColorClass(line) : CoverageSourcePrinter.UNDEFINED)
                 .condAttr(isPainted, "data-html-tooltip", isPainted ? getTooltip(line) : StringUtils.EMPTY);
             
         trData.with(
-        
                 td().withClass("line").with(a().withName(String.valueOf(line)).withText(String.valueOf(line))),
                 td().withClass("hits").with(isPainted ? text(getSummaryColumn(line)) : text(StringUtils.EMPTY))
-                );
+        );
                     
         if (!third.equals(StringUtils.EMPTY)) {
             trData.with(td().withClass("hits").with(isPainted ? text(third) : text(StringUtils.EMPTY)));
@@ -78,10 +77,10 @@ public class VectorCastSourcePrinter extends CoverageSourcePrinter {
      * @param line
      *         line number for the summary data
      *
-     * @param sourceCode`
+     * @param sourceCode
      *         line of source code
      *
-     * @param isPainted`
+     * @param isPainted
      *         indicator of if the line should be painted
      *
      * @return string for the html row
@@ -97,10 +96,10 @@ public class VectorCastSourcePrinter extends CoverageSourcePrinter {
      * @param line
      *         line number for the summary data
      *
-     * @param sourceCode`
+     * @param sourceCode
      *         line of source code
      *
-     * @param isPainted`
+     * @param isPainted
      *         indicator of if the line should be painted
      *
      * @param third
@@ -119,7 +118,7 @@ public class VectorCastSourcePrinter extends CoverageSourcePrinter {
      * @param line
      *         line number for the summary data
      *
-     * @param sourceCode`
+     * @param sourceCode
      *         line of source code
      *
      * @return string of the source code line in HTML format
