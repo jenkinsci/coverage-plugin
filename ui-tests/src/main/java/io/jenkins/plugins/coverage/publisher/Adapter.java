@@ -57,7 +57,7 @@ public class Adapter extends PageAreaImpl {
      */
     public AdapterThreshold createThresholdsPageArea() {
         ensureAdvancedOptionsIsActivated();
-        String path = createPageArea("thresholds", () -> this.threshold.click());
+        String path = createPageArea("thresholds", this.threshold::click);
         return new AdapterThreshold(this, path);
     }
 
@@ -72,7 +72,7 @@ public class Adapter extends PageAreaImpl {
     public AdapterThreshold createThresholdsPageArea(final AdapterThresholdTarget thresholdTarget, final double unhealthyThreshold,
             final double unstableThreshold, final boolean failUnhealthy) {
         ensureAdvancedOptionsIsActivated();
-        String path = createPageArea("thresholds", () -> this.threshold.click());
+        String path = createPageArea("thresholds", this.threshold::click);
         AdapterThreshold adapterThreshold = new AdapterThreshold(this, path);
         adapterThreshold.setThresholdTarget(thresholdTarget);
         adapterThreshold.setUnhealthyThreshold(unhealthyThreshold);

@@ -55,17 +55,17 @@ public class CoverageReportTest extends UiTest {
         report.open();
 
         FileCoverageTable coverageTable = report.getCoverageTable();
-        CoverageReportTest.verifyFileCoverageTableContent(coverageTable,
+        verifyFileCoverageTableContent(coverageTable,
                 new String[] {"edu.hm.hafner.util", "edu.hm.hafner.util", "edu.hm.hafner.util"},
                 new String[] {"Ensure.java", "FilteredLog.java", "Generated.java"},
                 new String[] {"80.00%", "100.00%", "n/a"},
                 new String[] {"86.96%", "100.00%", "n/a"});
 
         String coverageTree = report.getCoverageTree();
-        CoverageReportTest.verifyCoverageTreeAfterSomeBuildsWithReports(coverageTree);
+        verifyCoverageTreeAfterSomeBuildsWithReports(coverageTree);
 
         String coverageOverview = report.getCoverageOverview();
-        CoverageReportTest.verifyCoverageOverviewAfterSomeBuildsWithReports(coverageOverview);
+        verifyCoverageOverviewAfterSomeBuildsWithReports(coverageOverview);
     }
 
     /**
@@ -80,13 +80,13 @@ public class CoverageReportTest extends UiTest {
         report.open();
 
         FileCoverageTable coverageTable = report.getCoverageTable();
-        CoverageReportTest.verifyFileCoverageTableNumberOfMaxEntries(coverageTable, 307);
+        verifyFileCoverageTableNumberOfMaxEntries(coverageTable, 307);
 
         String coverageTree = report.getCoverageTree();
-        CoverageReportTest.verifyCoverageTreeAfterOneBuildWithReport(coverageTree);
+        verifyCoverageTreeAfterOneBuildWithReport(coverageTree);
 
         String coverageOverview = report.getCoverageOverview();
-        CoverageReportTest.verifyCoverageOverviewAfterOneBuildWithReport(coverageOverview);
+        verifyCoverageOverviewAfterOneBuildWithReport(coverageOverview);
     }
 
     /**
@@ -101,19 +101,19 @@ public class CoverageReportTest extends UiTest {
         report.open();
 
         FileCoverageTable table = report.openFileCoverageTable();
-        CoverageReportTest.verifyFileCoverageTableContent(table,
+        verifyFileCoverageTableContent(table,
                 new String[] {"edu.hm.hafner.analysis", "edu.hm.hafner.analysis", "edu.hm.hafner.analysis"},
                 new String[] {"AbstractPackageDetector.java", "CSharpNamespaceDetector.java", "Categories.java"},
                 new String[] {"88.24%", "100.00%", "100.00%"},
                 new String[] {"50.00%", "n/a", "100.00%"});
         table.openTablePage(2);
-        CoverageReportTest.verifyFileCoverageTableContent(table,
+        verifyFileCoverageTableContent(table,
                 new String[] {"edu.hm.hafner.analysis", "edu.hm.hafner.analysis", "edu.hm.hafner.analysis"},
                 new String[] {"IssueBuilder.java", "IssueDifference.java", "IssueParser.java"},
                 new String[] {"100.00%", "100.00%", "83.33%"},
                 new String[] {"100.00%", "92.86%", "n/a"});
         table.openTablePage(3);
-        CoverageReportTest.verifyFileCoverageTableContent(table,
+        verifyFileCoverageTableContent(table,
                 new String[] {"edu.hm.hafner.analysis", "edu.hm.hafner.analysis", "edu.hm.hafner.analysis"},
                 new String[] {"PackageDetectors.java", "PackageNameResolver.java", "ParsingCanceledException.java"},
                 new String[] {"92.31%", "100.00%", "0.00%"},
