@@ -219,6 +219,7 @@ public class CoverageReport extends PageObject {
          * @return the tab
          * @throws NoSuchElementException if the tab could not be found
          */
+        @SuppressWarnings("PMD.UnnecessaryFullyQualifiedName")
         static Tab valueWithHref(final String href) {
             for (Tab tab : Tab.values()) {
                 if (tab.id.equals(href.substring(1))) {
