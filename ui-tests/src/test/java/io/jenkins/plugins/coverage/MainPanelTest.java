@@ -22,7 +22,7 @@ public class MainPanelTest extends UiTest {
         FreeStyleJob job = getJobWithFirstBuildAndDifferentReports(InCaseCoverageDecreasedConfiguration.DONT_FAIL);
         buildSuccessfully(job);
         MainPanel mainPanel = new MainPanel(job);
-        MainPanelTest.verifyTrendChartWithTwoReports(mainPanel, 1, 2);
+        verifyTrendChartWithTwoReports(mainPanel, 1, 2);
     }
 
     /**
