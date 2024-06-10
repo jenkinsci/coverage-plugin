@@ -7,6 +7,7 @@
 #### Overview by baseline
 
 * **[Overall project (difference to reference job)](http://127.0.0.1:8080/job/pipeline-coding-style/job/5/coverage#overview)**
+  * Method Coverage: 95.10% (97/102)
   * Line Coverage: 91.02% (294/323) - Delta: +50.00%
   * Branch Coverage: 93.97% (109/116)
   * Complexity Density: 0.50%

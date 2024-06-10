@@ -94,7 +94,7 @@ public class SourceCodePainter {
         }        
         else if (rootNode.getValue(Metric.MCDC_PAIR).isPresent() 
                 || rootNode.getValue(Metric.FUNCTION_CALL).isPresent() 
-                || rootNode.getValue(Metric.FUNCTION).isPresent()) {
+                || rootNode.getValue(Metric.METHOD).isPresent()) {
             return new VectorCastSourcePrinter(fileNode);
         }
         else {

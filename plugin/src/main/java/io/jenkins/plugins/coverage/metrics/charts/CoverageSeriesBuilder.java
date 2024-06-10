@@ -22,7 +22,7 @@ public class CoverageSeriesBuilder extends SeriesBuilder<CoverageStatistics> {
     static final String TEST_STRENGTH = "test-strength";
     static final String MCDC_PAIR_COVERAGE = "mcdc-pair";
     static final String FUNCTION_CALL_COVERAGE = "function-call";
-    static final String FUNCTION_COVERAGE = "function";
+    static final String METHOD_COVERAGE = "method";
 
     @Override
     protected Map<String, Double> computeSeries(final CoverageStatistics statistics) {
@@ -34,7 +34,7 @@ public class CoverageSeriesBuilder extends SeriesBuilder<CoverageStatistics> {
         add(statistics, Metric.TEST_STRENGTH, TEST_STRENGTH, series);
         add(statistics, Metric.MCDC_PAIR, MCDC_PAIR_COVERAGE, series);    
         add(statistics, Metric.FUNCTION_CALL, FUNCTION_CALL_COVERAGE, series);                
-        add(statistics, Metric.FUNCTION, FUNCTION_COVERAGE, series);
+        add(statistics, Metric.METHOD, METHOD_COVERAGE, series);
         return series;
     }
 

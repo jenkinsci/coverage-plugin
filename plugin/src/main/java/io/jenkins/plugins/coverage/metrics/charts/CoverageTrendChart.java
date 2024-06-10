@@ -34,9 +34,9 @@ public class CoverageTrendChart {
      */
     
     private void setLineMode(final LinesDataSet dataSet) {
-        // If the dataset contains MCDC, Function or Function Call Coverage
+        // If the dataset contains MCDC, method or Function Call Coverage
         if (dataSet.containsSeries(CoverageSeriesBuilder.MCDC_PAIR_COVERAGE) 
-                || dataSet.containsSeries(CoverageSeriesBuilder.FUNCTION_COVERAGE) 
+                || dataSet.containsSeries(CoverageSeriesBuilder.METHOD_COVERAGE) 
                 || dataSet.containsSeries(CoverageSeriesBuilder.FUNCTION_CALL_COVERAGE)) {        
             lineMode = FilledMode.LINES;
         } 
@@ -82,7 +82,7 @@ public class CoverageTrendChart {
 
             addSeries(dataSet, model, Messages.Metric_MCDC_PAIR(), CoverageSeriesBuilder.MCDC_PAIR_COVERAGE,
                     JenkinsPalette.RED.light());
-            addSeries(dataSet, model, Messages.Metric_FUNCTION(), CoverageSeriesBuilder.FUNCTION_COVERAGE,
+            addSeries(dataSet, model, Messages.Metric_METHOD(), CoverageSeriesBuilder.METHOD_COVERAGE,
                     JenkinsPalette.RED.normal());
             addSeries(dataSet, model, Messages.Metric_FUNCTION_CALL(), CoverageSeriesBuilder.FUNCTION_CALL_COVERAGE,
                     JenkinsPalette.RED.dark());

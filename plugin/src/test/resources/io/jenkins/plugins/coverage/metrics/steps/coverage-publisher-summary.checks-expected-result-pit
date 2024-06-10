@@ -5,6 +5,7 @@
 #### Overview by baseline
 
 * **[Overall project (difference to reference job)](http://127.0.0.1:8080/job/pipeline-coding-style/job/5/coverage#overview)**
+  * Method Coverage: 0.00% (0/99)
   * Line Coverage: 93.84% (198/211) - Delta: +50.00%
   * Mutation Coverage: 90.24% (222/246)
   * Test Strength: 96.52% (222/230)

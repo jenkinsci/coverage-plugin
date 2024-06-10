@@ -79,7 +79,7 @@ public class CoverageViewModel extends DefaultAsyncTableContentProvider implemen
     private static final ElementFormatter FORMATTER = new ElementFormatter();
     private static final Set<Metric> TREE_METRICS = Set.of(
             Metric.LINE, Metric.BRANCH, Metric.MUTATION, Metric.TEST_STRENGTH, Metric.COMPLEXITY, Metric.TESTS,
-            Metric.MCDC_PAIR, Metric.FUNCTION_CALL, Metric.FUNCTION);
+            Metric.MCDC_PAIR, Metric.FUNCTION_CALL, Metric.METHOD);
     private static final String UNDEFINED = "-";
     private final Run<?, ?> owner;
     private final String displayName;
@@ -290,8 +290,8 @@ public class CoverageViewModel extends DefaultAsyncTableContentProvider implemen
         if (text.contains("function-call")) {
             return Metric.FUNCTION_CALL;
         }
-        if (text.contains("function")) {
-            return Metric.FUNCTION;
+        if (text.contains("method")) {
+            return Metric.METHOD;
         }
         throw new IllegalArgumentException("Unknown coverage metric: " + text);
     }

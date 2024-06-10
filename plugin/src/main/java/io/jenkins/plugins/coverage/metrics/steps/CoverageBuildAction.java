@@ -572,7 +572,7 @@ public final class CoverageBuildAction extends BuildAction<Node> implements Stap
         return new TreeSet<>(
                 Set.of(Metric.LINE, Metric.LOC, Metric.BRANCH, Metric.COMPLEXITY_DENSITY,
                         Metric.MUTATION, Metric.TEST_STRENGTH, Metric.TESTS,
-                        Metric.MCDC_PAIR, Metric.FUNCTION, Metric.FUNCTION_CALL));
+                        Metric.MCDC_PAIR, Metric.METHOD, Metric.FUNCTION_CALL));
     }
 
     /**

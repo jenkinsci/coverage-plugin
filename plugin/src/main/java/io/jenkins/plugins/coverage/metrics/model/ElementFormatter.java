@@ -403,8 +403,6 @@ public final class ElementFormatter {
                 return Messages.Metric_MCDC_PAIR();
             case FUNCTION_CALL:
                 return Messages.Metric_FUNCTION_CALL();
-            case FUNCTION:
-                return Messages.Metric_FUNCTION();
             default:
                 throw new NoSuchElementException("No display name found for metric " + metric);
         }
@@ -482,8 +480,6 @@ public final class ElementFormatter {
                 return Messages.Metric_Short_MCDC_PAIR();
             case FUNCTION_CALL:
                 return Messages.Metric_Short_FUNCTION_CALL();
-            case FUNCTION:
-                return Messages.Metric_Short_FUNCTION();
             default:
                 throw new NoSuchElementException("No label found for metric " + metric);
         }
@@ -541,7 +537,6 @@ public final class ElementFormatter {
         add(options, Metric.TESTS);
         add(options, Metric.MCDC_PAIR);
         add(options, Metric.FUNCTION_CALL);
-        add(options, Metric.FUNCTION);
         return options;
     }
 

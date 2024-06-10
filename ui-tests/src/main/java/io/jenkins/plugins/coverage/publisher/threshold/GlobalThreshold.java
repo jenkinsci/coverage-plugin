@@ -52,7 +52,6 @@ public class GlobalThreshold extends AbstractThreshold {
         FILE("File"),
         CLASS("Class"),
         METHOD("Method"),
-        FUNCTION("Function"),
         INSTRUCTION("Instruction"),
         LINE("Line"),
         CONDITIONAL("Conditional");

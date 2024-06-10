@@ -421,6 +421,7 @@ class CoverageChecksPublisher {
         var builder = new StringBuilder(getSectionHeader(TITLE_HEADER_LEVEL, "Project coverage details"));
         builder.append(COLUMN);
         builder.append(COLUMN);
+        
         builder.append(getMetricStream()
                 .map(FORMATTER::getDisplayName)
                 .collect(asColumn()));
@@ -457,7 +458,7 @@ class CoverageChecksPublisher {
         return delta + getTrendIcon(delta);
     }
 
-    private Stream<Metric> getMetricStream() {
+    public Stream<Metric> getMetricStream() {
         return Metric.getCoverageMetrics().stream().skip(1);
     }
 
