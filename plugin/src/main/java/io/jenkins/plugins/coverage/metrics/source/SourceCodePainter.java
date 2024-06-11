@@ -93,8 +93,7 @@ public class SourceCodePainter {
             return new MutationSourcePrinter(fileNode);
         }        
         else if (rootNode.getValue(Metric.MCDC_PAIR).isPresent() 
-                || rootNode.getValue(Metric.FUNCTION_CALL).isPresent() 
-                || rootNode.getValue(Metric.METHOD).isPresent()) {
+                || rootNode.getValue(Metric.FUNCTION_CALL).isPresent()) {
             return new VectorCastSourcePrinter(fileNode);
         }
         else {
