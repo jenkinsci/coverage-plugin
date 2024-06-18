@@ -42,6 +42,7 @@ import static j2html.TagCreator.*;
 /**
  * UI table model for the coverage details table.
  */
+@SuppressWarnings("PMD.CouplingBetweenObjects")
 class CoverageTableModel extends TableModel {
     private static final int NO_COVERAGE_SORT = -1_000;
     private static final SourceCodeFacade SOURCE_CODE_FACADE = new SourceCodeFacade();
@@ -212,6 +213,7 @@ class CoverageTableModel extends TableModel {
     /**
      * UI row model for the coverage details table.
      */
+    @SuppressWarnings("PMD.DataClass")
     static class CoverageRow {
         private static final String COVERAGE_COLUMN_OUTER = "coverage-cell-outer float-end";
         private static final String COVERAGE_COLUMN_INNER = "coverage-jenkins-cell-inner";

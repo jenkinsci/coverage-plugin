@@ -63,7 +63,7 @@ import io.jenkins.plugins.util.QualityGateResult;
  * @author Ullrich Hafner
  * @author Florian Orendi
  */
-@SuppressWarnings({"PMD.GodClass", "PMD.ExcessivePublicCount", "checkstyle:ClassDataAbstractionCoupling", "checkstyle:ClassFanOutComplexity"})
+@SuppressWarnings({"PMD.GodClass", "PMD.ExcessivePublicCount", "PMD.CouplingBetweenObjects", "checkstyle:ClassDataAbstractionCoupling", "checkstyle:ClassFanOutComplexity"})
 public class CoverageViewModel extends DefaultAsyncTableContentProvider implements ModelObject {
     private static final TreeMapNodeConverter TREE_MAP_NODE_CONVERTER = new TreeMapNodeConverter();
     private static final BuildResultNavigator NAVIGATOR = new BuildResultNavigator();
@@ -556,6 +556,7 @@ public class CoverageViewModel extends DefaultAsyncTableContentProvider implemen
     /**
      * Used for parsing a Jenkins color mapping JSON string to a color map.
      */
+    @SuppressWarnings("PMD.LooseCoupling")
     private static final class ColorMappingType extends TypeReference<HashMap<String, String>> {
     }
 }

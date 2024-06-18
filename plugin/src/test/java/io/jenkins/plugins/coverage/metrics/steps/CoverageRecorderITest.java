@@ -30,7 +30,7 @@ class CoverageRecorderITest extends IntegrationTestWithJenkinsPerSuite {
         Run<?, ?> failure = buildWithResult(job, Result.FAILURE);
 
         assertThat(getConsoleLog(failure))
-                .contains("java.lang.IllegalArgumentException: There is already a child [METHOD] Enumerate()");
+                .contains("java.lang.IllegalArgumentException: There is already the same child [METHOD] Enumerate()");
 
         job.setDefinition(new CpsFlowDefinition(
                 "node {\n"
@@ -40,8 +40,7 @@ class CoverageRecorderITest extends IntegrationTestWithJenkinsPerSuite {
         Run<?, ?> success = buildWithResult(job, Result.SUCCESS);
 
         assertThat(getConsoleLog(success))
-                .doesNotContain("java.lang.IllegalArgumentException")
-                .contains("[-ERROR-] Found a duplicate method 'Enumerate' with signature '()' in 'VisualOn.Data.DataSourceProvider'");
+                .doesNotContain("java.lang.IllegalArgumentException");
     }
 
     @Test

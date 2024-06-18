@@ -49,6 +49,6 @@ public class CoverageSeriesBuilder extends SeriesBuilder<CoverageStatistics> {
     private double getRoundedPercentage(final CoverageStatistics statistics, final Metric metric) {
         Coverage coverage = (Coverage) statistics.getValue(Baseline.PROJECT, metric)
                 .orElse(Coverage.nullObject(metric));
-        return (coverage.getCoveredPercentage().toDouble() / 100.0) * 100.0;
+        return coverage.getCoveredPercentage().toDouble() / 100.0 * 100.0;
     }
 }

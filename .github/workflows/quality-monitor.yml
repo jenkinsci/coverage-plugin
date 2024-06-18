@@ -1,0 +1,38 @@
+name: 'Quality Monitor PR'
+
+on:
+  pull_request_target:
+
+jobs:
+  build:
+
+    runs-on: [ubuntu-latest]
+    name: Build, test and monitor quality on Ubuntu
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: "refs/pull/${{ github.event.number }}/merge"
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: 21
+          check-latest: true
+          cache: 'maven'
+      - name: Set up Maven
+        uses: stCarolas/setup-maven@v5
+        with:
+          maven-version: 3.9.6
+      - name: Build with Maven
+        env:
+          BROWSER: chrome-container
+        run: mvn -V --color always -ntp clean verify -Ppit -Pci | tee maven.log
+      - name: Extract pull request number
+        uses: jwalton/gh-find-current-pr@v1
+        id: pr
+      - name: Run Quality Monitor
+        uses: uhafner/quality-monitor@v1
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          pr-number: ${{ steps.pr.outputs.number }}

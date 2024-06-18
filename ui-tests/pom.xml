@@ -5,7 +5,7 @@
   <parent>
     <groupId>edu.hm.hafner</groupId>
     <artifactId>codingstyle-pom</artifactId>
-    <version>4.5.0</version>
+    <version>4.12.0</version>
     <relativePath/>
   </parent>
 
@@ -16,8 +16,8 @@
   <name>UI Tests of Code Coverage Plugin</name>
 
   <properties>
-    <jenkins.version>2.454</jenkins.version>
-    <hpi-plugin.version>3.54</hpi-plugin.version>
+    <jenkins.version>2.462</jenkins.version>
+    <hpi-plugin.version>3.55</hpi-plugin.version>
     <json-smart.version>2.3</json-smart.version>
     <json-unit-assertj.version>2.38.0</json-unit-assertj.version>
     <module.name>${project.groupId}.code.coverage.api.ui.tests</module.name>
@@ -37,7 +37,7 @@
         <!-- ClassNotFoundException if omitted -->
         <groupId>io.netty</groupId>
         <artifactId>netty-bom</artifactId>
-        <version>4.1.109.Final</version>
+        <version>4.1.111.Final</version>
         <type>pom</type>
         <scope>import</scope>
       </dependency>
@@ -48,12 +48,12 @@
     <dependency>
       <groupId>org.jenkins-ci</groupId>
       <artifactId>acceptance-test-harness</artifactId>
-      <version>5814.vdc5d6d484b_40</version>
+      <version>5858.v4b_c4e3b_16099</version>
     </dependency>
     <dependency>
       <groupId>com.fasterxml.jackson.core</groupId>
       <artifactId>jackson-databind</artifactId>
-      <version>2.17.0</version>
+      <version>2.17.1</version>
       <scope>test</scope>
     </dependency>
     <dependency>
@@ -172,7 +172,7 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-help-plugin</artifactId>
-        <version>3.4.0</version>
+        <version>3.4.1</version>
         <executions>
           <execution>
             <id>show-profiles</id>
