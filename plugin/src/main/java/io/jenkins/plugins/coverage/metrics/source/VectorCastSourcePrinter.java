@@ -52,7 +52,7 @@ public class VectorCastSourcePrinter extends CoverageSourcePrinter {
      */      
     private String getTr(final int line, final String sourceCode, final boolean isPainted, final String third, final String fouth) {
         var trData = tr()
-                .withClass(isPainted ? getColorClass(line) : CoverageSourcePrinter.UNDEFINED)
+                .withClass(isPainted ? getColorClass(line) : UNDEFINED)
                 .condAttr(isPainted, "data-html-tooltip", isPainted ? getTooltip(line) : StringUtils.EMPTY);
             
         trData.with(
@@ -178,7 +178,7 @@ public class VectorCastSourcePrinter extends CoverageSourcePrinter {
      *         
      */    
     private String getColumnHeader(final String third, final String fourth) {
-        return tr().withClass(CoverageSourcePrinter.UNDEFINED).with(
+        return tr().withClass(UNDEFINED).with(
                 td().withClass("line").with(text("Line")),
                 td().withClass("line").with(text("St/Br")),
                 td().withClass("line").with(text(third)),
@@ -214,7 +214,7 @@ public class VectorCastSourcePrinter extends CoverageSourcePrinter {
         // If this file only has Line and St/Br
         else {            
             // this is the original metrics so maybe don't print header?
-            trString = tr().withClass(CoverageSourcePrinter.UNDEFINED).with(
+            trString = tr().withClass(UNDEFINED).with(
                 td().withClass("line").with(text("Line ")),
                 td().withClass("line").with(text("St/Br")),
                 td().withClass("line").with(text(NBSP))
