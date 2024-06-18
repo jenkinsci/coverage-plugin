@@ -72,7 +72,7 @@ import io.jenkins.plugins.util.ValidationUtilities;
  *
  * @author Ullrich Hafner
  */
-@SuppressWarnings({"PMD.GodClass", "checkstyle:ClassFanOutComplexity", "checkstyle:ClassDataAbstractionCoupling"})
+@SuppressWarnings({"PMD.GodClass", "PMD.CouplingBetweenObjects", "checkstyle:ClassFanOutComplexity", "checkstyle:ClassDataAbstractionCoupling"})
 public class CoverageRecorder extends Recorder {
     static final String CHECKS_DEFAULT_NAME = "Code Coverage";
 
@@ -707,9 +707,9 @@ public class CoverageRecorder extends Recorder {
 
         static ListBoxModel fillItems() {
             ListBoxModel items = new ListBoxModel();
-            items.add(Messages.ChecksAnnotationScope_Skip(), ChecksAnnotationScope.SKIP.name());
-            items.add(Messages.ChecksAnnotationScope_ModifiedLines(), ChecksAnnotationScope.MODIFIED_LINES.name());
-            items.add(Messages.ChecksAnnotationScope_AllLines(), ChecksAnnotationScope.ALL_LINES.name());
+            items.add(Messages.ChecksAnnotationScope_Skip(), SKIP.name());
+            items.add(Messages.ChecksAnnotationScope_ModifiedLines(), MODIFIED_LINES.name());
+            items.add(Messages.ChecksAnnotationScope_AllLines(), ALL_LINES.name());
             return items;
         }
     }

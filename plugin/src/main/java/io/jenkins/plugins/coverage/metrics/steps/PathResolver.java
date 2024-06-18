@@ -73,6 +73,7 @@ public class PathResolver {
      * relative, this resolver tries to find the absolute paths by guessing the prefix to the relative path. It also
      * evaluates the defined source paths as prefixes when resolving the absolute paths.
      */
+    @SuppressWarnings("PMD.LooseCoupling")
     static class AgentPathResolver extends MasterToSlaveFileCallable<RemoteResultWrapper<HashMap<String, String>>> {
         private static final long serialVersionUID = 3966282357309568323L;
         private static final PathUtil PATH_UTIL = new PathUtil();

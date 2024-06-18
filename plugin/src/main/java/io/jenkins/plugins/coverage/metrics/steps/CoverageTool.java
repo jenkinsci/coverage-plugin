@@ -39,6 +39,7 @@ import io.jenkins.plugins.util.ValidationUtilities;
  *
  * @author Ullrich Hafner
  */
+@SuppressWarnings("PMD.DataClass")
 public class CoverageTool extends AbstractDescribableImpl<CoverageTool> implements Serializable {
     private static final long serialVersionUID = -8612521458890553037L;
     private static final ValidationUtilities VALIDATION_UTILITIES = new ValidationUtilities();
