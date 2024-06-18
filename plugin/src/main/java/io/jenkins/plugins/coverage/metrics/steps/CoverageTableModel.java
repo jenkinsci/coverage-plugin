@@ -124,8 +124,6 @@ class CoverageTableModel extends TableModel {
                 "", columns);
         configureValueColumn("functionCallCoverage", Metric.FUNCTION_CALL, Messages.Column_FunctionCall(), 
                 "", columns);
-        configureValueColumn("methodCoverage", Metric.METHOD, Messages.Column_Method(), 
-                "", columns);
 
         configureValueColumn("mutationCoverage", Metric.MUTATION, Messages.Column_MutationCoverage(),
                 Messages.Column_DeltaMutationCoverage("Δ"), columns);
@@ -263,10 +261,6 @@ class CoverageTableModel extends TableModel {
 
         public DetailedCell<?> getMcdcPairCoverage() {
             return createColoredCoverageColumn(getCoverageOfNode(Metric.MCDC_PAIR));
-        }
-
-        public DetailedCell<?> getMethodCoverage() {
-            return createColoredCoverageColumn(getCoverageOfNode(Metric.METHOD));
         }
 
         public DetailedCell<?> getFunctionCallCoverage() {

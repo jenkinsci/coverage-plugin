@@ -458,7 +458,7 @@ class CoverageChecksPublisher {
         return delta + getTrendIcon(delta);
     }
 
-    public Stream<Metric> getMetricStream() {
+    private Stream<Metric> getMetricStream() {
         return Metric.getCoverageMetrics().stream().skip(1);
     }
 
