@@ -30,7 +30,7 @@ class CoverageRecorderITest extends IntegrationTestWithJenkinsPerSuite {
         Run<?, ?> failure = buildWithResult(job, Result.FAILURE);
 
         assertThat(getConsoleLog(failure))
-                .contains("java.lang.IllegalArgumentException: There is already the same child [METHOD] Enumerate()");
+                .contains("java.lang.IllegalArgumentException: There is already a child [METHOD] Enumerate()");
 
         job.setDefinition(new CpsFlowDefinition(
                 "node {\n"
