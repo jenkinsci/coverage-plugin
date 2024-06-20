@@ -33,11 +33,11 @@ import static org.mockito.Mockito.*;
 
 @DefaultLocale("en")
 class CoverageChecksPublisherTest extends AbstractCoverageTest {
-    private static final String JENKINS_BASE_URL = "http://127.0.0.1:8080";
-    private static final String BUILD_LINK = "job/pipeline-coding-style/job/5";
-    private static final String COVERAGE_ID = "coverage";
-    private static final String REPORT_NAME = "Name";
-    private static final int ANNOTATIONS_COUNT_FOR_MODIFIED = 3;
+    protected static final String JENKINS_BASE_URL = "http://127.0.0.1:8080";
+    protected static final String BUILD_LINK = "job/pipeline-coding-style/job/5";
+    protected static final String COVERAGE_ID = "coverage";
+    protected static final String REPORT_NAME = "Name";
+    protected static final int ANNOTATIONS_COUNT_FOR_MODIFIED = 3;
 
     @Test
     void shouldShowQualityGateDetails() {
@@ -117,7 +117,7 @@ class CoverageChecksPublisherTest extends AbstractCoverageTest {
         }
     }
 
-    private void assertThatTitleIs(final CoverageChecksPublisher publisher, final String expectedTitle) {
+    protected void assertThatTitleIs(final CoverageChecksPublisher publisher, final String expectedTitle) {
         var checkDetails = publisher.extractChecksDetails();
         assertThat(checkDetails.getOutput()).isPresent().get().satisfies(output -> {
             assertThat(output.getTitle()).isPresent().contains(expectedTitle);
@@ -151,13 +151,13 @@ class CoverageChecksPublisherTest extends AbstractCoverageTest {
         });
     }
 
-    private void assertSummary(final ChecksOutput checksOutput, final String fileName) {
+    protected void assertSummary(final ChecksOutput checksOutput, final String fileName) {
         assertThat(checksOutput.getSummary()).isPresent()
                 .get()
                 .asString().isEqualToNormalizingWhitespace(toString(fileName));
     }
 
-    private void assertChecksAnnotations(final ChecksOutput checksOutput, final int expectedAnnotations) {
+    protected void assertChecksAnnotations(final ChecksOutput checksOutput, final int expectedAnnotations) {
         if (expectedAnnotations == ANNOTATIONS_COUNT_FOR_MODIFIED) {
             assertThat(checksOutput.getChecksAnnotations()).hasSize(expectedAnnotations).satisfiesExactly(
                     annotation -> {
@@ -182,14 +182,14 @@ class CoverageChecksPublisherTest extends AbstractCoverageTest {
         }
     }
 
-    private JenkinsFacade createJenkins() {
+    protected JenkinsFacade createJenkins() {
         JenkinsFacade jenkinsFacade = mock(JenkinsFacade.class);
         when(jenkinsFacade.getAbsoluteUrl(BUILD_LINK, COVERAGE_ID)).thenReturn(
                 JENKINS_BASE_URL + "/" + BUILD_LINK + "/" + COVERAGE_ID);
         return jenkinsFacade;
     }
 
-    private CoverageBuildAction createCoverageBuildAction(final Node result) {
+    protected CoverageBuildAction createCoverageBuildAction(final Node result) {
         var testCoverage = new CoverageBuilder(Metric.LINE)
                 .withCovered(1)
                 .withMissed(1)
@@ -220,7 +220,7 @@ class CoverageChecksPublisherTest extends AbstractCoverageTest {
                 new TreeMap<>(Map.of(Metric.LINE, Fraction.ONE_HALF)), List.of(testCoverage), false);
     }
 
-    private CoverageBuildAction createActionWithoutDelta(final Node result) {
+    protected CoverageBuildAction createActionWithoutDelta(final Node result) {
         return createActionWithoutDelta(result, new QualityGateResult());
     }
 

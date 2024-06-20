@@ -1,0 +1,785 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!DOCTYPE coverage SYSTEM 'http://cobertura.sourceforge.net/xml/coverage-04.dtd'>
+<coverage line-rate="0.7993197278911565" statement-rate="0.7935943060498221" branch-rate="0.6617647058823529" mcdcpair-coverage-rate="0.4067796610169492" function-coverage-rate="0.7" functioncall-coverage-rate="0.7848101265822784" timestamp="2024-05-17 10:45:44.814039" version="VectorCAST 24 (02/13/24)">
+  <sources>
+    <source>./</source>
+  </sources>
+  <packages>
+    <package name="CurrentRelease.database.src" complexity="5" line-rate="1.0" branch-rate="0.8181818181818182" mcdcpair-coverage="50.00% (1/2)" functioncall-coverage="100.00% (4/4)" function-coverage="100.00% (3/3)">
+      <classes>
+        <class name="database" filename="CurrentRelease/database/src/database.c" line-rate="1.0" branch-rate="0.8181818181818182" functioncall-coverage="100.00% (4/4)" mcdcpair-coverage="50.00% (1/2)" function-coverage="100.00% (3/3)" complexity="5">
+          <methods>
+            <method name="Get_Record" signature="(int)data_type" line-rate="1.0" branch-rate="1.0" complexity="2" functioncall-coverage="100.00% (2/2)" mcdcpair-coverage="100.00% (1/1)" function-coverage="100% (1/1)"/>
+            <method name="Update_Record" signature="(int,data_type)" line-rate="1.0" branch-rate="0.6" complexity="2" functioncall-coverage="100.00% (1/1)" mcdcpair-coverage="0.00% (0/1)" function-coverage="100% (1/1)"/>
+            <method name="Remove_Record" signature="(int)" line-rate="1.0" branch-rate="1.0" complexity="1" functioncall-coverage="100.00% (1/1)" function-coverage="100% (1/1)"/>
+          </methods>
+          <lines>
+            <line number="45" hits="1" branch="true" condition-coverage="100.0% (1/1)">
+              <conditions>
+                <condition number="0" type="jump" coverage="100.0%"/>
+              </conditions>
+            </line>
+            <line number="48" hits="1" branch="false"/>
+            <line number="51" hits="1" branch="false"/>
+            <line number="54" hits="1" branch="false" functioncall-coverage="100.0% (1/1)"/>
+            <line number="57" hits="1" branch="true" condition-coverage="100.0% (4/4)" mcdcpair-coverage="100.0% (1/1)">
+              <conditions>
+                <condition number="0" type="jump" coverage="100.0%"/>
+              </conditions>
+            </line>
+            <line number="60" hits="1" branch="false" functioncall-coverage="100.0% (1/1)"/>
+            <line number="63" hits="1" branch="false"/>
+            <line number="67" hits="1" branch="false"/>
+            <line number="84" hits="1" branch="true" condition-coverage="100.0% (1/1)">
+              <conditions>
+                <condition number="0" type="jump" coverage="100.0%"/>
+              </conditions>
+            </line>
+            <line number="86" hits="1" branch="false"/>
+            <line number="90" hits="1" branch="false"/>
+            <line number="93" hits="1" branch="false" functioncall-coverage="100.0% (1/1)"/>
+            <line number="96" hits="1" branch="true" condition-coverage="50.0% (2/4)" mcdcpair-coverage="0.0% (0/1)">
+              <conditions>
+                <condition number="0" type="jump" coverage="50.0%"/>
+              </conditions>
+            </line>
+            <line number="99" hits="1" branch="false"/>
+            <line number="116" hits="1" branch="true" condition-coverage="100.0% (1/1)">
+              <conditions>
+                <condition number="0" type="jump" coverage="100.0%"/>
+              </conditions>
+            </line>
+            <line number="121" hits="1" branch="false"/>
+            <line number="124" hits="1" branch="false" functioncall-coverage="100.0% (1/1)"/>
+          </lines>
+        </class>
+      </classes>
+    </package>
+    <package name="CurrentRelease.encrypt.src" complexity="22" line-rate="0.9137931034482759" branch-rate="0.8023255813953488" mcdcpair-coverage="59.09% (13/22)" functioncall-coverage="77.78% (14/18)" function-coverage="100.00% (6/6)">
+      <classes>
+        <class name="encrypt" filename="CurrentRelease/encrypt/src/encrypt.c" line-rate="0.9019607843137255" branch-rate="0.7536231884057971" functioncall-coverage="77.78% (14/18)" mcdcpair-coverage="50.00% (9/18)" function-coverage="100.00% (5/5)" complexity="17">
+          <methods>
+            <method name="sendData" signature="(matrix_t)int" line-rate="0.6875" branch-rate="0.5555555555555556" complexity="4" functioncall-coverage="50.00% (4/8)" mcdcpair-coverage="25.00% (2/8)" function-coverage="100% (1/1)"/>
+            <method name="generate_private_key" signature="()struct matrix_t" line-rate="1.0" branch-rate="0.8" complexity="1" functioncall-coverage="100.00% (2/2)" mcdcpair-coverage="50.00% (2/4)" function-coverage="100% (1/1)"/>
+            <method name="encrypt_and_send" signature="(const char*,int,int,const struct matrix_t)int" line-rate="1.0" branch-rate="0.92" complexity="7" functioncall-coverage="100.00% (2/2)" mcdcpair-coverage="83.33% (5/6)" function-coverage="100% (1/1)"/>
+            <method name="Encrypt_Info" signature="(const struct matrix_t,const char*,const char[16],const char[3],float)int" line-rate="1.0" branch-rate="1.0" complexity="1" functioncall-coverage="100.00% (4/4)" function-coverage="100% (1/1)"/>
+            <method name="transmit_Info" signature="(const char*,const char[16],const char[3],float)int" line-rate="1.0" branch-rate="1.0" complexity="1" functioncall-coverage="100.00% (2/2)" function-coverage="100% (1/1)"/>
+          </methods>
+          <lines>
+            <line number="61" hits="1" branch="true" condition-coverage="100.0% (1/1)">
+              <conditions>
+                <condition number="0" type="jump" coverage="100.0%"/>
+              </conditions>
+            </line>
+            <line number="63" hits="1" branch="false"/>
+            <line number="67" hits="1" branch="false" functioncall-coverage="100.0% (1/1)"/>
+            <line number="70" hits="1" branch="true" condition-coverage="33.333333333333336% (2/6)" mcdcpair-coverage="0.0% (0/2)">
+              <conditions>
+                <condition number="0" type="jump" coverage="33.333333333333336%"/>
+              </conditions>
+            </line>
+            <line number="74" hits="0" branch="false" functioncall-coverage="0.0% (0/1)"/>
+            <line number="77" hits="0" branch="false" functioncall-coverage="0.0% (0/1)"/>
+            <line number="80" hits="0" branch="true" condition-coverage="0.0% (0/4)" mcdcpair-coverage="0.0% (0/1)" functioncall-coverage="0.0% (0/1)">
+              <conditions>
+                <condition number="0" type="jump" coverage="0.0%"/>
+              </conditions>
+            </line>
+            <line number="83" hits="0" branch="false"/>
+            <line number="87" hits="1" branch="true" condition-coverage="50.0% (2/4)" mcdcpair-coverage="0.0% (0/1)">
+              <conditions>
+                <condition number="0" type="jump" coverage="50.0%"/>
+              </conditions>
+            </line>
+            <line number="89" hits="0" branch="false" functioncall-coverage="0.0% (0/1)"/>
+            <line number="91" hits="1" branch="false"/>
+            <line number="96" hits="1" branch="false" functioncall-coverage="100.0% (1/1)"/>
+            <line number="99" hits="1" branch="true" condition-coverage="83.33333333333333% (5/6)" mcdcpair-coverage="50.0% (1/2)">
+              <conditions>
+                <condition number="0" type="jump" coverage="83.33333333333333%"/>
+              </conditions>
+            </line>
+            <line number="102" hits="1" branch="true" condition-coverage="83.33333333333333% (5/6)" mcdcpair-coverage="50.0% (1/2)">
+              <conditions>
+                <condition number="0" type="jump" coverage="83.33333333333333%"/>
+              </conditions>
+            </line>
+            <line number="105" hits="1" branch="false" functioncall-coverage="100.0% (1/1)"/>
+            <line number="110" hits="1" branch="false" functioncall-coverage="100.0% (1/1)"/>
+            <line number="112" hits="1" branch="false"/>
+            <line number="129" hits="1" branch="true" condition-coverage="100.0% (1/1)">
+              <conditions>
+                <condition number="0" type="jump" coverage="100.0%"/>
+              </conditions>
+            </line>
+            <line number="135" hits="1" branch="false" functioncall-coverage="100.0% (1/1)"/>
+            <line number="139" hits="1" branch="false"/>
+            <line number="142" hits="1" branch="true" condition-coverage="50.0% (3/6)" mcdcpair-coverage="0.0% (0/2)">
+              <conditions>
+                <condition number="0" type="jump" coverage="50.0%"/>
+              </conditions>
+            </line>
+            <line number="145" hits="1" branch="false"/>
+            <line number="146" hits="1" branch="false"/>
+            <line number="149" hits="1" branch="true" condition-coverage="100.0% (4/4)" mcdcpair-coverage="100.0% (1/1)">
+              <conditions>
+                <condition number="0" type="jump" coverage="100.0%"/>
+              </conditions>
+            </line>
+            <line number="152" hits="1" branch="true" condition-coverage="100.0% (4/4)" mcdcpair-coverage="100.0% (1/1)">
+              <conditions>
+                <condition number="0" type="jump" coverage="100.0%"/>
+              </conditions>
+            </line>
+            <line number="155" hits="1" branch="false" functioncall-coverage="100.0% (1/1)"/>
+            <line number="161" hits="1" branch="false"/>
+            <line number="179" hits="1" branch="true" condition-coverage="100.0% (1/1)">
+              <conditions>
+                <condition number="0" type="jump" coverage="100.0%"/>
+              </conditions>
+            </line>
+            <line number="181" hits="1" branch="false"/>
+            <line number="182" hits="1" branch="false"/>
+            <line number="185" hits="1" branch="true" condition-coverage="90.0% (18/20)" mcdcpair-coverage="80.0% (4/5)">
+              <conditions>
+                <condition number="0" type="jump" coverage="90.0%"/>
+              </conditions>
+            </line>
+            <line number="188" hits="1" branch="true" condition-coverage="100.0% (4/4)" mcdcpair-coverage="100.0% (1/1)" functioncall-coverage="100.0% (1/1)">
+              <conditions>
+                <condition number="0" type="jump" coverage="100.0%"/>
+              </conditions>
+            </line>
+            <line number="191" hits="1" branch="false"/>
+            <line number="195" hits="1" branch="false" functioncall-coverage="100.0% (1/1)"/>
+            <line number="214" hits="1" branch="true" condition-coverage="100.0% (1/1)">
+              <conditions>
+                <condition number="0" type="jump" coverage="100.0%"/>
+              </conditions>
+            </line>
+            <line number="216" hits="1" branch="false"/>
+            <line number="219" hits="1" branch="false" functioncall-coverage="100.0% (1/1)"/>
+            <line number="222" hits="1" branch="false" functioncall-coverage="100.0% (1/1)"/>
+            <line number="225" hits="1" branch="false" functioncall-coverage="100.0% (1/1)"/>
+            <line number="228" hits="1" branch="false" functioncall-coverage="100.0% (1/1)"/>
+            <line number="231" hits="1" branch="false"/>
+            <line number="251" hits="1" branch="true" condition-coverage="100.0% (1/1)">
+              <conditions>
+                <condition number="0" type="jump" coverage="100.0%"/>
+              </conditions>
+            </line>
+            <line number="253" hits="1" branch="false"/>
+            <line number="259" hits="1" branch="false" functioncall-coverage="100.0% (2/2)"/>
+            <line number="261" hits="1" branch="false"/>
+          </lines>
+        </class>
+        <class name="matrix_multiply" filename="CurrentRelease/encrypt/src/matrix_multiply.c" line-rate="1.0" branch-rate="1.0" mcdcpair-coverage="100.00% (4/4)" function-coverage="100.00% (1/1)" complexity="5">
+          <methods>
+            <method name="matrix_multiply" signature="(const struct matrix_t*,const struct matrix_t*,struct matrix_t*)int" line-rate="1.0" branch-rate="1.0" complexity="5" mcdcpair-coverage="100.00% (4/4)" function-coverage="100% (1/1)"/>
+          </methods>
+          <lines>
+            <line number="38" hits="1" branch="true" condition-coverage="100.0% (1/1)">
+              <conditions>
+                <condition number="0" type="jump" coverage="100.0%"/>
+              </conditions>
+            </line>
+            <line number="43" hits="1" branch="false"/>
+            <line number="46" hits="1" branch="true" condition-coverage="100.0% (4/4)" mcdcpair-coverage="100.0% (1/1)">
+              <conditions>
+                <condition number="0" type="jump" coverage="100.0%"/>
+              </conditions>
+            </line>
+            <line number="49" hits="1" branch="false"/>
+            <line number="53" hits="1" branch="true" condition-coverage="100.0% (4/4)" mcdcpair-coverage="100.0% (1/1)">
+              <conditions>
+                <condition number="0" type="jump" coverage="100.0%"/>
+              </conditions>
+            </line>
+            <line number="57" hits="1" branch="true" condition-coverage="100.0% (4/4)" mcdcpair-coverage="100.0% (1/1)">
+              <conditions>
+                <condition number="0" type="jump" coverage="100.0%"/>
+              </conditions>
+            </line>
+            <line number="59" hits="1" branch="false"/>
+            <line number="62" hits="1" branch="true" condition-coverage="100.0% (4/4)" mcdcpair-coverage="100.0% (1/1)">
+              <conditions>
+                <condition number="0" type="jump" coverage="100.0%"/>
+              </conditions>
+            </line>
+            <line number="63" hits="1" branch="false"/>
+            <line number="66" hits="1" branch="false"/>
+            <line number="71" hits="1" branch="false"/>
+            <line number="74" hits="1" branch="false"/>
+            <line number="77" hits="1" branch="false"/>
+          </lines>
+        </class>
+      </classes>
+    </package>
+    <package name="CurrentRelease.main" complexity="28" line-rate="0.8493150684931506" branch-rate="0.5535714285714286" mcdcpair-coverage="11.11% (1/9)" functioncall-coverage="75.68% (28/37)" function-coverage="100.00% (2/2)">
+      <classes>
+        <class name="pos_driver" filename="CurrentRelease/main/pos_driver.c" line-rate="0.7625" branch-rate="0.5535714285714286" functioncall-coverage="75.68% (28/37)" mcdcpair-coverage="11.11% (1/9)" function-coverage="100.00% (2/2)" complexity="28">
+          <methods>
+            <method name="run_order_test" signature="(enum entrees,int,const char*)int" line-rate="0.8571428571428571" branch-rate="0.6" complexity="2" functioncall-coverage="75.00% (3/4)" mcdcpair-coverage="0.00% (0/1)" function-coverage="100% (1/1)"/>
+            <method name="main" signature="(int,const char*[])int" line-rate="0.7534246575342466" branch-rate="0.5490196078431373" complexity="26" functioncall-coverage="75.76% (25/33)" mcdcpair-coverage="12.50% (1/8)" function-coverage="100% (1/1)"/>
+          </methods>
+          <lines>
+            <line number="44" hits="1" branch="true" condition-coverage="100.0% (1/1)">
+              <conditions>
+                <condition number="0" type="jump" coverage="100.0%"/>
+              </conditions>
+            </line>
+            <line number="48" hits="1" branch="false"/>
+            <line number="51" hits="1" branch="false"/>
+            <line number="54" hits="1" branch="false" functioncall-coverage="100.0% (1/1)"/>
+            <line number="57" hits="1" branch="true" condition-coverage="50.0% (2/4)" mcdcpair-coverage="0.0% (0/1)" functioncall-coverage="100.0% (1/1)">
+              <conditions>
+                <condition number="0" type="jump" coverage="50.0%"/>
+              </conditions>
+            </line>
+            <line number="59" hits="0" branch="false" functioncall-coverage="0.0% (0/1)"/>
+            <line number="63" hits="1" branch="false" functioncall-coverage="100.0% (1/1)"/>
+            <line number="67" hits="1" branch="false"/>
+            <line number="99" hits="1" branch="true" condition-coverage="100.0% (1/1)">
+              <conditions>
+                <condition number="0" type="jump" coverage="100.0%"/>
+              </conditions>
+            </line>
+            <line number="104" hits="1" branch="false"/>
+            <line number="107" hits="1" branch="false"/>
+            <line number="110" hits="1" branch="true" condition-coverage="100.0% (4/4)" mcdcpair-coverage="100.0% (1/1)">
+              <conditions>
+                <condition number="0" type="jump" coverage="100.0%"/>
+              </conditions>
+            </line>
+            <line number="113" hits="1" branch="false"/>
+            <line number="116" hits="1" branch="true" condition-coverage="50.0% (1/2)">
+              <conditions>
+                <condition number="0" type="jump" coverage="50.0%"/>
+              </conditions>
+            </line>
+            <line number="117" hits="1" branch="false" functioncall-coverage="100.0% (1/1)"/>
+            <line number="118" hits="1" branch="false"/>
+            <line number="121" hits="0" branch="true" condition-coverage="0.0% (0/2)">
+              <conditions>
+                <condition number="0" type="jump" coverage="0.0%"/>
+              </conditions>
+            </line>
+            <line number="122" hits="0" branch="false" functioncall-coverage="0.0% (0/1)"/>
+            <line number="123" hits="0" branch="false"/>
+            <line number="126" hits="1" branch="true" condition-coverage="50.0% (1/2)">
+              <conditions>
+                <condition number="0" type="jump" coverage="50.0%"/>
+              </conditions>
+            </line>
+            <line number="127" hits="1" branch="false" functioncall-coverage="100.0% (1/1)"/>
+            <line number="128" hits="1" branch="false"/>
+            <line number="131" hits="1" branch="true" condition-coverage="50.0% (1/2)">
+              <conditions>
+                <condition number="0" type="jump" coverage="50.0%"/>
+              </conditions>
+            </line>
+            <line number="132" hits="1" branch="true" condition-coverage="50.0% (2/4)" mcdcpair-coverage="0.0% (0/1)" functioncall-coverage="100.0% (1/1)">
+              <conditions>
+                <condition number="0" type="jump" coverage="50.0%"/>
+              </conditions>
+            </line>
+            <line number="134" hits="0" branch="false" functioncall-coverage="0.0% (0/1)"/>
+            <line number="138" hits="1" branch="false" functioncall-coverage="100.0% (1/1)"/>
+            <line number="140" hits="1" branch="false"/>
+            <line number="143" hits="1" branch="true" condition-coverage="50.0% (1/2)">
+              <conditions>
+                <condition number="0" type="jump" coverage="50.0%"/>
+              </conditions>
+            </line>
+            <line number="144" hits="1" branch="false" functioncall-coverage="100.0% (2/2)"/>
+            <line number="145" hits="1" branch="false"/>
+            <line number="148" hits="1" branch="true" condition-coverage="50.0% (1/2)">
+              <conditions>
+                <condition number="0" type="jump" coverage="50.0%"/>
+              </conditions>
+            </line>
+            <line number="149" hits="1" branch="false" functioncall-coverage="100.0% (1/1)"/>
+            <line number="150" hits="1" branch="true" condition-coverage="50.0% (2/4)" mcdcpair-coverage="0.0% (0/1)" functioncall-coverage="100.0% (1/1)">
+              <conditions>
+                <condition number="0" type="jump" coverage="50.0%"/>
+              </conditions>
+            </line>
+            <line number="152" hits="0" branch="false" functioncall-coverage="0.0% (0/1)"/>
+            <line number="156" hits="1" branch="false" functioncall-coverage="100.0% (1/1)"/>
+            <line number="158" hits="1" branch="false"/>
+            <line number="161" hits="1" branch="true" condition-coverage="50.0% (1/2)">
+              <conditions>
+                <condition number="0" type="jump" coverage="50.0%"/>
+              </conditions>
+            </line>
+            <line number="162" hits="1" branch="false"/>
+            <line number="163" hits="1" branch="false"/>
+            <line number="164" hits="1" branch="false"/>
+            <line number="165" hits="1" branch="false" functioncall-coverage="100.0% (1/1)"/>
+            <line number="166" hits="1" branch="true" condition-coverage="50.0% (2/4)" mcdcpair-coverage="0.0% (0/1)">
+              <conditions>
+                <condition number="0" type="jump" coverage="50.0%"/>
+              </conditions>
+            </line>
+            <line number="168" hits="1" branch="false" functioncall-coverage="100.0% (1/1)"/>
+            <line number="172" hits="0" branch="false" functioncall-coverage="0.0% (0/1)"/>
+            <line number="174" hits="1" branch="false"/>
+            <line number="177" hits="1" branch="true" condition-coverage="50.0% (1/2)">
+              <conditions>
+                <condition number="0" type="jump" coverage="50.0%"/>
+              </conditions>
+            </line>
+            <line number="179" hits="1" branch="false"/>
+            <line number="180" hits="1" branch="false" functioncall-coverage="100.0% (1/1)"/>
+            <line number="183" hits="1" branch="true" condition-coverage="50.0% (2/4)" mcdcpair-coverage="0.0% (0/1)" functioncall-coverage="100.0% (1/1)">
+              <conditions>
+                <condition number="0" type="jump" coverage="50.0%"/>
+              </conditions>
+            </line>
+            <line number="185" hits="1" branch="false" functioncall-coverage="100.0% (1/1)"/>
+            <line number="189" hits="0" branch="false" functioncall-coverage="0.0% (0/1)"/>
+            <line number="191" hits="1" branch="false"/>
+            <line number="194" hits="1" branch="true" condition-coverage="100.0% (1/1)">
+              <conditions>
+                <condition number="0" type="jump" coverage="100.0%"/>
+              </conditions>
+            </line>
+            <line number="196" hits="1" branch="false" functioncall-coverage="100.0% (1/1)"/>
+            <line number="199" hits="1" branch="false" functioncall-coverage="100.0% (1/1)"/>
+            <line number="202" hits="1" branch="false" functioncall-coverage="100.0% (1/1)"/>
+            <line number="205" hits="1" branch="true" condition-coverage="50.0% (2/4)" mcdcpair-coverage="0.0% (0/1)" functioncall-coverage="100.0% (1/1)">
+              <conditions>
+                <condition number="0" type="jump" coverage="50.0%"/>
+              </conditions>
+            </line>
+            <line number="207" hits="0" branch="false" functioncall-coverage="0.0% (0/1)"/>
+            <line number="211" hits="1" branch="false" functioncall-coverage="100.0% (1/1)"/>
+            <line number="215" hits="1" branch="false" functioncall-coverage="100.0% (2/2)"/>
+            <line number="218" hits="1" branch="true" condition-coverage="50.0% (2/4)" mcdcpair-coverage="0.0% (0/1)" functioncall-coverage="100.0% (1/1)">
+              <conditions>
+                <condition number="0" type="jump" coverage="50.0%"/>
+              </conditions>
+            </line>
+            <line number="220" hits="0" branch="false" functioncall-coverage="0.0% (0/1)"/>
+            <line number="224" hits="1" branch="false" functioncall-coverage="100.0% (1/1)"/>
+            <line number="228" hits="1" branch="false"/>
+            <line number="229" hits="1" branch="false"/>
+            <line number="230" hits="1" branch="false"/>
+            <line number="233" hits="1" branch="false" functioncall-coverage="100.0% (1/1)"/>
+            <line number="236" hits="1" branch="true" condition-coverage="50.0% (2/4)" mcdcpair-coverage="0.0% (0/1)">
+              <conditions>
+                <condition number="0" type="jump" coverage="50.0%"/>
+              </conditions>
+            </line>
+            <line number="238" hits="1" branch="false" functioncall-coverage="100.0% (1/1)"/>
+            <line number="242" hits="0" branch="false" functioncall-coverage="0.0% (0/1)"/>
+            <line number="244" hits="1" branch="false"/>
+            <line number="245" hits="1" branch="true" condition-coverage="100.0% (1/1)">
+              <conditions>
+                <condition number="0" type="jump" coverage="100.0%"/>
+              </conditions>
+            </line>
+            <line number="250" hits="1" branch="false"/>
+          </lines>
+        </class>
+      </classes>
+    </package>
+    <package name="CurrentRelease.order_entry.src" complexity="22" line-rate="0.7976190476190477" branch-rate="0.6031746031746031" mcdcpair-coverage="40.00% (6/15)" functioncall-coverage="100.00% (10/10)" function-coverage="62.50% (5/7)">
+      <classes>
+        <class name="manager" filename="CurrentRelease/order_entry/src/manager.c" line-rate="0.921875" branch-rate="0.8085106382978723" functioncall-coverage="100.00% (10/10)" mcdcpair-coverage="54.55% (6/11)" function-coverage="100.00% (5/5)" complexity="17">
+          <methods>
+            <method name="Add_Included_Dessert" signature="(struct order_type*)" line-rate="1.0" branch-rate="0.9047619047619048" complexity="4" mcdcpair-coverage="71.43% (5/7)" function-coverage="100% (1/1)"/>
+            <method name="Place_Order" signature="(table_index_type,seat_index_type,order_type)int" line-rate="0.923076923076923" branch-rate="0.8571428571428571" complexity="6" functioncall-coverage="100.00% (3/3)" function-coverage="100% (1/1)"/>
+            <method name="Clear_Table" signature="(table_index_type)int" line-rate="0.9444444444444444" branch-rate="0.7777777777777778" complexity="3" functioncall-coverage="100.00% (3/3)" mcdcpair-coverage="50.00% (1/2)" function-coverage="100% (1/1)"/>
+            <method name="Get_Check_Total" signature="(table_index_type)float" line-rate="0.8571428571428571" branch-rate="0.6" complexity="2" functioncall-coverage="100.00% (1/1)" mcdcpair-coverage="0.00% (0/1)" function-coverage="100% (1/1)"/>
+            <method name="Pay_The_Bill" signature="(const char*,const char[16],const char[3],int)int" line-rate="0.8571428571428571" branch-rate="0.6" complexity="2" functioncall-coverage="100.00% (3/3)" mcdcpair-coverage="0.00% (0/1)" function-coverage="100% (1/1)"/>
+          </methods>
+          <lines>
+            <line number="71" hits="1" branch="true" condition-coverage="100.0% (1/1)">
+              <conditions>
+                <condition number="0" type="jump" coverage="100.0%"/>
+              </conditions>
+            </line>
+            <line number="73" hits="1" branch="true" condition-coverage="100.0% (4/4)" mcdcpair-coverage="100.0% (1/1)">
+              <conditions>
+                <condition number="0" type="jump" coverage="100.0%"/>
+              </conditions>
+            </line>
+            <line number="76" hits="1" branch="true" condition-coverage="100.0% (4/4)" mcdcpair-coverage="100.0% (1/1)">
+              <conditions>
+                <condition number="0" type="jump" coverage="100.0%"/>
+              </conditions>
+            </line>
+            <line number="77" hits="1" branch="true" condition-coverage="100.0% (2/2)" mcdcpair-coverage="100.0% (1/1)">
+              <conditions>
+                <condition number="0" type="jump" coverage="100.0%"/>
+              </conditions>
+            </line>
+            <line number="78" hits="1" branch="true" condition-coverage="50.0% (1/2)" mcdcpair-coverage="0.0% (0/1)">
+              <conditions>
+                <condition number="0" type="jump" coverage="50.0%"/>
+              </conditions>
+            </line>
+            <line number="80" hits="1" branch="false"/>
+            <line number="84" hits="1" branch="true" condition-coverage="100.0% (4/4)" mcdcpair-coverage="100.0% (1/1)">
+              <conditions>
+                <condition number="0" type="jump" coverage="100.0%"/>
+              </conditions>
+            </line>
+            <line number="85" hits="1" branch="true" condition-coverage="100.0% (2/2)" mcdcpair-coverage="100.0% (1/1)">
+              <conditions>
+                <condition number="0" type="jump" coverage="100.0%"/>
+              </conditions>
+            </line>
+            <line number="86" hits="1" branch="true" condition-coverage="50.0% (1/2)" mcdcpair-coverage="0.0% (0/1)">
+              <conditions>
+                <condition number="0" type="jump" coverage="50.0%"/>
+              </conditions>
+            </line>
+            <line number="88" hits="1" branch="false"/>
+            <line number="110" hits="1" branch="true" condition-coverage="100.0% (1/1)">
+              <conditions>
+                <condition number="0" type="jump" coverage="100.0%"/>
+              </conditions>
+            </line>
+            <line number="112" hits="1" branch="false" functioncall-coverage="100.0% (1/1)"/>
+            <line number="115" hits="1" branch="false"/>
+            <line number="116" hits="1" branch="false"/>
+            <line number="117" hits="1" branch="false"/>
+            <line number="120" hits="1" branch="false"/>
+            <line number="123" hits="1" branch="false" functioncall-coverage="100.0% (1/1)"/>
+            <line number="126" hits="1" branch="false"/>
+            <line number="128" hits="1" branch="true" condition-coverage="100.0% (1/1)">
+              <conditions>
+                <condition number="0" type="jump" coverage="100.0%"/>
+              </conditions>
+            </line>
+            <line number="129" hits="1" branch="false"/>
+            <line number="130" hits="1" branch="true" condition-coverage="100.0% (1/1)">
+              <conditions>
+                <condition number="0" type="jump" coverage="100.0%"/>
+              </conditions>
+            </line>
+            <line number="131" hits="1" branch="false"/>
+            <line number="132" hits="1" branch="false"/>
+            <line number="133" hits="1" branch="true" condition-coverage="100.0% (1/1)">
+              <conditions>
+                <condition number="0" type="jump" coverage="100.0%"/>
+              </conditions>
+            </line>
+            <line number="134" hits="1" branch="false"/>
+            <line number="135" hits="1" branch="false"/>
+            <line number="136" hits="1" branch="true" condition-coverage="100.0% (1/1)">
+              <conditions>
+                <condition number="0" type="jump" coverage="100.0%"/>
+              </conditions>
+            </line>
+            <line number="137" hits="1" branch="false"/>
+            <line number="138" hits="1" branch="false"/>
+            <line number="139" hits="1" branch="true" condition-coverage="100.0% (1/1)">
+              <conditions>
+                <condition number="0" type="jump" coverage="100.0%"/>
+              </conditions>
+            </line>
+            <line number="140" hits="1" branch="false"/>
+            <line number="141" hits="1" branch="false"/>
+            <line number="142" hits="0" branch="true" condition-coverage="0.0% (0/1)">
+              <conditions>
+                <condition number="0" type="jump" coverage="0.0%"/>
+              </conditions>
+            </line>
+            <line number="143" hits="0" branch="false"/>
+            <line number="147" hits="1" branch="false"/>
+            <line number="150" hits="1" branch="false" functioncall-coverage="100.0% (1/1)"/>
+            <line number="151" hits="1" branch="false"/>
+            <line number="167" hits="1" branch="true" condition-coverage="100.0% (1/1)">
+              <conditions>
+                <condition number="0" type="jump" coverage="100.0%"/>
+              </conditions>
+            </line>
+            <line number="169" hits="1" branch="false"/>
+            <line number="170" hits="1" branch="false"/>
+            <line number="173" hits="1" branch="false" functioncall-coverage="100.0% (1/1)"/>
+            <line number="176" hits="1" branch="true" condition-coverage="50.0% (2/4)" mcdcpair-coverage="0.0% (0/1)">
+              <conditions>
+                <condition number="0" type="jump" coverage="50.0%"/>
+              </conditions>
+            </line>
+            <line number="178" hits="0" branch="false"/>
+            <line number="182" hits="1" branch="false"/>
+            <line number="183" hits="1" branch="false"/>
+            <line number="184" hits="1" branch="false"/>
+            <line number="186" hits="1" branch="true" condition-coverage="100.0% (4/4)" mcdcpair-coverage="100.0% (1/1)">
+              <conditions>
+                <condition number="0" type="jump" coverage="100.0%"/>
+              </conditions>
+            </line>
+            <line number="187" hits="1" branch="false"/>
+            <line number="188" hits="1" branch="false"/>
+            <line number="189" hits="1" branch="false"/>
+            <line number="190" hits="1" branch="false"/>
+            <line number="191" hits="1" branch="false"/>
+            <line number="194" hits="1" branch="false"/>
+            <line number="196" hits="1" branch="false" functioncall-coverage="100.0% (1/1)"/>
+            <line number="199" hits="1" branch="false" functioncall-coverage="100.0% (1/1)"/>
+            <line number="203" hits="1" branch="false"/>
+            <line number="219" hits="1" branch="true" condition-coverage="100.0% (1/1)">
+              <conditions>
+                <condition number="0" type="jump" coverage="100.0%"/>
+              </conditions>
+            </line>
+            <line number="220" hits="1" branch="false"/>
+            <line number="223" hits="1" branch="false" functioncall-coverage="100.0% (1/1)"/>
+            <line number="226" hits="1" branch="true" condition-coverage="50.0% (2/4)" mcdcpair-coverage="0.0% (0/1)">
+              <conditions>
+                <condition number="0" type="jump" coverage="50.0%"/>
+              </conditions>
+            </line>
+            <line number="228" hits="0" branch="false"/>
+            <line number="231" hits="1" branch="false"/>
+            <line number="232" hits="1" branch="false"/>
+            <line number="235" hits="1" branch="false"/>
+            <line number="255" hits="1" branch="true" condition-coverage="100.0% (1/1)">
+              <conditions>
+                <condition number="0" type="jump" coverage="100.0%"/>
+              </conditions>
+            </line>
+            <line number="257" hits="1" branch="false" functioncall-coverage="100.0% (1/1)"/>
+            <line number="260" hits="1" branch="true" condition-coverage="50.0% (2/4)" mcdcpair-coverage="0.0% (0/1)" functioncall-coverage="100.0% (1/1)">
+              <conditions>
+                <condition number="0" type="jump" coverage="50.0%"/>
+              </conditions>
+            </line>
+            <line number="263" hits="1" branch="false"/>
+            <line number="266" hits="1" branch="false"/>
+            <line number="269" hits="1" branch="false" functioncall-coverage="100.0% (1/1)"/>
+            <line number="272" hits="1" branch="false"/>
+            <line number="276" hits="0" branch="false"/>
+          </lines>
+        </class>
+        <class name="waiting_list" filename="CurrentRelease/order_entry/src/waiting_list.c" line-rate="0.0" branch-rate="0.0" mcdcpair-coverage="0.00% (0/4)" function-coverage="0.00% (0/2)" complexity="5">
+          <methods>
+            <method name="Add_Party_To_Waiting_List" signature="(char*)" line-rate="0.0" branch-rate="0.0" complexity="3" mcdcpair-coverage="0.00% (0/3)" function-coverage="0% (0/1)"/>
+            <method name="Get_Next_Party_To_Be_Seated" signature="()char*" line-rate="0.0" branch-rate="0.0" complexity="2" mcdcpair-coverage="0.00% (0/1)" function-coverage="0% (0/1)"/>
+          </methods>
+          <lines>
+            <line number="56" hits="0" branch="true" condition-coverage="0.0% (0/1)">
+              <conditions>
+                <condition number="0" type="jump" coverage="0.0%"/>
+              </conditions>
+            </line>
+            <line number="57" hits="0" branch="false"/>
+            <line number="60" hits="0" branch="true" condition-coverage="0.0% (0/4)" mcdcpair-coverage="0.0% (0/1)">
+              <conditions>
+                <condition number="0" type="jump" coverage="0.0%"/>
+              </conditions>
+            </line>
+            <line number="63" hits="0" branch="false"/>
+            <line number="67" hits="0" branch="true" condition-coverage="0.0% (0/6)" mcdcpair-coverage="0.0% (0/2)">
+              <conditions>
+                <condition number="0" type="jump" coverage="0.0%"/>
+              </conditions>
+            </line>
+            <line number="70" hits="0" branch="false"/>
+            <line number="71" hits="0" branch="false"/>
+            <line number="74" hits="0" branch="false"/>
+            <line number="91" hits="0" branch="true" condition-coverage="0.0% (0/1)">
+              <conditions>
+                <condition number="0" type="jump" coverage="0.0%"/>
+              </conditions>
+            </line>
+            <line number="93" hits="0" branch="true" condition-coverage="0.0% (0/4)" mcdcpair-coverage="0.0% (0/1)">
+              <conditions>
+                <condition number="0" type="jump" coverage="0.0%"/>
+              </conditions>
+            </line>
+            <line number="96" hits="0" branch="false"/>
+            <line number="100" hits="0" branch="false"/>
+          </lines>
+        </class>
+      </classes>
+    </package>
+    <package name="CurrentRelease.utils.src" line-rate="0.5806451612903226" statement-rate="0.62" branch-rate="0.5892857142857143" mcdcpair-coverage="27.27% (3/11)" functioncall-coverage="60.00% (6/10)" function-coverage="41.67% (5/12)" complexity="23">
+      <classes>
+        <class name="linked_list" filename="CurrentRelease/utils/src/linked_list.c" line-rate="0.7209302325581395" branch-rate="0.6346153846153846" functioncall-coverage="75.00% (6/8)" mcdcpair-coverage="27.27% (3/11)" function-coverage="62.50% (5/8)" complexity="19">
+          <methods>
+            <method name="RemoveAllDataItems" signature="()" line-rate="1.0" branch-rate="1.0" complexity="2" functioncall-coverage="100.00% (1/1)" mcdcpair-coverage="100.00% (1/1)" function-coverage="100% (1/1)"/>
+            <method name="initLinkList" signature="()" line-rate="0.0" branch-rate="0.0" complexity="1" function-coverage="0% (0/1)"/>
+            <method name="destroyLinkedList" signature="()" line-rate="0.0" branch-rate="0.0" complexity="1" functioncall-coverage="0.00% (0/1)" function-coverage="0% (0/1)"/>
+            <method name="findDataNode" signature="(struct DataItem*)struct Node*" line-rate="0.8333333333333335" branch-rate="0.7777777777777778" complexity="3" mcdcpair-coverage="50.00% (1/2)" function-coverage="100% (1/1)"/>
+            <method name="getData" signature="(int)struct DataItem*" line-rate="0.0" branch-rate="0.0" complexity="1" functioncall-coverage="0.00% (0/1)" function-coverage="0% (0/1)"/>
+            <method name="InsertDataItem" signature="(struct DataItem*)int" line-rate="0.6666666666666665" branch-rate="0.5555555555555556" complexity="3" functioncall-coverage="100.00% (2/2)" mcdcpair-coverage="0.00% (0/2)" function-coverage="100% (1/1)"/>
+            <method name="RemoveDataItem" signature="(struct DataItem*)int" line-rate="0.8" branch-rate="0.5238095238095238" complexity="6" functioncall-coverage="100.00% (2/2)" mcdcpair-coverage="0.00% (0/5)" function-coverage="100% (1/1)"/>
+            <method name="findData" signature="(DataItem)struct DataItem*" line-rate="1.0" branch-rate="1.0" complexity="2" functioncall-coverage="100.00% (1/1)" mcdcpair-coverage="100.00% (1/1)" function-coverage="100% (1/1)"/>
+          </methods>
+          <lines>
+            <line number="68" hits="1" branch="true" condition-coverage="100.0% (1/1)">
+              <conditions>
+                <condition number="0" type="jump" coverage="100.0%"/>
+              </conditions>
+            </line>
+            <line number="70" hits="1" branch="true" condition-coverage="100.0% (4/4)" mcdcpair-coverage="100.0% (1/1)">
+              <conditions>
+                <condition number="0" type="jump" coverage="100.0%"/>
+              </conditions>
+            </line>
+            <line number="73" hits="1" branch="false" functioncall-coverage="100.0% (1/1)"/>
+            <line number="90" hits="0" branch="true" condition-coverage="0.0% (0/1)">
+              <conditions>
+                <condition number="0" type="jump" coverage="0.0%"/>
+              </conditions>
+            </line>
+            <line number="92" hits="0" branch="false"/>
+            <line number="108" hits="0" branch="true" condition-coverage="0.0% (0/1)">
+              <conditions>
+                <condition number="0" type="jump" coverage="0.0%"/>
+              </conditions>
+            </line>
+            <line number="110" hits="0" branch="false" functioncall-coverage="0.0% (0/1)"/>
+            <line number="126" hits="1" branch="true" condition-coverage="100.0% (1/1)">
+              <conditions>
+                <condition number="0" type="jump" coverage="100.0%"/>
+              </conditions>
+            </line>
+            <line number="128" hits="1" branch="false"/>
+            <line number="131" hits="1" branch="true" condition-coverage="100.0% (4/4)" mcdcpair-coverage="100.0% (1/1)">
+              <conditions>
+                <condition number="0" type="jump" coverage="100.0%"/>
+              </conditions>
+            </line>
+            <line number="134" hits="1" branch="true" condition-coverage="50.0% (2/4)" mcdcpair-coverage="0.0% (0/1)">
+              <conditions>
+                <condition number="0" type="jump" coverage="50.0%"/>
+              </conditions>
+            </line>
+            <line number="137" hits="1" branch="false"/>
+            <line number="142" hits="0" branch="false"/>
+            <line number="147" hits="1" branch="false"/>
+            <line number="163" hits="0" branch="true" condition-coverage="0.0% (0/1)">
+              <conditions>
+                <condition number="0" type="jump" coverage="0.0%"/>
+              </conditions>
+            </line>
+            <line number="167" hits="0" branch="false"/>
+            <line number="170" hits="0" branch="false" functioncall-coverage="0.0% (0/1)"/>
+            <line number="187" hits="1" branch="true" condition-coverage="100.0% (1/1)">
+              <conditions>
+                <condition number="0" type="jump" coverage="100.0%"/>
+              </conditions>
+            </line>
+            <line number="189" hits="1" branch="false" functioncall-coverage="100.0% (1/1)"/>
+            <line number="192" hits="1" branch="true" condition-coverage="50.0% (2/4)" mcdcpair-coverage="0.0% (0/1)">
+              <conditions>
+                <condition number="0" type="jump" coverage="50.0%"/>
+              </conditions>
+            </line>
+            <line number="198" hits="1" branch="false" functioncall-coverage="100.0% (1/1)"/>
+            <line number="201" hits="1" branch="false"/>
+            <line number="202" hits="1" branch="false"/>
+            <line number="205" hits="1" branch="true" condition-coverage="50.0% (2/4)" mcdcpair-coverage="0.0% (0/1)">
+              <conditions>
+                <condition number="0" type="jump" coverage="50.0%"/>
+              </conditions>
+            </line>
+            <line number="208" hits="1" branch="false"/>
+            <line number="209" hits="1" branch="false"/>
+            <line number="216" hits="0" branch="false"/>
+            <line number="219" hits="0" branch="false"/>
+            <line number="222" hits="0" branch="false"/>
+            <line number="226" hits="0" branch="false"/>
+            <line number="242" hits="1" branch="true" condition-coverage="100.0% (1/1)">
+              <conditions>
+                <condition number="0" type="jump" coverage="100.0%"/>
+              </conditions>
+            </line>
+            <line number="244" hits="1" branch="false" functioncall-coverage="100.0% (1/1)"/>
+            <line number="247" hits="1" branch="true" condition-coverage="50.0% (2/4)" mcdcpair-coverage="0.0% (0/1)">
+              <conditions>
+                <condition number="0" type="jump" coverage="50.0%"/>
+              </conditions>
+            </line>
+            <line number="250" hits="0" branch="false"/>
+            <line number="255" hits="1" branch="false"/>
+            <line number="256" hits="1" branch="false"/>
+            <line number="259" hits="1" branch="true" condition-coverage="50.0% (2/4)" mcdcpair-coverage="0.0% (0/1)">
+              <conditions>
+                <condition number="0" type="jump" coverage="50.0%"/>
+              </conditions>
+            </line>
+            <line number="262" hits="1" branch="false"/>
+            <line number="266" hits="1" branch="true" condition-coverage="50.0% (2/4)" mcdcpair-coverage="0.0% (0/1)">
+              <conditions>
+                <condition number="0" type="jump" coverage="50.0%"/>
+              </conditions>
+            </line>
+            <line number="269" hits="1" branch="false"/>
+            <line number="275" hits="1" branch="true" condition-coverage="50.0% (2/4)" mcdcpair-coverage="0.0% (0/1)">
+              <conditions>
+                <condition number="0" type="jump" coverage="50.0%"/>
+              </conditions>
+            </line>
+            <line number="278" hits="0" branch="false"/>
+            <line number="282" hits="1" branch="true" condition-coverage="50.0% (2/4)" mcdcpair-coverage="0.0% (0/1)">
+              <conditions>
+                <condition number="0" type="jump" coverage="50.0%"/>
+              </conditions>
+            </line>
+            <line number="285" hits="0" branch="false"/>
+            <line number="289" hits="1" branch="false" functioncall-coverage="100.0% (1/1)"/>
+            <line number="292" hits="1" branch="false"/>
+            <line number="311" hits="1" branch="true" condition-coverage="100.0% (1/1)">
+              <conditions>
+                <condition number="0" type="jump" coverage="100.0%"/>
+              </conditions>
+            </line>
+            <line number="313" hits="1" branch="false" functioncall-coverage="100.0% (1/1)"/>
+            <line number="316" hits="1" branch="true" condition-coverage="100.0% (4/4)" mcdcpair-coverage="100.0% (1/1)">
+              <conditions>
+                <condition number="0" type="jump" coverage="100.0%"/>
+              </conditions>
+            </line>
+            <line number="319" hits="1" branch="false"/>
+            <line number="324" hits="1" branch="false"/>
+          </lines>
+        </class>
+        <class name="whitebox" filename="CurrentRelease/utils/src/whitebox.c" line-rate="0.0" branch-rate="0.0" functioncall-coverage="0.00% (0/2)" function-coverage="0.00% (0/4)" complexity="4">
+          <methods>
+            <method name="InitDay" signature="(enum DAY)" line-rate="0.0" branch-rate="0.0" complexity="1" function-coverage="0% (0/1)"/>
+            <method name="InitColor" signature="(enum COLOR)" line-rate="0.0" branch-rate="0.0" complexity="1" function-coverage="0% (0/1)"/>
+            <method name="doMath" signature="(int,int)int" line-rate="0.0" branch-rate="0.0" complexity="1" function-coverage="0% (0/1)"/>
+            <method name="Initialize" signature="()" line-rate="0.0" branch-rate="0.0" complexity="1" functioncall-coverage="0.00% (0/2)" function-coverage="0% (0/1)"/>
+          </methods>
+          <lines>
+            <line number="67" hits="0" branch="true" condition-coverage="0.0% (0/1)">
+              <conditions>
+                <condition number="0" type="jump" coverage="0.0%"/>
+              </conditions>
+            </line>
+            <line number="69" hits="0" branch="false"/>
+            <line number="85" hits="0" branch="true" condition-coverage="0.0% (0/1)">
+              <conditions>
+                <condition number="0" type="jump" coverage="0.0%"/>
+              </conditions>
+            </line>
+            <line number="87" hits="0" branch="false"/>
+            <line number="104" hits="0" branch="true" condition-coverage="0.0% (0/1)">
+              <conditions>
+                <condition number="0" type="jump" coverage="0.0%"/>
+              </conditions>
+            </line>
+            <line number="105" hits="0" branch="false"/>
+            <line number="121" hits="0" branch="true" condition-coverage="0.0% (0/1)">
+              <conditions>
+                <condition number="0" type="jump" coverage="0.0%"/>
+              </conditions>
+            </line>
+            <line number="123" hits="0" branch="false" functioncall-coverage="0.0% (0/1)"/>
+            <line number="126" hits="0" branch="false" functioncall-coverage="0.0% (0/1)"/>
+            <line number="129" hits="0" branch="false"/>
+            <line number="130" hits="0" branch="false"/>
+          </lines>
+        </class>
+      </classes>
+    </package>
+  </packages>
+</coverage>

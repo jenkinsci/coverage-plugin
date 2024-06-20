@@ -1,0 +1,13 @@
+#### Project Overview
+
+No changes detected, that affect the code coverage.
+* Line Coverage: 79.93% (235/294)
+* Branch Coverage: 66.18% (180/272)
+* MC/DC Pair Coverage: 40.68% (24/59)
+* Function Call Coverage: 78.48% (62/79)
+* Complexity Density: 0.34%
+* Lines of Code: 294
+
+#### Quality Gates Summary
+
+No active quality gates.

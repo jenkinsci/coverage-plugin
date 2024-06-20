@@ -17,6 +17,7 @@ import edu.hm.hafner.coverage.Metric;
 import edu.hm.hafner.coverage.Node;
 import edu.hm.hafner.coverage.Value;
 import edu.hm.hafner.coverage.parser.JacocoParser;
+import edu.hm.hafner.coverage.parser.VectorCastParser;
 import edu.hm.hafner.util.FilteredLog;
 import edu.hm.hafner.util.ResourceTest;
 import edu.hm.hafner.util.SecureXmlParserFactory.ParsingException;
@@ -56,6 +57,10 @@ public abstract class AbstractCoverageTest extends ResourceTest {
         return readResult(fileName, new JacocoParser());
     }
 
+    protected Node readVectorCastResult(final String fileName) {
+        return readResult(fileName, new VectorCastParser(CoverageParser.ProcessingMode.FAIL_FAST));
+    }
+    
     /**
      * Reads and parses a JaCoCo coverage report.
      *
