@@ -1,35 +1,17 @@
 package io.jenkins.plugins.coverage.metrics.steps;
 
-import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
-
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.math.Fraction;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.junitpioneer.jupiter.DefaultLocale;
 
-import edu.hm.hafner.coverage.Coverage.CoverageBuilder;
-import edu.hm.hafner.coverage.Metric;
-import edu.hm.hafner.coverage.Node;
-import edu.hm.hafner.coverage.parser.PitestParser;
-
-import hudson.model.Run;
-
-import io.jenkins.plugins.checks.api.ChecksAnnotation.ChecksAnnotationLevel;
 import io.jenkins.plugins.checks.api.ChecksConclusion;
 import io.jenkins.plugins.checks.api.ChecksDetails;
-import io.jenkins.plugins.checks.api.ChecksOutput;
 import io.jenkins.plugins.checks.api.ChecksStatus;
 import io.jenkins.plugins.coverage.metrics.AbstractCoverageTest;
 import io.jenkins.plugins.coverage.metrics.steps.CoverageRecorder.ChecksAnnotationScope;
-import io.jenkins.plugins.util.JenkinsFacade;
-import io.jenkins.plugins.util.QualityGateResult;
 
 import static org.assertj.core.api.Assertions.*;
-import static org.mockito.Mockito.*;
 
 @DefaultLocale("en")
 class VectorCastCoverageChecksPublisherTest extends CoverageChecksPublisherTest {
@@ -72,7 +54,7 @@ class VectorCastCoverageChecksPublisherTest extends CoverageChecksPublisherTest 
 
     @ParameterizedTest(name = "should create checks (scope = {0}, expected annotations = {1})")
     @CsvSource({"SKIP, 0", "ALL_LINES, 6", "MODIFIED_LINES, 0"})
-    void shouldCreateChecksReport_SB(final ChecksAnnotationScope scope, final int expectedAnnotations) {
+    void shouldCreateChecksReportStatementBranch(final ChecksAnnotationScope scope, final int expectedAnnotations) {
         shouldCreateChecksReport(scope, expectedAnnotations, 
                 "vectorcast-statement-branch.xml", 
                 "vectorcast-coverage-publisher-s+b-details.checks-expected-result",
@@ -81,7 +63,7 @@ class VectorCastCoverageChecksPublisherTest extends CoverageChecksPublisherTest 
 
     @ParameterizedTest(name = "should create checks (scope = {0}, expected annotations = {1})")
     @CsvSource({"SKIP, 0", "ALL_LINES, 8", "MODIFIED_LINES, 0"})
-    void shouldCreateChecksReport_SMCDC(final ChecksAnnotationScope scope, final int expectedAnnotations) {
+    void shouldCreateChecksReportStatementMcdc(final ChecksAnnotationScope scope, final int expectedAnnotations) {
         shouldCreateChecksReport(scope, expectedAnnotations, 
                 "vectorcast-statement-mcdc.xml",
                 "vectorcast-coverage-publisher-s+mcdc-details.checks-expected-result",
@@ -90,7 +72,7 @@ class VectorCastCoverageChecksPublisherTest extends CoverageChecksPublisherTest 
     
     @ParameterizedTest(name = "should create checks (scope = {0}, expected annotations = {1})")
     @CsvSource({"SKIP, 0", "ALL_LINES, 59", "MODIFIED_LINES, 0"})
-    void shouldCreateChecksReport_SMCDCFCC(final ChecksAnnotationScope scope, final int expectedAnnotations) {
+    void shouldCreateChecksReportStatementMcdcFunctionCall(final ChecksAnnotationScope scope, final int expectedAnnotations) {
         shouldCreateChecksReport(scope, expectedAnnotations, 
                 "vectorcast-statement-mcdc-fcc.xml", 
                 "vectorcast-coverage-publisher-s+mcdc+fcc-details.checks-expected-result",
