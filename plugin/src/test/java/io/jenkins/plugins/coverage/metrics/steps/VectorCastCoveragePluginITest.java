@@ -30,7 +30,6 @@ import io.jenkins.plugins.datatables.DetailedCell;
 import io.jenkins.plugins.datatables.TableModel;
 
 import static io.jenkins.plugins.coverage.metrics.AbstractCoverageTest.*;
-import static io.jenkins.plugins.coverage.metrics.AbstractCoverageTest.*;
 import static org.assertj.core.api.Assertions.*;
 
 /**
@@ -47,7 +46,7 @@ class VectorCastCoveragePluginITest extends AbstractCoverageITest {
     private static final int VECTORCAST_COVERED_FUNCTION_CALL = 62;
     private static final int VECTORCAST_MISSED_FUNCTION_CALL = 17;
     private static final int VECTORCAST_COVERED_METHOD = 21;
-    private static final int VECTORCAST_MISSED_METHOD= 9;
+    private static final int VECTORCAST_MISSED_METHOD = 9;
     private static final String NO_FILES_FOUND_ERROR_MESSAGE = "[-ERROR-] No files found for pattern '**/*xml'. Configuration error?";
 
     @Test

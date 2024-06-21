@@ -1,7 +1,6 @@
 package io.jenkins.plugins.coverage.metrics.steps;
 
 import org.junit.jupiter.api.Test;
-import org.junitpioneer.jupiter.Issue;
 
 import org.jenkinsci.plugins.workflow.cps.CpsFlowDefinition;
 import org.jenkinsci.plugins.workflow.job.WorkflowJob;
@@ -84,7 +83,7 @@ class VectorCastCoverageRecorderITest extends IntegrationTestWithJenkinsPerSuite
                         "MCDC_PAIR: 40.68% (24/59)",
                         "FUNCTION_CALL: 78.48% (62/79)",
                         "COMPLEXITY: 100",
-                        "COMPLEXITY_MAXIMUM: 26" ,
+                        "COMPLEXITY_MAXIMUM: 26",
                         "COMPLEXITY_DENSITY: 100/294",
                         "LOC: 294")
                 .containsPattern("Searching for all files in '.*' that match the pattern 'xml_data/cobertura/coverage_results\\*.xml'")
