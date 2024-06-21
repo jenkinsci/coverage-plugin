@@ -32,7 +32,6 @@ public class CoverageTrendChart {
      * @param dataSet
      *
      */
-    
     private void setLineMode(final LinesDataSet dataSet) {
         // If the dataset contains MCDC or Function Call Coverage
         if (dataSet.containsSeries(CoverageSeriesBuilder.MCDC_PAIR_COVERAGE) 
