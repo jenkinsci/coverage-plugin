@@ -8,7 +8,6 @@ import org.junitpioneer.jupiter.DefaultLocale;
 import io.jenkins.plugins.checks.api.ChecksConclusion;
 import io.jenkins.plugins.checks.api.ChecksDetails;
 import io.jenkins.plugins.checks.api.ChecksStatus;
-import io.jenkins.plugins.coverage.metrics.AbstractCoverageTest;
 import io.jenkins.plugins.coverage.metrics.steps.CoverageRecorder.ChecksAnnotationScope;
 
 import static org.assertj.core.api.Assertions.*;
