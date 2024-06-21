@@ -261,6 +261,10 @@ class CoverageTableModel extends TableModel {
             return createColoredCoverageColumn(getCoverageOfNode(Metric.BRANCH));
         }
 
+        public DetailedCell<?> getMethodCoverage() {
+            return createColoredCoverageColumn(getCoverageOfNode(Metric.METHOD));
+        }
+
         public DetailedCell<?> getMcdcPairCoverage() {
             return createColoredCoverageColumn(getCoverageOfNode(Metric.MCDC_PAIR));
         }
