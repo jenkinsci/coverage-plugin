@@ -17,13 +17,13 @@ import static j2html.TagCreator.*;
  */
 class CoverageSourcePrinter implements Serializable {
     private static final long serialVersionUID = -6044649044983631852L;
-    private static final Sanitizer SANITIZER = new Sanitizer();
+    protected static final Sanitizer SANITIZER = new Sanitizer();
 
     static final String UNDEFINED = "noCover";
     static final String NO_COVERAGE = "coverNone";
     static final String FULL_COVERAGE = "coverFull";
     static final String PARTIAL_COVERAGE = "coverPart";
-    private static final String NBSP = "&nbsp;";
+    protected static final String NBSP = "&nbsp;";
 
     private final String path;
     private final int[] linesToPaint;
@@ -54,7 +54,7 @@ class CoverageSourcePrinter implements Serializable {
                 .render();
     }
 
-    private String cleanupCode(final String content) {
+    protected String cleanupCode(final String content) {
         return content.replace("\n", StringUtils.EMPTY)
                 .replace("\r", StringUtils.EMPTY)
                 .replace(" ", NBSP)
@@ -132,5 +132,9 @@ class CoverageSourcePrinter implements Serializable {
             return counters[index];
         }
         return 0;
+    }
+    
+    public String getColumnHeader() {
+        return StringUtils.EMPTY;
     }
 }

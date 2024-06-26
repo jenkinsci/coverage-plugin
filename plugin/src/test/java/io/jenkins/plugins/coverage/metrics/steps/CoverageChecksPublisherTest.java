@@ -33,11 +33,11 @@ import static org.mockito.Mockito.*;
 
 @DefaultLocale("en")
 class CoverageChecksPublisherTest extends AbstractCoverageTest {
-    private static final String JENKINS_BASE_URL = "http://127.0.0.1:8080";
-    private static final String BUILD_LINK = "job/pipeline-coding-style/job/5";
-    private static final String COVERAGE_ID = "coverage";
-    private static final String REPORT_NAME = "Name";
-    private static final int ANNOTATIONS_COUNT_FOR_MODIFIED = 3;
+    protected static final String JENKINS_BASE_URL = "http://127.0.0.1:8080";
+    protected static final String BUILD_LINK = "job/pipeline-coding-style/job/5";
+    protected static final String COVERAGE_ID = "coverage";
+    protected static final String REPORT_NAME = "Name";
+    protected static final int ANNOTATIONS_COUNT_FOR_MODIFIED = 3;
 
     @Test
     void shouldShowQualityGateDetails() {
@@ -117,7 +117,7 @@ class CoverageChecksPublisherTest extends AbstractCoverageTest {
         }
     }
 
-    private void assertThatTitleIs(final CoverageChecksPublisher publisher, final String expectedTitle) {
+    protected void assertThatTitleIs(final CoverageChecksPublisher publisher, final String expectedTitle) {
         var checkDetails = publisher.extractChecksDetails();
         assertThat(checkDetails.getOutput()).isPresent().get().satisfies(output -> {
             assertThat(output.getTitle()).isPresent().contains(expectedTitle);
@@ -141,6 +141,97 @@ class CoverageChecksPublisherTest extends AbstractCoverageTest {
         assertThatDetailsAreCorrect(checkDetails, expectedAnnotations);
     }
 
+    @Test
+    void shouldShowVectorCastQualityGateDetails() {
+        var result = readVectorCastResult("vectorcast-statement-mcdc-fcc.xml");
+
+        var publisher = new CoverageChecksPublisher(createActionWithoutDelta(result,
+                CoverageQualityGateEvaluatorTest.createQualityGateResult()), result, REPORT_NAME,
+                ChecksAnnotationScope.SKIP, createJenkins());
+
+        var checkDetails = publisher.extractChecksDetails();
+
+        var expectedQualityGateSummary = toString("vectorcast-coverage-publisher-quality-gate.checks-expected-result");
+        assertThat(checkDetails.getOutput()).isPresent().get().satisfies(output -> {
+            assertThat(output.getSummary()).isPresent()
+                    .get()
+                    .asString()
+                    .containsIgnoringWhitespaces(expectedQualityGateSummary);
+        });
+
+        var expectedOverview = toString("vectorcast-coverage-publisher-quality-gate-overview.checks-expected-result");
+        assertThat(checkDetails.getOutput()).isPresent().get().satisfies(output -> {
+            assertThat(output.getSummary()).isPresent()
+                    .get()
+                    .asString()
+                    .containsIgnoringWhitespaces(expectedOverview);
+        });
+    }
+
+    @Test
+    void shouldShowProjectBaselineForVectorCast() {
+        var result = readVectorCastResult("vectorcast-statement-mcdc-fcc.xml");
+
+        var publisher = new CoverageChecksPublisher(createActionWithoutDelta(result), result, REPORT_NAME,
+                ChecksAnnotationScope.SKIP, createJenkins());
+
+        assertThatTitleIs(publisher, "Line Coverage: 79.93%, Branch Coverage: 66.18%");
+    }
+
+    @ParameterizedTest(name = "should create checks (scope = {0}, expected annotations = {1})")
+    @CsvSource({"SKIP, 0", "ALL_LINES, 6", "MODIFIED_LINES, 0"})
+    void shouldCreateChecksReportStatementBranch(final ChecksAnnotationScope scope, final int expectedAnnotations) {
+        shouldCreateChecksReport(scope, expectedAnnotations,
+                "vectorcast-statement-branch.xml",
+                "vectorcast-coverage-publisher-s+b-details.checks-expected-result",
+                "vectorcast-coverage-publisher-s+b-overview.checks-expected-result");
+    }
+
+    @ParameterizedTest(name = "should create checks (scope = {0}, expected annotations = {1})")
+    @CsvSource({"SKIP, 0", "ALL_LINES, 8", "MODIFIED_LINES, 0"})
+    void shouldCreateChecksReportStatementMcdc(final ChecksAnnotationScope scope, final int expectedAnnotations) {
+        shouldCreateChecksReport(scope, expectedAnnotations,
+                "vectorcast-statement-mcdc.xml",
+                "vectorcast-coverage-publisher-s+mcdc-details.checks-expected-result",
+                "vectorcast-coverage-publisher-s+mcdc-overview.checks-expected-result");
+    }
+
+    @ParameterizedTest(name = "should create checks (scope = {0}, expected annotations = {1})")
+    @CsvSource({"SKIP, 0", "ALL_LINES, 59", "MODIFIED_LINES, 0"})
+    void shouldCreateChecksReportStatementMcdcFunctionCall(final ChecksAnnotationScope scope, final int expectedAnnotations) {
+        shouldCreateChecksReport(scope, expectedAnnotations,
+                "vectorcast-statement-mcdc-fcc.xml",
+                "vectorcast-coverage-publisher-s+mcdc+fcc-details.checks-expected-result",
+                "vectorcast-coverage-publisher-s+mcdc+fcc-overview.checks-expected-result");
+    }
+
+    void shouldCreateChecksReport(final ChecksAnnotationScope scope, final int expectedAnnotations,
+            final String inFile, final String checkDetailsFile, final String checkOverviewFile) {
+        var result = readVectorCastResult(inFile);
+
+        var publisher = new CoverageChecksPublisher(createCoverageBuildAction(result), result, REPORT_NAME, scope, createJenkins());
+
+        var checkDetails = publisher.extractChecksDetails();
+
+        assertThat(checkDetails.getName()).isPresent().contains(REPORT_NAME);
+        assertThat(checkDetails.getStatus()).isEqualTo(ChecksStatus.COMPLETED);
+        assertThat(checkDetails.getConclusion()).isEqualTo(ChecksConclusion.SUCCESS);
+        assertThat(checkDetails.getDetailsURL()).isPresent()
+                .contains("http://127.0.0.1:8080/job/pipeline-coding-style/job/5/coverage");
+        assertThatDetailsAreCorrect(checkDetails, expectedAnnotations, checkDetailsFile, checkOverviewFile);
+    }
+
+    private void assertThatDetailsAreCorrect(final ChecksDetails checkDetails, final int expectedAnnotations,
+            final String checkDetailsFile, final String checkOverviewFile) {
+        assertThat(checkDetails.getOutput()).isPresent().get().satisfies(output -> {
+            assertThat(output.getTitle()).isPresent().contains("Line Coverage: 50.00% (+50.00%)");
+            var expectedDetails = toString(checkDetailsFile);
+            assertThat(output.getText()).isPresent().get().asString().isEqualToNormalizingWhitespace(expectedDetails);
+            assertChecksAnnotations(output, expectedAnnotations);
+            assertSummary(output, checkOverviewFile);
+        });
+    }
+
     private void assertThatDetailsAreCorrect(final ChecksDetails checkDetails, final int expectedAnnotations) {
         assertThat(checkDetails.getOutput()).isPresent().get().satisfies(output -> {
             assertThat(output.getTitle()).isPresent().contains("Line Coverage: 50.00% (+50.00%)");
@@ -151,13 +242,13 @@ class CoverageChecksPublisherTest extends AbstractCoverageTest {
         });
     }
 
-    private void assertSummary(final ChecksOutput checksOutput, final String fileName) {
+    protected void assertSummary(final ChecksOutput checksOutput, final String fileName) {
         assertThat(checksOutput.getSummary()).isPresent()
                 .get()
                 .asString().isEqualToNormalizingWhitespace(toString(fileName));
     }
 
-    private void assertChecksAnnotations(final ChecksOutput checksOutput, final int expectedAnnotations) {
+    protected void assertChecksAnnotations(final ChecksOutput checksOutput, final int expectedAnnotations) {
         if (expectedAnnotations == ANNOTATIONS_COUNT_FOR_MODIFIED) {
             assertThat(checksOutput.getChecksAnnotations()).hasSize(expectedAnnotations).satisfiesExactly(
                     annotation -> {
@@ -182,14 +273,14 @@ class CoverageChecksPublisherTest extends AbstractCoverageTest {
         }
     }
 
-    private JenkinsFacade createJenkins() {
+    protected JenkinsFacade createJenkins() {
         JenkinsFacade jenkinsFacade = mock(JenkinsFacade.class);
         when(jenkinsFacade.getAbsoluteUrl(BUILD_LINK, COVERAGE_ID)).thenReturn(
                 JENKINS_BASE_URL + "/" + BUILD_LINK + "/" + COVERAGE_ID);
         return jenkinsFacade;
     }
 
-    private CoverageBuildAction createCoverageBuildAction(final Node result) {
+    protected CoverageBuildAction createCoverageBuildAction(final Node result) {
         var testCoverage = new CoverageBuilder(Metric.LINE)
                 .withCovered(1)
                 .withMissed(1)
@@ -220,7 +311,7 @@ class CoverageChecksPublisherTest extends AbstractCoverageTest {
                 new TreeMap<>(Map.of(Metric.LINE, Fraction.ONE_HALF)), List.of(testCoverage), false);
     }
 
-    private CoverageBuildAction createActionWithoutDelta(final Node result) {
+    protected CoverageBuildAction createActionWithoutDelta(final Node result) {
         return createActionWithoutDelta(result, new QualityGateResult());
     }
 

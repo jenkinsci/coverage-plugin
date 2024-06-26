@@ -76,6 +76,14 @@ class CoverageChecksPublisher {
         this.annotationScope = annotationScope;
     }
 
+    private ChecksFormatter getFormatter() {
+        if (rootNode.getValue(Metric.FUNCTION_CALL).isPresent()
+                || rootNode.getValue(Metric.MCDC_PAIR).isPresent()) {
+            return new VectorCastFormatter();
+        }
+        return new ChecksFormatter();
+    }
+
     /**
      * Publishes the coverage report as Checks to SCM platforms.
      *
@@ -83,8 +91,7 @@ class CoverageChecksPublisher {
      *         The task listener
      */
     void publishCoverageReport(final TaskListener listener) {
-        var publisher = ChecksPublisherFactory.fromRun(action.getOwner(), listener);
-        publisher.publish(extractChecksDetails());
+        ChecksPublisherFactory.fromRun(action.getOwner(), listener).publish(extractChecksDetails());
     }
 
     @VisibleForTesting
@@ -106,7 +113,7 @@ class CoverageChecksPublisher {
     }
 
     private String getChecksTitle() {
-        return getMetricsForTitle().stream()
+        return getFormatter().getTitleMetrics().stream()
                 .map(this::format)
                 .flatMap(Optional::stream)
                 .collect(Collectors.joining(", "));
@@ -135,11 +142,6 @@ class CoverageChecksPublisher {
             return String.format(" (%s)", action.formatDelta(baseline, metric));
         }
         return StringUtils.EMPTY;
-    }
-
-    private NavigableSet<Metric> getMetricsForTitle() {
-        return new TreeSet<>(
-                Set.of(Metric.LINE, Metric.BRANCH, Metric.MUTATION));
     }
 
     private String getSummary() {
@@ -369,7 +371,7 @@ class CoverageChecksPublisher {
                 description.append(getBulletListItem(1,
                         formatText(TextFormat.BOLD,
                                 getUrlText(action.getTitle(baseline), getBaseUrl() + baseline.getUrl()))));
-                for (Value value : action.getValues(baseline)) {
+                for (Value value : getValues(baseline)) {
                     String display = FORMATTER.formatDetailedValueWithMetric(value);
                     if (action.hasDelta(baseline, value.getMetric())) {
                         display += String.format(" - Delta: %s", action.formatDelta(baseline, value.getMetric()));
@@ -382,11 +384,17 @@ class CoverageChecksPublisher {
         return description.toString();
     }
 
+    private List<Value> getValues(final Baseline baseline) {
+        return action.getAllValues(baseline).stream()
+                .filter(value -> getFormatter().getOverviewMetrics().contains(value.getMetric()))
+                .collect(Collectors.toList());
+    }
+
     private String createProjectOverview() {
         StringBuilder description = new StringBuilder(getSectionHeader(TITLE_HEADER_LEVEL, "Project Overview"));
         description.append("No changes detected, that affect the code coverage.\n");
 
-        for (Value value : action.getValues(Baseline.PROJECT)) {
+        for (Value value : getValues(Baseline.PROJECT)) {
             description.append(getBulletListItem(1, FORMATTER.formatDetailedValueWithMetric(value)));
         }
 
@@ -421,6 +429,7 @@ class CoverageChecksPublisher {
         var builder = new StringBuilder(getSectionHeader(TITLE_HEADER_LEVEL, "Project coverage details"));
         builder.append(COLUMN);
         builder.append(COLUMN);
+
         builder.append(getMetricStream()
                 .map(FORMATTER::getDisplayName)
                 .collect(asColumn()));
@@ -458,7 +467,9 @@ class CoverageChecksPublisher {
     }
 
     private Stream<Metric> getMetricStream() {
-        return Metric.getCoverageMetrics().stream().skip(1);
+        return Metric.getCoverageMetrics().stream()
+                .skip(1)
+                .filter(m -> rootNode.getValue(m).isPresent());
     }
 
     private Collector<CharSequence, ?, String> asColumn() {
@@ -529,5 +540,32 @@ class CoverageChecksPublisher {
     private enum TextFormat {
         BOLD,
         CURSIVE
+    }
+
+    /**
+     * Determines the metrics that should be shown in the title, overview, and tables.
+     * Metrics without a valid value in the coverage tree will be skipped.
+     */
+    private static class ChecksFormatter {
+        NavigableSet<Metric> getTitleMetrics() {
+            return new TreeSet<>(
+                    Set.of(Metric.LINE, Metric.BRANCH, Metric.MUTATION));
+        }
+
+        NavigableSet<Metric> getOverviewMetrics() {
+            return new TreeSet<>(
+                    Set.of(Metric.LINE, Metric.LOC, Metric.BRANCH, Metric.COMPLEXITY_DENSITY,
+                            Metric.MUTATION, Metric.TEST_STRENGTH, Metric.TESTS,
+                            Metric.MCDC_PAIR, Metric.FUNCTION_CALL));
+        }
+    }
+
+    private static class VectorCastFormatter extends ChecksFormatter {
+        @Override
+        NavigableSet<Metric> getOverviewMetrics() {
+            var valueMetrics = super.getOverviewMetrics();
+            valueMetrics.add(Metric.METHOD);
+            return valueMetrics;
+        }
     }
 }

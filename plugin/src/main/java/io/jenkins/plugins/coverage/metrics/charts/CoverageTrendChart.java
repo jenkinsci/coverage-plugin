@@ -23,6 +23,26 @@ import io.jenkins.plugins.echarts.JenkinsPalette;
  * @see JacksonFacade
  */
 public class CoverageTrendChart {
+    /* Line Mode used to indicate whether is should be a filled line chart or line chart */
+    private static FilledMode lineMode;
+    
+    /**
+     * Sets the line mode for the trend chart.
+     *
+     * @param dataSet
+     *
+     */
+    private void setLineMode(final LinesDataSet dataSet) {
+        // If the dataset contains MCDC or Function Call Coverage
+        if (dataSet.containsSeries(CoverageSeriesBuilder.MCDC_PAIR_COVERAGE) 
+                || dataSet.containsSeries(CoverageSeriesBuilder.FUNCTION_CALL_COVERAGE)) {        
+            lineMode = FilledMode.LINES;
+        } 
+        else {
+            lineMode = FilledMode.FILLED;
+        }
+    }
+    
     /**
      * Creates the chart for the specified results.
      *
@@ -38,11 +58,13 @@ public class CoverageTrendChart {
             final ChartModelConfiguration configuration) {
         CoverageSeriesBuilder builder = new CoverageSeriesBuilder();
         LinesDataSet dataSet = builder.createDataSet(configuration, results);
+        
+        setLineMode(dataSet);
 
         LinesChartModel model = new LinesChartModel(dataSet);
         if (dataSet.isNotEmpty()) {
             LineSeries lineSeries = new LineSeries(Messages.Metric_LINE(),
-                    JenkinsPalette.GREEN.normal(), StackedMode.SEPARATE_LINES, FilledMode.FILLED,
+                    JenkinsPalette.GREEN.normal(), StackedMode.SEPARATE_LINES, lineMode,
                     dataSet.getSeries(CoverageSeriesBuilder.LINE_COVERAGE));
             model.addSeries(lineSeries);
             model.useContinuousRangeAxis();
@@ -55,6 +77,13 @@ public class CoverageTrendChart {
                     JenkinsPalette.GREEN.dark());
             addSeries(dataSet, model, Messages.Metric_TEST_STRENGTH(), CoverageSeriesBuilder.TEST_STRENGTH,
                     JenkinsPalette.GREEN.light());
+
+            addSeries(dataSet, model, Messages.Metric_MCDC_PAIR(), CoverageSeriesBuilder.MCDC_PAIR_COVERAGE,
+                    JenkinsPalette.RED.light());
+            addSeries(dataSet, model, Messages.Metric_METHOD(), CoverageSeriesBuilder.METHOD_COVERAGE,
+                    JenkinsPalette.RED.normal());
+            addSeries(dataSet, model, Messages.Metric_FUNCTION_CALL(), CoverageSeriesBuilder.FUNCTION_CALL_COVERAGE,
+                    JenkinsPalette.RED.dark());
         }
         return model;
     }
@@ -63,7 +92,7 @@ public class CoverageTrendChart {
             final String name, final String seriesId, final String color) {
         if (dataSet.containsSeries(seriesId)) {
             LineSeries branchSeries = new LineSeries(name,
-                    color, StackedMode.SEPARATE_LINES, FilledMode.FILLED,
+                    color, StackedMode.SEPARATE_LINES, lineMode,
                     dataSet.getSeries(seriesId));
 
             model.addSeries(branchSeries);

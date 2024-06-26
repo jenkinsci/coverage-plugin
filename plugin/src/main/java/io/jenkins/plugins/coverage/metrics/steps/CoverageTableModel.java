@@ -35,6 +35,7 @@ import io.jenkins.plugins.datatables.TableColumn.ColumnType;
 import io.jenkins.plugins.datatables.TableConfiguration;
 import io.jenkins.plugins.datatables.TableConfiguration.SelectStyle;
 import io.jenkins.plugins.datatables.TableModel;
+import org.apache.commons.lang3.StringUtils;
 
 import static j2html.TagCreator.*;
 
@@ -118,6 +119,13 @@ class CoverageTableModel extends TableModel {
                 Messages.Column_DeltaLineCoverage("Δ"), columns);
         configureValueColumn("branchCoverage", Metric.BRANCH, Messages.Column_BranchCoverage(),
                 Messages.Column_DeltaBranchCoverage("Δ"), columns);
+                
+        /* VectorCAST metrics */
+        configureValueColumn("mcdcPairCoverage", Metric.MCDC_PAIR, Messages.Column_MCDCPairs(), 
+                "", columns);
+        configureValueColumn("functionCallCoverage", Metric.FUNCTION_CALL, Messages.Column_FunctionCall(), 
+                "", columns);
+
         configureValueColumn("mutationCoverage", Metric.MUTATION, Messages.Column_MutationCoverage(),
                 Messages.Column_DeltaMutationCoverage("Δ"), columns);
         configureValueColumn("testStrength", Metric.TEST_STRENGTH, Messages.Column_TestStrength(),
@@ -174,13 +182,15 @@ class CoverageTableModel extends TableModel {
                     .withResponsivePriority(1)
                     .build();
             columns.add(lineCoverage);
-            TableColumn lineCoverageDelta = new ColumnBuilder().withHeaderLabel(deltaHeaderLabel)
-                    .withDataPropertyKey(key + "Delta")
-                    .withDetailedCell()
-                    .withType(ColumnType.NUMBER)
-                    .withResponsivePriority(2)
-                    .build();
-            columns.add(lineCoverageDelta);
+            if (StringUtils.isNotEmpty(deltaHeaderLabel)) {
+                TableColumn lineCoverageDelta = new ColumnBuilder().withHeaderLabel(deltaHeaderLabel)
+                        .withDataPropertyKey(key + "Delta")
+                        .withDetailedCell()
+                        .withType(ColumnType.NUMBER)
+                        .withResponsivePriority(2)
+                        .build();
+                columns.add(lineCoverageDelta);
+            }
         }
     }
 
@@ -249,6 +259,18 @@ class CoverageTableModel extends TableModel {
 
         public DetailedCell<?> getBranchCoverage() {
             return createColoredCoverageColumn(getCoverageOfNode(Metric.BRANCH));
+        }
+
+        public DetailedCell<?> getMethodCoverage() {
+            return createColoredCoverageColumn(getCoverageOfNode(Metric.METHOD));
+        }
+
+        public DetailedCell<?> getMcdcPairCoverage() {
+            return createColoredCoverageColumn(getCoverageOfNode(Metric.MCDC_PAIR));
+        }
+
+        public DetailedCell<?> getFunctionCallCoverage() {
+            return createColoredCoverageColumn(getCoverageOfNode(Metric.FUNCTION_CALL));
         }
 
         public DetailedCell<?> getMutationCoverage() {

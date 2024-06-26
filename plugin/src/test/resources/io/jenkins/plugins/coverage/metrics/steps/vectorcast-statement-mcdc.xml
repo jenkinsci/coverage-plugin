@@ -1,0 +1,141 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!DOCTYPE coverage SYSTEM 'http://cobertura.sourceforge.net/xml/coverage-04.dtd'>
+<coverage line-rate="0.6212121212121212" branch-rate="0.6935483870967742" mcdcpair-coverage="0.5714285714285714" timestamp="0" version="VectorCAST 23.sp5 (12/14/23)">
+  <sources>
+    <source>./</source>
+  </sources>
+  <packages>
+    <package name="tutorial.c.database" complexity="4" line-rate="0.25" branch-rate="0.3" mcdcpair-coverage="1.0">
+      <classes>
+        <class name="database" filename="tutorial/c/database/database.c" line-rate="0.25" branch-rate="0.3" mcdcpair-coverage="0.0" complexity="4">
+          <methods/>
+          <lines>
+            <line number="20" hits="0" branch="false"/>
+            <line number="17" hits="0" branch="true" condition-coverage="0.0% (0/2)" mcdcpair-coverage="0.0% (0/0)">
+              <conditions>
+                <condition number="0" type="jump" coverage="0.0%"/>
+              </conditions>
+            </line>
+            <line number="19" hits="0" branch="false"/>
+            <line number="23" hits="0" branch="false"/>
+            <line number="7" hits="1" branch="true" condition-coverage="50.0% (1/2)" mcdcpair-coverage="0.0% (0/1)">
+              <conditions>
+                <condition number="0" type="jump" coverage="50.0%"/>
+              </conditions>
+            </line>
+            <line number="9" hits="0" branch="false"/>
+            <line number="10" hits="0" branch="false"/>
+            <line number="12" hits="1" branch="false"/>
+          </lines>
+        </class>
+      </classes>
+    </package>
+    <package name="tutorial.c.order_entry" complexity="18" line-rate="0.75" branch-rate="0.8163265306122449" mcdcpair-coverage="3.25">
+      <classes>
+        <class name="manager" filename="tutorial/c/order_entry/manager.c" line-rate="0.75" branch-rate="0.8163265306122449" mcdcpair-coverage="0.6666666666666665" complexity="18">
+          <methods/>
+          <lines>
+            <line number="19" hits="1" branch="true" condition-coverage="83.33333333333333% (5/6)" mcdcpair-coverage="66.66666666666667% (2/3)">
+              <conditions>
+                <condition number="0" type="jump" coverage="83.33333333333333%"/>
+              </conditions>
+            </line>
+            <line number="20" hits="1" branch="false"/>
+            <line number="21" hits="1" branch="false"/>
+            <line number="29" hits="1" branch="false"/>
+            <line number="25" hits="1" branch="true" condition-coverage="83.33333333333333% (5/6)" mcdcpair-coverage="66.66666666666667% (2/3)">
+              <conditions>
+                <condition number="0" type="jump" coverage="83.33333333333333%"/>
+              </conditions>
+            </line>
+            <line number="26" hits="1" branch="false"/>
+            <line number="27" hits="1" branch="false"/>
+            <line number="23" hits="1" branch="false"/>
+            <line number="17" hits="1" branch="true" condition-coverage="50.0% (1/2)" mcdcpair-coverage="0.0% (0/1)">
+              <conditions>
+                <condition number="0" type="jump" coverage="50.0%"/>
+              </conditions>
+            </line>
+            <line number="79" hits="0" branch="false"/>
+            <line number="76" hits="0" branch="false"/>
+            <line number="81" hits="0" branch="false"/>
+            <line number="86" hits="0" branch="false"/>
+            <line number="82" hits="0" branch="false"/>
+            <line number="83" hits="0" branch="false"/>
+            <line number="80" hits="0" branch="false"/>
+            <line number="88" hits="0" branch="false"/>
+            <line number="78" hits="0" branch="true" condition-coverage="0.0% (0/2)" mcdcpair-coverage="0.0% (0/0)">
+              <conditions>
+                <condition number="0" type="jump" coverage="0.0%"/>
+              </conditions>
+            </line>
+            <line number="89" hits="0" branch="false"/>
+            <line number="74" hits="0" branch="false"/>
+            <line number="75" hits="0" branch="false"/>
+            <line number="43" hits="1" branch="false"/>
+            <line number="67" hits="1" branch="false"/>
+            <line number="50" hits="1" branch="false"/>
+            <line number="63" hits="1" branch="false"/>
+            <line number="42" hits="1" branch="false"/>
+            <line number="53" hits="1" branch="false"/>
+            <line number="56" hits="1" branch="false"/>
+            <line number="66" hits="1" branch="false"/>
+            <line number="48" hits="1" branch="false"/>
+            <line number="58" hits="1" branch="false"/>
+            <line number="59" hits="1" branch="false"/>
+            <line number="61" hits="1" branch="false"/>
+            <line number="57" hits="1" branch="false"/>
+            <line number="51" hits="1" branch="false"/>
+            <line number="55" hits="1" branch="false"/>
+            <line number="46" hits="1" branch="false"/>
+            <line number="52" hits="1" branch="false"/>
+            <line number="54" hits="1" branch="false"/>
+            <line number="60" hits="1" branch="false"/>
+            <line number="62" hits="1" branch="false"/>
+            <line number="41" hits="1" branch="false"/>
+            <line number="39" hits="1" branch="false"/>
+            <line number="109" hits="1" branch="false"/>
+            <line number="106" hits="1" branch="false"/>
+            <line number="103" hits="1" branch="false"/>
+            <line number="107" hits="1" branch="false"/>
+            <line number="105" hits="1" branch="true" condition-coverage="100.0% (4/4)" mcdcpair-coverage="100.0% (2/2)">
+              <conditions>
+                <condition number="0" type="jump" coverage="100.0%"/>
+              </conditions>
+            </line>
+            <line number="101" hits="1" branch="false"/>
+            <line number="102" hits="1" branch="true" condition-coverage="100.0% (2/2)" mcdcpair-coverage="100.0% (1/1)">
+              <conditions>
+                <condition number="0" type="jump" coverage="100.0%"/>
+              </conditions>
+            </line>
+            <line number="116" hits="1" branch="false"/>
+            <line number="114" hits="1" branch="true" condition-coverage="100.0% (2/2)" mcdcpair-coverage="100.0% (1/1)">
+              <conditions>
+                <condition number="0" type="jump" coverage="100.0%"/>
+              </conditions>
+            </line>
+            <line number="115" hits="1" branch="false"/>
+            <line number="96" hits="1" branch="false"/>
+            <line number="95" hits="1" branch="false"/>
+          </lines>
+        </class>
+      </classes>
+    </package>
+    <package name="tutorial.c.utils" line-rate="0.0" branch-rate="0.0" mcdcpair-coverage="0.0" complexity="3">
+      <classes>
+        <class name="whitebox" filename="tutorial/c/utils/whitebox.c" line-rate="0.0" branch-rate="0.0" mcdcpair-coverage="0.0" complexity="3">
+          <methods/>
+          <lines>
+            <line number="17" hits="0" branch="false"/>
+            <line number="22" hits="0" branch="false"/>
+            <line number="28" hits="0" branch="false"/>
+            <line number="29" hits="0" branch="false"/>
+            <line number="27" hits="0" branch="false"/>
+            <line number="30" hits="0" branch="false"/>
+          </lines>
+        </class>
+      </classes>
+    </package>
+  </packages>
+</coverage>

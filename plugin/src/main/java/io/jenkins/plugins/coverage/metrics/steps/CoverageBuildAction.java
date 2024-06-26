@@ -571,7 +571,8 @@ public final class CoverageBuildAction extends BuildAction<Node> implements Stap
     NavigableSet<Metric> getMetricsForSummary() {
         return new TreeSet<>(
                 Set.of(Metric.LINE, Metric.LOC, Metric.BRANCH, Metric.COMPLEXITY_DENSITY,
-                        Metric.MUTATION, Metric.TEST_STRENGTH, Metric.TESTS));
+                        Metric.MUTATION, Metric.TEST_STRENGTH, Metric.TESTS,
+                        Metric.MCDC_PAIR, Metric.FUNCTION_CALL));
     }
 
     /**
