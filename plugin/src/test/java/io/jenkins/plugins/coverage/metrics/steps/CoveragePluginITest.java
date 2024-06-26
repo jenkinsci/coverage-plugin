@@ -3,6 +3,7 @@ package io.jenkins.plugins.coverage.metrics.steps;
 import java.util.List;
 
 import org.assertj.core.api.AbstractStringAssert;
+import org.assertj.core.api.InstanceOfAssertFactories;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -33,13 +34,24 @@ import static io.jenkins.plugins.coverage.metrics.AbstractCoverageTest.*;
 import static org.assertj.core.api.Assertions.*;
 
 /**
- * Integration test for different JaCoCo, Cobertura, and PIT files.
+ * Integration tests for different parsers.
  */
 class CoveragePluginITest extends AbstractCoverageITest {
     private static final String COBERTURA_HIGHER_COVERAGE_FILE = "cobertura-higher-coverage.xml";
     private static final int COBERTURA_COVERED_LINES = 8;
     private static final int COBERTURA_MISSED_LINES = 0;
     private static final String NO_FILES_FOUND_ERROR_MESSAGE = "[-ERROR-] No files found for pattern '**/*xml'. Configuration error?";
+    private static final String VECTORCAST_HIGHER_COVERAGE_FILE = "vectorcast-statement-mcdc-fcc.xml";
+    private static final int VECTORCAST_COVERED_LINES = 235;
+    private static final int VECTORCAST_MISSED_LINES = 59;
+    private static final int VECTORCAST_COVERED_BRANCH = 180;
+    private static final int VECTORCAST_MISSED_BRANCH = 92;
+    private static final int VECTORCAST_COVERED_MCDC_PAIR = 24;
+    private static final int VECTORCAST_MISSED_MCDC_PAIR = 35;
+    private static final int VECTORCAST_COVERED_FUNCTION_CALL = 62;
+    private static final int VECTORCAST_MISSED_FUNCTION_CALL = 17;
+    private static final int VECTORCAST_COVERED_METHOD = 21;
+    private static final int VECTORCAST_MISSED_METHOD = 9;
 
     @Test
     void shouldFailWithoutParserInFreestyleJob() {
@@ -167,7 +179,8 @@ class CoveragePluginITest extends AbstractCoverageITest {
                         .build());
         var tableModel = coverageResult.getTarget().getTableModel(CoverageViewModel.ABSOLUTE_COVERAGE_TABLE_ID);
         assertThat(tableModel)
-                .extracting(TableModel::getColumns).asList()
+                .extracting(TableModel::getColumns)
+                .asInstanceOf(InstanceOfAssertFactories.LIST)
                 .extracting("headerLabel")
                 .containsExactly("Hash",
                         "Modified",
@@ -486,7 +499,8 @@ class CoveragePluginITest extends AbstractCoverageITest {
 
         var tableModel = coverageResult.getTarget().getTableModel(CoverageViewModel.ABSOLUTE_COVERAGE_TABLE_ID);
         assertThat(tableModel)
-                .extracting(TableModel::getColumns).asList()
+                .extracting(TableModel::getColumns)
+                .asInstanceOf(InstanceOfAssertFactories.LIST)
                 .extracting("headerLabel")
                 .containsExactly("Hash",
                         "Modified",
@@ -565,5 +579,384 @@ class CoveragePluginITest extends AbstractCoverageITest {
                 });
 
         // TODO: verify that two different trend charts are returned!
+    }
+
+    @Test @Issue("785")
+    void shouldIgnoreErrors() {
+        WorkflowJob job = createPipeline();
+        copyFileToWorkspace(job, "cobertura-duplicate-methods.xml", "cobertura.xml");
+        job.setDefinition(new CpsFlowDefinition(
+                "node {\n"
+                        + "    recordCoverage tools: [[parser: 'COBERTURA']]\n"
+                        + " }\n", true));
+
+        Run<?, ?> failure = buildWithResult(job, Result.FAILURE);
+
+        assertThat(getConsoleLog(failure))
+                .contains("java.lang.IllegalArgumentException: There is already the same child [METHOD] Enumerate()");
+
+        job.setDefinition(new CpsFlowDefinition(
+                "node {\n"
+                        + "    recordCoverage tools: [[parser: 'COBERTURA']], ignoreParsingErrors: true\n"
+                        + " }\n", true));
+
+        Run<?, ?> success = buildWithResult(job, Result.SUCCESS);
+
+        assertThat(getConsoleLog(success))
+                .doesNotContain("java.lang.IllegalArgumentException");
+    }
+
+    @Test
+    void shouldIgnoreEmptyListOfFiles() {
+        WorkflowJob job = createPipeline();
+        job.setDefinition(new CpsFlowDefinition(
+                "node {\n"
+                        + "    recordCoverage tools: [[parser: 'JACOCO']]\n"
+                        + " }\n", true));
+
+        Run<?, ?> run = buildWithResult(job, Result.SUCCESS);
+
+        assertThat(getConsoleLog(run))
+                .contains("Using default pattern '**/jacoco.xml' since user defined pattern is not set",
+                        "[-ERROR-] No files found for pattern '**/jacoco.xml'. Configuration error?")
+                .containsPattern("Searching for all files in '.*' that match the pattern '\\*\\*/jacoco.xml'")
+                .doesNotContain("Expanding pattern");
+    }
+
+    @Test
+    void shouldParseFileWithJaCoCo() {
+        WorkflowJob job = createPipeline();
+        copyFilesToWorkspace(job, "jacoco.xml");
+        job.setDefinition(new CpsFlowDefinition(
+                "node {\n"
+                        + "    recordCoverage tools: [[parser: 'JACOCO']]\n"
+                        + " }\n", true));
+
+        Run<?, ?> run = buildWithResult(job, Result.SUCCESS);
+
+        assertThat(getConsoleLog(run))
+                .contains("Using default pattern '**/jacoco.xml' since user defined pattern is not set",
+                        "-> found 1 file",
+                        "MODULE: 100.00% (1/1)",
+                        "PACKAGE: 100.00% (1/1)",
+                        "FILE: 70.00% (7/10)",
+                        "CLASS: 83.33% (15/18)",
+                        "METHOD: 95.10% (97/102)",
+                        "INSTRUCTION: 93.33% (1260/1350)",
+                        "LINE: 91.02% (294/323)",
+                        "BRANCH: 93.97% (109/116)",
+                        "COMPLEXITY: 160")
+                .containsPattern("Searching for all files in '.*' that match the pattern '\\*\\*/jacoco.xml'")
+                .containsPattern("Successfully parsed file .*/jacoco.xml")
+                .doesNotContain("Expanding pattern");
+    }
+
+    private void assertContentOfFirstVectorCastRow(final CoverageRow r) {
+        assertThatCell(r.getFileName())
+                .contains("title=\"CurrentRelease/database/src/database.c\"");
+        assertThat(r.getPackageName()).isEqualTo("CurrentRelease.database.src");
+        assertThat(r.getTests()).isEqualTo(0);
+        assertThat(r.getComplexity()).isEqualTo(5);
+        assertThat(r.getLoc()).isEqualTo(17);
+        assertThat(r.getMaxComplexity()).isEqualTo(2);
+        assertThatCell(r.getLineCoverage())
+                .contains("title=\"Covered: 17 - Missed: 0\">100.00%");
+        assertThatCell(r.getLineCoverageDelta()).contains("n/a");
+        assertThatCell(r.getBranchCoverage())
+                .contains("title=\"Covered: 9 - Missed: 2\">81.82%");
+        assertThatCell(r.getBranchCoverageDelta()).contains("n/a");
+        assertThatCell(r.getMethodCoverage())
+                .contains("title=\"Covered: 3 - Missed: 0\">100.00%");
+        assertThatCell(r.getMcdcPairCoverage())
+                .contains("title=\"Covered: 1 - Missed: 1\">50.00%");
+        assertThatCell(r.getFunctionCallCoverage())
+                .contains("title=\"Covered: 4 - Missed: 0\">100.00%");
+        assertThatCell(r.getDensity()).contains("0.29");
+    }
+
+    @Test
+    void shouldRecordOneVectorCastResultInFreestyleJob() {
+        FreeStyleProject project = createFreestyleJob(Parser.VECTORCAST, VECTORCAST_HIGHER_COVERAGE_FILE);
+
+        verifyOneVectorCastResult(project);
+    }
+
+    @Test
+    void shouldRecordOneVectorCastResultInPipeline() {
+        WorkflowJob job = createPipeline(Parser.VECTORCAST, VECTORCAST_HIGHER_COVERAGE_FILE);
+
+        verifyOneVectorCastResult(job);
+    }
+
+    @Test
+    void shouldRecordOneVectorCastResultInDeclarativePipeline() {
+        WorkflowJob job = createDeclarativePipeline(Parser.VECTORCAST, VECTORCAST_HIGHER_COVERAGE_FILE);
+
+        verifyOneVectorCastResult(job);
+    }
+
+    private void verifyOneVectorCastResult(final ParameterizedJob<?, ?> project) {
+        Run<?, ?> build = buildSuccessfully(project);
+
+        verifyVectorCastAction(build.getAction(CoverageBuildAction.class));
+    }
+
+    private void verifyVectorCastAction(final CoverageBuildAction coverageResult) {
+        assertThat(coverageResult.getAllValues(Baseline.PROJECT)).extracting(Value::getMetric)
+                .containsExactly(Metric.MODULE,
+                        Metric.PACKAGE,
+                        Metric.FILE,
+                        Metric.CLASS,
+                        Metric.METHOD,
+                        Metric.LINE,
+                        Metric.BRANCH,
+                        Metric.MCDC_PAIR,
+                        Metric.FUNCTION_CALL,
+                        Metric.COMPLEXITY,
+                        Metric.COMPLEXITY_MAXIMUM,
+                        Metric.COMPLEXITY_DENSITY,
+                        Metric.LOC);
+        assertThat(coverageResult.getAllValues(Baseline.PROJECT)).contains(
+                new CoverageBuilder()
+                        .withMetric(Metric.LINE)
+                        .withCovered(VECTORCAST_COVERED_LINES)
+                        .withMissed(VECTORCAST_MISSED_LINES)
+                        .build());
+        assertThat(coverageResult.getAllValues(Baseline.PROJECT)).contains(
+                new CoverageBuilder()
+                        .withMetric(Metric.BRANCH)
+                        .withCovered(VECTORCAST_COVERED_BRANCH)
+                        .withMissed(VECTORCAST_MISSED_BRANCH)
+                        .build());
+        assertThat(coverageResult.getAllValues(Baseline.PROJECT)).contains(
+                new CoverageBuilder()
+                        .withMetric(Metric.FUNCTION_CALL)
+                        .withCovered(VECTORCAST_COVERED_FUNCTION_CALL)
+                        .withMissed(VECTORCAST_MISSED_FUNCTION_CALL)
+                        .build());
+        assertThat(coverageResult.getAllValues(Baseline.PROJECT)).contains(
+                new CoverageBuilder()
+                        .withMetric(Metric.MCDC_PAIR)
+                        .withCovered(VECTORCAST_COVERED_MCDC_PAIR)
+                        .withMissed(VECTORCAST_MISSED_MCDC_PAIR)
+                        .build());
+        assertThat(coverageResult.getAllValues(Baseline.PROJECT)).contains(
+                new CoverageBuilder()
+                        .withMetric(Metric.METHOD)
+                        .withCovered(VECTORCAST_COVERED_METHOD)
+                        .withMissed(VECTORCAST_MISSED_METHOD)
+                        .build());
+
+        var tableModel = coverageResult.getTarget().getTableModel(CoverageViewModel.ABSOLUTE_COVERAGE_TABLE_ID);
+        assertThat(tableModel)
+                .extracting(TableModel::getColumns)
+                .asInstanceOf(InstanceOfAssertFactories.LIST)
+                .extracting("headerLabel")
+                .containsExactly("Hash",
+                        "Modified",
+                        "File",
+                        "Package",
+                        "Line",
+                        "Line Δ",
+                        "Branch",
+                        "Branch Δ",
+                        "MC/DC Pairs",
+                        "Function Call",
+                        "LOC",
+                        "Complexity",
+                        "Max. Complexity",
+                        "Complexity / LOC");
+        assertThat(coverageResult.getAllValues(Baseline.PROJECT))
+                .contains(createLineCoverageBuilder()
+                        .withCovered(VECTORCAST_COVERED_LINES)
+                        .withMissed(VECTORCAST_MISSED_LINES)
+                        .build());
+        assertThat(tableModel.getRows())
+                .hasSize(8)
+                .first()
+                .isInstanceOfSatisfying(CoverageRow.class, this::assertContentOfFirstVectorCastRow);
+    }
+
+    @Test
+    void shouldRecordVectorCastAndJacocoResultsInFreestyleJob() {
+        FreeStyleProject project = createFreeStyleProjectWithWorkspaceFiles(JACOCO_ANALYSIS_MODEL_FILE,
+                VECTORCAST_HIGHER_COVERAGE_FILE);
+
+        CoverageRecorder recorder = new CoverageRecorder();
+
+        var vectorcast = new CoverageTool();
+        vectorcast.setParser(Parser.VECTORCAST);
+        vectorcast.setPattern(VECTORCAST_HIGHER_COVERAGE_FILE);
+
+        var jacoco = new CoverageTool();
+        jacoco.setParser(Parser.JACOCO);
+        jacoco.setPattern(JACOCO_ANALYSIS_MODEL_FILE);
+
+        recorder.setTools(List.of(jacoco, vectorcast));
+        project.getPublishersList().add(recorder);
+
+        verifyForOneVectorCastAndOneJacoco(project);
+    }
+
+    @Test
+    void shouldRecordVectorCastAndJacocoResultsInPipeline() {
+        WorkflowJob job = createPipelineWithWorkspaceFiles(JACOCO_ANALYSIS_MODEL_FILE, VECTORCAST_HIGHER_COVERAGE_FILE);
+
+        setPipelineScript(job,
+                "recordCoverage tools: ["
+                        + "[parser: 'VECTORCAST', pattern: '" + VECTORCAST_HIGHER_COVERAGE_FILE + "'],"
+                        + "[parser: 'JACOCO', pattern: '" + JACOCO_ANALYSIS_MODEL_FILE + "']"
+                        + "]");
+
+        verifyForOneVectorCastAndOneJacoco(job);
+    }
+
+    @Test
+    void shouldRecordVectorCastAndJacocoResultsInDeclarativePipeline() {
+        WorkflowJob job = createPipelineWithWorkspaceFiles(JACOCO_ANALYSIS_MODEL_FILE, VECTORCAST_HIGHER_COVERAGE_FILE);
+
+        job.setDefinition(new CpsFlowDefinition("pipeline {\n"
+                + "    agent any\n"
+                + "    stages {\n"
+                + "        stage('Test') {\n"
+                + "            steps {\n"
+                + "                 recordCoverage(tools: [\n"
+                + "                     [parser: 'VECTORCAST', pattern: '" + VECTORCAST_HIGHER_COVERAGE_FILE + "'],\n"
+                + "                     [parser: 'JACOCO', pattern: '" + JACOCO_ANALYSIS_MODEL_FILE + "']\n"
+                + "                 ])\n"
+                + "            }\n"
+                + "        }\n"
+                + "    }\n"
+                + "}", true));
+
+        verifyForOneVectorCastAndOneJacoco(job);
+    }
+
+    private void verifyForOneVectorCastAndOneJacoco(final ParameterizedJob<?, ?> project) {
+        Run<?, ?> build = buildSuccessfully(project);
+
+        CoverageBuildAction coverageResult = build.getAction(CoverageBuildAction.class);
+        assertThat(coverageResult.getAllValues(Baseline.PROJECT))
+                .contains(createLineCoverageBuilder()
+                        .withCovered(JACOCO_ANALYSIS_MODEL_COVERED + VECTORCAST_COVERED_LINES)
+                        .withMissed(JACOCO_ANALYSIS_MODEL_MISSED + VECTORCAST_MISSED_LINES)
+                        .build());
+
+        assertThat(getConsoleLog(build)).contains(
+                "[Coverage] Recording coverage results",
+                "[Coverage] Creating parser for VectorCAST Coverage Results",
+                "that match the pattern 'vectorcast-statement-mcdc-fcc.xml'",
+                "Successfully processed file 'vectorcast-statement-mcdc-fcc.xml'",
+                "[Coverage] Creating parser for JaCoCo Coverage Reports",
+                "that match the pattern 'jacoco-analysis-model.xml'",
+                "Successfully processed file 'jacoco-analysis-model.xml'");
+        var log = coverageResult.getLog();
+        assertThat(log.getInfoMessages()).contains("Recording coverage results",
+                "Creating parser for VectorCAST Coverage Results",
+                "Successfully processed file 'vectorcast-statement-mcdc-fcc.xml'",
+                "Creating parser for JaCoCo Coverage Reports",
+                "Successfully processed file 'jacoco-analysis-model.xml'",
+                "Resolving source code files...",
+                "-> finished resolving of absolute paths (found: 0, not found: 315)",
+                "Obtaining result action of reference build",
+                "Reference build recorder is not configured",
+                "-> Found no reference build",
+                "No quality gates have been set - skipping",
+                "Executing source code painting...",
+                "Painting 315 source files on agent",
+                "-> finished painting (0 files have been painted, 315 files failed)",
+                "Copying painted sources from agent to build folder",
+                "-> extracting...",
+                "-> done",
+                "Finished coverage processing - adding the action to the build...");
+        assertThat(log.getErrorMessages()).contains(
+                "Errors while resolving source files on agent:",
+                "- Source file 'edu/hm/hafner/analysis/parser/PerlCriticParser.java' not found",
+                "- Source file 'edu/hm/hafner/analysis/parser/StyleCopParser.java' not found",
+                "- Source file 'edu/hm/hafner/analysis/registry/RoboCopyDescriptor.java' not found",
+                "- Source file 'edu/hm/hafner/analysis/parser/fxcop/FxCopRuleSet.java' not found",
+                "- Source file 'edu/hm/hafner/analysis/registry/SpotBugsDescriptor.java' not found",
+                "- Source file 'edu/hm/hafner/analysis/parser/AcuCobolParser.java' not found",
+                "- Source file 'edu/hm/hafner/analysis/registry/FlexSdkDescriptor.java' not found",
+                "- Source file 'edu/hm/hafner/analysis/registry/BrakemanDescriptor.java' not found",
+                "- Source file 'edu/hm/hafner/analysis/registry/PyDocStyleDescriptor.java' not found",
+                "- Source file 'edu/hm/hafner/analysis/parser/AjcParser.java' not found",
+                "- Source file 'edu/hm/hafner/analysis/ReaderFactory.java' not found",
+                "- Source file 'edu/hm/hafner/analysis/parser/DiabCParser.java' not found",
+                "- Source file 'edu/hm/hafner/analysis/registry/OELintAdvDescriptor.java' not found",
+                "- Source file 'edu/hm/hafner/analysis/registry/GnuFortranDescriptor.java' not found",
+                "- Source file 'edu/hm/hafner/analysis/parser/Armcc5CompilerParser.java' not found",
+                "- Source file 'edu/hm/hafner/analysis/registry/DoxygenDescriptor.java' not found",
+                "- Source file 'edu/hm/hafner/analysis/registry/ProtoLintDescriptor.java' not found",
+                "- Source file 'edu/hm/hafner/analysis/registry/GoLintDescriptor.java' not found",
+                "- Source file 'edu/hm/hafner/analysis/ModuleResolver.java' not found",
+                "  ... skipped logging of 295 additional errors ...");
+    }
+
+    @Test
+    void shouldRecordVerctorCastResultsWithDifferentId() {
+        WorkflowJob job = createPipelineWithWorkspaceFiles(JACOCO_ANALYSIS_MODEL_FILE, VECTORCAST_HIGHER_COVERAGE_FILE);
+
+        setPipelineScript(job,
+                "recordCoverage "
+                        + "tools: [[parser: 'VECTORCAST', pattern: '" + VECTORCAST_HIGHER_COVERAGE_FILE + "']],"
+                        + "id: 'vectorcast', name: 'VectorCast Results'\n"
+                        + "recordCoverage "
+                        + "tools: ["
+                        + "[parser: 'JACOCO', pattern: '" + JACOCO_ANALYSIS_MODEL_FILE + "']],"
+                        + "id: 'jacoco', name: 'JaCoCo Results'\n");
+
+        Run<?, ?> build = buildSuccessfully(job);
+
+        List<CoverageBuildAction> coverageResult = build.getActions(CoverageBuildAction.class);
+        assertThat(coverageResult).hasSize(2);
+
+        assertThat(coverageResult).element(0).satisfies(
+                a -> {
+                    assertThat(a.getUrlName()).isEqualTo("vectorcast");
+                    assertThat(a.getDisplayName()).isEqualTo("VectorCast Results");
+                    verifyVectorCastAction(a);
+                }
+        );
+        assertThat(coverageResult).element(1).satisfies(
+                a -> {
+                    assertThat(a.getUrlName()).isEqualTo("jacoco");
+                    assertThat(a.getDisplayName()).isEqualTo("JaCoCo Results");
+                    verifyJaCoCoAction(a);
+                });
+
+        // TODO: verify that two different trend charts are returned!
+    }
+
+    @Test
+    void shouldParseFileWithVectorCast() {
+        WorkflowJob job = createPipeline();
+        copyFileToWorkspace(job, "vectorcast-statement-mcdc-fcc.xml", "xml_data/cobertura/coverage_results_test.xml");
+        job.setDefinition(new CpsFlowDefinition(
+                "node {\n"
+                        + "    recordCoverage tools: [[parser: 'VECTORCAST']]\n"
+                        + " }\n", true));
+
+        Run<?, ?> run = buildWithResult(job, Result.SUCCESS);
+
+        assertThat(getConsoleLog(run))
+                .contains("Using default pattern 'xml_data/cobertura/coverage_results*.xml' since user defined pattern is not set",
+                        "-> found 1 file",
+                        "MODULE: 100.00% (1/1)",
+                        "PACKAGE: 100.00% (5/5)",
+                        "FILE: 75.00% (6/8)",
+                        "CLASS: 75.00% (6/8)",
+                        "METHOD: 70.00% (21/30)",
+                        "LINE: 79.93% (235/294)",
+                        "BRANCH: 66.18% (180/272)",
+                        "MCDC_PAIR: 40.68% (24/59)",
+                        "FUNCTION_CALL: 78.48% (62/79)",
+                        "COMPLEXITY: 100",
+                        "COMPLEXITY_MAXIMUM: 26",
+                        "COMPLEXITY_DENSITY: 100/294",
+                        "LOC: 294")
+                .containsPattern("Searching for all files in '.*' that match the pattern 'xml_data/cobertura/coverage_results\\*.xml'")
+                .containsPattern("Successfully parsed file '.*/xml_data/cobertura/coverage_results_test.xml")
+                .doesNotContain("Expanding pattern");
     }
 }
