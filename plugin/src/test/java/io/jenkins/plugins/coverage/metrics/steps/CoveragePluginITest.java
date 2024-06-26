@@ -3,7 +3,6 @@ package io.jenkins.plugins.coverage.metrics.steps;
 import java.util.List;
 
 import org.assertj.core.api.AbstractStringAssert;
-import org.assertj.core.api.InstanceOfAssertFactories;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -180,7 +179,7 @@ class CoveragePluginITest extends AbstractCoverageITest {
         var tableModel = coverageResult.getTarget().getTableModel(CoverageViewModel.ABSOLUTE_COVERAGE_TABLE_ID);
         assertThat(tableModel)
                 .extracting(TableModel::getColumns)
-                .asInstanceOf(InstanceOfAssertFactories.LIST)
+                .asInstanceOf(LIST)
                 .extracting("headerLabel")
                 .containsExactly("Hash",
                         "Modified",
@@ -500,7 +499,7 @@ class CoveragePluginITest extends AbstractCoverageITest {
         var tableModel = coverageResult.getTarget().getTableModel(CoverageViewModel.ABSOLUTE_COVERAGE_TABLE_ID);
         assertThat(tableModel)
                 .extracting(TableModel::getColumns)
-                .asInstanceOf(InstanceOfAssertFactories.LIST)
+                .asInstanceOf(LIST)
                 .extracting("headerLabel")
                 .containsExactly("Hash",
                         "Modified",
@@ -750,7 +749,7 @@ class CoveragePluginITest extends AbstractCoverageITest {
         var tableModel = coverageResult.getTarget().getTableModel(CoverageViewModel.ABSOLUTE_COVERAGE_TABLE_ID);
         assertThat(tableModel)
                 .extracting(TableModel::getColumns)
-                .asInstanceOf(InstanceOfAssertFactories.LIST)
+                .asInstanceOf(LIST)
                 .extracting("headerLabel")
                 .containsExactly("Hash",
                         "Modified",
