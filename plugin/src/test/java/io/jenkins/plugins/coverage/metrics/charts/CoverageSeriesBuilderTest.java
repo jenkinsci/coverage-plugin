@@ -5,6 +5,8 @@ import java.util.Collections;
 import java.util.List;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 
 import edu.hm.hafner.coverage.Coverage;
 import edu.hm.hafner.coverage.Coverage.CoverageBuilder;
@@ -61,11 +63,48 @@ class CoverageSeriesBuilderTest extends ResourceTest {
         verifySeriesDetails(branchCoverage);
     }
 
+    @Test
+    void shouldCreateStackedChartByDefault() {
+        CoverageTrendChart trendChart = new CoverageTrendChart();
+
+        BuildResult<CoverageStatistics> smallLineCoverage = createResult(1,
+                new CoverageBuilder().withMetric(Metric.LINE).withCovered(1).withMissed(1).build(),
+                new CoverageBuilder().withMetric(Metric.BRANCH).withCovered(3).withMissed(1).build());
+
+        LinesChartModel lineCoverage = trendChart.create(Collections.singletonList(smallLineCoverage),
+                createConfiguration());
+        assertThat(lineCoverage.getBuildNumbers()).containsExactly(1);
+        assertThat(lineCoverage.getSeries()).hasSize(2).allSatisfy(
+                series -> assertThat(series.getAreaStyle()).isNotNull()
+        );
+        assertThat(lineCoverage.getRangeMax()).isEqualTo(100.0);
+        assertThat(lineCoverage.getRangeMin()).isEqualTo(50.0);
+    }
+
+    @ParameterizedTest @EnumSource(value = Metric.class, names = {"MCDC_PAIR", "FUNCTION_CALL"})
+    void shouldCreateLineChartForVectorCoverage(final Metric vector) {
+        CoverageTrendChart trendChart = new CoverageTrendChart();
+
+        BuildResult<CoverageStatistics> smallLineCoverage = createResult(1,
+                new CoverageBuilder().withMetric(Metric.LINE).withCovered(1).withMissed(1).build(),
+                new CoverageBuilder().withMetric(Metric.BRANCH).withCovered(2).withMissed(1).build(),
+                new CoverageBuilder().withMetric(vector).withCovered(1).withMissed(2).build());
+
+        LinesChartModel lineCoverage = trendChart.create(Collections.singletonList(smallLineCoverage),
+                createConfiguration());
+        assertThat(lineCoverage.getBuildNumbers()).containsExactly(1);
+        assertThat(lineCoverage.getSeries()).hasSize(3).allSatisfy(
+                series -> assertThat(series.getAreaStyle()).isNull()
+        );
+        assertThat(lineCoverage.getRangeMax()).isEqualTo(100.0);
+        assertThat(lineCoverage.getRangeMin()).isEqualTo(33.33);
+    }
+
     @VisibleForTesting
     private BuildResult<CoverageStatistics> createResult(final int buildNumber,
-            final Coverage lineCoverage, final Coverage branchCoverage) {
+            final Coverage... coverages) {
         var statistics = new CoverageStatistics(
-                List.of(lineCoverage, branchCoverage), Collections.emptyNavigableMap(),
+                List.of(coverages), Collections.emptyNavigableMap(),
                 Collections.emptyList(), Collections.emptyNavigableMap(),
                 Collections.emptyList(), Collections.emptyNavigableMap());
         Build build = new Build(buildNumber);
