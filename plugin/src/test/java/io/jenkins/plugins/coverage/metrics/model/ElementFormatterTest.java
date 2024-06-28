@@ -7,11 +7,21 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
 
+import edu.hm.hafner.coverage.FractionValue;
 import edu.hm.hafner.coverage.Metric;
 
 import static org.assertj.core.api.Assertions.*;
 
 class ElementFormatterTest {
+    @Test
+    void shouldFormatDensity() {
+        var formatter = new ElementFormatter();
+
+        var delta = formatter.format(new FractionValue(Metric.COMPLEXITY_DENSITY, 33, 100), Locale.ENGLISH);
+
+        assertThat(delta).isEqualTo("0.33");
+    }
+
     @Test
     void shouldHandleOverflowGracefully() {
         var formatter = new ElementFormatter();

@@ -88,7 +88,7 @@ public final class ElementFormatter {
             return String.valueOf(((IntegerValue) value).getValue());
         }
         if (value instanceof FractionValue) {
-            return formatDelta(((FractionValue) value).getFraction(), value.getMetric(), locale);
+            return String.format(locale, "%.2f", ((FractionValue) value).getFraction().doubleValue());
         }
         return value.toString();
     }
