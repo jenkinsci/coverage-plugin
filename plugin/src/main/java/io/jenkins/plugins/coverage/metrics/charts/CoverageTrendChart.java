@@ -23,26 +23,6 @@ import io.jenkins.plugins.echarts.JenkinsPalette;
  * @see JacksonFacade
  */
 public class CoverageTrendChart {
-    /* Line Mode used to indicate whether is should be a filled line chart or line chart */
-    private static FilledMode lineMode;
-    
-    /**
-     * Sets the line mode for the trend chart.
-     *
-     * @param dataSet
-     *
-     */
-    private void setLineMode(final LinesDataSet dataSet) {
-        // If the dataset contains MCDC or Function Call Coverage
-        if (dataSet.containsSeries(CoverageSeriesBuilder.MCDC_PAIR_COVERAGE) 
-                || dataSet.containsSeries(CoverageSeriesBuilder.FUNCTION_CALL_COVERAGE)) {        
-            lineMode = FilledMode.LINES;
-        } 
-        else {
-            lineMode = FilledMode.FILLED;
-        }
-    }
-    
     /**
      * Creates the chart for the specified results.
      *
@@ -58,13 +38,13 @@ public class CoverageTrendChart {
             final ChartModelConfiguration configuration) {
         CoverageSeriesBuilder builder = new CoverageSeriesBuilder();
         LinesDataSet dataSet = builder.createDataSet(configuration, results);
-        
-        setLineMode(dataSet);
+
+        var filledMode = computeFilledMode(dataSet);
 
         LinesChartModel model = new LinesChartModel(dataSet);
         if (dataSet.isNotEmpty()) {
             LineSeries lineSeries = new LineSeries(Messages.Metric_LINE(),
-                    JenkinsPalette.GREEN.normal(), StackedMode.SEPARATE_LINES, lineMode,
+                    JenkinsPalette.GREEN.normal(), StackedMode.SEPARATE_LINES, filledMode,
                     dataSet.getSeries(CoverageSeriesBuilder.LINE_COVERAGE));
             model.addSeries(lineSeries);
             model.useContinuousRangeAxis();
@@ -72,28 +52,44 @@ public class CoverageTrendChart {
             model.setRangeMin(dataSet.getMinimumValue());
 
             addSeries(dataSet, model, Messages.Metric_BRANCH(), CoverageSeriesBuilder.BRANCH_COVERAGE,
-                    JenkinsPalette.GREEN.dark());
+                    JenkinsPalette.GREEN.dark(), filledMode);
             addSeries(dataSet, model, Messages.Metric_MUTATION(), CoverageSeriesBuilder.MUTATION_COVERAGE,
-                    JenkinsPalette.GREEN.dark());
+                    JenkinsPalette.GREEN.dark(), filledMode);
             addSeries(dataSet, model, Messages.Metric_TEST_STRENGTH(), CoverageSeriesBuilder.TEST_STRENGTH,
-                    JenkinsPalette.GREEN.light());
+                    JenkinsPalette.GREEN.light(), filledMode);
 
             addSeries(dataSet, model, Messages.Metric_MCDC_PAIR(), CoverageSeriesBuilder.MCDC_PAIR_COVERAGE,
-                    JenkinsPalette.RED.light());
+                    JenkinsPalette.RED.light(), filledMode);
             addSeries(dataSet, model, Messages.Metric_METHOD(), CoverageSeriesBuilder.METHOD_COVERAGE,
-                    JenkinsPalette.RED.normal());
+                    JenkinsPalette.RED.normal(), filledMode);
             addSeries(dataSet, model, Messages.Metric_FUNCTION_CALL(), CoverageSeriesBuilder.FUNCTION_CALL_COVERAGE,
-                    JenkinsPalette.RED.dark());
+                    JenkinsPalette.RED.dark(), filledMode);
         }
         return model;
     }
 
-    private static void addSeries(final LinesDataSet dataSet, final LinesChartModel model,
-            final String name, final String seriesId, final String color) {
+    /**
+     * Returns the filled mode based on the contained coverage values. If the dataset contains MCDC or Function Call
+     * coverage, then the filled mode is set to LINES, otherwise FILLED.
+     *
+     * @param dataSet
+     *         the dataset to check
+     *
+     * @return the filled mode
+     */
+    private FilledMode computeFilledMode(final LinesDataSet dataSet) {
+        if (dataSet.containsSeries(CoverageSeriesBuilder.MCDC_PAIR_COVERAGE)
+                || dataSet.containsSeries(CoverageSeriesBuilder.FUNCTION_CALL_COVERAGE)) {
+            return FilledMode.LINES;
+        }
+        return FilledMode.FILLED;
+    }
+
+    private void addSeries(final LinesDataSet dataSet, final LinesChartModel model,
+            final String name, final String seriesId, final String color, final FilledMode filledMode) {
         if (dataSet.containsSeries(seriesId)) {
             LineSeries branchSeries = new LineSeries(name,
-                    color, StackedMode.SEPARATE_LINES, lineMode,
-                    dataSet.getSeries(seriesId));
+                    color, StackedMode.SEPARATE_LINES, filledMode, dataSet.getSeries(seriesId));
 
             model.addSeries(branchSeries);
         }

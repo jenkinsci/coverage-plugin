@@ -32,10 +32,15 @@ public class CoverageSeriesBuilder extends SeriesBuilder<CoverageStatistics> {
         add(statistics, Metric.BRANCH, BRANCH_COVERAGE, series);
         add(statistics, Metric.MUTATION, MUTATION_COVERAGE, series);
         add(statistics, Metric.TEST_STRENGTH, TEST_STRENGTH, series);
-        add(statistics, Metric.MCDC_PAIR, MCDC_PAIR_COVERAGE, series);    
-        add(statistics, Metric.FUNCTION_CALL, FUNCTION_CALL_COVERAGE, series);          
-        add(statistics, Metric.METHOD, METHOD_COVERAGE, series);
-                
+        add(statistics, Metric.MCDC_PAIR, MCDC_PAIR_COVERAGE, series);
+        add(statistics, Metric.FUNCTION_CALL, FUNCTION_CALL_COVERAGE, series);
+
+        if (statistics.containsValue(Baseline.PROJECT, Metric.MCDC_PAIR)
+                || statistics.containsValue(Baseline.PROJECT, Metric.FUNCTION_CALL)) {
+            // Method coverage is only relevant if MC/DC pair or function call coverage is available
+            add(statistics, Metric.METHOD, METHOD_COVERAGE, series);
+        }
+
         return series;
     }
 
