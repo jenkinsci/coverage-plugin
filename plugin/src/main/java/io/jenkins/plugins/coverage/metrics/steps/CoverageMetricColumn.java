@@ -132,7 +132,7 @@ public class CoverageMetricColumn extends ListViewColumn {
      */
     @SuppressWarnings("unused") // Called by jelly view
     public String formatValue(final Value value) {
-        return FORMATTER.formatDetails(value, Functions.getCurrentLocale());
+        return FORMATTER.formatValue(value);
     }
 
     /**
