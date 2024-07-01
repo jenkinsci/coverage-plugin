@@ -524,13 +524,13 @@ public final class CoverageBuildAction extends BuildAction<Node> implements Stap
     public String formatDelta(final Baseline baseline, final Metric metric) {
         var currentLocale = Functions.getCurrentLocale();
         if (baseline == Baseline.PROJECT && hasDelta(baseline, metric)) {
-            return FORMATTER.formatDelta(difference.get(metric), metric, currentLocale);
+            return FORMATTER.formatDelta(metric, difference.get(metric), currentLocale);
         }
         if (baseline == Baseline.MODIFIED_LINES && hasDelta(baseline, metric)) {
-            return FORMATTER.formatDelta(modifiedLinesCoverageDifference.get(metric), metric, currentLocale);
+            return FORMATTER.formatDelta(metric, modifiedLinesCoverageDifference.get(metric), currentLocale);
         }
         if (baseline == Baseline.MODIFIED_FILES && hasDelta(baseline, metric)) {
-            return FORMATTER.formatDelta(modifiedFilesCoverageDifference.get(metric), metric, currentLocale);
+            return FORMATTER.formatDelta(metric, modifiedFilesCoverageDifference.get(metric), currentLocale);
         }
         return Messages.Coverage_Not_Available();
     }

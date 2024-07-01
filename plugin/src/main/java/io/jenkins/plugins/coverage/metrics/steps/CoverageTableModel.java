@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.stream.Collectors;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.Fraction;
 
 import edu.hm.hafner.coverage.Coverage;
@@ -35,7 +36,6 @@ import io.jenkins.plugins.datatables.TableColumn.ColumnType;
 import io.jenkins.plugins.datatables.TableConfiguration;
 import io.jenkins.plugins.datatables.TableConfiguration.SelectStyle;
 import io.jenkins.plugins.datatables.TableModel;
-import org.apache.commons.lang3.StringUtils;
 
 import static j2html.TagCreator.*;
 
@@ -119,11 +119,11 @@ class CoverageTableModel extends TableModel {
                 Messages.Column_DeltaLineCoverage("Δ"), columns);
         configureValueColumn("branchCoverage", Metric.BRANCH, Messages.Column_BranchCoverage(),
                 Messages.Column_DeltaBranchCoverage("Δ"), columns);
-                
+
         /* VectorCAST metrics */
-        configureValueColumn("mcdcPairCoverage", Metric.MCDC_PAIR, Messages.Column_MCDCPairs(), 
+        configureValueColumn("mcdcPairCoverage", Metric.MCDC_PAIR, Messages.Column_MCDCPairs(),
                 "", columns);
-        configureValueColumn("functionCallCoverage", Metric.FUNCTION_CALL, Messages.Column_FunctionCall(), 
+        configureValueColumn("functionCallCoverage", Metric.FUNCTION_CALL, Messages.Column_FunctionCall(),
                 "", columns);
 
         configureValueColumn("mutationCoverage", Metric.MUTATION, Messages.Column_MutationCoverage(),
@@ -370,7 +370,7 @@ class CoverageTableModel extends TableModel {
                             div().withClasses(COVERAGE_COLUMN_INNER)
                                     .withStyle(String.format("background-color:%s;", colors.getFillColorAsRGBAHex(
                                             TABLE_COVERAGE_COLOR_ALPHA)))
-                                    .withText(FORMATTER.formatDelta(delta, metric, browserLocale)))
+                                    .withText(FORMATTER.formatDelta(metric, delta, browserLocale)))
                     .render();
             return new DetailedCell<>(cell, percentage);
         }

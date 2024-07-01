@@ -31,6 +31,7 @@ import io.jenkins.plugins.coverage.metrics.color.ColorProviderFactory;
  * @author Florian Orendi
  */
 // TODO: create instances for the different types
+// TODO: rethink the approach of storing the delta values as FractionValues
 @SuppressWarnings({"PMD.GodClass", "PMD.CyclomaticComplexity"})
 public final class ElementFormatter {
     private static final Fraction HUNDRED = Fraction.getFraction("100.0");
@@ -51,7 +52,11 @@ public final class ElementFormatter {
         if (value instanceof IntegerValue) {
             return String.format("%s: %d", getLabel(value.getMetric()), ((IntegerValue) value).getValue());
         }
-        return formatValueWithMetric(value) + " (" + formatAdditionalInformation(value) + ")";
+        var additional = formatAdditionalInformation(value);
+        if (additional.isBlank()) {
+            return formatValueWithMetric(value);
+        }
+        return formatValueWithMetric(value) + " (" + additional + ")";
     }
 
     /**
@@ -88,7 +93,10 @@ public final class ElementFormatter {
             return String.valueOf(((IntegerValue) value).getValue());
         }
         if (value instanceof FractionValue) {
-            return formatDelta(((FractionValue) value).getFraction(), value.getMetric(), locale);
+            if (value.getMetric() == Metric.COMPLEXITY_DENSITY) {
+                return String.format(locale, "%.2f", ((FractionValue) value).getFraction().doubleValue());
+            }
+            return formatDelta(value.getMetric(), ((FractionValue) value).getFraction(), locale);
         }
         return value.toString();
     }
@@ -119,7 +127,7 @@ public final class ElementFormatter {
      *
      * @return the formatted value as plain text
      */
-    public String formatDetails(final Value value, final Locale locale) {
+    private String formatDetails(final Value value, final Locale locale) {
         if (value instanceof Coverage) {
             var coverage = (Coverage) value;
             return formatPercentage(coverage, locale)
@@ -129,6 +137,9 @@ public final class ElementFormatter {
             return String.valueOf(((IntegerValue) value).getValue());
         }
         if (value instanceof FractionValue) {
+            if (value.getMetric() == Metric.COMPLEXITY_DENSITY) {
+                return String.format(locale, "%.2f", ((FractionValue) value).getFraction().doubleValue());
+            }
             return String.format(locale, "%.2f%%", ((FractionValue) value).getFraction().doubleValue());
         }
         return value.toString();
@@ -210,7 +221,6 @@ public final class ElementFormatter {
      *
      * @return the value formatted as a string
      */
-    @SuppressWarnings("unused") // Called by jelly view
     public String formatValue(final Value value) {
         return formatDetails(value, Functions.getCurrentLocale());
     }
@@ -337,21 +347,24 @@ public final class ElementFormatter {
      * Formats a delta percentage to its plain text representation with a leading sign and rounds the value to two
      * decimals.
      *
-     * @param fraction
-     *         the value of the delta
      * @param metric
      *         the metric of the value
+     * @param fraction
+     *         the value of the delta
      * @param locale
      *         the locale to use to render the values
      *
      * @return the formatted delta percentage as plain text with a leading sign
      */
-    public String formatDelta(final Fraction fraction, final Metric metric, final Locale locale) {
+    public String formatDelta(final Metric metric, final Fraction fraction, final Locale locale) {
         if (metric.equals(Metric.COMPLEXITY)
                 || metric.equals(Metric.COMPLEXITY_MAXIMUM)
                 || metric.equals(Metric.LOC)
                 || metric.equals(Metric.TESTS)) {
             return String.format(locale, "%+d", fraction.intValue());
+        }
+        if (metric == Metric.COMPLEXITY_DENSITY) {
+            return String.format(locale, "%+.2f", fraction.doubleValue());
         }
         return String.format(locale, "%+.2f%%", new SafeFraction(fraction).multiplyBy(HUNDRED).doubleValue());
     }
