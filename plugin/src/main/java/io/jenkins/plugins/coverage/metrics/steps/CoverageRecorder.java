@@ -428,13 +428,13 @@ public class CoverageRecorder extends Recorder {
             var action = reporter.publishAction(getActualId(), getName(), getIcon(), aggregatedResult, run,
                     workspace, taskListener, getQualityGates(), getScm(),
                     getSourceCodeEncoding(), getSourceCodeRetention(), resultHandler, log);
-            logHandler.log(log);
 
             if (!skipPublishingChecks) {
                 var checksPublisher = new CoverageChecksPublisher(action, aggregatedResult, getChecksName(), getChecksAnnotationScope());
                 checksPublisher.publishCoverageReport(taskListener);
             }
         }
+        logHandler.log(log);
     }
 
     private void resolveAbsolutePaths(final Node rootNode, final FilePath workspace, final Set<String> sources,
