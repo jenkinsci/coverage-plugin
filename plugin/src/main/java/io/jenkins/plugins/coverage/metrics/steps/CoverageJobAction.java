@@ -77,7 +77,7 @@ public class CoverageJobAction extends TrendChartJobAction<CoverageBuildAction> 
         var iterable = new BuildActionIterable<>(CoverageBuildAction.class, getLatestAction(),
                 selectByUrl(), CoverageBuildAction::getStatistics);
 
-        return new CoverageTrendChart().create(iterable, ChartModelConfiguration.fromJson(configuration));
+        return new CoverageTrendChart().create(iterable, ChartModelConfiguration.fromJson(configuration), false);
     }
 
     @Override

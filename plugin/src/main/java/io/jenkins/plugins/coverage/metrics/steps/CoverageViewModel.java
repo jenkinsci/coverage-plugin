@@ -9,7 +9,9 @@ import java.util.NavigableSet;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.BiFunction;
 import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -79,7 +81,7 @@ public class CoverageViewModel extends DefaultAsyncTableContentProvider implemen
     private static final ElementFormatter FORMATTER = new ElementFormatter();
     private static final Set<Metric> TREE_METRICS = Set.of(
             Metric.LINE, Metric.BRANCH, Metric.MUTATION, Metric.TEST_STRENGTH, Metric.COMPLEXITY, Metric.TESTS,
-            Metric.MCDC_PAIR, Metric.FUNCTION_CALL);
+            Metric.MCDC_PAIR, Metric.FUNCTION_CALL, Metric.COGNITIVE_COMPLEXITY, Metric.NCSS, Metric.NPATH_COMPLEXITY);
     private static final String UNDEFINED = "-";
     private final Run<?, ?> owner;
     private final String displayName;
@@ -92,14 +94,16 @@ public class CoverageViewModel extends DefaultAsyncTableContentProvider implemen
 
     private final Node modifiedLinesCoverageTreeRoot;
     private final Node indirectCoverageChangesTreeRoot;
-    private final Function<String, String> trendChartFunction;
+    private final BiFunction<String, Boolean, String> trendChartFunction;
+    private final Supplier<Boolean> coverageSupplier;
 
     private ColorProvider colorProvider = ColorProviderFactory.createDefaultColorProvider();
 
     @SuppressWarnings("checkstyle:ParameterNumber")
     CoverageViewModel(final Run<?, ?> owner, final String id, final String displayName, final Node node,
             final CoverageStatistics statistics, final QualityGateResult qualityGateResult,
-            final String referenceBuild, final FilteredLog log, final Function<String, String> trendChartFunction) {
+            final String referenceBuild, final FilteredLog log,
+            final BiFunction<String, Boolean, String> trendChartFunction, final Supplier<Boolean> coverageSupplier) {
         super();
 
         this.owner = owner;
@@ -117,6 +121,7 @@ public class CoverageViewModel extends DefaultAsyncTableContentProvider implemen
         modifiedLinesCoverageTreeRoot = node.filterByModifiedLines();
         indirectCoverageChangesTreeRoot = node.filterByIndirectChanges();
         this.trendChartFunction = trendChartFunction;
+        this.coverageSupplier = coverageSupplier;
     }
 
     @VisibleForTesting
@@ -227,7 +232,30 @@ public class CoverageViewModel extends DefaultAsyncTableContentProvider implemen
     @JavaScriptMethod
     @SuppressWarnings("unused")
     public String getTrendChart(final String configuration) {
-        return trendChartFunction.apply(configuration);
+        return trendChartFunction.apply(configuration, false);
+    }
+
+    /**
+     * Returns the metrics trend chart configuration.
+     *
+     * @param configuration
+     *         JSON object to configure optional properties for the metrics trend chart
+     *
+     * @return the metrics trend chart model (converted to a JSON string)
+     */
+    @JavaScriptMethod
+    @SuppressWarnings("unused")
+    public String getMetricsTrendChart(final String configuration) {
+        return trendChartFunction.apply(configuration, true);
+    }
+
+    /**
+     * Returns if the last job had any coverage data.
+     *
+     * @return if the last job has coverage data
+     */
+    public boolean hasCoverage() {
+        return coverageSupplier.get();
     }
 
     /**
@@ -257,41 +285,10 @@ public class CoverageViewModel extends DefaultAsyncTableContentProvider implemen
      */
     @SuppressWarnings({"PMD.CyclomaticComplexity", "PMD.NPathComplexity"})
     private Metric getCoverageMetricFromText(final String text) {
-        if (text.contains("line")) {
-            return Metric.LINE;
-        }
-        if (text.contains("branch")) {
-            return Metric.BRANCH;
-        }
-        if (text.contains("instruction")) {
-            return Metric.INSTRUCTION;
-        }
-        if (text.contains("mutation")) {
-            return Metric.MUTATION;
-        }
-        if (text.contains("strength")) {
-            return Metric.TEST_STRENGTH;
-        }
-        if (text.contains("loc")) {
-            return Metric.LOC;
-        }
-        if (text.contains("density")) {
-            return Metric.COMPLEXITY_DENSITY;
-        }
-        if (text.contains("tests")) {
-            return Metric.TESTS;
-        }
-        if (text.contains("complexity")) {
-            return Metric.COMPLEXITY;
-        }
-        if (text.contains("mcdc-pair")) {
-            return Metric.MCDC_PAIR;
-        }
-        if (text.contains("function-call")) {
-            return Metric.FUNCTION_CALL;
-        }
-        if (text.contains("method")) {
-            return Metric.METHOD;
+        for (Metric metric: Metric.values()) {
+            if (text.contains(metric.toTagName())) {
+                return metric;
+            }
         }
         throw new IllegalArgumentException("Unknown coverage metric: " + text);
     }

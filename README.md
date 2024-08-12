@@ -17,6 +17,7 @@ The Jenkins Coverage Plug-in collects reports of code coverage or mutation cover
 - [JUnit](https://ant.apache.org/manual/Tasks/junitreport.html): Test Results
 - [NUnit](https://nunit.org/): Test Results
 - [XUnit](https://xunit.net/): Test Results
+- [PMD](https://pmd.github.io/) Metrics XML report
 
 If your coverage tool is not yet supported by the coverage plugin, feel free to provide a pull request for the [Coverage Model](https://github.com/jenkinsci/coverage-model/pulls).
 

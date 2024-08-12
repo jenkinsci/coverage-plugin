@@ -17,6 +17,7 @@ import java.util.stream.Stream;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.Fraction;
 
+import edu.hm.hafner.coverage.Coverage;
 import edu.hm.hafner.coverage.Metric;
 import edu.hm.hafner.coverage.Node;
 import edu.hm.hafner.coverage.Value;
@@ -616,15 +617,31 @@ public final class CoverageBuildAction extends BuildAction<Node> implements Stap
     @Override
     public CoverageViewModel getTarget() {
         return new CoverageViewModel(getOwner(), getUrlName(), name, getResult(),
-                getStatistics(), getQualityGateResult(), getReferenceBuildLink(), log, this::createChartModel);
+                getStatistics(), getQualityGateResult(), getReferenceBuildLink(), log, this::createChartModel, this::checkForCoverageData);
     }
 
-    private String createChartModel(final String configuration) {
+    private String createChartModel(final String configuration, final boolean metrics) {
         // FIXME: add without optional
         var iterable = new BuildActionIterable<>(CoverageBuildAction.class, Optional.of(this),
                 action -> getUrlName().equals(action.getUrlName()), CoverageBuildAction::getStatistics);
         return new JacksonFacade().toJson(
-                new CoverageTrendChart().create(iterable, ChartModelConfiguration.fromJson(configuration)));
+                new CoverageTrendChart().create(iterable, ChartModelConfiguration.fromJson(configuration), metrics));
+    }
+
+    private boolean checkForCoverageData() {
+        var iterator = new BuildActionIterable<>(CoverageBuildAction.class, Optional.of(this),
+                action -> getUrlName().equals(action.getUrlName()), CoverageBuildAction::getStatistics).iterator();
+        if (iterator.hasNext()) {
+            var lastResult = iterator.next().getResult();
+            return lastResult.getValue(Baseline.PROJECT, Metric.MODULE)
+                    .or(() -> lastResult.getValue(Baseline.PROJECT, Metric.PACKAGE))
+                    .or(() -> lastResult.getValue(Baseline.PROJECT, Metric.FILE))
+                    .or(() -> lastResult.getValue(Baseline.PROJECT, Metric.CLASS))
+                    .or(() -> lastResult.getValue(Baseline.PROJECT, Metric.METHOD))
+                    .map(value -> value instanceof Coverage && ((Coverage) value).getCovered() != 0)
+                    .orElse(false);
+        }
+        return false;
     }
 
     @NonNull

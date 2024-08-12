@@ -204,7 +204,8 @@ public class CoverageTool extends AbstractDescribableImpl<CoverageTool> implemen
      */
     public enum ParserType {
         COVERAGE,
-        TEST
+        TEST,
+        METRICS
     }
 
     /**
@@ -234,7 +235,10 @@ public class CoverageTool extends AbstractDescribableImpl<CoverageTool> implemen
                 "symbol-solid/list-check plugin-font-awesome-api"),
         XUNIT(Messages._Parser_Xunit(), ParserType.TEST,
                 "**/xunit.xml,**/TestResult.xml",
-                "symbol-solid/list-check plugin-font-awesome-api");
+                "symbol-solid/list-check plugin-font-awesome-api"),
+        METRICS(Messages._Parser_Metrics(), ParserType.METRICS,
+                "**/metrics.xml",
+                "symbol-footsteps-outline plugin-ionicons-api");
 
         private final Localizable displayName;
         private final ParserType parserType;

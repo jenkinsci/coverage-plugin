@@ -51,7 +51,7 @@ class CoverageSeriesBuilderTest extends ResourceTest {
                 new CoverageBuilder().withMetric(Metric.BRANCH).withCovered(3).withMissed(1).build());
 
         LinesChartModel lineCoverage = trendChart.create(Collections.singletonList(smallLineCoverage),
-                createConfiguration());
+                createConfiguration(), false);
         verifySeriesDetails(lineCoverage);
 
         BuildResult<CoverageStatistics> smallBranchCoverage = createResult(1,
@@ -59,7 +59,7 @@ class CoverageSeriesBuilderTest extends ResourceTest {
                 new CoverageBuilder().withMetric(Metric.BRANCH).withCovered(1).withMissed(1).build());
 
         LinesChartModel branchCoverage = trendChart.create(Collections.singletonList(smallBranchCoverage),
-                createConfiguration());
+                createConfiguration(), false);
         verifySeriesDetails(branchCoverage);
     }
 
@@ -72,7 +72,7 @@ class CoverageSeriesBuilderTest extends ResourceTest {
                 new CoverageBuilder().withMetric(Metric.BRANCH).withCovered(3).withMissed(1).build());
 
         LinesChartModel lineCoverage = trendChart.create(Collections.singletonList(smallLineCoverage),
-                createConfiguration());
+                createConfiguration(), false);
         assertThat(lineCoverage.getBuildNumbers()).containsExactly(1);
         assertThat(lineCoverage.getSeries()).hasSize(2).allSatisfy(
                 series -> assertThat(series.getAreaStyle()).isNotNull()
@@ -91,7 +91,7 @@ class CoverageSeriesBuilderTest extends ResourceTest {
                 new CoverageBuilder().withMetric(vector).withCovered(1).withMissed(2).build());
 
         LinesChartModel lineCoverage = trendChart.create(Collections.singletonList(smallLineCoverage),
-                createConfiguration());
+                createConfiguration(), false);
         assertThat(lineCoverage.getBuildNumbers()).containsExactly(1);
         assertThat(lineCoverage.getSeries()).hasSize(3).allSatisfy(
                 series -> assertThat(series.getAreaStyle()).isNull()
@@ -166,7 +166,7 @@ class CoverageSeriesBuilderTest extends ResourceTest {
                 .containsExactly(75.0, 25.0);
 
         CoverageTrendChart trendChart = new CoverageTrendChart();
-        var model = trendChart.create(List.of(first, second), createConfiguration());
+        var model = trendChart.create(List.of(first, second), createConfiguration(), false);
 
         assertThatJson(model).isEqualTo(toString("chart.json"));
     }
