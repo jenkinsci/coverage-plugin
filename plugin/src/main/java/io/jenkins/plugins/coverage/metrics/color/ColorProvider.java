@@ -1,7 +1,7 @@
 package io.jenkins.plugins.coverage.metrics.color;
 
 import java.awt.*;
-import java.util.HashMap;
+import java.util.EnumMap;
 import java.util.Map;
 import java.util.Objects;
 
@@ -34,7 +34,12 @@ public class ColorProvider {
      *         The color mapping to be used
      */
     ColorProvider(final Map<ColorId, DisplayColors> colorMapping) {
-        availableColors = new HashMap<>(colorMapping);
+        if (colorMapping.isEmpty()) {
+            availableColors = new EnumMap<>(ColorId.class);
+        }
+        else {
+            availableColors = new EnumMap<>(colorMapping);
+        }
     }
 
     /**
@@ -52,7 +57,7 @@ public class ColorProvider {
     }
 
     /**
-     * Blends two colors using weights that have to be greater then zero.
+     * Blends two colors using weights that have to be greater than zero.
      *
      * @param color1
      *         The first color
