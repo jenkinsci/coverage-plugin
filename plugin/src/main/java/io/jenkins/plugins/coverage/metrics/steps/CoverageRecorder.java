@@ -3,7 +3,7 @@ package io.jenkins.plugins.coverage.metrics.steps;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
+import java.util.EnumMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -473,7 +473,7 @@ public class CoverageRecorder extends Recorder {
 
     private Map<Parser, List<ModuleNode>> recordCoverageResults(final Run<?, ?> run, final FilePath workspace,
             final ResultHandler resultHandler, final FilteredLog log, final LogHandler logHandler) throws InterruptedException {
-        Map<Parser, List<ModuleNode>> results = new HashMap<>();
+        Map<Parser, List<ModuleNode>> results = new EnumMap<>(Parser.class);
 
         for (CoverageTool tool : tools) {
             Parser parser = tool.getParser();

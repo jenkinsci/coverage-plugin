@@ -1,5 +1,6 @@
 package io.jenkins.plugins.coverage.metrics;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -61,7 +62,7 @@ public abstract class AbstractModifiedFilesCoverageTest extends AbstractCoverage
         var replace = new Change(ChangeEditType.REPLACE, 10, 11, 20, 22);
         var delete = new Change(ChangeEditType.DELETE, 16, 19, 26, 26);
         var fileChanges = new FileChanges(TEST_FILE_MODIFIED_PATH, TEST_FILE_MODIFIED_PATH_OLD,
-                "test", FileEditType.RENAME, new HashMap<>());
+                "test", FileEditType.RENAME, Collections.emptyMap());
         fileChanges.addChange(insert1);
         fileChanges.addChange(insert2);
         fileChanges.addChange(insert3);
@@ -69,7 +70,8 @@ public abstract class AbstractModifiedFilesCoverageTest extends AbstractCoverage
         fileChanges.addChange(delete);
         CODE_CHANGES.put(TEST_FILE_MODIFIED_PATH, fileChanges);
         CODE_CHANGES.put(TEST_FILE_NOT_MODIFIED,
-                new FileChanges("empty", "empty", "", FileEditType.MODIFY, new HashMap<>()));
+                new FileChanges("empty", "empty", "", FileEditType.MODIFY,
+                        Collections.emptyMap()));
         OLD_PATH_MAPPING.put(TEST_FILE_MODIFIED_PATH, TEST_FILE_MODIFIED_PATH_OLD);
     }
 
