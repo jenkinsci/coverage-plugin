@@ -29,7 +29,7 @@
     <jsoup.version>1.18.1</jsoup.version>
 
     <!-- Jenkins Plug-in Dependencies Versions -->
-    <git-forensics.version>2.1.0</git-forensics.version>
+    <git-forensics.version>2.2.0</git-forensics.version>
 
     <!-- Test Library Dependencies Versions -->
     <xmlunit.version>2.10.0</xmlunit.version>
