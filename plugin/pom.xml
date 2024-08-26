@@ -25,7 +25,7 @@
     <gitHubRepo>jenkinsci/coverage-plugin</gitHubRepo>
 
     <!-- Library Dependencies Versions -->
-    <coverage-model.version>0.47.0</coverage-model.version>
+    <coverage-model.version>0.47.0-rc820.8626b_cf92160</coverage-model.version>
     <jsoup.version>1.18.1</jsoup.version>
 
     <!-- Jenkins Plug-in Dependencies Versions -->
