@@ -524,7 +524,9 @@ public class CoverageRecorder extends Recorder {
             return new ModuleNode("Empty");
         }
         else {
-            var testCases = results.entrySet().stream().filter(entry -> entry.getKey().getParserType() == ParserType.TEST)
+            var testCases = results.entrySet()
+                    .stream()
+                    .filter(entry -> entry.getKey().getParserType() == ParserType.TEST)
                     .map(Entry::getValue)
                     .flatMap(Collection::stream)
                     .map(Node::getAllClassNodes)
@@ -536,12 +538,23 @@ public class CoverageRecorder extends Recorder {
                     .map(Entry::getValue)
                     .flatMap(Collection::stream)
                     .collect(Collectors.toList());
-            if (coverageNodes.isEmpty()) {
+            var metricsNodes = results.entrySet()
+                    .stream()
+                    .filter(entry -> entry.getKey().getParserType() == ParserType.METRICS)
+                    .map(Entry::getValue)
+                    .flatMap(Collection::stream)
+                    .collect(Collectors.toList());
+            if (coverageNodes.isEmpty() && !testCases.isEmpty()) {
                 log.logError("No coverage results were found, just tests! Configuration error?");
 
                 var tests = new ModuleNode("Tests");
                 tests.addAllChildren(testCases);
                 return tests;
+            }
+            else if (!metricsNodes.isEmpty()) {
+                var metrics = new ModuleNode("Metrics");
+                metrics.addAllChildren(metricsNodes);
+                return metrics;
             }
 
             var coverageTree = Node.merge(coverageNodes);
