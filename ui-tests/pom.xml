@@ -48,7 +48,7 @@
     <dependency>
       <groupId>org.jenkins-ci</groupId>
       <artifactId>acceptance-test-harness</artifactId>
-      <version>5997.v2a_1a_696620a_0</version>
+      <version>6040.v72ed2f5b_59f6</version>
     </dependency>
     <dependency>
       <groupId>com.fasterxml.jackson.core</groupId>
