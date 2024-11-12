@@ -238,7 +238,7 @@ public class CoverageTool extends AbstractDescribableImpl<CoverageTool> implemen
                 "symbol-solid/list-check plugin-font-awesome-api"),
         METRICS(Messages._Parser_Metrics(), ParserType.METRICS,
                 "**/metrics.xml",
-                "symbol-footsteps-outline plugin-ionicons-api");
+                "symbol-solid/scale-balanced plugin-font-awesome-api");
 
         private final Localizable displayName;
         private final ParserType parserType;

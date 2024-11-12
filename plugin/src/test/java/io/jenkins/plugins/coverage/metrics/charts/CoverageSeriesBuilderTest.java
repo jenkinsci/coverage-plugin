@@ -44,14 +44,14 @@ class CoverageSeriesBuilderTest extends ResourceTest {
 
     @Test
     void shouldCreateChart() {
-        CoverageTrendChart trendChart = new CoverageTrendChart();
+        TrendChart trendChart = new CoverageTrendChart();
 
         BuildResult<CoverageStatistics> smallLineCoverage = createResult(1,
                 new CoverageBuilder().withMetric(Metric.LINE).withCovered(1).withMissed(1).build(),
                 new CoverageBuilder().withMetric(Metric.BRANCH).withCovered(3).withMissed(1).build());
 
         LinesChartModel lineCoverage = trendChart.create(Collections.singletonList(smallLineCoverage),
-                createConfiguration(), false);
+                createConfiguration());
         verifySeriesDetails(lineCoverage);
 
         BuildResult<CoverageStatistics> smallBranchCoverage = createResult(1,
@@ -59,20 +59,20 @@ class CoverageSeriesBuilderTest extends ResourceTest {
                 new CoverageBuilder().withMetric(Metric.BRANCH).withCovered(1).withMissed(1).build());
 
         LinesChartModel branchCoverage = trendChart.create(Collections.singletonList(smallBranchCoverage),
-                createConfiguration(), false);
+                createConfiguration());
         verifySeriesDetails(branchCoverage);
     }
 
     @Test
     void shouldCreateStackedChartByDefault() {
-        CoverageTrendChart trendChart = new CoverageTrendChart();
+        TrendChart trendChart = new CoverageTrendChart();
 
         BuildResult<CoverageStatistics> smallLineCoverage = createResult(1,
                 new CoverageBuilder().withMetric(Metric.LINE).withCovered(1).withMissed(1).build(),
                 new CoverageBuilder().withMetric(Metric.BRANCH).withCovered(3).withMissed(1).build());
 
         LinesChartModel lineCoverage = trendChart.create(Collections.singletonList(smallLineCoverage),
-                createConfiguration(), false);
+                createConfiguration());
         assertThat(lineCoverage.getBuildNumbers()).containsExactly(1);
         assertThat(lineCoverage.getSeries()).hasSize(2).allSatisfy(
                 series -> assertThat(series.getAreaStyle()).isNotNull()
@@ -83,7 +83,7 @@ class CoverageSeriesBuilderTest extends ResourceTest {
 
     @ParameterizedTest @EnumSource(value = Metric.class, names = {"MCDC_PAIR", "FUNCTION_CALL"})
     void shouldCreateLineChartForVectorCoverage(final Metric vector) {
-        CoverageTrendChart trendChart = new CoverageTrendChart();
+        TrendChart trendChart = new CoverageTrendChart();
 
         BuildResult<CoverageStatistics> smallLineCoverage = createResult(1,
                 new CoverageBuilder().withMetric(Metric.LINE).withCovered(1).withMissed(1).build(),
@@ -91,7 +91,7 @@ class CoverageSeriesBuilderTest extends ResourceTest {
                 new CoverageBuilder().withMetric(vector).withCovered(1).withMissed(2).build());
 
         LinesChartModel lineCoverage = trendChart.create(Collections.singletonList(smallLineCoverage),
-                createConfiguration(), false);
+                createConfiguration());
         assertThat(lineCoverage.getBuildNumbers()).containsExactly(1);
         assertThat(lineCoverage.getSeries()).hasSize(3).allSatisfy(
                 series -> assertThat(series.getAreaStyle()).isNull()
@@ -165,8 +165,8 @@ class CoverageSeriesBuilderTest extends ResourceTest {
         assertThat(dataSet.getSeries(CoverageSeriesBuilder.BRANCH_COVERAGE))
                 .containsExactly(75.0, 25.0);
 
-        CoverageTrendChart trendChart = new CoverageTrendChart();
-        var model = trendChart.create(List.of(first, second), createConfiguration(), false);
+        TrendChart trendChart = new CoverageTrendChart();
+        var model = trendChart.create(List.of(first, second), createConfiguration());
 
         assertThatJson(model).isEqualTo(toString("chart.json"));
     }

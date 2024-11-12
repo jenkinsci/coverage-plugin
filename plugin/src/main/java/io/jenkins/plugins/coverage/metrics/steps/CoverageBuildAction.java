@@ -14,6 +14,7 @@ import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import io.jenkins.plugins.coverage.metrics.charts.TrendChart;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.Fraction;
 
@@ -32,7 +33,6 @@ import org.kohsuke.stapler.StaplerProxy;
 import hudson.Functions;
 import hudson.model.Run;
 
-import io.jenkins.plugins.coverage.metrics.charts.CoverageTrendChart;
 import io.jenkins.plugins.coverage.metrics.model.Baseline;
 import io.jenkins.plugins.coverage.metrics.model.CoverageStatistics;
 import io.jenkins.plugins.coverage.metrics.model.ElementFormatter;
@@ -624,8 +624,8 @@ public final class CoverageBuildAction extends BuildAction<Node> implements Stap
         // FIXME: add without optional
         var iterable = new BuildActionIterable<>(CoverageBuildAction.class, Optional.of(this),
                 action -> getUrlName().equals(action.getUrlName()), CoverageBuildAction::getStatistics);
-        return new JacksonFacade().toJson(
-                new CoverageTrendChart().create(iterable, ChartModelConfiguration.fromJson(configuration), metrics));
+        return new JacksonFacade().toJson(TrendChart.createTrendChart(metrics)
+                .create(iterable, ChartModelConfiguration.fromJson(configuration)));
     }
 
     private boolean checkForCoverageData() {
@@ -638,7 +638,7 @@ public final class CoverageBuildAction extends BuildAction<Node> implements Stap
                     .or(() -> lastResult.getValue(Baseline.PROJECT, Metric.FILE))
                     .or(() -> lastResult.getValue(Baseline.PROJECT, Metric.CLASS))
                     .or(() -> lastResult.getValue(Baseline.PROJECT, Metric.METHOD))
-                    .map(value -> value instanceof Coverage && ((Coverage) value).getCovered() != 0)
+                    .map(value -> value instanceof Coverage && ((Coverage) value).isSet())
                     .orElse(false);
         }
         return false;
