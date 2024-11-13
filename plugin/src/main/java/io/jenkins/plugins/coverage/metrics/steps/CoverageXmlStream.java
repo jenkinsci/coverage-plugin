@@ -40,6 +40,7 @@ import edu.hm.hafner.coverage.Value;
 import hudson.util.XStream2;
 
 import io.jenkins.plugins.util.AbstractXmlStream;
+import io.jenkins.plugins.util.QualityGateResult.QualityGateResultItem;
 
 /**
  * Configures the XML stream for the coverage tree, which consists of {@link Node}s.
@@ -71,6 +72,7 @@ class CoverageXmlStream extends AbstractXmlStream<Node> {
         xStream.alias("file", FileNode.class);
         xStream.alias("class", ClassNode.class);
         xStream.alias("method", MethodNode.class);
+        xStream.alias("qualityGateResultItem", QualityGateResultItem.class);
 
         xStream.registerLocalConverter(FileNode.class, "coveredPerLine", new IntegerLineMapConverter());
         xStream.registerLocalConverter(FileNode.class, "missedPerLine", new IntegerLineMapConverter());
