@@ -416,6 +416,12 @@ public final class ElementFormatter {
                 return Messages.Metric_MCDC_PAIR();
             case FUNCTION_CALL:
                 return Messages.Metric_FUNCTION_CALL();
+            case COGNITIVE_COMPLEXITY:
+                return Messages.Metric_COGNITIVE_COMPLEXITY();
+            case NPATH_COMPLEXITY:
+                return Messages.Metric_NPATH();
+            case NCSS:
+                return Messages.Metric_NCSS();
             default:
                 throw new NoSuchElementException("No display name found for metric " + metric);
         }
@@ -493,6 +499,12 @@ public final class ElementFormatter {
                 return Messages.Metric_Short_MCDC_PAIR();
             case FUNCTION_CALL:
                 return Messages.Metric_Short_FUNCTION_CALL();
+            case NCSS:
+                return Messages.Metric_Short_NCSS();
+            case NPATH_COMPLEXITY:
+                return Messages.Metric_Short_NPATH();
+            case COGNITIVE_COMPLEXITY:
+                return Messages.Metric_Short_COGNITIVE_COMPLEXITY();
             default:
                 throw new NoSuchElementException("No label found for metric " + metric);
         }
@@ -550,6 +562,9 @@ public final class ElementFormatter {
         add(options, Metric.TESTS);
         add(options, Metric.MCDC_PAIR);
         add(options, Metric.FUNCTION_CALL);
+        add(options, Metric.NCSS);
+        add(options, Metric.NPATH_COMPLEXITY);
+        add(options, Metric.COGNITIVE_COMPLEXITY);
         return options;
     }
 
