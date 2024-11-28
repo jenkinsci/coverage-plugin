@@ -3,9 +3,7 @@ package io.jenkins.plugins.coverage.metrics.charts;
 import edu.hm.hafner.echarts.BuildResult;
 import edu.hm.hafner.echarts.ChartModelConfiguration;
 import edu.hm.hafner.echarts.JacksonFacade;
-import edu.hm.hafner.echarts.line.LineSeries;
 import edu.hm.hafner.echarts.line.LineSeries.FilledMode;
-import edu.hm.hafner.echarts.line.LineSeries.StackedMode;
 import edu.hm.hafner.echarts.line.LinesChartModel;
 import edu.hm.hafner.echarts.line.LinesDataSet;
 
@@ -22,18 +20,8 @@ import io.jenkins.plugins.echarts.JenkinsPalette;
  * @author Ullrich Hafner
  * @see JacksonFacade
  */
-public class CoverageTrendChart {
-    /**
-     * Creates the chart for the specified results.
-     *
-     * @param results
-     *         the forensics results to render - these results must be provided in descending order, i.e. the current *
-     *         build is the head of the list, then the previous builds, and so on
-     * @param configuration
-     *         the chart configuration to be used
-     *
-     * @return the chart model, ready to be serialized to JSON
-     */
+public class CoverageTrendChart extends TrendChart {
+    @Override
     public LinesChartModel create(final Iterable<BuildResult<CoverageStatistics>> results,
             final ChartModelConfiguration configuration) {
         CoverageSeriesBuilder builder = new CoverageSeriesBuilder();
@@ -43,14 +31,12 @@ public class CoverageTrendChart {
 
         LinesChartModel model = new LinesChartModel(dataSet);
         if (dataSet.isNotEmpty()) {
-            LineSeries lineSeries = new LineSeries(Messages.Metric_LINE(),
-                    JenkinsPalette.GREEN.normal(), StackedMode.SEPARATE_LINES, filledMode,
-                    dataSet.getSeries(CoverageSeriesBuilder.LINE_COVERAGE));
-            model.addSeries(lineSeries);
             model.useContinuousRangeAxis();
             model.setRangeMax(100);
             model.setRangeMin(dataSet.getMinimumValue());
 
+            addSeries(dataSet, model, Messages.Metric_LINE(), CoverageSeriesBuilder.LINE_COVERAGE,
+                    JenkinsPalette.GREEN.normal(), filledMode);
             addSeries(dataSet, model, Messages.Metric_BRANCH(), CoverageSeriesBuilder.BRANCH_COVERAGE,
                     JenkinsPalette.GREEN.dark(), filledMode);
             addSeries(dataSet, model, Messages.Metric_MUTATION(), CoverageSeriesBuilder.MUTATION_COVERAGE,
@@ -83,15 +69,5 @@ public class CoverageTrendChart {
             return FilledMode.LINES;
         }
         return FilledMode.FILLED;
-    }
-
-    private void addSeries(final LinesDataSet dataSet, final LinesChartModel model,
-            final String name, final String seriesId, final String color, final FilledMode filledMode) {
-        if (dataSet.containsSeries(seriesId)) {
-            LineSeries branchSeries = new LineSeries(name,
-                    color, StackedMode.SEPARATE_LINES, filledMode, dataSet.getSeries(seriesId));
-
-            model.addSeries(branchSeries);
-        }
     }
 }
