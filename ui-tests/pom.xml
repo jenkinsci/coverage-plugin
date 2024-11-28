@@ -16,7 +16,7 @@
   <name>UI Tests of Code Coverage Plugin</name>
 
   <properties>
-    <jenkins.version>2.485</jenkins.version>
+    <jenkins.version>2.487</jenkins.version>
     <hpi-plugin.version>3.59</hpi-plugin.version>
     <json-smart.version>2.3</json-smart.version>
     <json-unit-assertj.version>3.4.1</json-unit-assertj.version>
