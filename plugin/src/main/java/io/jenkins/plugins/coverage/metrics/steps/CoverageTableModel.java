@@ -130,44 +130,26 @@ class CoverageTableModel extends TableModel {
                 Messages.Column_DeltaMutationCoverage("Δ"), columns);
         configureValueColumn("testStrength", Metric.TEST_STRENGTH, Messages.Column_TestStrength(),
                 Messages.Column_DeltaTestStrength("Δ"), columns);
-        TableColumn loc = new ColumnBuilder().withHeaderLabel(Messages.Column_LinesOfCode())
-                .withDataPropertyKey("loc")
-                .withResponsivePriority(200)
-                .withType(ColumnType.NUMBER)
-                .build();
-        columns.add(loc);
-        if (root.containsMetric(Metric.TESTS)) {
-            TableColumn complexity = new ColumnBuilder().withHeaderLabel(Messages.Column_Tests())
-                    .withDataPropertyKey("tests")
-                    .withResponsivePriority(500)
-                    .withType(ColumnType.NUMBER)
-                    .build();
-            columns.add(complexity);
-        }
-        if (root.containsMetric(Metric.COMPLEXITY)) {
-            TableColumn complexity = new ColumnBuilder().withHeaderLabel(Messages.Column_Complexity())
-                    .withDataPropertyKey("complexity")
-                    .withResponsivePriority(500)
-                    .withType(ColumnType.NUMBER)
-                    .build();
-            columns.add(complexity);
-        }
-        if (root.containsMetric(Metric.COMPLEXITY_MAXIMUM)) {
-            TableColumn maxComplexity = new ColumnBuilder().withHeaderLabel(Messages.Column_MaxComplexity())
-                    .withDataPropertyKey("maxComplexity")
-                    .withResponsivePriority(900)
-                    .withType(ColumnType.NUMBER)
-                    .build();
-            columns.add(maxComplexity);
-        }
-        if (root.containsMetric(Metric.COMPLEXITY_DENSITY)) {
-            TableColumn complexity = new ColumnBuilder().withHeaderLabel(Messages.Column_ComplexityDensity())
-                    .withDataPropertyKey("density")
-                    .withDetailedCell()
-                    .withResponsivePriority(700)
-                    .withType(ColumnType.NUMBER)
-                    .build();
-            columns.add(complexity);
+
+        List<Object[]> columnsEntries = List.of(
+                new Object[] {Metric.LOC, Messages.Column_LinesOfCode(), "loc", 200},
+                new Object[] {Metric.TESTS, Messages.Column_Tests(), "tests", 500},
+                new Object[] {Metric.COMPLEXITY, Messages.Column_Complexity(), "complexity", 500},
+                new Object[] {Metric.COMPLEXITY_MAXIMUM, Messages.Column_MaxComplexity(), "maxComplexity", 900},
+                new Object[] {Metric.COMPLEXITY_DENSITY, Messages.Column_ComplexityDensity(), "density", 700},
+                new Object[] {Metric.COGNITIVE_COMPLEXITY, Messages.Column_CognitiveComplexity(), "cognitiveComplexity", 500},
+                new Object[] {Metric.NPATH_COMPLEXITY, Messages.Column_NPath(), "npathComplexity", 500},
+                new Object[] {Metric.NCSS, Messages.Column_Ncss(), "ncss", 500});
+
+        for (Object[] column : columnsEntries) {
+            if (root.containsMetric((Metric) column[0])) {
+                TableColumn tmp = new ColumnBuilder().withHeaderLabel((String) column[1])
+                        .withDataPropertyKey((String) column[2])
+                        .withResponsivePriority((Integer) column[3])
+                        .withType(ColumnType.NUMBER)
+                        .build();
+                columns.add(tmp);
+            }
         }
         return columns;
     }
@@ -222,7 +204,11 @@ class CoverageTableModel extends TableModel {
         private static final LinesOfCode ZERO_LOC = new LinesOfCode(0);
         private static final TestCount ZERO_TESTS = new TestCount(0);
         private static final CyclomaticComplexity ZERO_COMPLEXITY = new CyclomaticComplexity(0);
-
+        private static final CyclomaticComplexity ZERO_COG_COMPLEXITY = new CyclomaticComplexity(0,
+                Metric.COGNITIVE_COMPLEXITY);
+        private static final CyclomaticComplexity ZERO_NPATH_COMPLEXITY = new CyclomaticComplexity(0,
+                Metric.NPATH_COMPLEXITY);
+        private static final CyclomaticComplexity ZERO_NCSS = new CyclomaticComplexity(0, Metric.NCSS);
         private final FileNode file;
         private final Locale browserLocale;
         private final RowRenderer renderer;
@@ -322,6 +308,18 @@ class CoverageTableModel extends TableModel {
                     .getFraction()
                     .doubleValue();
             return new DetailedCell<>(String.format("%.2f", complexityDensity), complexityDensity);
+        }
+
+        public int getCognitiveComplexity() {
+            return file.getTypedValue(Metric.COGNITIVE_COMPLEXITY, ZERO_COG_COMPLEXITY).getValue();
+        }
+
+        public int getNpathComplexity() {
+            return file.getTypedValue(Metric.NPATH_COMPLEXITY, ZERO_NPATH_COMPLEXITY).getValue();
+        }
+
+        public int getNcss() {
+            return file.getTypedValue(Metric.NCSS, ZERO_NCSS).getValue();
         }
 
         /**

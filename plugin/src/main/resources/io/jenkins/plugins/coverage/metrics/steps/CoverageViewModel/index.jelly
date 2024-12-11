@@ -17,6 +17,7 @@
 
     <j:set var="hasModifiedLinesCoverage" value="${it.hasModifiedLinesCoverage()}"/>
     <j:set var="hasIndirectCoverageChanges" value="${it.hasIndirectCoverageChanges()}"/>
+    <j:set var="hasCoverage" value="${it.hasCoverage()}"/>
 
     <div class="tabBarFrame">
       <ul class="flex-wrap tabBar" role="tablist" id="tab-details">
@@ -47,15 +48,24 @@
     <div class="tab-content">
 
       <div role="tabpanel" id="overview" class="tab-pane fade" aria-labelledby="overview-tab" >
-        <div class="row">
-          <div class="col-5">
-            <bs:card title="${%Total coverage overview}" fontAwesomeIcon="chart-bar">
-              <div id="coverage-overview" class="graph-cursor-pointer overview-chart h-100"/>
-            </bs:card>
+        <j:if test="${hasCoverage}">
+          <div class="row py-3">
+            <div class="col-5">
+              <bs:card title="${%Total coverage overview}" fontAwesomeIcon="chart-bar">
+                <div id="coverage-overview" class="graph-cursor-pointer overview-chart h-100"/>
+              </bs:card>
+            </div>
+            <div class="col-7">
+              <bs:card title="${%Coverage trend}" fontAwesomeIcon="chart-line">
+                <div id="coverage-trend" class="graph-cursor-pointer overview-chart h-100"/>
+              </bs:card>
+            </div>
           </div>
-          <div class="col-7">
-            <bs:card title="${%Coverage trend}" fontAwesomeIcon="chart-line">
-              <div id="coverage-trend" class="graph-cursor-pointer overview-chart h-100"/>
+        </j:if>
+        <div class="row">
+          <div class="col-12 py-3">
+            <bs:card title="${%Metrics trend}" fontAwesomeIcon="chart-line">
+              <div id="metrics-trend" class="graph-cursor-pointer overview-chart h-100"/>
             </bs:card>
           </div>
         </div>
@@ -64,7 +74,7 @@
       <j:forEach var="metric" items="${it.treeMetrics}">
         <div role="tabpanel" id="${metric.toTagName()}" class="tab-pane fade" aria-labelledby="${metric.toTagName()}-tab">
           <bs:card title="${formatter.getDisplayName(metric)}" fontAwesomeIcon="folder-tree" class="flex-fill" bodyClass="d-flex flex-column">
-            <div id="project-${metric.toTagName()}" class="graph-cursor-pointer tree-chart" data-item-name="${formatter.getDisplayName(metric)}"/>
+            <div id="project-${metric.toTagName()}" class="graph-cursor-pointer tree-chart" data-item-name="project-${metric.toTagName()}"/>
           </bs:card>
         </div>
       </j:forEach>
