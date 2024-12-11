@@ -446,9 +446,9 @@ public class CoverageRecorder extends Recorder {
             log.logInfo("Making paths of " + pathMapping.size() + " source code files relative to workspace root...");
             var builder = new TreeStringBuilder();
             rootNode.getAllFileNodes().forEach(file -> {
-                String newPath = pathMapping.get(file.getRelativePath());
-                if (newPath != null) {
-                    file.setRelativePath(builder.intern(newPath));
+                String relativePath = file.getRelativePath();
+                if (pathMapping.containsKey(relativePath)) {
+                    file.setRelativePath(builder.intern(pathMapping.get(relativePath)));
                 }
             });
     
