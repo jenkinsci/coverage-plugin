@@ -494,7 +494,7 @@ public class CoverageRecorder extends Recorder {
 
             try {
                 FileVisitorResult<ModuleNode> result = workspace.act(
-                        new CoverageReportScanner(parser, expandedPattern, "UTF-8", isSkipSymbolicLinks(),
+                        new CoverageReportScanner(parser, expandedPattern, "UTF-8", !isSkipSymbolicLinks(),
                                 ignoreErrors()));
                 log.merge(result.getLog());
 
