@@ -85,7 +85,7 @@ public class CoverageTool extends AbstractDescribableImpl<CoverageTool> implemen
     }
 
     /**
-     * Called after de-serialization to retain backward compatibility.
+     * Called after deserialization to retain backward compatibility.
      *
      * @return this
      */
