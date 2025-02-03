@@ -12,10 +12,8 @@ import org.junitpioneer.jupiter.Issue;
 import edu.hm.hafner.coverage.Coverage;
 import edu.hm.hafner.coverage.Coverage.CoverageBuilder;
 import edu.hm.hafner.coverage.Metric;
-import edu.hm.hafner.coverage.TestCount;
 import edu.hm.hafner.coverage.Value;
 
-import org.jenkinsci.plugins.workflow.cps.CpsFlowDefinition;
 import org.jenkinsci.plugins.workflow.job.WorkflowJob;
 import hudson.model.FreeStyleProject;
 import hudson.model.Result;
@@ -167,10 +165,9 @@ class CoveragePluginITest extends AbstractCoverageITest {
                         Metric.LINE,
                         Metric.BRANCH,
                         Metric.INSTRUCTION,
-                        Metric.COMPLEXITY,
-                        Metric.COMPLEXITY_MAXIMUM,
-                        Metric.COMPLEXITY_DENSITY,
-                        Metric.LOC);
+                        Metric.CYCLOMATIC_COMPLEXITY,
+                        Metric.LOC,
+                        Metric.TESTS);
         assertThat(coverageResult.getAllValues(Baseline.PROJECT))
                 .contains(createLineCoverageBuilder()
                         .withCovered(JACOCO_ANALYSIS_MODEL_COVERED)
@@ -189,10 +186,9 @@ class CoveragePluginITest extends AbstractCoverageITest {
                         "Line Δ",
                         "Branch",
                         "Branch Δ",
-                        "LOC",
-                        "Complexity",
-                        "Max. Complexity",
-                        "Complexity / LOC");
+                        "Lines of Code",
+                        "Number of Tests",
+                        "Cyclomatic Complexity");
         assertThat(tableModel.getRows())
                 .hasSize(307)
                 .first()
@@ -204,9 +200,9 @@ class CoveragePluginITest extends AbstractCoverageITest {
                 .contains("title=\"edu/hm/hafner/analysis/parser/dry/simian/SimianParser.java\"");
         assertThat(r.getPackageName()).isEqualTo("edu.hm.hafner.analysis.parser.dry.simian");
         assertThat(r.getTests()).isEqualTo(0);
-        assertThat(r.getComplexity()).isEqualTo(6);
+        assertThat(r.getCyclomaticComplexity()).isEqualTo(6);
         assertThat(r.getLoc()).isEqualTo(28);
-        assertThat(r.getMaxComplexity()).isEqualTo(3);
+        assertThat(r.getNcss()).isEqualTo(0);
         assertThatCell(r.getLineCoverage()).contains("title=\"Covered: 26 - Missed: 2\">92.86%");
         assertThatCell(r.getLineCoverageDelta()).contains("n/a");
         assertThatCell(r.getBranchCoverage()).contains("title=\"Covered: 4 - Missed: 0\">100.00%");
@@ -215,7 +211,6 @@ class CoveragePluginITest extends AbstractCoverageITest {
         assertThatCell(r.getMutationCoverageDelta()).contains("n/a");
         assertThatCell(r.getTestStrength()).contains("n/a");
         assertThatCell(r.getTestStrengthDelta()).contains("n/a");
-        assertThatCell(r.getDensity()).contains("0.21");
     }
 
     @Test
@@ -326,7 +321,7 @@ class CoveragePluginITest extends AbstractCoverageITest {
     void shouldRecordCoberturaAndJacocoResultsInDeclarativePipeline() {
         WorkflowJob job = createPipelineWithWorkspaceFiles(JACOCO_ANALYSIS_MODEL_FILE, COBERTURA_HIGHER_COVERAGE_FILE);
 
-        job.setDefinition(new CpsFlowDefinition("pipeline {\n"
+        job.setDefinition(createPipelineScript("pipeline {\n"
                 + "    agent any\n"
                 + "    stages {\n"
                 + "        stage('Test') {\n"
@@ -338,7 +333,7 @@ class CoveragePluginITest extends AbstractCoverageITest {
                 + "            }\n"
                 + "        }\n"
                 + "    }\n"
-                + "}", true));
+                + "}"));
 
         verifyForOneCoberturaAndOneJacoco(job);
     }
@@ -450,9 +445,7 @@ class CoveragePluginITest extends AbstractCoverageITest {
         assertThat(coverageResult.getAllValues(Baseline.PROJECT))
                 .filteredOn(Value::getMetric, Metric.TESTS)
                 .first()
-                .isInstanceOfSatisfying(TestCount.class, m -> {
-                    assertThat(m.getValue()).isEqualTo(4);
-                });
+                .satisfies(m -> assertThat(m.asInteger()).isEqualTo(4));
     }
 
     @Test
@@ -465,9 +458,7 @@ class CoveragePluginITest extends AbstractCoverageITest {
         assertThat(coverageResult.getAllValues(Baseline.PROJECT))
                 .filteredOn(Value::getMetric, Metric.TESTS)
                 .first()
-                .isInstanceOfSatisfying(TestCount.class, m -> {
-                    assertThat(m.getValue()).isEqualTo(3);
-                });
+                .satisfies(m -> assertThat(m.asInteger()).isEqualTo(3));
     }
 
     @Test
@@ -511,7 +502,8 @@ class CoveragePluginITest extends AbstractCoverageITest {
                         "Mutation Δ",
                         "Test Strength",
                         "Test Strength Δ",
-                        "LOC");
+                        "Lines of Code",
+                        "Number of Tests");
         assertThat(tableModel.getRows())
                 .hasSize(10)
                 .first()
@@ -523,9 +515,9 @@ class CoveragePluginITest extends AbstractCoverageITest {
                 .contains("title=\"edu/hm/hafner/coverage/CoverageNode.java\"");
         assertThat(r.getPackageName()).isEqualTo("edu.hm.hafner.coverage");
         assertThat(r.getTests()).isEqualTo(0);
-        assertThat(r.getComplexity()).isEqualTo(0);
+        assertThat(r.getCyclomaticComplexity()).isEqualTo(0);
         assertThat(r.getLoc()).isEqualTo(87);
-        assertThat(r.getMaxComplexity()).isEqualTo(0);
+        assertThat(r.getCognitiveComplexity()).isEqualTo(0);
         assertThatCell(r.getLineCoverage()).contains("title=\"Covered: 85 - Missed: 2\">97.70%");
         assertThatCell(r.getLineCoverageDelta()).contains("n/a");
         assertThatCell(r.getMutationCoverage()).contains("Killed: 95 - Survived: 2\">97.94%");
@@ -534,7 +526,6 @@ class CoveragePluginITest extends AbstractCoverageITest {
         assertThatCell(r.getTestStrengthDelta()).contains("n/a");
         assertThatCell(r.getBranchCoverage()).contains("n/a");
         assertThatCell(r.getBranchCoverageDelta()).contains("n/a");
-        assertThatCell(r.getDensity()).contains("0.0");
     }
 
     private AbstractStringAssert<?> assertThatCell(final DetailedCell<?> cell) {
@@ -584,20 +575,24 @@ class CoveragePluginITest extends AbstractCoverageITest {
     void shouldIgnoreErrors() {
         WorkflowJob job = createPipeline();
         copyFileToWorkspace(job, "cobertura-duplicate-methods.xml", "cobertura.xml");
-        job.setDefinition(new CpsFlowDefinition(
-                "node {\n"
-                        + "    recordCoverage tools: [[parser: 'COBERTURA']]\n"
-                        + " }\n", true));
+        job.setDefinition(createPipelineScript(
+                """
+                node {
+                    recordCoverage tools: [[parser: 'COBERTURA']]
+                }
+                """));
 
         Run<?, ?> failure = buildWithResult(job, Result.FAILURE);
 
         assertThat(getConsoleLog(failure))
                 .contains("java.lang.IllegalArgumentException: There is already the same child [METHOD] Enumerate()");
 
-        job.setDefinition(new CpsFlowDefinition(
-                "node {\n"
-                        + "    recordCoverage tools: [[parser: 'COBERTURA']], ignoreParsingErrors: true\n"
-                        + " }\n", true));
+        job.setDefinition(createPipelineScript(
+                """
+                node {
+                    recordCoverage tools: [[parser: 'COBERTURA']], ignoreParsingErrors: true
+                }
+                """));
 
         Run<?, ?> success = buildWithResult(job, Result.SUCCESS);
 
@@ -608,10 +603,12 @@ class CoveragePluginITest extends AbstractCoverageITest {
     @Test
     void shouldIgnoreEmptyListOfFiles() {
         WorkflowJob job = createPipeline();
-        job.setDefinition(new CpsFlowDefinition(
-                "node {\n"
-                        + "    recordCoverage tools: [[parser: 'JACOCO']]\n"
-                        + " }\n", true));
+        job.setDefinition(createPipelineScript(
+                """
+                node {
+                    recordCoverage tools: [[parser: 'JACOCO']]
+                }
+                """));
 
         Run<?, ?> run = buildWithResult(job, Result.SUCCESS);
 
@@ -626,10 +623,12 @@ class CoveragePluginITest extends AbstractCoverageITest {
     void shouldParseFileWithJaCoCo() {
         WorkflowJob job = createPipeline();
         copyFilesToWorkspace(job, "jacoco.xml");
-        job.setDefinition(new CpsFlowDefinition(
-                "node {\n"
-                        + "    recordCoverage tools: [[parser: 'JACOCO']]\n"
-                        + " }\n", true));
+        job.setDefinition(createPipelineScript(
+                """
+                node {
+                    recordCoverage tools: [[parser: 'JACOCO']]
+                }
+                """));
 
         Run<?, ?> run = buildWithResult(job, Result.SUCCESS);
 
@@ -638,8 +637,8 @@ class CoveragePluginITest extends AbstractCoverageITest {
                         "-> found 1 file",
                         "MODULE: 100.00% (1/1)",
                         "PACKAGE: 100.00% (1/1)",
-                        "FILE: 70.00% (7/10)",
-                        "CLASS: 83.33% (15/18)",
+                        "FILE: 87.50% (7/8)",
+                        "CLASS: 93.75% (15/16)",
                         "METHOD: 95.10% (97/102)",
                         "INSTRUCTION: 93.33% (1260/1350)",
                         "LINE: 91.02% (294/323)",
@@ -655,9 +654,9 @@ class CoveragePluginITest extends AbstractCoverageITest {
                 .contains("title=\"CurrentRelease/database/src/database.c\"");
         assertThat(r.getPackageName()).isEqualTo("CurrentRelease.database.src");
         assertThat(r.getTests()).isEqualTo(0);
-        assertThat(r.getComplexity()).isEqualTo(5);
+        assertThat(r.getCyclomaticComplexity()).isEqualTo(5);
         assertThat(r.getLoc()).isEqualTo(17);
-        assertThat(r.getMaxComplexity()).isEqualTo(2);
+        assertThat(r.getNcss()).isEqualTo(0);
         assertThatCell(r.getLineCoverage())
                 .contains("title=\"Covered: 17 - Missed: 0\">100.00%");
         assertThatCell(r.getLineCoverageDelta()).contains("n/a");
@@ -670,7 +669,7 @@ class CoveragePluginITest extends AbstractCoverageITest {
                 .contains("title=\"Covered: 1 - Missed: 1\">50.00%");
         assertThatCell(r.getFunctionCallCoverage())
                 .contains("title=\"Covered: 4 - Missed: 0\">100.00%");
-        assertThatCell(r.getDensity()).contains("0.29");
+        assertThatCell(r.getTestStrengthDelta()).contains("n/a");
     }
 
     @Test
@@ -711,10 +710,9 @@ class CoveragePluginITest extends AbstractCoverageITest {
                         Metric.BRANCH,
                         Metric.MCDC_PAIR,
                         Metric.FUNCTION_CALL,
-                        Metric.COMPLEXITY,
-                        Metric.COMPLEXITY_MAXIMUM,
-                        Metric.COMPLEXITY_DENSITY,
-                        Metric.LOC);
+                        Metric.CYCLOMATIC_COMPLEXITY,
+                        Metric.LOC,
+                        Metric.TESTS);
         assertThat(coverageResult.getAllValues(Baseline.PROJECT)).contains(
                 new CoverageBuilder()
                         .withMetric(Metric.LINE)
@@ -761,10 +759,9 @@ class CoveragePluginITest extends AbstractCoverageITest {
                         "Branch Δ",
                         "MC/DC Pairs",
                         "Function Call",
-                        "LOC",
-                        "Complexity",
-                        "Max. Complexity",
-                        "Complexity / LOC");
+                        "Lines of Code",
+                        "Number of Tests",
+                        "Cyclomatic Complexity");
         assertThat(coverageResult.getAllValues(Baseline.PROJECT))
                 .contains(createLineCoverageBuilder()
                         .withCovered(VECTORCAST_COVERED_LINES)
@@ -814,7 +811,8 @@ class CoveragePluginITest extends AbstractCoverageITest {
     void shouldRecordVectorCastAndJacocoResultsInDeclarativePipeline() {
         WorkflowJob job = createPipelineWithWorkspaceFiles(JACOCO_ANALYSIS_MODEL_FILE, VECTORCAST_HIGHER_COVERAGE_FILE);
 
-        job.setDefinition(new CpsFlowDefinition("pipeline {\n"
+        job.setDefinition(createPipelineScript(
+                "pipeline {\n"
                 + "    agent any\n"
                 + "    stages {\n"
                 + "        stage('Test') {\n"
@@ -826,7 +824,7 @@ class CoveragePluginITest extends AbstractCoverageITest {
                 + "            }\n"
                 + "        }\n"
                 + "    }\n"
-                + "}", true));
+                + "}"));
 
         verifyForOneVectorCastAndOneJacoco(job);
     }
@@ -931,10 +929,12 @@ class CoveragePluginITest extends AbstractCoverageITest {
     void shouldParseFileWithVectorCast() {
         WorkflowJob job = createPipeline();
         copyFileToWorkspace(job, "vectorcast-statement-mcdc-fcc.xml", "xml_data/cobertura/coverage_results_test.xml");
-        job.setDefinition(new CpsFlowDefinition(
-                "node {\n"
-                        + "    recordCoverage tools: [[parser: 'VECTORCAST']]\n"
-                        + " }\n", true));
+        job.setDefinition(createPipelineScript(
+                """
+                node {
+                    recordCoverage tools: [[parser: 'VECTORCAST']]
+                }
+                """));
 
         Run<?, ?> run = buildWithResult(job, Result.SUCCESS);
 
@@ -950,9 +950,7 @@ class CoveragePluginITest extends AbstractCoverageITest {
                         "BRANCH: 66.18% (180/272)",
                         "MCDC_PAIR: 40.68% (24/59)",
                         "FUNCTION_CALL: 78.48% (62/79)",
-                        "COMPLEXITY: 100",
-                        "COMPLEXITY_MAXIMUM: 26",
-                        "COMPLEXITY_DENSITY: 100/294",
+                        "CYCLOMATIC_COMPLEXITY: 100",
                         "LOC: 294")
                 .containsPattern("Searching for all files in '.*' that match the pattern 'xml_data/cobertura/coverage_results\\*.xml'")
                 .containsPattern("Successfully parsed file '.*/xml_data/cobertura/coverage_results_test.xml")

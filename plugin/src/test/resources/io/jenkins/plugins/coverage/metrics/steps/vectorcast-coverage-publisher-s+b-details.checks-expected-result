@@ -3,7 +3,7 @@
 ||Module Coverage|Package Coverage|File Coverage|Class Coverage|Line Coverage|Branch Coverage
 |:---:|:---:|:---:|:---:|:---:|:---:|:---:
 :feet: **Overall project**|100.00% (1/1)|100.00% (5/5)|100.00% (3/3)|100.00% (3/3)|65.00% (52/80)|67.65% (23/34)
-:chart_with_upwards_trend: **Overall project (difference to reference job)**|+0.00%|-50.00% :arrow_down:|n/a|n/a|+50.00% :arrow_up:|n/a
+:chart_with_upwards_trend: **Overall project (difference to reference job)**|±0%|-50.00% :arrow_down:|n/a|n/a|+50.00% :arrow_up:|n/a
 :feet: **Modified files**|n/a|n/a|n/a|n/a|50.00% (1/2)|n/a
 :chart_with_upwards_trend: **Modified files (difference to reference job)**|n/a|n/a|n/a|n/a|+50.00% :arrow_up:|n/a
 :feet: **Modified code lines**|n/a|n/a|n/a|n/a|50.00% (1/2)|n/a

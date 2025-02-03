@@ -1,5 +1,6 @@
 package io.jenkins.plugins.coverage.metrics.charts;
 
+import edu.hm.hafner.coverage.Metric;
 import edu.hm.hafner.echarts.BuildResult;
 import edu.hm.hafner.echarts.ChartModelConfiguration;
 import edu.hm.hafner.echarts.JacksonFacade;
@@ -8,7 +9,6 @@ import edu.hm.hafner.echarts.line.LinesChartModel;
 import edu.hm.hafner.echarts.line.LinesDataSet;
 
 import io.jenkins.plugins.coverage.metrics.model.CoverageStatistics;
-import io.jenkins.plugins.coverage.metrics.model.Messages;
 import io.jenkins.plugins.echarts.JenkinsPalette;
 
 /**
@@ -24,10 +24,7 @@ public class CoverageTrendChart extends TrendChart {
     @Override
     public LinesChartModel create(final Iterable<BuildResult<CoverageStatistics>> results,
             final ChartModelConfiguration configuration) {
-        CoverageSeriesBuilder builder = new CoverageSeriesBuilder();
-        LinesDataSet dataSet = builder.createDataSet(configuration, results);
-
-        var filledMode = computeFilledMode(dataSet);
+        var dataSet = new CoverageSeriesBuilder().createDataSet(configuration, results);
 
         LinesChartModel model = new LinesChartModel(dataSet);
         if (dataSet.isNotEmpty()) {
@@ -35,21 +32,15 @@ public class CoverageTrendChart extends TrendChart {
             model.setRangeMax(100);
             model.setRangeMin(dataSet.getMinimumValue());
 
-            addSeries(dataSet, model, Messages.Metric_LINE(), CoverageSeriesBuilder.LINE_COVERAGE,
-                    JenkinsPalette.GREEN.normal(), filledMode);
-            addSeries(dataSet, model, Messages.Metric_BRANCH(), CoverageSeriesBuilder.BRANCH_COVERAGE,
-                    JenkinsPalette.GREEN.dark(), filledMode);
-            addSeries(dataSet, model, Messages.Metric_MUTATION(), CoverageSeriesBuilder.MUTATION_COVERAGE,
-                    JenkinsPalette.GREEN.dark(), filledMode);
-            addSeries(dataSet, model, Messages.Metric_TEST_STRENGTH(), CoverageSeriesBuilder.TEST_STRENGTH,
-                    JenkinsPalette.GREEN.light(), filledMode);
+            var filledMode = computeFilledMode(dataSet);
+            addSeriesIfAvailable(dataSet, model, Metric.LINE, JenkinsPalette.GREEN.normal(), filledMode);
+            addSeriesIfAvailable(dataSet, model, Metric.BRANCH, JenkinsPalette.GREEN.dark(), filledMode);
+            addSeriesIfAvailable(dataSet, model, Metric.MUTATION, JenkinsPalette.GREEN.dark(), filledMode);
+            addSeriesIfAvailable(dataSet, model, Metric.TEST_STRENGTH, JenkinsPalette.GREEN.light(), filledMode);
 
-            addSeries(dataSet, model, Messages.Metric_MCDC_PAIR(), CoverageSeriesBuilder.MCDC_PAIR_COVERAGE,
-                    JenkinsPalette.RED.light(), filledMode);
-            addSeries(dataSet, model, Messages.Metric_METHOD(), CoverageSeriesBuilder.METHOD_COVERAGE,
-                    JenkinsPalette.RED.normal(), filledMode);
-            addSeries(dataSet, model, Messages.Metric_FUNCTION_CALL(), CoverageSeriesBuilder.FUNCTION_CALL_COVERAGE,
-                    JenkinsPalette.RED.dark(), filledMode);
+            addSeriesIfAvailable(dataSet, model, Metric.MCDC_PAIR, JenkinsPalette.RED.light(), filledMode);
+            addSeriesIfAvailable(dataSet, model, Metric.METHOD, JenkinsPalette.RED.normal(), filledMode);
+            addSeriesIfAvailable(dataSet, model, Metric.FUNCTION_CALL, JenkinsPalette.RED.dark(), filledMode);
         }
         return model;
     }

@@ -387,7 +387,7 @@ const CoverageChartGenerator = function ($, proxy) { // NOPMD
         }
 
         /**
-         * Event handler to resizes all charts.
+         * Event handler to resize all charts.
          */
         function redrawCharts() {
             renderTrendChart(); // re-render since the configuration might have changed

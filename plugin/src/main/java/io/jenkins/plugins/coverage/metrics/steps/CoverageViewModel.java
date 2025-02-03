@@ -11,6 +11,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.function.BiFunction;
 import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -80,7 +81,7 @@ public class CoverageViewModel extends DefaultAsyncTableContentProvider implemen
 
     private static final ElementFormatter FORMATTER = new ElementFormatter();
     private static final Set<Metric> TREE_METRICS = Set.of(
-            Metric.LINE, Metric.BRANCH, Metric.MUTATION, Metric.TEST_STRENGTH, Metric.COMPLEXITY, Metric.TESTS,
+            Metric.LINE, Metric.BRANCH, Metric.MUTATION, Metric.TEST_STRENGTH, Metric.CYCLOMATIC_COMPLEXITY, Metric.TESTS,
             Metric.MCDC_PAIR, Metric.FUNCTION_CALL, Metric.COGNITIVE_COMPLEXITY, Metric.NCSS, Metric.NPATH_COMPLEXITY);
     private static final String UNDEFINED = "-";
     private final Run<?, ?> owner;
@@ -256,6 +257,19 @@ public class CoverageViewModel extends DefaultAsyncTableContentProvider implemen
      */
     public boolean hasCoverage() {
         return coverageSupplier.get();
+    }
+
+    /**
+     * Returns whether there are metrics available.
+     *
+     * @return {@code true} if there are metrics available, {@code false} otherwise
+     */
+    public boolean hasMetrics() {
+        var metricValues = getNode().getValueMetrics().stream()
+                .filter(Predicate.not(Metric::isCoverage))
+                .count();
+
+        return metricValues > 1; // skip if we have only one metric
     }
 
     /**

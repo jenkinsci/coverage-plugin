@@ -1,16 +1,12 @@
 package io.jenkins.plugins.coverage.metrics.model;
 
 import java.util.List;
-import java.util.Map.Entry;
 import java.util.NavigableMap;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.TreeMap;
-import java.util.stream.Collectors;
 
-import org.apache.commons.lang3.math.Fraction;
-
-import edu.hm.hafner.coverage.FractionValue;
+import edu.hm.hafner.coverage.Difference;
 import edu.hm.hafner.coverage.Metric;
 import edu.hm.hafner.coverage.Value;
 
@@ -19,11 +15,11 @@ import edu.hm.hafner.coverage.Value;
  */
 public class CoverageStatistics {
     private final List<Value> projectValueMapping;
-    private final NavigableMap<Metric, Value> projectDelta;
+    private final NavigableMap<Metric, Difference> projectDelta;
     private final List<Value> changeValueMapping;
-    private final NavigableMap<Metric, Value> changeDelta;
+    private final NavigableMap<Metric, Difference> changeDelta;
     private final List<Value> fileValueMapping;
-    private final NavigableMap<Metric, Value> fileDelta;
+    private final NavigableMap<Metric, Difference> fileDelta;
 
     /**
      * Creates a new instance of {@link CoverageStatistics}.
@@ -43,24 +39,17 @@ public class CoverageStatistics {
      */
     public CoverageStatistics(
             final List<? extends Value> projectValueMapping,
-            final NavigableMap<Metric, Fraction> projectDeltaMapping,
+            final NavigableMap<Metric, Difference> projectDeltaMapping,
             final List<? extends Value> modifiedLinesValueMapping,
-            final NavigableMap<Metric, Fraction> modifiedLinesDeltaMapping,
+            final NavigableMap<Metric, Difference> modifiedLinesDeltaMapping,
             final List<? extends Value> modifiedFilesValueMapping,
-            final NavigableMap<Metric, Fraction> modifiedFilesDeltaMapping) {
+            final NavigableMap<Metric, Difference> modifiedFilesDeltaMapping) {
         this.projectValueMapping = List.copyOf(projectValueMapping);
         this.changeValueMapping = List.copyOf(modifiedLinesValueMapping);
         this.fileValueMapping = List.copyOf(modifiedFilesValueMapping);
-
-        this.projectDelta = asValueMap(projectDeltaMapping);
-        this.changeDelta = asValueMap(modifiedLinesDeltaMapping);
-        this.fileDelta = asValueMap(modifiedFilesDeltaMapping);
-    }
-
-    private static NavigableMap<Metric, Value> asValueMap(final NavigableMap<Metric, Fraction> projectDelta) {
-        return projectDelta.entrySet().stream().collect(
-                Collectors.toMap(Entry::getKey, e -> new FractionValue(e.getKey(), e.getValue()), (o1, o2) -> o1,
-                        TreeMap::new));
+        this.projectDelta = new TreeMap<>(projectDeltaMapping);
+        this.changeDelta = new TreeMap<>(modifiedLinesDeltaMapping);
+        this.fileDelta = new TreeMap<>(modifiedFilesDeltaMapping);
     }
 
     /**
@@ -96,7 +85,33 @@ public class CoverageStatistics {
         throw new NoSuchElementException("No such baseline: " + baseline);
     }
 
-    private Optional<Value> getValue(final Metric metric, final NavigableMap<Metric, Value> mapping) {
+    /**
+     * Returns the rounded value for the specified baseline and metric. If the value is not available, 0.0 is returned.
+     *
+     * @param baseline
+     *         the baseline of the value
+     * @param metric
+     *         the metric of the value
+     *
+     * @return the value, if available
+     */
+    public double roundValue(final Baseline baseline, final Metric metric) {
+        return getValue(baseline, metric).map(Value::asRounded).orElse(0.0);
+    }
+
+    /**
+     * Returns the rounded value for metric in the project. If the value is not available, 0.0 is returned.
+     *
+     * @param metric
+     *         the metric of the value
+     *
+     * @return the value, if available
+     */
+    public double roundValue(final Metric metric) {
+        return roundValue(Baseline.PROJECT, metric);
+    }
+
+    private Optional<Value> getValue(final Metric metric, final NavigableMap<Metric, Difference> mapping) {
         return Optional.ofNullable(mapping.get(metric));
     }
 
@@ -112,5 +127,18 @@ public class CoverageStatistics {
      */
     public boolean containsValue(final Baseline baseline, final Metric metric) {
         return getValue(baseline, metric).isPresent();
+    }
+
+    /**
+     * Returns whether a value for the specified metric and baseline is available in the project.
+     *
+     * @param metric
+     *         the metric of the value
+     *
+     * @return {@code true}, if a value is available, {@code false} otherwise
+     */
+    // FIXME: reoder overloaded name
+    public boolean containsValue(final Metric metric) {
+        return containsValue(Baseline.PROJECT, metric);
     }
 }

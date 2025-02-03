@@ -3,10 +3,10 @@ package io.jenkins.plugins.coverage.metrics.steps;
 import org.junit.jupiter.api.Test;
 
 import edu.hm.hafner.coverage.Coverage.CoverageBuilder;
-import edu.hm.hafner.coverage.CyclomaticComplexity;
 import edu.hm.hafner.coverage.FileNode;
-import edu.hm.hafner.coverage.LinesOfCode;
+import edu.hm.hafner.coverage.Metric;
 import edu.hm.hafner.coverage.Node;
+import edu.hm.hafner.coverage.Value;
 
 import org.jenkinsci.plugins.workflow.job.WorkflowJob;
 import hudson.model.FreeStyleProject;
@@ -119,7 +119,7 @@ class DeltaComputationITest extends AbstractCoverageITest {
                         .withCovered(222)
                         .withMissed(246 - 222)
                         .build(),
-                new LinesOfCode(211));
+                new Value(Metric.LOC, 211));
     }
 
     private static void verifyFirstBuild(final Run<?, ?> firstBuild) {
@@ -135,8 +135,8 @@ class DeltaComputationITest extends AbstractCoverageITest {
                         .withCovered(1544 + 109)
                         .withMissed(1865 - (1544 + 109))
                         .build(),
-                new LinesOfCode(JACOCO_ANALYSIS_MODEL_TOTAL + JACOCO_CODING_STYLE_TOTAL),
-                new CyclomaticComplexity(2718));
+                new Value(Metric.LOC, JACOCO_ANALYSIS_MODEL_TOTAL + JACOCO_CODING_STYLE_TOTAL),
+                new Value(Metric.CYCLOMATIC_COMPLEXITY, 2718));
     }
 
     private void verifyJaCoCoProjectValues(final CoverageBuildAction action) {
@@ -150,8 +150,8 @@ class DeltaComputationITest extends AbstractCoverageITest {
                         .withCovered(109)
                         .withMissed(7)
                         .build(),
-                new LinesOfCode(JACOCO_CODING_STYLE_TOTAL),
-                new CyclomaticComplexity(160));
+                new Value(Metric.LOC, JACOCO_CODING_STYLE_TOTAL),
+                new Value(Metric.CYCLOMATIC_COMPLEXITY, 160));
     }
 
     /**
@@ -179,7 +179,7 @@ class DeltaComputationITest extends AbstractCoverageITest {
         assertThat(action.formatDelta(Baseline.PROJECT, LINE)).isEqualTo("-4.14%");
         assertThat(action.formatDelta(Baseline.PROJECT, BRANCH)).isEqualTo("+5.33%");
         assertThat(action.formatDelta(Baseline.PROJECT, LOC)).isEqualTo(String.valueOf(-JACOCO_ANALYSIS_MODEL_TOTAL));
-        assertThat(action.formatDelta(Baseline.PROJECT, COMPLEXITY)).isEqualTo(String.valueOf(160 - 2718));
+        assertThat(action.formatDelta(Baseline.PROJECT, CYCLOMATIC_COMPLEXITY)).isEqualTo(String.valueOf(160 - 2718));
 
         verifyModifiedLinesCoverage(action);
     }

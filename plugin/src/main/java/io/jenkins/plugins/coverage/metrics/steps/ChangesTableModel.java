@@ -46,7 +46,7 @@ abstract class ChangesTableModel extends CoverageTableModel {
     }
 
     /**
-     * UI row model for the changes rows of a table.
+     * UI row model for the rows of a table that show the changes.
      */
     static class ChangesRow extends CoverageRow {
         private final FileNode originalFile;
@@ -76,7 +76,7 @@ abstract class ChangesTableModel extends CoverageTableModel {
             Coverage modifiedLinesCoverage = getFile().getTypedValue(metric, Coverage.nullObject(metric));
             if (modifiedLinesCoverage.isSet()) {
                 return createColoredCoverageDeltaColumn(metric,
-                        modifiedLinesCoverage.delta(originalFile.getTypedValue(metric, Coverage.nullObject(metric))));
+                        modifiedLinesCoverage.subtract(originalFile.getTypedValue(metric, Coverage.nullObject(metric))));
             }
             return NO_COVERAGE;
         }

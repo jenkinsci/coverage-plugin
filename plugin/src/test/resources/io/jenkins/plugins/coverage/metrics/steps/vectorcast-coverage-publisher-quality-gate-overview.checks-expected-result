@@ -4,9 +4,9 @@ No changes detected, that affect the code coverage.
 * Method Coverage: 70.00% (21/30)
 * Line Coverage: 79.93% (235/294)
 * Branch Coverage: 66.18% (180/272)
-* MC/DC Pair Coverage: 40.68% (24/59)
+* Modified Condition and Decision Coverage: 40.68% (24/59)
 * Function Call Coverage: 78.48% (62/79)
-* Complexity Density: 0.34
+* Cyclomatic Complexity: 100
 * Lines of Code: 294
 
 #### Quality Gates Summary

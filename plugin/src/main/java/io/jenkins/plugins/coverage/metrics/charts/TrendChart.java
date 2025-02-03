@@ -1,5 +1,6 @@
 package io.jenkins.plugins.coverage.metrics.charts;
 
+import edu.hm.hafner.coverage.Metric;
 import edu.hm.hafner.echarts.BuildResult;
 import edu.hm.hafner.echarts.ChartModelConfiguration;
 import edu.hm.hafner.echarts.JacksonFacade;
@@ -8,6 +9,7 @@ import edu.hm.hafner.echarts.line.LineSeries.FilledMode;
 import edu.hm.hafner.echarts.line.LineSeries.StackedMode;
 import edu.hm.hafner.echarts.line.LinesChartModel;
 import edu.hm.hafner.echarts.line.LinesDataSet;
+
 import io.jenkins.plugins.coverage.metrics.model.CoverageStatistics;
 
 /**
@@ -44,11 +46,22 @@ public abstract class TrendChart {
     public abstract LinesChartModel create(Iterable<BuildResult<CoverageStatistics>> results,
             ChartModelConfiguration configuration);
 
-    /* default */ void addSeries(final LinesDataSet dataSet, final LinesChartModel model,
+    void addSeriesIfAvailable(final LinesDataSet dataSet, final LinesChartModel model,
                    final String name, final String seriesId, final String color, final FilledMode filledMode) {
         if (dataSet.containsSeries(seriesId)) {
             LineSeries branchSeries = new LineSeries(name,
                     color, StackedMode.SEPARATE_LINES, filledMode, dataSet.getSeries(seriesId));
+
+            model.addSeries(branchSeries);
+        }
+    }
+
+    void addSeriesIfAvailable(final LinesDataSet dataSet, final LinesChartModel model,
+                   final Metric metric, final String color, final FilledMode filledMode) {
+        var tagName = metric.toTagName();
+        if (dataSet.containsSeries(tagName)) {
+            LineSeries branchSeries = new LineSeries(metric.getDisplayName(),
+                    color, StackedMode.SEPARATE_LINES, filledMode, dataSet.getSeries(tagName));
 
             model.addSeries(branchSeries);
         }

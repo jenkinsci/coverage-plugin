@@ -3,7 +3,7 @@
 No changes detected, that affect the code coverage.
 * Line Coverage: 65.00% (52/80)
 * Branch Coverage: 67.65% (23/34)
-* Complexity Density: 0.31
+* Cyclomatic Complexity: 25
 * Lines of Code: 80
 
 #### Quality Gates Summary

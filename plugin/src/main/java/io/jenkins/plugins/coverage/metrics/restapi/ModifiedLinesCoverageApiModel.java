@@ -24,7 +24,7 @@ public class ModifiedLinesCoverageApiModel implements ModelObject {
     }
 
     /**
-     * Gets the remote API for  details of modified line coverage results.
+     * Gets the remote API for the details of modified line coverage results.
      *
      * @return the remote API
      */

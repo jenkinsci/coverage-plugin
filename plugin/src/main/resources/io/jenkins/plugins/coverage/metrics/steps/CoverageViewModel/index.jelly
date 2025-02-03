@@ -18,6 +18,7 @@
     <j:set var="hasModifiedLinesCoverage" value="${it.hasModifiedLinesCoverage()}"/>
     <j:set var="hasIndirectCoverageChanges" value="${it.hasIndirectCoverageChanges()}"/>
     <j:set var="hasCoverage" value="${it.hasCoverage()}"/>
+    <j:set var="hasMetrics" value="${it.hasMetrics()}"/>
 
     <div class="tabBarFrame">
       <ul class="flex-wrap tabBar" role="tablist" id="tab-details">
@@ -70,14 +71,15 @@
           </div>
         </div>
       </div>
-
-      <j:forEach var="metric" items="${it.treeMetrics}">
-        <div role="tabpanel" id="${metric.toTagName()}" class="tab-pane fade" aria-labelledby="${metric.toTagName()}-tab">
-          <bs:card title="${formatter.getDisplayName(metric)}" fontAwesomeIcon="folder-tree" class="flex-fill" bodyClass="d-flex flex-column">
-            <div id="project-${metric.toTagName()}" class="graph-cursor-pointer tree-chart" data-item-name="project-${metric.toTagName()}"/>
-          </bs:card>
-        </div>
-      </j:forEach>
+      <j:if test="${hasMetrics}">
+        <j:forEach var="metric" items="${it.treeMetrics}">
+          <div role="tabpanel" id="${metric.toTagName()}" class="tab-pane fade" aria-labelledby="${metric.toTagName()}-tab">
+            <bs:card title="${formatter.getDisplayName(metric)}" fontAwesomeIcon="folder-tree" class="flex-fill" bodyClass="d-flex flex-column">
+              <div id="project-${metric.toTagName()}" class="graph-cursor-pointer tree-chart" data-item-name="project-${metric.toTagName()}"/>
+            </bs:card>
+          </div>
+        </j:forEach>
+      </j:if>
 
       <div role="tabpanel" id="fileCoverage" class="tab-pane fade" aria-labelledby="fileCoverage-tab">
         <cov:coverage-table showChangedToggle="true" id="absolute-coverage" title="${%Coverage of all files}" symbol="symbol-regular/file-lines plugin-font-awesome-api"/>

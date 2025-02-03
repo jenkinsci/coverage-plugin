@@ -6,6 +6,7 @@ import java.util.Map;
 import org.junit.jupiter.api.BeforeAll;
 
 import edu.hm.hafner.coverage.FileNode;
+import edu.hm.hafner.coverage.Metric;
 import edu.hm.hafner.coverage.Node;
 
 import io.jenkins.plugins.coverage.metrics.steps.FileChangesProcessor;
@@ -83,6 +84,14 @@ public abstract class AbstractModifiedFilesCoverageTest extends AbstractCoverage
         var fileChangesProcessor = createFileChangesProcessor();
         var reference = readJacocoResult(TEST_REPORT_BEFORE);
         var tree = readJacocoResult(TEST_REPORT_AFTER);
+
+        var value = tree.findFile("Test1.java")
+                .get()
+                .getValue(Metric.LINE);
+        var refValue = reference.findFile("Test1.java")
+                .get()
+                .getValue(Metric.LINE);
+
         fileChangesProcessor.attachChangedCodeLines(tree, CODE_CHANGES);
         fileChangesProcessor.attachFileCoverageDeltas(tree, reference, OLD_PATH_MAPPING);
         fileChangesProcessor.attachIndirectCoveragesChanges(tree, reference, CODE_CHANGES, OLD_PATH_MAPPING);

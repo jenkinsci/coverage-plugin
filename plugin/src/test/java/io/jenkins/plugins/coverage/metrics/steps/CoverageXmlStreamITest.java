@@ -12,7 +12,6 @@ import java.util.TreeSet;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.math.Fraction;
 import org.junit.jupiter.api.Test;
 import org.xmlunit.builder.Input;
 
@@ -25,7 +24,6 @@ import edu.hm.hafner.util.SerializableTest;
 
 import hudson.XmlFile;
 import hudson.model.FreeStyleBuild;
-import hudson.util.XStream2;
 
 import io.jenkins.plugins.coverage.metrics.Assertions;
 import io.jenkins.plugins.coverage.metrics.model.Baseline;
@@ -70,7 +68,7 @@ class CoverageXmlStreamITest extends SerializableTest<Node> {
         var xml = Input.from(saved);
         assertThat(xml).nodesByXPath("//file[./name = 'TreeStringBuilder.java']/values/*")
                 .hasSize(4).extractingText()
-                .containsExactly("INSTRUCTION: 229/233", "BRANCH: 17/18", "LINE: 51/53", "COMPLEXITY: 23");
+                .containsExactly("INSTRUCTION: 229/233", "BRANCH: 17/18", "LINE: 51/53", "CYCLOMATIC_COMPLEXITY: 23");
         assertThat(xml).nodesByXPath("//file[./name = 'TreeStringBuilder.java']/coveredPerLine")
                 .hasSize(1).extractingText()
                 .containsExactly(
@@ -84,33 +82,32 @@ class CoverageXmlStreamITest extends SerializableTest<Node> {
     @Test
     void shouldStoreActionCompactly() throws IOException {
         Path saved = createTempFile();
-        var xmlStream = new TestXmlStream();
-        xmlStream.read(saved); // create the stream
+
+        var xmlStream = new CoverageXmlStream();
 
         var file = new XmlFile(xmlStream.getStream(), saved.toFile());
-        file.write(createAction());
+        var buildAction = createAction();
+        file.write(buildAction);
 
         assertThat(Input.from(saved)).nodesByXPath("//" + ACTION_QUALIFIED_NAME + "/projectValues/*")
-                .hasSize(12).extractingText()
+                .hasSize(10).extractingText()
                 .containsExactly("MODULE: 1/1",
                         "PACKAGE: 1/1",
-                        "FILE: 7/10",
-                        "CLASS: 15/18",
+                        "FILE: 7/8",
+                        "CLASS: 15/16",
                         "METHOD: 97/102",
                         "LINE: 294/323",
                         "BRANCH: 109/116",
                         "INSTRUCTION: 1260/1350",
-                        "COMPLEXITY: 160",
-                        "COMPLEXITY_MAXIMUM: 6",
-                        "COMPLEXITY_DENSITY: 160/323",
+                        "CYCLOMATIC_COMPLEXITY: 160",
                         "LOC: 323");
 
         assertThat(Input.from(saved)).nodesByXPath("//" + ACTION_QUALIFIED_NAME + "/projectValues/coverage")
                 .hasSize(8).extractingText()
                 .containsExactly("MODULE: 1/1",
                         "PACKAGE: 1/1",
-                        "FILE: 7/10",
-                        "CLASS: 15/18",
+                        "FILE: 7/8",
+                        "CLASS: 15/16",
                         "METHOD: 97/102",
                         "LINE: 294/323",
                         "BRANCH: 109/116",
@@ -119,11 +116,9 @@ class CoverageXmlStreamITest extends SerializableTest<Node> {
         var action = file.read();
         assertThat(action).isNotNull().isInstanceOfSatisfying(CoverageBuildAction.class, a ->
                 Assertions.assertThat(serializeValues(a))
-                        .containsExactly("MODULE: 1/1", "PACKAGE: 1/1", "FILE: 7/10", "CLASS: 15/18",
-                                "METHOD: 97/102",
-                                "LINE: 294/323", "BRANCH: 109/116", "INSTRUCTION: 1260/1350",
-                                "COMPLEXITY: 160", "COMPLEXITY_MAXIMUM: 6", "COMPLEXITY_DENSITY: 160/323",
-                                "LOC: 323"
+                        .containsExactly("MODULE: 1/1", "PACKAGE: 1/1", "FILE: 7/8", "CLASS: 15/16",
+                                "METHOD: 97/102", "LINE: 294/323", "BRANCH: 109/116", "INSTRUCTION: 1260/1350",
+                                "CYCLOMATIC_COMPLEXITY: 160", "LOC: 323"
                         ));
     }
 
@@ -135,29 +130,29 @@ class CoverageXmlStreamITest extends SerializableTest<Node> {
 
     @Test
     void shouldConvertMetricMap2String() {
-        NavigableMap<Metric, Fraction> map = new TreeMap<>();
+        NavigableMap<Metric, Value> map = new TreeMap<>();
 
         MetricFractionMapConverter converter = new MetricFractionMapConverter();
 
         assertThat(converter.marshal(map)).isEqualTo(EMPTY);
 
-        map.put(BRANCH, Fraction.getFraction(50, 100));
-        assertThat(converter.marshal(map)).isEqualTo("[BRANCH: 50/100]");
+        map.put(BRANCH, new Value(BRANCH, 50, 100));
+        assertThat(converter.marshal(map)).isEqualTo("[BRANCH: 50:100]");
 
-        map.put(LINE, Fraction.getFraction(3, 4));
-        assertThat(converter.marshal(map)).isEqualTo("[LINE: 3/4, BRANCH: 50/100]");
+        map.put(LINE, new Value(LINE, 3, 4));
+        assertThat(converter.marshal(map)).isEqualTo("[LINE: 3:4, BRANCH: 50:100]");
     }
 
     @Test
     void shouldConvertString2MetricMap() {
-        MetricFractionMapConverter converter = new MetricFractionMapConverter();
+        var converter = new MetricFractionMapConverter();
 
         Assertions.assertThat(converter.unmarshal(EMPTY)).isEmpty();
-        Fraction first = Fraction.getFraction(50, 100);
-        Assertions.assertThat(converter.unmarshal("[BRANCH: 50/100]"))
+        var first = new Value(BRANCH, 50, 100);
+        Assertions.assertThat(converter.unmarshal("[BRANCH: 50:100]"))
                 .containsExactly(entry(BRANCH, first));
-        Assertions.assertThat(converter.unmarshal("[LINE: 3/4, BRANCH: 50/100]"))
-                .containsExactly(entry(LINE, Fraction.getFraction(3, 4)),
+        Assertions.assertThat(converter.unmarshal("[LINE: 3:4, BRANCH: 50:100]"))
+                .containsExactly(entry(LINE, new Value(LINE, 3, 4)),
                         entry(BRANCH, first));
     }
 
@@ -218,20 +213,5 @@ class CoverageXmlStreamITest extends SerializableTest<Node> {
                 tree, new QualityGateResult(), new FilteredLog("Test"), "-",
                 new TreeMap<>(), List.of(), new TreeMap<>(), List.of(),
                 new TreeMap<>(), List.of(), false);
-    }
-
-    private static class TestXmlStream extends CoverageXmlStream {
-        private XStream2 xStream;
-
-        @Override
-        protected void configureXStream(final XStream2 xStream2) {
-            super.configureXStream(xStream2);
-
-            this.xStream = xStream2;
-        }
-
-        public XStream2 getStream() {
-            return xStream;
-        }
     }
 }

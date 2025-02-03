@@ -6,7 +6,7 @@ import org.junit.jupiter.api.Test;
 
 import edu.hm.hafner.coverage.Metric;
 
-import net.sf.json.JSONObject;
+import net.sf.json.JSON;
 
 import hudson.model.FreeStyleProject;
 import hudson.model.Result;
@@ -36,18 +36,20 @@ class CoverageApiITest extends AbstractCoverageITest {
 
         var remoteApiResult = callRemoteApi(build);
         assertThatJson(remoteApiResult)
-                .node("projectStatistics").isEqualTo("{\n"
-                        + "  \"branch\": \"88.28%\",\n"
-                        + "  \"complexity\": \"2558\",\n"
-                        + "  \"complexity-density\": \"0.44\",\n"
-                        + "  \"complexity-maximum\": \"21\",\n"
-                        + "  \"file\": \"99.67%\",\n"
-                        + "  \"instruction\": \"96.11%\",\n"
-                        + "  \"line\": \"95.39%\",\n"
-                        + "  \"loc\": \"5798\",\n"
-                        + "  \"method\": \"97.29%\",\n"
-                        + "  \"module\": \"100.00%\",\n"
-                        + "  \"package\": \"100.00%\"}");
+                .node("projectStatistics")
+                .isEqualTo("""
+                          {
+                            "branch": "88.28%",
+                            "cyclomatic-complexity": "2558",
+                            "file": "99.67%",
+                            "instruction": "96.11%",
+                            "line": "95.39%",
+                            "loc": "5798",
+                            "method": "97.29%",
+                            "module": "100.00%",
+                            "package": "100.00%",
+                            "tests":"0"}
+                        """);
         assertThatJson(remoteApiResult)
                 .node("modifiedFilesStatistics").isEqualTo("{}");
         assertThatJson(remoteApiResult)
@@ -70,44 +72,47 @@ class CoverageApiITest extends AbstractCoverageITest {
         assertThatJson(remoteApiResult)
                 .node("qualityGates.overallResult").isEqualTo("WARNING");
         assertThatJson(remoteApiResult)
-                .node("qualityGates.resultItems").isEqualTo("[{\n"
-                        + "  \"qualityGate\": \"Overall project - Line Coverage\",\n"
-                        + "  \"result\": \"UNSTABLE\",\n"
-                        + "  \"threshold\": 100.0,\n"
-                        + "  \"value\": \"95.39%\"\n"
-                        + "}]\n");
+                .node("qualityGates.resultItems").isEqualTo("""
+                        [{
+                          "qualityGate": "Overall project - Line Coverage",
+                          "result": "UNSTABLE",
+                          "threshold": 100.0,
+                          "value": "95.39%"
+                        }]
+                        """);
     }
 
     @Test
     void shouldShowDeltaInRemoteApi() {
-        FreeStyleProject project = createFreestyleJob(Parser.JACOCO,
+        var project = createFreestyleJob(Parser.JACOCO,
                 JACOCO_ANALYSIS_MODEL_FILE, JACOCO_CODING_STYLE_FILE);
 
         buildSuccessfully(project);
+
         // update the parser pattern to pick only the coding style results
         project.getPublishersList().get(CoverageRecorder.class).getTools().get(0).setPattern(JACOCO_CODING_STYLE_FILE);
-        Run<?, ?> secondBuild = buildSuccessfully(project);
+        var secondBuild = buildSuccessfully(project);
 
         var remoteApiResult = callRemoteApi(secondBuild);
         assertThatJson(remoteApiResult)
-                .node("projectDelta").isEqualTo("{\n"
-                        + "  \"branch\": \"+5.33%\",\n"
-                        + "  \"complexity\": \"-2558\",\n"
-                        + "  \"complexity-density\": \"0.05\",\n"
-                        + "  \"complexity-maximum\": \"-15\",\n"
-                        + "  \"file\": \"-28.74%\",\n"
-                        + "  \"instruction\": \"-2.63%\",\n"
-                        + "  \"line\": \"-4.14%\",\n"
-                        + "  \"loc\": \"-5798\",\n"
-                        + "  \"method\": \"-2.06%\",\n"
-                        + "  \"module\": \"+0.00%\",\n"
-                        + "  \"package\": \"+0.00%\"\n"
-                        + "}");
+                .node("projectDelta").isEqualTo("""
+                        {
+                          "branch": "+5.33%",
+                          "cyclomatic-complexity": "-2558",
+                          "file": "-11.87%",
+                          "instruction": "-2.63%",
+                          "line": "-4.14%",
+                          "loc": "-5798",
+                          "method": "-2.06%",
+                          "module": "±0%",
+                          "package": "±0%",
+                          "tests":"±0"
+                        }""");
         assertThatJson(remoteApiResult).node("referenceBuild").asString()
                 .matches("<a href=\".*jenkins/job/test0/1/\".*>test0 #1</a>");
     }
 
-    private JSONObject callRemoteApi(final Run<?, ?> build) {
+    private JSON callRemoteApi(final Run<?, ?> build) {
         return callJsonRemoteApi(build.getUrl() + "coverage/api/json").getJSONObject();
     }
 }

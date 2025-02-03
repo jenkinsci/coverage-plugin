@@ -1,5 +1,6 @@
 package io.jenkins.plugins.coverage.metrics.steps;
 
+import java.io.Serial;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.NavigableMap;
@@ -14,11 +15,10 @@ import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import io.jenkins.plugins.coverage.metrics.charts.TrendChart;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.math.Fraction;
 
 import edu.hm.hafner.coverage.Coverage;
+import edu.hm.hafner.coverage.Difference;
 import edu.hm.hafner.coverage.Metric;
 import edu.hm.hafner.coverage.Node;
 import edu.hm.hafner.coverage.Value;
@@ -33,6 +33,7 @@ import org.kohsuke.stapler.StaplerProxy;
 import hudson.Functions;
 import hudson.model.Run;
 
+import io.jenkins.plugins.coverage.metrics.charts.TrendChart;
 import io.jenkins.plugins.coverage.metrics.model.Baseline;
 import io.jenkins.plugins.coverage.metrics.model.CoverageStatistics;
 import io.jenkins.plugins.coverage.metrics.model.ElementFormatter;
@@ -56,6 +57,7 @@ import static hudson.model.Run.*;
  */
 @SuppressWarnings({"PMD.GodClass", "checkstyle:ClassDataAbstractionCoupling", "checkstyle:ClassFanOutComplexity"})
 public final class CoverageBuildAction extends BuildAction<Node> implements StaplerProxy {
+    @Serial
     private static final long serialVersionUID = -6023811049340671399L;
 
     private static final ElementFormatter FORMATTER = new ElementFormatter();
@@ -76,19 +78,19 @@ public final class CoverageBuildAction extends BuildAction<Node> implements Stap
     private final List<? extends Value> projectValues;
 
     /** The delta of this build's coverages with respect to the reference build. */
-    private NavigableMap<Metric, Fraction> difference;
+    private NavigableMap<Metric, Difference> difference;
 
     /** The coverages filtered by modified lines of the associated change request. */
     private final List<? extends Value> modifiedLinesCoverage;
 
     /** The coverage delta of the associated change request with respect to the reference build. */
-    private NavigableMap<Metric, Fraction> modifiedLinesCoverageDifference;
+    private NavigableMap<Metric, Difference> modifiedLinesCoverageDifference;
 
     /** The coverage of the modified lines. */
     private final List<? extends Value> modifiedFilesCoverage;
 
     /** The coverage delta of the modified lines. */
-    private NavigableMap<Metric, Fraction> modifiedFilesCoverageDifference;
+    private NavigableMap<Metric, Difference> modifiedFilesCoverageDifference;
 
     /** The indirect coverage changes of the associated change request with respect to the reference build. */
     private final List<? extends Value> indirectCoverageChanges;
@@ -165,11 +167,11 @@ public final class CoverageBuildAction extends BuildAction<Node> implements Stap
     public CoverageBuildAction(final Run<?, ?> owner, final String id, final String optionalName, final String icon,
             final Node result, final QualityGateResult qualityGateResult, final FilteredLog log,
             final String referenceBuildId,
-            final NavigableMap<Metric, Fraction> delta,
+            final NavigableMap<Metric, Difference> delta,
             final List<? extends Value> modifiedLinesCoverage,
-            final NavigableMap<Metric, Fraction> modifiedLinesCoverageDifference,
+            final NavigableMap<Metric, Difference> modifiedLinesCoverageDifference,
             final List<? extends Value> modifiedFilesCoverage,
-            final NavigableMap<Metric, Fraction> modifiedFilesCoverageDifference,
+            final NavigableMap<Metric, Difference> modifiedFilesCoverageDifference,
             final List<? extends Value> indirectCoverageChanges) {
         this(owner, id, optionalName, icon, result, qualityGateResult, log, referenceBuildId, delta,
                 modifiedLinesCoverage,
@@ -183,11 +185,11 @@ public final class CoverageBuildAction extends BuildAction<Node> implements Stap
     CoverageBuildAction(final Run<?, ?> owner, final String id, final String name, final String icon,
             final Node result, final QualityGateResult qualityGateResult, final FilteredLog log,
             final String referenceBuildId,
-            final NavigableMap<Metric, Fraction> delta,
+            final NavigableMap<Metric, Difference> delta,
             final List<? extends Value> modifiedLinesCoverage,
-            final NavigableMap<Metric, Fraction> modifiedLinesCoverageDifference,
+            final NavigableMap<Metric, Difference> modifiedLinesCoverageDifference,
             final List<? extends Value> modifiedFilesCoverage,
-            final NavigableMap<Metric, Fraction> modifiedFilesCoverageDifference,
+            final NavigableMap<Metric, Difference> modifiedFilesCoverageDifference,
             final List<? extends Value> indirectCoverageChanges,
             final boolean canSerialize) {
         super(owner, result, false);
@@ -199,11 +201,11 @@ public final class CoverageBuildAction extends BuildAction<Node> implements Stap
 
         projectValues = result.aggregateValues();
         this.qualityGateResult = qualityGateResult;
-        difference = delta;
+        difference = new TreeMap<>(delta);
         this.modifiedLinesCoverage = new ArrayList<>(modifiedLinesCoverage);
-        this.modifiedLinesCoverageDifference = modifiedLinesCoverageDifference;
+        this.modifiedLinesCoverageDifference = new TreeMap<>(modifiedLinesCoverageDifference);
         this.modifiedFilesCoverage = new ArrayList<>(modifiedFilesCoverage);
-        this.modifiedFilesCoverageDifference = modifiedFilesCoverageDifference;
+        this.modifiedFilesCoverageDifference = new TreeMap<>(modifiedFilesCoverageDifference);
         this.indirectCoverageChanges = new ArrayList<>(indirectCoverageChanges);
         this.referenceBuildId = referenceBuildId;
 
@@ -212,6 +214,7 @@ public final class CoverageBuildAction extends BuildAction<Node> implements Stap
         }
     }
 
+    @Serial
     @Override @SuppressFBWarnings(value = "CRLF_INJECTION_LOGS", justification = "getOwner().toString() is under our control")
     protected Object readResolve() {
         super.readResolve();
@@ -349,7 +352,7 @@ public final class CoverageBuildAction extends BuildAction<Node> implements Stap
      * @throws NoSuchElementException
      *         if this baseline does not provide deltas
      */
-    public NavigableMap<Metric, Fraction> getAllDeltas(final Baseline baseline) {
+    public NavigableMap<Metric, Difference> getAllDeltas(final Baseline baseline) {
         if (baseline == Baseline.PROJECT_DELTA) {
             return difference;
         }
@@ -466,7 +469,7 @@ public final class CoverageBuildAction extends BuildAction<Node> implements Stap
      *
      * @return {@code true} if a delta is available for the specified metric, {@code false} otherwise
      */
-    public Optional<Fraction> getDelta(final Baseline baseline, final Metric metric) {
+    public Optional<Value> getDelta(final Baseline baseline, final Metric metric) {
         if (baseline == Baseline.PROJECT) {
             return Optional.ofNullable(difference.get(metric));
         }
@@ -550,7 +553,7 @@ public final class CoverageBuildAction extends BuildAction<Node> implements Stap
     public double getTrend(final Baseline baseline, final Metric metric) {
         var delta = getDelta(baseline, metric);
         if (delta.isPresent()) {
-            double deltaValue = delta.get().doubleValue();
+            double deltaValue = delta.get().asDouble();
             if (-0.001 < deltaValue && deltaValue < 0.001) {
                 // for var(--text-color)
                 return 0;
@@ -571,7 +574,7 @@ public final class CoverageBuildAction extends BuildAction<Node> implements Stap
     @VisibleForTesting
     NavigableSet<Metric> getMetricsForSummary() {
         return new TreeSet<>(
-                Set.of(Metric.LINE, Metric.LOC, Metric.BRANCH, Metric.COMPLEXITY_DENSITY,
+                Set.of(Metric.LINE, Metric.LOC, Metric.BRANCH, Metric.CYCLOMATIC_COMPLEXITY,
                         Metric.MUTATION, Metric.TEST_STRENGTH, Metric.TESTS,
                         Metric.MCDC_PAIR, Metric.FUNCTION_CALL));
     }
@@ -617,7 +620,8 @@ public final class CoverageBuildAction extends BuildAction<Node> implements Stap
     @Override
     public CoverageViewModel getTarget() {
         return new CoverageViewModel(getOwner(), getUrlName(), name, getResult(),
-                getStatistics(), getQualityGateResult(), getReferenceBuildLink(), log, this::createChartModel, this::checkForCoverageData);
+                getStatistics(), getQualityGateResult(), getReferenceBuildLink(), log,
+                this::createChartModel, this::checkForCoverageData);
     }
 
     private String createChartModel(final String configuration, final boolean metrics) {

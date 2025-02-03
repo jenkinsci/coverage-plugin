@@ -5,15 +5,16 @@ import java.util.Map;
 import java.util.TreeMap;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.math.Fraction;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.junitpioneer.jupiter.DefaultLocale;
 
 import edu.hm.hafner.coverage.Coverage.CoverageBuilder;
+import edu.hm.hafner.coverage.Difference;
 import edu.hm.hafner.coverage.Metric;
 import edu.hm.hafner.coverage.Node;
+import edu.hm.hafner.coverage.Value;
 import edu.hm.hafner.coverage.parser.PitestParser;
 
 import hudson.model.Run;
@@ -304,11 +305,18 @@ class CoverageChecksPublisherTest extends AbstractCoverageTest {
         return new CoverageBuildAction(run, COVERAGE_ID, REPORT_NAME, StringUtils.EMPTY, result,
                 new QualityGateResult(), null, "refId",
                 new TreeMap<>(Map.of(
-                        Metric.LINE, Fraction.ONE_HALF,
-                        Metric.MODULE, Fraction.ZERO,
-                        Metric.PACKAGE, Fraction.ONE_HALF.negate())),
-                List.of(testCoverage), new TreeMap<>(Map.of(Metric.LINE, Fraction.ONE_HALF)), List.of(testCoverage),
-                new TreeMap<>(Map.of(Metric.LINE, Fraction.ONE_HALF)), List.of(testCoverage), false);
+                        Metric.LINE, getValue("LINE: 50"),
+                        Metric.MODULE, getValue("MODULE: 0"),
+                        Metric.PACKAGE, getValue("PACKAGE: -50"))),
+                List.of(testCoverage), new TreeMap<>(
+                        Map.of(Metric.LINE, getValue("LINE: 50"))),
+                List.of(testCoverage), new TreeMap<>(
+                        Map.of(Metric.LINE, getValue("LINE: 50"))),
+                List.of(testCoverage), false);
+    }
+
+    private Difference getValue(final String stringRepresentation) {
+        return (Difference) Value.valueOf(stringRepresentation.replaceFirst(":", ":" + Difference.DELTA));
     }
 
     protected CoverageBuildAction createActionWithoutDelta(final Node result) {

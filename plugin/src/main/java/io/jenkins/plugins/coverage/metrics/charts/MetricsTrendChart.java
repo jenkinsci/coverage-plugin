@@ -1,13 +1,14 @@
 package io.jenkins.plugins.coverage.metrics.charts;
 
+import edu.hm.hafner.coverage.Metric;
 import edu.hm.hafner.echarts.BuildResult;
 import edu.hm.hafner.echarts.ChartModelConfiguration;
 import edu.hm.hafner.echarts.JacksonFacade;
 import edu.hm.hafner.echarts.line.LineSeries.FilledMode;
 import edu.hm.hafner.echarts.line.LinesChartModel;
 import edu.hm.hafner.echarts.line.LinesDataSet;
+
 import io.jenkins.plugins.coverage.metrics.model.CoverageStatistics;
-import io.jenkins.plugins.coverage.metrics.model.Messages;
 import io.jenkins.plugins.echarts.JenkinsPalette;
 
 /**
@@ -23,10 +24,7 @@ public class MetricsTrendChart extends TrendChart {
     @Override
     public LinesChartModel create(final Iterable<BuildResult<CoverageStatistics>> results,
             final ChartModelConfiguration configuration) {
-        CoverageSeriesBuilder builder = new CoverageSeriesBuilder();
-        LinesDataSet dataSet = builder.createDataSet(configuration, results);
-
-        var filledMode = FilledMode.LINES;
+        LinesDataSet dataSet = new MetricSeriesBuilder().createDataSet(configuration, results);
 
         LinesChartModel model = new LinesChartModel(dataSet);
         if (dataSet.isNotEmpty()) {
@@ -34,14 +32,13 @@ public class MetricsTrendChart extends TrendChart {
             model.setRangeMax(dataSet.getMaximumValue());
             model.setRangeMin(dataSet.getMinimumValue());
 
-            addSeries(dataSet, model, Messages.Metric_COMPLEXITY(), CoverageSeriesBuilder.CYCLOMATIC_COMPLEXITY,
-                    JenkinsPalette.ORANGE.normal(), filledMode);
-            addSeries(dataSet, model, Messages.Metric_COGNITIVE_COMPLEXITY(), CoverageSeriesBuilder.COGNITIVE_COMPLEXITY,
-                    JenkinsPalette.ORANGE.normal(), filledMode);
-            addSeries(dataSet, model, Messages.Metric_NPATH(), CoverageSeriesBuilder.NPATH_COMPLEXITY,
-                    JenkinsPalette.ORANGE.normal(), filledMode);
-            addSeries(dataSet, model, Messages.Metric_NCSS(), CoverageSeriesBuilder.NCSS,
-                    JenkinsPalette.ORANGE.normal(), filledMode);
+            int colorIndex = 0;
+            for (var tag : dataSet.getDataSetIds()) {
+                Metric metric = Metric.fromTag(tag);
+                addSeriesIfAvailable(dataSet, model, metric.getDisplayName(),
+                        tag, JenkinsPalette.chartColor(colorIndex++).normal(),
+                        FilledMode.LINES);
+            }
         }
         return model;
     }

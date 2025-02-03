@@ -6,8 +6,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.TreeMap;
 
-import org.apache.commons.lang3.math.Fraction;
-
+import edu.hm.hafner.coverage.Difference;
 import edu.hm.hafner.coverage.FileNode;
 import edu.hm.hafner.coverage.Metric;
 import edu.hm.hafner.coverage.Node;
@@ -35,7 +34,7 @@ import io.jenkins.plugins.util.ResultHandler;
  */
 @SuppressWarnings({"checkstyle:ClassDataAbstractionCoupling", "PMD.LooseCoupling", "PMD.CouplingBetweenObjects"})
 public class CoverageReporter {
-    private static final NavigableMap<Metric, Fraction> EMPTY_DELTA = new TreeMap<>();
+    private static final NavigableMap<Metric, Difference> EMPTY_DELTA = new TreeMap<>();
     private static final List<Value> EMPTY_VALUES = List.of();
 
     @SuppressWarnings({"checkstyle:ParameterNumber", "checkstyle:JavaNCSS"})
@@ -100,9 +99,9 @@ public class CoverageReporter {
 
         Node modifiedLinesCoverageRoot = rootNode.filterByModifiedLines();
 
-        NavigableMap<Metric, Fraction> modifiedLinesDelta;
+        NavigableMap<Metric, Difference> modifiedLinesDelta;
         List<Value> modifiedFilesValues;
-        NavigableMap<Metric, Fraction> modifiedFilesDelta;
+        NavigableMap<Metric, Difference> modifiedFilesDelta;
         if (hasModifiedLinesCoverage(modifiedLinesCoverageRoot)) {
             Node modifiedFilesCoverageRoot = rootNode.filterByModifiedFiles();
             modifiedFilesValues = modifiedFilesCoverageRoot.aggregateValues();
@@ -122,7 +121,7 @@ public class CoverageReporter {
         }
 
         var overallValues = rootNode.aggregateValues();
-        NavigableMap<Metric, Fraction> overallDelta = rootNode.computeDelta(referenceRoot);
+        NavigableMap<Metric, Difference> overallDelta = rootNode.computeDelta(referenceRoot);
         var modifiedLinesValues = modifiedLinesCoverageRoot.aggregateValues();
 
         var statistics = new CoverageStatistics(overallValues, overallDelta,

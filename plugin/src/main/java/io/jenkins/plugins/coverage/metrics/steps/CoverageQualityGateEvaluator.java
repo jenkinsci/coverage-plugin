@@ -5,9 +5,7 @@ import java.util.Locale;
 
 import org.apache.commons.lang3.math.Fraction;
 
-import edu.hm.hafner.coverage.FractionValue;
 import edu.hm.hafner.coverage.Metric;
-import edu.hm.hafner.coverage.SafeFraction;
 import edu.hm.hafner.coverage.Value;
 
 import io.jenkins.plugins.coverage.metrics.model.CoverageStatistics;
@@ -61,19 +59,19 @@ class CoverageQualityGateEvaluator extends QualityGateEvaluator<CoverageQualityG
      */
     private Value convertActualValue(final Value value) {
         var metric = value.getMetric();
-        if (metric.equals(Metric.COMPLEXITY)
-                || metric.equals(Metric.COMPLEXITY_MAXIMUM)
+        if (metric.equals(Metric.CYCLOMATIC_COMPLEXITY)
                 || metric.equals(Metric.LOC)) {
             return value; // ignore integer based metrics
         }
-        if (value instanceof FractionValue) { // delta percentage
-            return new FractionValue(metric, covertToPercentage((FractionValue) value));
-        }
+        // FIXME: still needed?
+//        if (value instanceof FractionValue) { // delta percentage
+//            return new Value(metric, covertToPercentage((FractionValue) value));
+//        }
 
         return value;
     }
 
-    private Fraction covertToPercentage(final FractionValue value) {
-        return new SafeFraction(value.getFraction()).multiplyBy(HUNDRED);
-    }
+//    private Fraction covertToPercentage(final FractionValue value) {
+//        return new SafeFraction(value.getFraction()).multiplyBy(HUNDRED);
+//    }
 }

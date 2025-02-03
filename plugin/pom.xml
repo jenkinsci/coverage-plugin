@@ -5,7 +5,7 @@
   <parent>
     <groupId>org.jvnet.hudson.plugins</groupId>
     <artifactId>analysis-pom</artifactId>
-    <version>8.5.0</version>
+    <version>10.2.0</version>
     <relativePath />
   </parent>
 
@@ -25,11 +25,11 @@
     <gitHubRepo>jenkinsci/coverage-plugin</gitHubRepo>
 
     <!-- Library Dependencies Versions -->
-    <coverage-model.version>0.47.0</coverage-model.version>
+    <coverage-model.version>0.52.0-SNAPSHOT</coverage-model.version>
     <jsoup.version>1.18.1</jsoup.version>
 
     <!-- Jenkins Plug-in Dependencies Versions -->
-    <git-forensics.version>2.1.0</git-forensics.version>
+    <git-forensics.version>2.2.0</git-forensics.version>
 
     <!-- Test Library Dependencies Versions -->
     <xmlunit.version>2.10.0</xmlunit.version>
@@ -150,6 +150,7 @@
     <dependency>
       <groupId>io.jenkins.plugins</groupId>
       <artifactId>plugin-util-api</artifactId>
+      <version>6.0.0-rc1032.7b_1a_930a_1e66</version>
     </dependency>
     <dependency>
       <groupId>io.jenkins.plugins</groupId>
@@ -164,6 +165,7 @@
     <dependency>
       <groupId>io.jenkins.plugins</groupId>
       <artifactId>plugin-util-api</artifactId>
+      <version>6.0.0-rc1032.7b_1a_930a_1e66</version>
       <classifier>tests</classifier>
       <scope>test</scope>
     </dependency>

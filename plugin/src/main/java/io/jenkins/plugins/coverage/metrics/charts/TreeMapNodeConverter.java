@@ -4,14 +4,16 @@ import java.util.Optional;
 
 import edu.hm.hafner.coverage.Coverage;
 import edu.hm.hafner.coverage.FileNode;
-import edu.hm.hafner.coverage.IntegerValue;
 import edu.hm.hafner.coverage.Metric;
 import edu.hm.hafner.coverage.ModuleNode;
 import edu.hm.hafner.coverage.Node;
+import edu.hm.hafner.coverage.Value;
 import edu.hm.hafner.echarts.ItemStyle;
 import edu.hm.hafner.echarts.Label;
 import edu.hm.hafner.echarts.LabeledTreeMapNode;
 import edu.hm.hafner.echarts.TreeMapNode;
+
+import hudson.Functions;
 
 import io.jenkins.plugins.coverage.metrics.color.ColorProvider;
 import io.jenkins.plugins.coverage.metrics.color.ColorProvider.DisplayColors;
@@ -79,10 +81,7 @@ public class TreeMapNodeConverter {
             if (rootValue instanceof Coverage) {
                 return Optional.of(createCoverageTree((Coverage) rootValue, colorProvider, node, metric));
             }
-            if (rootValue instanceof IntegerValue) {
-                return Optional.of(createCoverageTree((IntegerValue) rootValue, node, metric));
-            }
-            throw new IllegalArgumentException("Unsupported value type: " + rootValue);
+            return Optional.of(createMetricsTree(rootValue, node, metric));
         }
 
         return Optional.empty();
@@ -90,9 +89,8 @@ public class TreeMapNodeConverter {
 
     private LabeledTreeMapNode createCoverageTree(final Coverage coverage, final ColorProvider colorProvider,
             final Node node, final Metric metric) {
-        double coveragePercentage = coverage.getCoveredPercentage().toDouble();
+        DisplayColors colors = CoverageLevel.getDisplayColorsOfCoverageLevel(coverage.asDouble(), colorProvider);
 
-        DisplayColors colors = CoverageLevel.getDisplayColorsOfCoverageLevel(coveragePercentage, colorProvider);
         String lineColor = colors.getLineColorAsRGBHex();
         String fillColor = colors.getFillColorAsRGBHex();
 
@@ -119,16 +117,16 @@ public class TreeMapNodeConverter {
                 String.valueOf(coverage.getTotal()), FORMATTER.getTooltip(coverage));
     }
 
-    private LabeledTreeMapNode createCoverageTree(final IntegerValue coverage, final Node node,
+    private LabeledTreeMapNode createMetricsTree(final Value value, final Node node,
             final Metric metric) {
         Label label = new Label(true, JenkinsPalette.BLACK.normal());
 
         String fillColor = metric == Metric.TESTS ? JenkinsPalette.GREEN.light() : JenkinsPalette.ORANGE.normal();
         if (node instanceof FileNode) {
-            return createValueNode(coverage, node, new ItemStyle(fillColor), label);
+            return createValueNode(value, node, new ItemStyle(fillColor), label);
         }
 
-        LabeledTreeMapNode treeNode = createValueNode(coverage, node,
+        LabeledTreeMapNode treeNode = createValueNode(value, node,
                 new ItemStyle(fillColor, fillColor, 4), label);
 
         node.getChildren().stream()
@@ -139,9 +137,9 @@ public class TreeMapNodeConverter {
         return treeNode;
     }
 
-    private LabeledTreeMapNode createValueNode(final IntegerValue value, final Node node,
+    private LabeledTreeMapNode createValueNode(final Value value, final Node node,
             final ItemStyle itemStyle, final Label label) {
         return new LabeledTreeMapNode(getId(node), node.getName(), itemStyle, label, label,
-                String.valueOf(value.getValue()), FORMATTER.getTooltip(value));
+                value.asText(Functions.getCurrentLocale()), FORMATTER.getTooltip(value));
     }
 }

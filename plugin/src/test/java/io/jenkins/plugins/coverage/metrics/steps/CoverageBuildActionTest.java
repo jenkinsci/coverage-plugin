@@ -10,7 +10,7 @@ import org.junit.jupiter.api.Test;
 import org.junitpioneer.jupiter.DefaultLocale;
 
 import edu.hm.hafner.coverage.Coverage.CoverageBuilder;
-import edu.hm.hafner.coverage.FractionValue;
+import edu.hm.hafner.coverage.Difference;
 import edu.hm.hafner.coverage.Metric;
 import edu.hm.hafner.coverage.ModuleNode;
 import edu.hm.hafner.coverage.Node;
@@ -42,10 +42,10 @@ class CoverageBuildActionTest {
         module.addValue(percent50);
         module.addValue(percent80);
 
-        var deltas = new TreeMap<Metric, Fraction>();
-        var lineDelta = percent80.getCoveredPercentage().subtract(percent50.getCoveredPercentage());
+        var deltas = new TreeMap<Metric, Difference>();
+        var lineDelta = new Difference(Metric.LINE, 30);
         deltas.put(Metric.LINE, lineDelta);
-        var branchDelta = percent50.getCoveredPercentage().subtract(percent80.getCoveredPercentage());
+        var branchDelta = new Difference(Metric.BRANCH, -30);
         deltas.put(Metric.BRANCH, branchDelta);
 
         var coverages = List.of(percent50, percent80);
@@ -57,16 +57,22 @@ class CoverageBuildActionTest {
 
         assertThat(action.getReferenceBuild()).isEmpty();
 
-        assertThat(action.getStatistics().getValue(Baseline.PROJECT, Metric.BRANCH)).hasValue(percent50);
-        assertThat(action.getStatistics().getValue(Baseline.PROJECT, Metric.LINE)).hasValue(percent80);
-        assertThat(action.getStatistics().getValue(Baseline.MODIFIED_LINES, Metric.BRANCH)).hasValue(percent50);
-        assertThat(action.getStatistics().getValue(Baseline.MODIFIED_LINES, Metric.LINE)).hasValue(percent80);
-        assertThat(action.getStatistics().getValue(Baseline.MODIFIED_FILES, Metric.BRANCH)).hasValue(percent50);
-        assertThat(action.getStatistics().getValue(Baseline.MODIFIED_FILES, Metric.LINE)).hasValue(percent80);
+        assertThat(action.getStatistics().getValue(Baseline.PROJECT, Metric.BRANCH))
+                .hasValue(percent50);
+        assertThat(action.getStatistics().getValue(Baseline.PROJECT, Metric.LINE))
+                .hasValue(percent80);
+        assertThat(action.getStatistics().getValue(Baseline.MODIFIED_LINES, Metric.BRANCH))
+                .hasValue(percent50);
+        assertThat(action.getStatistics().getValue(Baseline.MODIFIED_LINES, Metric.LINE))
+                .hasValue(percent80);
+        assertThat(action.getStatistics().getValue(Baseline.MODIFIED_FILES, Metric.BRANCH))
+                .hasValue(percent50);
+        assertThat(action.getStatistics().getValue(Baseline.MODIFIED_FILES, Metric.LINE))
+                .hasValue(percent80);
         assertThat(action.getStatistics().getValue(Baseline.PROJECT_DELTA, Metric.LINE))
-                .hasValue(new FractionValue(Metric.LINE, lineDelta));
+                .hasValue(lineDelta);
         assertThat(action.getStatistics().getValue(Baseline.PROJECT_DELTA, Metric.BRANCH))
-                .hasValue(new FractionValue(Metric.BRANCH, branchDelta));
+                .hasValue(branchDelta);
 
         assertThat(action.getAllValues(Baseline.PROJECT)).containsAll(coverages);
     }
@@ -114,11 +120,11 @@ class CoverageBuildActionTest {
         assertThat(action.getTrend(Baseline.PROJECT, Metric.LINE)).isZero();
     }
 
-    private Map<Metric, Fraction> createMap(final Fraction fraction) {
-        return Map.of(Metric.LINE, fraction);
+    private Map<Metric, Difference> createMap(final Fraction fraction) {
+        return Map.of(Metric.LINE, new Difference(Metric.LINE, fraction));
     }
 
-    private CoverageBuildAction createCoverageBuildActionWithDelta(final Map<Metric, Fraction> deltas) {
+    private CoverageBuildAction createCoverageBuildActionWithDelta(final Map<Metric, Difference> deltas) {
         Node module = new ModuleNode("module");
 
         var coverageBuilder = new CoverageBuilder();

@@ -54,8 +54,8 @@ class CoverageViewModelTest extends AbstractCoverageTest {
         assertThat(overview.getCovered()).containsExactlyElementsOf(expectedCovered);
         ensureValidPercentages(overview.getCoveredPercentages());
 
-        var expectedMissed = List.of(0, 3, 3, 5, 29, 7, 90);
-        assertThat(overview.getMissed()).containsExactlyElementsOf(expectedMissed);
+        var expectedMissed = List.of(0, 1, 1, 5, 29, 7, 90);
+           assertThat(overview.getMissed()).containsExactlyElementsOf(expectedMissed);
         ensureValidPercentages(overview.getMissedPercentages());
 
         assertThatJson(overview).node("metrics").isArray().containsExactly(expectedMetrics);
