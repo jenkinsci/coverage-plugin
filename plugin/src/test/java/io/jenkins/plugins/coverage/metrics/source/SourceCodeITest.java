@@ -16,10 +16,11 @@ import edu.hm.hafner.coverage.Metric;
 import edu.hm.hafner.coverage.Node;
 import edu.hm.hafner.util.PathUtil;
 
+import org.apache.http.client.fluent.Form;
 import org.jenkinsci.plugins.workflow.cps.CpsFlowDefinition;
 import org.jenkinsci.plugins.workflow.job.WorkflowJob;
 import hudson.model.Run;
-
+import hudson.model.Descriptor.FormException;
 import io.jenkins.plugins.coverage.metrics.AbstractCoverageITest;
 import io.jenkins.plugins.coverage.metrics.model.Baseline;
 import io.jenkins.plugins.coverage.metrics.steps.CoverageBuildAction;
@@ -54,18 +55,18 @@ abstract class SourceCodeITest extends AbstractCoverageITest {
 
     @ParameterizedTest(name = "Entries of `sourceDirectories` use absolute paths: {0}")
     @ValueSource(booleans = {true, false})
-    void verifySourcesInWorkspaceRoot(final boolean useAbsolutePath) throws IOException {
+    void verifySourcesInWorkspaceRoot(final boolean useAbsolutePath) throws IOException, FormException {
         runCoverageWithSourceCode("", useAbsolutePath);
     }
 
     @ParameterizedTest(name = "Entries of `sourceDirectories` use absolute paths: {0}")
     @ValueSource(booleans = {true, false})
-    void verifySourcesInWorkspaceSubFolder(final boolean useAbsolutePath) throws IOException {
+    void verifySourcesInWorkspaceSubFolder(final boolean useAbsolutePath) throws IOException, FormException {
         runCoverageWithSourceCode("sub-dir", useAbsolutePath);
     }
 
     @Test
-    void verifySourcesInApprovedExternalFolder() throws IOException {
+    void verifySourcesInApprovedExternalFolder() throws IOException, FormException {
         String directory = createExternalFolder();
         PrismConfiguration.getInstance().setSourceDirectories(List.of(new PermittedSourceCodeDirectory(directory)));
 
@@ -75,7 +76,7 @@ abstract class SourceCodeITest extends AbstractCoverageITest {
     }
 
     @Test
-    void refuseSourceCodePaintingInNotApprovedExternalFolder() throws IOException {
+    void refuseSourceCodePaintingInNotApprovedExternalFolder() throws IOException, FormException {
         PrismConfiguration.getInstance().setSourceDirectories(List.of());
 
         var localAgent = crateCoverageAgent();
@@ -101,7 +102,7 @@ abstract class SourceCodeITest extends AbstractCoverageITest {
     }
 
     private Run<?, ?> runCoverageWithSourceCode(final String sourceDir, final boolean useAbsolutePath)
-            throws IOException {
+            throws IOException, FormException {
         var localAgent = crateCoverageAgent();
 
         WorkflowJob job = createPipeline();
@@ -157,7 +158,7 @@ abstract class SourceCodeITest extends AbstractCoverageITest {
     }
 
     private CpsFlowDefinition createPipelineWithSourceCode(final SourceCodeRetention sourceCodeRetention,
-            final String sourceDirectory) {
+            final String sourceDirectory) throws FormException {
         return new CpsFlowDefinition("node ('coverage-agent') {"
                 + "    recordCoverage "
                 + "         tools: [[parser: 'JACOCO', pattern: '" + ACU_COBOL_PARSER_COVERAGE_REPORT + "']], \n"

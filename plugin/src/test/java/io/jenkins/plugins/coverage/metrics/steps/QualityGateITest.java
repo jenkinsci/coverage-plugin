@@ -16,11 +16,12 @@ import org.jenkinsci.plugins.workflow.job.WorkflowRun;
 import hudson.model.FreeStyleProject;
 import hudson.model.Result;
 import hudson.model.Run;
-
+import hudson.model.Descriptor.FormException;
 import io.jenkins.plugins.coverage.metrics.AbstractCoverageITest;
 import io.jenkins.plugins.coverage.metrics.model.Baseline;
 import io.jenkins.plugins.coverage.metrics.steps.CoverageTool.Parser;
 import io.jenkins.plugins.util.QualityGate.QualityGateCriticality;
+import io.jenkins.plugins.util.QualityGateResult;
 import io.jenkins.plugins.util.QualityGateStatus;
 
 import static io.jenkins.plugins.coverage.metrics.AbstractCoverageTest.*;
@@ -31,7 +32,7 @@ import static io.jenkins.plugins.util.assertions.Assertions.*;
  */
 class QualityGateITest extends AbstractCoverageITest {
     @Test
-    void shouldNotHaveQualityGate() {
+    void shouldNotHaveQualityGate() throws FormException {
         WorkflowJob job = createPipeline(Parser.JACOCO, JACOCO_ANALYSIS_MODEL_FILE);
 
         Run<?, ?> build = buildWithResult(job, Result.SUCCESS);
@@ -102,7 +103,7 @@ class QualityGateITest extends AbstractCoverageITest {
     }
 
     @Test
-    void shouldUseQualityGateInPipeline() {
+    void shouldUseQualityGateInPipeline() throws FormException {
         WorkflowJob project = createPipelineWithWorkspaceFiles(JACOCO_ANALYSIS_MODEL_FILE);
 
         setPipelineScript(project,
@@ -127,7 +128,7 @@ class QualityGateITest extends AbstractCoverageITest {
     }
 
     @Test @Issue("JENKINS-72059")
-    void shouldUseStageQualityGateInPipeline() {
+    void shouldUseStageQualityGateInPipeline() throws FormException {
         WorkflowJob project = createPipelineWithWorkspaceFiles(JACOCO_ANALYSIS_MODEL_FILE);
 
         setPipelineScript(project,

@@ -11,7 +11,7 @@ import edu.hm.hafner.coverage.Node;
 import org.jenkinsci.plugins.workflow.job.WorkflowJob;
 import hudson.model.FreeStyleProject;
 import hudson.model.Run;
-
+import hudson.model.Descriptor.FormException;
 import io.jenkins.plugins.coverage.metrics.AbstractCoverageITest;
 import io.jenkins.plugins.coverage.metrics.model.Baseline;
 import io.jenkins.plugins.coverage.metrics.steps.CoverageTool.Parser;
@@ -44,7 +44,7 @@ class DeltaComputationITest extends AbstractCoverageITest {
     }
 
     @Test
-    void shouldComputeDeltaInPipeline() {
+    void shouldComputeDeltaInPipeline() throws FormException {
         WorkflowJob job = createPipeline(Parser.JACOCO, JACOCO_ANALYSIS_MODEL_FILE, JACOCO_CODING_STYLE_FILE);
 
         Run<?, ?> firstBuild = buildSuccessfully(job);
@@ -60,7 +60,7 @@ class DeltaComputationITest extends AbstractCoverageITest {
     }
 
     @Test
-    void shouldSelectResultByIdInReferenceBuild() {
+    void shouldSelectResultByIdInReferenceBuild() throws FormException {
         WorkflowJob job = createPipelineWithWorkspaceFiles(
                 JACOCO_ANALYSIS_MODEL_FILE, JACOCO_CODING_STYLE_FILE,
                 "mutations.xml", "mutations-codingstyle.xml");

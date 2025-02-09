@@ -20,6 +20,7 @@ import org.jenkinsci.plugins.workflow.job.WorkflowJob;
 import hudson.model.FreeStyleProject;
 import hudson.model.Result;
 import hudson.model.Run;
+import hudson.model.Descriptor.FormException;
 import jenkins.model.ParameterizedJobMixIn.ParameterizedJob;
 
 import io.jenkins.plugins.coverage.metrics.AbstractCoverageITest;
@@ -62,7 +63,7 @@ class CoveragePluginITest extends AbstractCoverageITest {
     }
 
     @Test
-    void shouldFailWithoutParserInPipeline() {
+    void shouldFailWithoutParserInPipeline() throws FormException {
         WorkflowJob job = createPipeline();
 
         setPipelineScript(job, "recordCoverage()");
@@ -88,7 +89,7 @@ class CoveragePluginITest extends AbstractCoverageITest {
     @EnumSource
     @ParameterizedTest(name = "{index} => Pipeline with parser {0}")
     @DisplayName("Report error but do not fail build in pipeline when no input files are found")
-    void shouldReportErrorWhenNoFilesHaveBeenFoundInPipeline(final Parser parser) {
+    void shouldReportErrorWhenNoFilesHaveBeenFoundInPipeline(final Parser parser) throws FormException  {
         WorkflowJob job = createPipeline(parser);
 
         verifyLogMessageThatNoFilesFound(job);
@@ -113,7 +114,7 @@ class CoveragePluginITest extends AbstractCoverageITest {
     @EnumSource
     @ParameterizedTest(name = "{index} => Pipeline with parser {0}")
     @DisplayName("Report error and fail build in pipeline when no input files are found")
-    void shouldFailBuildWhenNoFilesHaveBeenFoundInPipeline(final Parser parser) {
+    void shouldFailBuildWhenNoFilesHaveBeenFoundInPipeline(final Parser parser) throws FormException  {
         WorkflowJob job = createPipeline();
 
         setPipelineScript(job,
@@ -138,14 +139,14 @@ class CoveragePluginITest extends AbstractCoverageITest {
     }
 
     @Test
-    void shouldRecordOneJacocoResultInPipeline() {
+    void shouldRecordOneJacocoResultInPipeline() throws FormException {
         WorkflowJob job = createPipeline(Parser.JACOCO, JACOCO_ANALYSIS_MODEL_FILE);
 
         verifyOneJacocoResult(job);
     }
 
     @Test
-    void shouldRecordOneJacocoResultInDeclarativePipeline() {
+    void shouldRecordOneJacocoResultInDeclarativePipeline() throws FormException {
         WorkflowJob job = createDeclarativePipeline(Parser.JACOCO, JACOCO_ANALYSIS_MODEL_FILE);
 
         verifyOneJacocoResult(job);
@@ -226,7 +227,7 @@ class CoveragePluginITest extends AbstractCoverageITest {
     }
 
     @Test
-    void shouldRecordTwoJacocoResultsInPipeline() {
+    void shouldRecordTwoJacocoResultsInPipeline() throws FormException {
         WorkflowJob job = createPipeline(Parser.JACOCO,
                 JACOCO_ANALYSIS_MODEL_FILE, JACOCO_CODING_STYLE_FILE);
 
@@ -234,7 +235,7 @@ class CoveragePluginITest extends AbstractCoverageITest {
     }
 
     @Test
-    void shouldRecordTwoJacocoResultsInDeclarativePipeline() {
+    void shouldRecordTwoJacocoResultsInDeclarativePipeline() throws FormException {
         WorkflowJob job = createDeclarativePipeline(Parser.JACOCO,
                 JACOCO_ANALYSIS_MODEL_FILE, JACOCO_CODING_STYLE_FILE);
 
@@ -260,14 +261,14 @@ class CoveragePluginITest extends AbstractCoverageITest {
     }
 
     @Test
-    void shouldRecordOneCoberturaResultInPipeline() {
+    void shouldRecordOneCoberturaResultInPipeline() throws FormException {
         WorkflowJob job = createPipeline(Parser.COBERTURA, COBERTURA_HIGHER_COVERAGE_FILE);
 
         verifyOneCoberturaResult(job);
     }
 
     @Test
-    void shouldRecordOneCoberturaResultInDeclarativePipeline() {
+    void shouldRecordOneCoberturaResultInDeclarativePipeline() throws FormException {
         WorkflowJob job = createDeclarativePipeline(Parser.COBERTURA, COBERTURA_HIGHER_COVERAGE_FILE);
 
         verifyOneCoberturaResult(job);
@@ -310,7 +311,7 @@ class CoveragePluginITest extends AbstractCoverageITest {
     }
 
     @Test
-    void shouldRecordCoberturaAndJacocoResultsInPipeline() {
+    void shouldRecordCoberturaAndJacocoResultsInPipeline() throws FormException {
         WorkflowJob job = createPipelineWithWorkspaceFiles(JACOCO_ANALYSIS_MODEL_FILE, COBERTURA_HIGHER_COVERAGE_FILE);
 
         setPipelineScript(job,
@@ -323,7 +324,7 @@ class CoveragePluginITest extends AbstractCoverageITest {
     }
 
     @Test
-    void shouldRecordCoberturaAndJacocoResultsInDeclarativePipeline() {
+    void shouldRecordCoberturaAndJacocoResultsInDeclarativePipeline() throws FormException {
         WorkflowJob job = createPipelineWithWorkspaceFiles(JACOCO_ANALYSIS_MODEL_FILE, COBERTURA_HIGHER_COVERAGE_FILE);
 
         job.setDefinition(new CpsFlowDefinition("pipeline {\n"
@@ -426,7 +427,7 @@ class CoveragePluginITest extends AbstractCoverageITest {
     }
 
     @Test @Issue("JENKINS-72595")
-    void shouldGracefullyHandleBomEncodedFiles() {
+    void shouldGracefullyHandleBomEncodedFiles() throws FormException {
         assumeThatTestIsRunningOnUnix();
 
         var fileName = "opencover-with-bom.xml";
@@ -546,7 +547,7 @@ class CoveragePluginITest extends AbstractCoverageITest {
     }
 
     @Test
-    void shouldRecordResultsWithDifferentId() {
+    void shouldRecordResultsWithDifferentId() throws FormException {
         WorkflowJob job = createPipelineWithWorkspaceFiles(JACOCO_ANALYSIS_MODEL_FILE, COBERTURA_HIGHER_COVERAGE_FILE);
 
         setPipelineScript(job,
@@ -581,7 +582,7 @@ class CoveragePluginITest extends AbstractCoverageITest {
     }
 
     @Test @Issue("785")
-    void shouldIgnoreErrors() {
+    void shouldIgnoreErrors() throws FormException {
         WorkflowJob job = createPipeline();
         copyFileToWorkspace(job, "cobertura-duplicate-methods.xml", "cobertura.xml");
         job.setDefinition(new CpsFlowDefinition(
@@ -606,7 +607,7 @@ class CoveragePluginITest extends AbstractCoverageITest {
     }
 
     @Test
-    void shouldIgnoreEmptyListOfFiles() {
+    void shouldIgnoreEmptyListOfFiles() throws FormException {
         WorkflowJob job = createPipeline();
         job.setDefinition(new CpsFlowDefinition(
                 "node {\n"
@@ -623,7 +624,7 @@ class CoveragePluginITest extends AbstractCoverageITest {
     }
 
     @Test
-    void shouldParseFileWithJaCoCo() {
+    void shouldParseFileWithJaCoCo() throws FormException {
         WorkflowJob job = createPipeline();
         copyFilesToWorkspace(job, "jacoco.xml");
         job.setDefinition(new CpsFlowDefinition(
@@ -681,14 +682,14 @@ class CoveragePluginITest extends AbstractCoverageITest {
     }
 
     @Test
-    void shouldRecordOneVectorCastResultInPipeline() {
+    void shouldRecordOneVectorCastResultInPipeline() throws FormException {
         WorkflowJob job = createPipeline(Parser.VECTORCAST, VECTORCAST_HIGHER_COVERAGE_FILE);
 
         verifyOneVectorCastResult(job);
     }
 
     @Test
-    void shouldRecordOneVectorCastResultInDeclarativePipeline() {
+    void shouldRecordOneVectorCastResultInDeclarativePipeline() throws FormException {
         WorkflowJob job = createDeclarativePipeline(Parser.VECTORCAST, VECTORCAST_HIGHER_COVERAGE_FILE);
 
         verifyOneVectorCastResult(job);
@@ -798,7 +799,7 @@ class CoveragePluginITest extends AbstractCoverageITest {
     }
 
     @Test
-    void shouldRecordVectorCastAndJacocoResultsInPipeline() {
+    void shouldRecordVectorCastAndJacocoResultsInPipeline() throws FormException {
         WorkflowJob job = createPipelineWithWorkspaceFiles(JACOCO_ANALYSIS_MODEL_FILE, VECTORCAST_HIGHER_COVERAGE_FILE);
 
         setPipelineScript(job,
@@ -811,7 +812,7 @@ class CoveragePluginITest extends AbstractCoverageITest {
     }
 
     @Test
-    void shouldRecordVectorCastAndJacocoResultsInDeclarativePipeline() {
+    void shouldRecordVectorCastAndJacocoResultsInDeclarativePipeline() throws FormException {
         WorkflowJob job = createPipelineWithWorkspaceFiles(JACOCO_ANALYSIS_MODEL_FILE, VECTORCAST_HIGHER_COVERAGE_FILE);
 
         job.setDefinition(new CpsFlowDefinition("pipeline {\n"
@@ -893,7 +894,7 @@ class CoveragePluginITest extends AbstractCoverageITest {
     }
 
     @Test
-    void shouldRecordVerctorCastResultsWithDifferentId() {
+    void shouldRecordVerctorCastResultsWithDifferentId() throws FormException {
         WorkflowJob job = createPipelineWithWorkspaceFiles(JACOCO_ANALYSIS_MODEL_FILE, VECTORCAST_HIGHER_COVERAGE_FILE);
 
         setPipelineScript(job,
@@ -928,7 +929,7 @@ class CoveragePluginITest extends AbstractCoverageITest {
     }
 
     @Test
-    void shouldParseFileWithVectorCast() {
+    void shouldParseFileWithVectorCast() throws FormException {
         WorkflowJob job = createPipeline();
         copyFileToWorkspace(job, "vectorcast-statement-mcdc-fcc.xml", "xml_data/cobertura/coverage_results_test.xml");
         job.setDefinition(new CpsFlowDefinition(

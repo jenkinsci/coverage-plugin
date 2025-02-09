@@ -4,7 +4,7 @@ import org.junit.jupiter.api.Test;
 
 import org.jenkinsci.plugins.workflow.job.WorkflowJob;
 import hudson.model.Run;
-
+import hudson.model.Descriptor.FormException;
 import io.jenkins.plugins.coverage.metrics.AbstractCoverageITest;
 import io.jenkins.plugins.coverage.metrics.steps.CoverageTool.Parser;
 
@@ -16,7 +16,7 @@ import static org.assertj.core.api.Assertions.*;
  */
 class CoverageTokenMacroITest extends AbstractCoverageITest {
     @Test
-    void shouldUseQualityGateInPipeline() {
+    void shouldUseQualityGateInPipeline() throws FormException {
         WorkflowJob project = createPipelineWithWorkspaceFiles(JACOCO_ANALYSIS_MODEL_FILE);
 
         setPipelineScript(project,
