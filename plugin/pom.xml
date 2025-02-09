@@ -5,7 +5,7 @@
   <parent>
     <groupId>org.jvnet.hudson.plugins</groupId>
     <artifactId>analysis-pom</artifactId>
-    <version>8.6.0</version>
+    <version>10.2.0</version>
     <relativePath />
   </parent>
 
@@ -26,7 +26,6 @@
 
     <!-- Library Dependencies Versions -->
     <coverage-model.version>0.46.0</coverage-model.version>
-    <jsoup.version>1.18.3</jsoup.version>
 
     <!-- Jenkins Plug-in Dependencies Versions -->
     <git-forensics.version>2.2.1</git-forensics.version>
@@ -91,11 +90,11 @@
       </exclusions>
     </dependency>
     <dependency>
-      <groupId>org.jsoup</groupId>
+      <groupId>org.jenkins-ci.plugins</groupId>
       <artifactId>jsoup</artifactId>
-      <version>${jsoup.version}</version>
+      <!-- To remove when on bom-->
+      <version>1.18.3-30.v952e9442d416</version>
     </dependency>
-
     <dependency>
       <groupId>io.jenkins.plugins</groupId>
       <artifactId>ionicons-api</artifactId>

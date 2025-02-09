@@ -7,7 +7,7 @@ import java.util.function.Consumer;
 import org.jenkinsci.plugins.workflow.cps.CpsFlowDefinition;
 import org.jenkinsci.plugins.workflow.job.WorkflowJob;
 import hudson.model.FreeStyleProject;
-
+import hudson.model.Descriptor.FormException;
 import io.jenkins.plugins.coverage.metrics.steps.CoverageRecorder;
 import io.jenkins.plugins.coverage.metrics.steps.CoverageTool.Parser;
 import io.jenkins.plugins.forensics.reference.SimpleReferenceRecorder;
@@ -58,7 +58,7 @@ public abstract class AbstractCoverageITest extends IntegrationTestWithJenkinsPe
         project.getPublishersList().add(recorder);
     }
 
-    protected WorkflowJob createPipeline(final Parser parser, final String... fileNames) {
+    protected WorkflowJob createPipeline(final Parser parser, final String... fileNames) throws FormException {
         WorkflowJob job = createPipelineWithWorkspaceFiles(fileNames);
 
         setPipelineScript(job,
@@ -67,14 +67,14 @@ public abstract class AbstractCoverageITest extends IntegrationTestWithJenkinsPe
         return job;
     }
 
-    protected void setPipelineScript(final WorkflowJob job, final String recorderSnippet) {
+    protected void setPipelineScript(final WorkflowJob job, final String recorderSnippet) throws FormException {
         job.setDefinition(new CpsFlowDefinition(
                 "node {\n"
                         + recorderSnippet + "\n"
                         + " }\n", true));
     }
 
-    protected WorkflowJob createDeclarativePipeline(final Parser parser, final String... fileNames) {
+    protected WorkflowJob createDeclarativePipeline(final Parser parser, final String... fileNames) throws FormException {
         WorkflowJob job = createPipelineWithWorkspaceFiles(fileNames);
 
         job.setDefinition(new CpsFlowDefinition("pipeline {\n"
