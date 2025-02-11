@@ -5,7 +5,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
-import java.util.TreeMap;
 
 import org.apache.commons.lang3.StringUtils;
 import org.junit.jupiter.api.Test;
@@ -232,12 +231,11 @@ class CoverageMetricColumnTest extends AbstractCoverageTest {
     private Job<?, ?> createJobWithCoverageAction() {
         var node = readJacocoResult(JACOCO_CODING_STYLE_FILE);
         var run = mock(Run.class);
-        var delta = new TreeMap<Metric, Difference>();
-        delta.put(Metric.BRANCH, new Difference(Metric.BRANCH, 5));
+        var delta = List.of(new Difference(Metric.BRANCH, 5));
         CoverageBuildAction coverageBuildAction =
                 new CoverageBuildAction(run, "coverage", "Code Coverage", StringUtils.EMPTY,
                         node, new QualityGateResult(), new FilteredLog("Test"),
-                        "-", delta, List.of(), new TreeMap<>(), List.of(), new TreeMap<>(), List.of(), false);
+                        "-", delta, List.of(), List.of(), List.of(), List.of(), List.of(), false);
         when(run.getAction(CoverageBuildAction.class)).thenReturn(coverageBuildAction);
         when(run.getActions(CoverageBuildAction.class)).thenReturn(Collections.singletonList(coverageBuildAction));
 

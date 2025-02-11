@@ -15,6 +15,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.junit.jupiter.api.Test;
 import org.xmlunit.builder.Input;
 
+import edu.hm.hafner.coverage.Difference;
 import edu.hm.hafner.coverage.Metric;
 import edu.hm.hafner.coverage.Node;
 import edu.hm.hafner.coverage.Value;
@@ -148,12 +149,12 @@ class CoverageXmlStreamITest extends SerializableTest<Node> {
         var converter = new MetricFractionMapConverter();
 
         Assertions.assertThat(converter.unmarshal(EMPTY)).isEmpty();
-        var first = new Value(BRANCH, 50, 100);
-        Assertions.assertThat(converter.unmarshal("[BRANCH: 50:100]"))
-                .containsExactly(entry(BRANCH, first));
-        Assertions.assertThat(converter.unmarshal("[LINE: 3:4, BRANCH: 50:100]"))
-                .containsExactly(entry(LINE, new Value(LINE, 3, 4)),
-                        entry(BRANCH, first));
+        Assertions.assertThat(converter.unmarshal("[BRANCH: 50/100]"))
+                .containsExactly(entry(BRANCH, new Difference(BRANCH, 50, 1)));
+        Assertions.assertThat(converter.unmarshal("[LINE: 3/4, BRANCH: -50/100]"))
+                .containsExactly(
+                        entry(LINE, new Difference(LINE, 75)),
+                        entry(BRANCH, new Difference(BRANCH, -50)));
     }
 
     @Test
@@ -211,7 +212,6 @@ class CoverageXmlStreamITest extends SerializableTest<Node> {
         return new CoverageBuildAction(mock(FreeStyleBuild.class), CoverageRecorder.DEFAULT_ID, StringUtils.EMPTY,
                 StringUtils.EMPTY,
                 tree, new QualityGateResult(), new FilteredLog("Test"), "-",
-                new TreeMap<>(), List.of(), new TreeMap<>(), List.of(),
-                new TreeMap<>(), List.of(), false);
+                List.of(), List.of(), List.of(), List.of(), List.of(), List.of(), false);
     }
 }

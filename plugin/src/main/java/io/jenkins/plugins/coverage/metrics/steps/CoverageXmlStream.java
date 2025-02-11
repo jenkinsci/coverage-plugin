@@ -26,6 +26,7 @@ import com.thoughtworks.xstream.io.HierarchicalStreamWriter;
 import edu.hm.hafner.coverage.ClassNode;
 import edu.hm.hafner.coverage.ContainerNode;
 import edu.hm.hafner.coverage.Coverage;
+import edu.hm.hafner.coverage.Difference;
 import edu.hm.hafner.coverage.FileNode;
 import edu.hm.hafner.coverage.MethodNode;
 import edu.hm.hafner.coverage.Metric;
@@ -143,7 +144,8 @@ class CoverageXmlStream extends AbstractXmlStream<Node> {
 
         @Override
         protected Entry<Metric, Value> createMapping(final String key, final String value) {
-            return entry(Metric.valueOf(key), Value.valueOf(key + ": " + value));
+            var deserialized = Fraction.getFraction(value).multiplyBy(Fraction.getFraction(100));
+            return entry(Metric.valueOf(key), new Difference(Metric.valueOf(key), deserialized));
         }
     }
 

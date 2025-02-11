@@ -1,8 +1,8 @@
 package io.jenkins.plugins.coverage.metrics.steps;
 
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.Fraction;
@@ -14,6 +14,7 @@ import edu.hm.hafner.coverage.Difference;
 import edu.hm.hafner.coverage.Metric;
 import edu.hm.hafner.coverage.ModuleNode;
 import edu.hm.hafner.coverage.Node;
+import edu.hm.hafner.coverage.Value;
 import edu.hm.hafner.util.FilteredLog;
 
 import hudson.model.FreeStyleBuild;
@@ -42,11 +43,9 @@ class CoverageBuildActionTest {
         module.addValue(percent50);
         module.addValue(percent80);
 
-        var deltas = new TreeMap<Metric, Difference>();
         var lineDelta = new Difference(Metric.LINE, 30);
-        deltas.put(Metric.LINE, lineDelta);
         var branchDelta = new Difference(Metric.BRANCH, -30);
-        deltas.put(Metric.BRANCH, branchDelta);
+        var deltas = List.of(lineDelta, branchDelta);
 
         var coverages = List.of(percent50, percent80);
         var action = spy(new CoverageBuildAction(mock(FreeStyleBuild.class), CoverageRecorder.DEFAULT_ID,
@@ -80,7 +79,7 @@ class CoverageBuildActionTest {
     private static CoverageBuildAction createEmptyAction(final Node module) {
         return new CoverageBuildAction(mock(FreeStyleBuild.class), CoverageRecorder.DEFAULT_ID,
                 StringUtils.EMPTY, StringUtils.EMPTY, module, new QualityGateResult(), createLog(), "-",
-                new TreeMap<>(), List.of(), new TreeMap<>(), List.of(), new TreeMap<>(), List.of(), false);
+                List.of(), List.of(), List.of(), List.of(), List.of(), List.of(), false);
     }
 
     private static FilteredLog createLog() {
@@ -98,33 +97,33 @@ class CoverageBuildActionTest {
 
     @Test
     void shouldReturnPositiveTrendForLineMetric() {
-        CoverageBuildAction action = createCoverageBuildActionWithDelta(createMap(Fraction.getFraction(1, 1000)));
+        CoverageBuildAction action = createCoverageBuildActionWithDelta(createSingleton(Fraction.getFraction(1, 1000)));
         assertThat(action.getTrend(Baseline.PROJECT, Metric.LINE)).isPositive();
     }
 
     @Test
     void shouldReturnNegativeTrendForLineMetric() {
-        CoverageBuildAction action = createCoverageBuildActionWithDelta(createMap(Fraction.getFraction(-1, 1000)));
+        CoverageBuildAction action = createCoverageBuildActionWithDelta(createSingleton(Fraction.getFraction(-1, 1000)));
         assertThat(action.getTrend(Baseline.PROJECT, Metric.LINE)).isNegative();
     }
 
     @Test
     void shouldReturnZeroForDeltaWithinBoundaries() {
-        CoverageBuildAction action = createCoverageBuildActionWithDelta(createMap(Fraction.getFraction(9, 10_000)));
+        CoverageBuildAction action = createCoverageBuildActionWithDelta(createSingleton(Fraction.getFraction(9, 10_000)));
         assertThat(action.getTrend(Baseline.PROJECT, Metric.LINE)).isZero();
     }
 
     @Test
     void shouldReturnZeroWhenDeltaIsNotPresentForGivenMetric() {
-        CoverageBuildAction action = createCoverageBuildActionWithDelta(Map.of());
+        CoverageBuildAction action = createCoverageBuildActionWithDelta(List.of());
         assertThat(action.getTrend(Baseline.PROJECT, Metric.LINE)).isZero();
     }
 
-    private Map<Metric, Difference> createMap(final Fraction fraction) {
-        return Map.of(Metric.LINE, new Difference(Metric.LINE, fraction));
+    private List<Difference> createSingleton(final Fraction fraction) {
+        return List.of(new Difference(Metric.LINE, fraction));
     }
 
-    private CoverageBuildAction createCoverageBuildActionWithDelta(final Map<Metric, Difference> deltas) {
+    private CoverageBuildAction createCoverageBuildActionWithDelta(final List<Difference> deltas) {
         Node module = new ModuleNode("module");
 
         var coverageBuilder = new CoverageBuilder();
@@ -134,7 +133,8 @@ class CoverageBuildActionTest {
 
         var coverages = List.of(percent);
 
-        var sortedDeltas = new TreeMap<>(deltas);
+        var sortedDeltas = new ArrayList<>(deltas);
+        sortedDeltas.sort(Comparator.comparing(Value::getMetric));
         return spy(new CoverageBuildAction(mock(FreeStyleBuild.class), CoverageRecorder.DEFAULT_ID,
                 StringUtils.EMPTY, StringUtils.EMPTY, module, new QualityGateResult(),
                 createLog(), "-", sortedDeltas, coverages,

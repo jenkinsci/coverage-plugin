@@ -211,9 +211,9 @@ class GitForensicsITest extends AbstractCoverageITest {
                 Coverage.valueOf(BRANCH, "136/230"),
                 new Value(LOC, 937));
         assertThat(action.getAllDeltas(Baseline.PROJECT_DELTA)).contains(
-                entry(LINE, getValue("LINE: 6424:897646")),
-                entry(BRANCH, getValue("BRANCH: 0")),
-                entry(LOC, getValue("LOC: -21")));
+                getValue("LINE: 6424:897646"),
+                getValue("BRANCH: 0"),
+                getValue("LOC: -21"));
     }
 
     private Difference getValue(final String stringRepresentation) {
@@ -231,16 +231,16 @@ class GitForensicsITest extends AbstractCoverageITest {
                 Coverage.valueOf(BRANCH, "1/2"),
                 new Value(LOC, 34));
         assertThat(action.getAllDeltas(Baseline.MODIFIED_FILES_DELTA)).contains(
-                entry(LINE, getValue("LINE: 17:374")),
-                entry(BRANCH, getValue("BRANCH: 0")),
-                entry(LOC, getValue("LOC: -12")));
+                getValue("LINE: 17:374"),
+                getValue("BRANCH: 0"),
+                getValue("LOC: -12"));
     }
 
     private void verifyModifiedLinesCoverage(final CoverageBuildAction action) {
         assertThat(action.getAllValues(Baseline.MODIFIED_LINES)).contains(
                 Coverage.valueOf(LINE, "1/2"));
         assertThat(action.getAllDeltas(Baseline.MODIFIED_LINES_DELTA)).contains(
-                entry(LINE, getValue("LINE: -1:22")));
+                getValue("LINE: -1:22"));
     }
 
     private void verifyIndirectCoverageChanges(final CoverageBuildAction action) {

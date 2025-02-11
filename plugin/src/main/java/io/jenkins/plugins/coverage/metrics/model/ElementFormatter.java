@@ -28,7 +28,6 @@ import io.jenkins.plugins.coverage.metrics.color.ColorProviderFactory;
 @SuppressWarnings({"PMD.GodClass", "PMD.CyclomaticComplexity"})
 public final class ElementFormatter {
     private static final Pattern PERCENTAGE = Pattern.compile("\\d+(\\.\\d+)?%");
-    private static final Pattern NUMBER = Pattern.compile("^\\d+.*");
 
     /**
      * Formats a generic value using a specific rendering method. The type of the given {@link Value} instance is used
@@ -120,20 +119,20 @@ public final class ElementFormatter {
      * @return the formatted value as plain text
      */
     public String formatAdditionalInformation(final Value value) {
-        if (value instanceof Coverage coverage) {
-            if (coverage.isSet()) {
-                if (coverage.getMetric() == Metric.MUTATION
-                        || coverage.getMetric() == Metric.TEST_STRENGTH) {
-                    return formatCoverage(coverage, Messages.Metric_MUTATION_Killed(),
-                            Messages.Metric_MUTATION_Survived());
-                }
-                else {
-                    return formatCoverage(coverage, Messages.Metric_Coverage_Covered(),
-                            Messages.Metric_Coverage_Missed());
-                }
-            }
+        if (value instanceof Coverage coverage && coverage.isSet()) {
+            return formatAdditionalCoverageInformation(coverage);
         }
         return StringUtils.EMPTY;
+    }
+
+    private String formatAdditionalCoverageInformation(final Coverage coverage) {
+        if (coverage.getMetric() == Metric.MUTATION
+                || coverage.getMetric() == Metric.TEST_STRENGTH) {
+            return formatCoverage(coverage, Messages.Metric_MUTATION_Killed(),
+                    Messages.Metric_MUTATION_Survived());
+        }
+        return formatCoverage(coverage, Messages.Metric_Coverage_Covered(),
+                Messages.Metric_Coverage_Missed());
     }
 
     private static String formatCoverage(final Coverage coverage, final String coveredText, final String missedText) {
@@ -322,11 +321,7 @@ public final class ElementFormatter {
      * @return the formatted delta percentage as plain text with a leading sign
      */
     public String formatDelta(final Value value, final Locale locale) {
-        var plainValue = value.asText(locale);
-        if (NUMBER.matcher(plainValue).matches()) {
-            return "+" + plainValue;
-        }
-        return plainValue;
+        return value.asText(locale);
     }
 
     /**

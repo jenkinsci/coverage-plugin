@@ -4,22 +4,21 @@ import java.util.List;
 import java.util.NavigableMap;
 import java.util.NoSuchElementException;
 import java.util.Optional;
-import java.util.TreeMap;
 
 import edu.hm.hafner.coverage.Difference;
 import edu.hm.hafner.coverage.Metric;
 import edu.hm.hafner.coverage.Value;
 
 /**
- * Represents the different mappings of coverage metric and baseline to actual values.
+ * Provides statistics for values and differences for all Base  the different mappings of coverage metric and baseline to actual values.
  */
 public class CoverageStatistics {
     private final List<Value> projectValueMapping;
-    private final NavigableMap<Metric, Difference> projectDelta;
+    private final List<Difference> projectDelta;
     private final List<Value> changeValueMapping;
-    private final NavigableMap<Metric, Difference> changeDelta;
+    private final List<Difference> changeDelta;
     private final List<Value> fileValueMapping;
-    private final NavigableMap<Metric, Difference> fileDelta;
+    private final List<Difference> fileDelta;
 
     /**
      * Creates a new instance of {@link CoverageStatistics}.
@@ -39,17 +38,17 @@ public class CoverageStatistics {
      */
     public CoverageStatistics(
             final List<? extends Value> projectValueMapping,
-            final NavigableMap<Metric, Difference> projectDeltaMapping,
+            final List<? extends Difference> projectDeltaMapping,
             final List<? extends Value> modifiedLinesValueMapping,
-            final NavigableMap<Metric, Difference> modifiedLinesDeltaMapping,
+            final List<? extends Difference> modifiedLinesDeltaMapping,
             final List<? extends Value> modifiedFilesValueMapping,
-            final NavigableMap<Metric, Difference> modifiedFilesDeltaMapping) {
+            final List<? extends Difference> modifiedFilesDeltaMapping) {
         this.projectValueMapping = List.copyOf(projectValueMapping);
         this.changeValueMapping = List.copyOf(modifiedLinesValueMapping);
         this.fileValueMapping = List.copyOf(modifiedFilesValueMapping);
-        this.projectDelta = new TreeMap<>(projectDeltaMapping);
-        this.changeDelta = new TreeMap<>(modifiedLinesDeltaMapping);
-        this.fileDelta = new TreeMap<>(modifiedFilesDeltaMapping);
+        this.projectDelta = List.copyOf(projectDeltaMapping);
+        this.changeDelta = List.copyOf(modifiedLinesDeltaMapping);
+        this.fileDelta = List.copyOf(modifiedFilesDeltaMapping);
     }
 
     /**
@@ -73,13 +72,13 @@ public class CoverageStatistics {
             return Value.findValue(metric, changeValueMapping);
         }
         if (baseline == Baseline.PROJECT_DELTA) {
-            return getValue(metric, projectDelta);
+            return Value.findValue(metric, projectDelta);
         }
         if (baseline == Baseline.MODIFIED_LINES_DELTA) {
-            return getValue(metric, changeDelta);
+            return Value.findValue(metric, changeDelta);
         }
         if (baseline == Baseline.MODIFIED_FILES_DELTA) {
-            return getValue(metric, fileDelta);
+            return Value.findValue(metric, fileDelta);
         }
 
         throw new NoSuchElementException("No such baseline: " + baseline);

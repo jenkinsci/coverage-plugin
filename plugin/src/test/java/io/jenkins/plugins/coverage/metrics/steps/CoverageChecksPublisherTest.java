@@ -1,8 +1,6 @@
 package io.jenkins.plugins.coverage.metrics.steps;
 
 import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
 
 import org.apache.commons.lang3.StringUtils;
 import org.junit.jupiter.api.Test;
@@ -304,14 +302,11 @@ class CoverageChecksPublisherTest extends AbstractCoverageTest {
 
         return new CoverageBuildAction(run, COVERAGE_ID, REPORT_NAME, StringUtils.EMPTY, result,
                 new QualityGateResult(), null, "refId",
-                new TreeMap<>(Map.of(
-                        Metric.LINE, getValue("LINE: 50"),
-                        Metric.MODULE, getValue("MODULE: 0"),
-                        Metric.PACKAGE, getValue("PACKAGE: -50"))),
-                List.of(testCoverage), new TreeMap<>(
-                        Map.of(Metric.LINE, getValue("LINE: 50"))),
-                List.of(testCoverage), new TreeMap<>(
-                        Map.of(Metric.LINE, getValue("LINE: 50"))),
+                List.of(getValue("LINE: 50"),
+                        getValue("MODULE: 0"),
+                        getValue("PACKAGE: -50")),
+                List.of(testCoverage), List.of(getValue("LINE: 50")),
+                List.of(testCoverage), List.of(getValue("LINE: 50")),
                 List.of(testCoverage), false);
     }
 
@@ -329,6 +324,6 @@ class CoverageChecksPublisherTest extends AbstractCoverageTest {
 
         return new CoverageBuildAction(run, COVERAGE_ID, REPORT_NAME, StringUtils.EMPTY, result,
                 qualityGateResult, null, "refId",
-                new TreeMap<>(), List.of(), new TreeMap<>(), List.of(), new TreeMap<>(), List.of(), false);
+                List.of(), List.of(), List.of(), List.of(), List.of(), List.of(), false);
     }
 }

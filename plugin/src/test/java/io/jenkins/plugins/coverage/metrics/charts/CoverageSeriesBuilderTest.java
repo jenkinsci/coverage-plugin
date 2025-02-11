@@ -104,9 +104,7 @@ class CoverageSeriesBuilderTest extends ResourceTest {
     private BuildResult<CoverageStatistics> createResult(final int buildNumber,
             final Coverage... coverages) {
         var statistics = new CoverageStatistics(
-                List.of(coverages), Collections.emptyNavigableMap(),
-                Collections.emptyList(), Collections.emptyNavigableMap(),
-                Collections.emptyList(), Collections.emptyNavigableMap());
+                List.of(coverages), List.of(), List.of(), List.of(), List.of(), List.of());
         Build build = new Build(buildNumber);
 
         return new BuildResult<>(build, statistics);

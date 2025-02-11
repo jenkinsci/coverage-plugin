@@ -9,6 +9,7 @@ import org.junitpioneer.jupiter.DefaultLocale;
 
 import edu.hm.hafner.coverage.Coverage;
 import edu.hm.hafner.coverage.Coverage.CoverageBuilder;
+import edu.hm.hafner.coverage.Difference;
 import edu.hm.hafner.coverage.Metric;
 import edu.hm.hafner.coverage.Value;
 
@@ -101,7 +102,7 @@ class ElementFormatterTest {
     void shouldHandleOverflowGracefully() {
         var formatter = new ElementFormatter();
 
-        var fraction = new Value(Metric.LINE, Integer.MAX_VALUE - 1, Integer.MAX_VALUE - 1);
+        var fraction = new Difference(Metric.LINE, Integer.MAX_VALUE - 1, Integer.MAX_VALUE - 1);
         var delta = formatter.formatDelta(Metric.LINE, fraction, Locale.ENGLISH);
 
         assertThat(delta).isEqualTo("+1.00%");

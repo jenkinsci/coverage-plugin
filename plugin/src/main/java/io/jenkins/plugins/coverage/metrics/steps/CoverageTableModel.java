@@ -140,7 +140,7 @@ class CoverageTableModel extends TableModel {
             var metric = (Metric) column[0];
             if (root.containsMetric(metric)) {
                 TableColumn tmp = new ColumnBuilder()
-                        .withHeaderLabel(metric.getDisplayName())
+                        .withHeaderLabel(metric.getLabel())
                         .withDataPropertyKey(CaseUtils.toCamelCase(metric.name(), false, '_'))
                         .withResponsivePriority((Integer) column[1])
                         .withType(ColumnType.NUMBER)

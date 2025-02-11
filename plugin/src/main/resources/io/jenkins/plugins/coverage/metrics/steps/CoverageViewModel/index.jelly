@@ -63,23 +63,23 @@
             </div>
           </div>
         </j:if>
-        <div class="row">
-          <div class="col-12 py-3">
-            <bs:card title="${%Metrics trend}" fontAwesomeIcon="chart-line">
-              <div id="metrics-trend" class="graph-cursor-pointer overview-chart h-100"/>
-            </bs:card>
+        <j:if test="${hasMetrics}">
+          <div class="row">
+            <div class="col-12 py-3">
+              <bs:card title="${%Metrics trend}" fontAwesomeIcon="chart-line">
+                <div id="metrics-trend" class="graph-cursor-pointer overview-chart h-100"/>
+              </bs:card>
+            </div>
           </div>
-        </div>
+        </j:if>
       </div>
-      <j:if test="${hasMetrics}">
-        <j:forEach var="metric" items="${it.treeMetrics}">
-          <div role="tabpanel" id="${metric.toTagName()}" class="tab-pane fade" aria-labelledby="${metric.toTagName()}-tab">
-            <bs:card title="${formatter.getDisplayName(metric)}" fontAwesomeIcon="folder-tree" class="flex-fill" bodyClass="d-flex flex-column">
-              <div id="project-${metric.toTagName()}" class="graph-cursor-pointer tree-chart" data-item-name="project-${metric.toTagName()}"/>
-            </bs:card>
-          </div>
-        </j:forEach>
-      </j:if>
+      <j:forEach var="metric" items="${it.treeMetrics}">
+        <div role="tabpanel" id="${metric.toTagName()}" class="tab-pane fade" aria-labelledby="${metric.toTagName()}-tab">
+          <bs:card title="${formatter.getDisplayName(metric)}" fontAwesomeIcon="folder-tree" class="flex-fill" bodyClass="d-flex flex-column">
+            <div id="project-${metric.toTagName()}" class="graph-cursor-pointer tree-chart" data-item-name="project-${metric.toTagName()}"/>
+          </bs:card>
+        </div>
+      </j:forEach>
 
       <div role="tabpanel" id="fileCoverage" class="tab-pane fade" aria-labelledby="fileCoverage-tab">
         <cov:coverage-table showChangedToggle="true" id="absolute-coverage" title="${%Coverage of all files}" symbol="symbol-regular/file-lines plugin-font-awesome-api"/>

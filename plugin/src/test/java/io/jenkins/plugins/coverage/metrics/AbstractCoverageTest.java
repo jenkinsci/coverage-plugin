@@ -3,8 +3,6 @@ package io.jenkins.plugins.coverage.metrics;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.util.List;
-import java.util.NavigableMap;
-import java.util.TreeMap;
 
 import org.junitpioneer.jupiter.DefaultLocale;
 
@@ -102,7 +100,7 @@ public abstract class AbstractCoverageTest extends ResourceTest {
      */
     public static CoverageStatistics createOnlyProjectStatistics() {
         return new CoverageStatistics(fillValues(),
-                new TreeMap<>(), List.of(), new TreeMap<>(), List.of(), new TreeMap<>());
+                List.of(), List.of(), List.of(), List.of(), List.of());
     }
 
     private static List<Value> fillValues() {
@@ -117,12 +115,10 @@ public abstract class AbstractCoverageTest extends ResourceTest {
         );
     }
 
-    private static NavigableMap<Metric, Difference> fillDeltas() {
-        final NavigableMap<Metric, Difference> deltaMapping = new TreeMap<>();
-        deltaMapping.put(Metric.FILE, new Difference(Metric.FILE, -10));
-        deltaMapping.put(Metric.LINE, new Difference(Metric.LINE, 5));
-        deltaMapping.put(Metric.CYCLOMATIC_COMPLEXITY, new Difference(Metric.CYCLOMATIC_COMPLEXITY, -10));
-        deltaMapping.put(Metric.LOC, new Difference(Metric.LOC, 5));
-        return deltaMapping;
+    private static List<Difference> fillDeltas() {
+        return List.of(new Difference(Metric.FILE, -10),
+                new Difference(Metric.LINE, 5),
+                new Difference(Metric.CYCLOMATIC_COMPLEXITY, -10),
+                new Difference(Metric.LOC, 5));
     }
 }
