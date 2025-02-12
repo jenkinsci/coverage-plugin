@@ -44,7 +44,7 @@ class DeltaComputationITest extends AbstractCoverageITest {
     }
 
     @Test
-    void shouldComputeDeltaInPipeline() {
+    void shouldComputeDeltaInPipeline() throws Exception {
         WorkflowJob job = createPipeline(Parser.JACOCO, JACOCO_ANALYSIS_MODEL_FILE, JACOCO_CODING_STYLE_FILE);
 
         Run<?, ?> firstBuild = buildSuccessfully(job);
@@ -60,7 +60,7 @@ class DeltaComputationITest extends AbstractCoverageITest {
     }
 
     @Test
-    void shouldSelectResultByIdInReferenceBuild() {
+    void shouldSelectResultByIdInReferenceBuild() throws Exception {
         WorkflowJob job = createPipelineWithWorkspaceFiles(
                 JACOCO_ANALYSIS_MODEL_FILE, JACOCO_CODING_STYLE_FILE,
                 "mutations.xml", "mutations-codingstyle.xml");

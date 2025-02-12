@@ -31,7 +31,7 @@ import static io.jenkins.plugins.util.assertions.Assertions.*;
  */
 class QualityGateITest extends AbstractCoverageITest {
     @Test
-    void shouldNotHaveQualityGate() {
+    void shouldNotHaveQualityGate() throws Exception {
         WorkflowJob job = createPipeline(Parser.JACOCO, JACOCO_ANALYSIS_MODEL_FILE);
 
         Run<?, ?> build = buildWithResult(job, Result.SUCCESS);
@@ -102,7 +102,7 @@ class QualityGateITest extends AbstractCoverageITest {
     }
 
     @Test
-    void shouldUseQualityGateInPipeline() {
+    void shouldUseQualityGateInPipeline() throws Exception {
         WorkflowJob project = createPipelineWithWorkspaceFiles(JACOCO_ANALYSIS_MODEL_FILE);
 
         setPipelineScript(project,
@@ -127,7 +127,7 @@ class QualityGateITest extends AbstractCoverageITest {
     }
 
     @Test @Issue("JENKINS-72059")
-    void shouldUseStageQualityGateInPipeline() {
+    void shouldUseStageQualityGateInPipeline() throws Exception {
         WorkflowJob project = createPipelineWithWorkspaceFiles(JACOCO_ANALYSIS_MODEL_FILE);
 
         setPipelineScript(project,

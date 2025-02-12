@@ -18,6 +18,7 @@ import edu.hm.hafner.util.PathUtil;
 
 import org.jenkinsci.plugins.workflow.cps.CpsFlowDefinition;
 import org.jenkinsci.plugins.workflow.job.WorkflowJob;
+import hudson.model.Descriptor;
 import hudson.model.Run;
 
 import io.jenkins.plugins.coverage.metrics.AbstractCoverageITest;
@@ -54,18 +55,18 @@ abstract class SourceCodeITest extends AbstractCoverageITest {
 
     @ParameterizedTest(name = "Entries of `sourceDirectories` use absolute paths: {0}")
     @ValueSource(booleans = {true, false})
-    void verifySourcesInWorkspaceRoot(final boolean useAbsolutePath) throws IOException {
+    void verifySourcesInWorkspaceRoot(final boolean useAbsolutePath) throws Exception {
         runCoverageWithSourceCode("", useAbsolutePath);
     }
 
     @ParameterizedTest(name = "Entries of `sourceDirectories` use absolute paths: {0}")
     @ValueSource(booleans = {true, false})
-    void verifySourcesInWorkspaceSubFolder(final boolean useAbsolutePath) throws IOException {
+    void verifySourcesInWorkspaceSubFolder(final boolean useAbsolutePath) throws Exception {
         runCoverageWithSourceCode("sub-dir", useAbsolutePath);
     }
 
     @Test
-    void verifySourcesInApprovedExternalFolder() throws IOException {
+    void verifySourcesInApprovedExternalFolder() throws Exception {
         String directory = createExternalFolder();
         PrismConfiguration.getInstance().setSourceDirectories(List.of(new PermittedSourceCodeDirectory(directory)));
 
@@ -75,7 +76,7 @@ abstract class SourceCodeITest extends AbstractCoverageITest {
     }
 
     @Test
-    void refuseSourceCodePaintingInNotApprovedExternalFolder() throws IOException {
+    void refuseSourceCodePaintingInNotApprovedExternalFolder() throws Exception {
         PrismConfiguration.getInstance().setSourceDirectories(List.of());
 
         var localAgent = crateCoverageAgent();
@@ -101,7 +102,7 @@ abstract class SourceCodeITest extends AbstractCoverageITest {
     }
 
     private Run<?, ?> runCoverageWithSourceCode(final String sourceDir, final boolean useAbsolutePath)
-            throws IOException {
+            throws Exception {
         var localAgent = crateCoverageAgent();
 
         WorkflowJob job = createPipeline();
@@ -157,7 +158,7 @@ abstract class SourceCodeITest extends AbstractCoverageITest {
     }
 
     private CpsFlowDefinition createPipelineWithSourceCode(final SourceCodeRetention sourceCodeRetention,
-            final String sourceDirectory) {
+            final String sourceDirectory) throws Descriptor.FormException {
         return new CpsFlowDefinition("node ('coverage-agent') {"
                 + "    recordCoverage "
                 + "         tools: [[parser: 'JACOCO', pattern: '" + ACU_COBOL_PARSER_COVERAGE_REPORT + "']], \n"
