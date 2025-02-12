@@ -30,8 +30,8 @@ import edu.hm.hafner.util.FilteredLog;
 import edu.hm.hafner.util.VisibleForTesting;
 import edu.umd.cs.findbugs.annotations.CheckForNull;
 
-import org.kohsuke.stapler.StaplerRequest;
-import org.kohsuke.stapler.StaplerResponse;
+import org.kohsuke.stapler.StaplerRequest2;
+import org.kohsuke.stapler.StaplerResponse2;
 import org.kohsuke.stapler.bind.JavaScriptMethod;
 import hudson.model.Api;
 import hudson.model.ModelObject;
@@ -471,7 +471,7 @@ public class CoverageViewModel extends DefaultAsyncTableContentProvider implemen
      */
     @SuppressWarnings("unused") // Called by jelly view
     @CheckForNull
-    public Object getDynamic(final String link, final StaplerRequest request, final StaplerResponse response) {
+    public Object getDynamic(final String link, final StaplerRequest2 request, final StaplerResponse2 response) {
         if (MODIFIED_LINES_API_URL.equals(link)) {
             return new ModifiedLinesCoverageApiModel(node);
         }

@@ -65,6 +65,7 @@ import io.jenkins.plugins.util.ValidationUtilities;
 /**
  * A pipeline {@code Step} or Freestyle or Maven {@link Recorder} that reads and parses coverage results in a build and
  * adds the results to the persisted build results.
+ *
  * <p>
  * Stores the created issues in a {@link Node}. This result is then attached to the {@link Run build} by registering a
  * {@link CoverageBuildAction}.

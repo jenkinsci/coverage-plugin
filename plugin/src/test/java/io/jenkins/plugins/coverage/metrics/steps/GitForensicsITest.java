@@ -21,6 +21,7 @@ import edu.hm.hafner.coverage.LinesOfCode;
 import org.jenkinsci.plugins.workflow.cps.CpsFlowDefinition;
 import org.jenkinsci.plugins.workflow.flow.FlowDefinition;
 import org.jenkinsci.plugins.workflow.job.WorkflowJob;
+import hudson.model.Descriptor;
 import hudson.model.FreeStyleProject;
 import hudson.model.Node;
 import hudson.model.Result;
@@ -67,7 +68,7 @@ class GitForensicsITest extends AbstractCoverageITest {
     })
     @DisplayName("Should compute delta report and store selected source files")
     void shouldComputeDeltaInPipelineOnDockerAgent(final SourceCodeRetention sourceCodeRetention,
-            final int expectedNumberOfFilesToBeStored) {
+            final int expectedNumberOfFilesToBeStored) throws Exception {
         assumeThat(isWindows()).as("Running on Windows").isFalse();
 
         Node agent = createDockerAgent(AGENT_CONTAINER);
@@ -103,7 +104,7 @@ class GitForensicsITest extends AbstractCoverageITest {
             "MODIFIED_LINES_DELTA, -1, -4.55"
     })
     @DisplayName("Should compute quality gates")
-    void shouldVerifyQualityGate(final Baseline baseline, final double threshold, final double value) {
+    void shouldVerifyQualityGate(final Baseline baseline, final double threshold, final double value) throws Exception {
         assumeThat(isWindows()).as("Running on Windows").isFalse();
 
         Node agent = createDockerAgent(AGENT_CONTAINER);
@@ -307,7 +308,7 @@ class GitForensicsITest extends AbstractCoverageITest {
      *
      * @return the created definition
      */
-    private FlowDefinition createPipelineForCommit(final String node, final String commit, final String fileName) {
+    private FlowDefinition createPipelineForCommit(final String node, final String commit, final String fileName) throws Descriptor.FormException {
         return createPipelineForCommit(node, commit, fileName, SourceCodeRetention.EVERY_BUILD);
     }
 
@@ -326,12 +327,12 @@ class GitForensicsITest extends AbstractCoverageITest {
      * @return the created definition
      */
     private FlowDefinition createPipelineForCommit(final String node, final String commit, final String fileName,
-            final SourceCodeRetention sourceCodeRetentionStrategy) {
+            final SourceCodeRetention sourceCodeRetentionStrategy) throws Descriptor.FormException {
         return createPipelineForCommit(node, commit, fileName, sourceCodeRetentionStrategy, StringUtils.EMPTY);
     }
 
     private FlowDefinition createPipelineForCommit(final String node, final String commit, final String fileName,
-            final SourceCodeRetention sourceCodeRetentionStrategy, final String qualityGate) {
+            final SourceCodeRetention sourceCodeRetentionStrategy, final String qualityGate) throws Descriptor.FormException {
         return new CpsFlowDefinition(node + " {"
                 + "    checkout([$class: 'GitSCM', "
                 + "         branches: [[name: '" + commit + "' ]],\n"

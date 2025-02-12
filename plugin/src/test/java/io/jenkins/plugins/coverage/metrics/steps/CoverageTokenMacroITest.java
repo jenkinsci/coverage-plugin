@@ -16,7 +16,7 @@ import static org.assertj.core.api.Assertions.*;
  */
 class CoverageTokenMacroITest extends AbstractCoverageITest {
     @Test
-    void shouldUseQualityGateInPipeline() {
+    void shouldUseQualityGateInPipeline() throws Exception {
         WorkflowJob project = createPipelineWithWorkspaceFiles(JACOCO_ANALYSIS_MODEL_FILE);
 
         setPipelineScript(project,
