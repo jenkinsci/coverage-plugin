@@ -1,16 +1,5 @@
 package io.jenkins.plugins.coverage.metrics.steps;
 
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Path;
-import java.util.List;
-import java.util.NavigableMap;
-import java.util.NavigableSet;
-import java.util.TreeMap;
-import java.util.TreeSet;
-import java.util.stream.Collectors;
-
 import org.apache.commons.lang3.StringUtils;
 import org.junit.jupiter.api.Test;
 import org.xmlunit.builder.Input;
@@ -22,6 +11,17 @@ import edu.hm.hafner.coverage.Value;
 import edu.hm.hafner.coverage.parser.JacocoParser;
 import edu.hm.hafner.util.FilteredLog;
 import edu.hm.hafner.util.SerializableTest;
+
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Path;
+import java.util.List;
+import java.util.NavigableMap;
+import java.util.NavigableSet;
+import java.util.TreeMap;
+import java.util.TreeSet;
+import java.util.stream.Collectors;
 
 import hudson.XmlFile;
 import hudson.model.FreeStyleBuild;
@@ -36,6 +36,7 @@ import io.jenkins.plugins.util.QualityGateResult;
 import static edu.hm.hafner.coverage.Metric.*;
 import static org.assertj.core.api.BDDAssertions.*;
 import static org.mockito.Mockito.*;
+import static org.xmlunit.assertj.XmlAssert.*;
 import static org.xmlunit.assertj.XmlAssert.assertThat;
 
 /**
@@ -53,6 +54,28 @@ class CoverageXmlStreamITest extends SerializableTest<Node> {
         var fileName = "jacoco-codingstyle.xml";
         return new JacocoParser().parse(new InputStreamReader(asInputStream(fileName),
                         StandardCharsets.UTF_8), fileName, new FilteredLog("Errors"));
+    }
+
+    @Test
+    void shouldRestoreAction() throws IOException {
+        var xmlStream = new CoverageXmlStream();
+        var file = getResourceAsFile("coverage-action-1.x.xml");
+        var stream = xmlStream.getStream();
+        var xmlFile = new XmlFile(stream, file.toFile());
+        var restored = xmlFile.read();
+
+        Assertions.assertThat(restored).isInstanceOfSatisfying(CoverageBuildAction.class,
+                a -> Assertions.assertThat(a.getAllValues(Baseline.PROJECT))
+                        .map(Object::toString).containsExactlyInAnyOrder("MODULE: 100.00% (1/1)",
+                                "PACKAGE: 75.00% (3/4)",
+                                "FILE: 100.00% (32/32)",
+                                "CLASS: 94.23% (49/52)",
+                                "METHOD: 95.79% (569/594)",
+                                "LINE: 96.35% (2164/2246)",
+                                "BRANCH: 92.92% (932/1003)",
+                                "INSTRUCTION: 96.44% (10534/10923)",
+                                "CYCLOMATIC_COMPLEXITY: 1105",
+                                "LOC: 2246"));
     }
 
     @Test

@@ -1,17 +1,5 @@
 package io.jenkins.plugins.coverage.metrics.steps;
 
-import java.io.Serial;
-import java.util.List;
-import java.util.NavigableMap;
-import java.util.NavigableSet;
-import java.util.NoSuchElementException;
-import java.util.Optional;
-import java.util.Set;
-import java.util.TreeMap;
-import java.util.TreeSet;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
 import org.apache.commons.lang3.StringUtils;
 
 import edu.hm.hafner.coverage.Coverage;
@@ -24,6 +12,18 @@ import edu.hm.hafner.echarts.JacksonFacade;
 import edu.hm.hafner.util.FilteredLog;
 import edu.hm.hafner.util.VisibleForTesting;
 import edu.umd.cs.findbugs.annotations.NonNull;
+
+import java.io.Serial;
+import java.util.List;
+import java.util.NavigableMap;
+import java.util.NavigableSet;
+import java.util.NoSuchElementException;
+import java.util.Optional;
+import java.util.Set;
+import java.util.TreeMap;
+import java.util.TreeSet;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.kohsuke.stapler.StaplerProxy;
 import hudson.Functions;
@@ -590,9 +590,16 @@ public final class CoverageBuildAction extends BuildAction<Node> implements Stap
      */
     @VisibleForTesting
     NavigableSet<Metric> getMetricsForSummary() {
+        // TODO: establish a useful order
         return new TreeSet<>(
-                Set.of(Metric.LINE, Metric.LOC, Metric.BRANCH, Metric.CYCLOMATIC_COMPLEXITY,
-                        Metric.MUTATION, Metric.TEST_STRENGTH, Metric.TESTS,
+                Set.of(
+                        // code coverage
+                        Metric.LINE, Metric.BRANCH,
+                        // mutation coverage
+                        Metric.MUTATION, Metric.TEST_STRENGTH,
+                        // software metrics
+                        Metric.LOC, Metric.NCSS, Metric.TESTS,
+                        Metric.CYCLOMATIC_COMPLEXITY, Metric.COGNITIVE_COMPLEXITY, Metric.NPATH_COMPLEXITY,
                         Metric.MCDC_PAIR, Metric.FUNCTION_CALL));
     }
 

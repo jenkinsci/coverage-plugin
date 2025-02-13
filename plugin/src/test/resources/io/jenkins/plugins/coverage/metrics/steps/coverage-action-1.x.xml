@@ -1,0 +1,358 @@
+<?xml version="1.1" encoding="UTF-8"?>
+<io.jenkins.plugins.coverage.metrics.steps.CoverageBuildAction plugin="coverage@1.16.1">
+  <id>coverage</id>
+  <name></name>
+  <referenceBuildId>history-coverage-model#21</referenceBuildId>
+  <qualityGateResult plugin="plugin-util-api@4.1.0">
+    <overallStatus>PASSED</overallStatus>
+    <items>
+      <io.jenkins.plugins.util.QualityGateResult_-QualityGateResultItem>
+        <status>PASSED</status>
+        <qualityGate class="io.jenkins.plugins.coverage.metrics.steps.CoverageQualityGate" plugin="coverage@1.16.1">
+          <threshold>60.0</threshold>
+          <criticality>NOTE</criticality>
+          <metric>LINE</metric>
+          <baseline>PROJECT</baseline>
+        </qualityGate>
+        <actualValue>96.35%</actualValue>
+      </io.jenkins.plugins.util.QualityGateResult_-QualityGateResultItem>
+      <io.jenkins.plugins.util.QualityGateResult_-QualityGateResultItem>
+        <status>PASSED</status>
+        <qualityGate class="io.jenkins.plugins.coverage.metrics.steps.CoverageQualityGate" plugin="coverage@1.16.1">
+          <threshold>60.0</threshold>
+          <criticality>NOTE</criticality>
+          <metric>BRANCH</metric>
+          <baseline>PROJECT</baseline>
+        </qualityGate>
+        <actualValue>92.92%</actualValue>
+      </io.jenkins.plugins.util.QualityGateResult_-QualityGateResultItem>
+      <io.jenkins.plugins.util.QualityGateResult_-QualityGateResultItem>
+        <status>PASSED</status>
+        <qualityGate class="io.jenkins.plugins.coverage.metrics.steps.CoverageQualityGate" plugin="coverage@1.16.1">
+          <threshold>50.0</threshold>
+          <criticality>ERROR</criticality>
+          <metric>LINE</metric>
+          <baseline>PROJECT</baseline>
+        </qualityGate>
+        <actualValue>96.35%</actualValue>
+      </io.jenkins.plugins.util.QualityGateResult_-QualityGateResultItem>
+      <io.jenkins.plugins.util.QualityGateResult_-QualityGateResultItem>
+        <status>PASSED</status>
+        <qualityGate class="io.jenkins.plugins.coverage.metrics.steps.CoverageQualityGate" plugin="coverage@1.16.1">
+          <threshold>50.0</threshold>
+          <criticality>ERROR</criticality>
+          <metric>BRANCH</metric>
+          <baseline>PROJECT</baseline>
+        </qualityGate>
+        <actualValue>92.92%</actualValue>
+      </io.jenkins.plugins.util.QualityGateResult_-QualityGateResultItem>
+    </items>
+  </qualityGateResult>
+  <icon>symbol-footsteps-outline plugin-ionicons-api</icon>
+  <log plugin="plugin-util-api@4.1.0">
+    <title>Errors while recording code coverage:</title>
+    <maxLines>20</maxLines>
+    <lines>0</lines>
+    <infoMessages>
+      <string>Recording coverage results</string>
+      <string>Creating parser for JaCoCo Coverage Reports</string>
+      <string>Searching for all files in &apos;/home/jenkins/agent/workspace/history-coverage-model&apos; that match the pattern &apos;target/site/jacoco/jacoco.xml&apos;</string>
+      <string>Traversing of symbolic links: disabled</string>
+      <string>-&gt; found 1 file</string>
+      <string>Successfully parsed file &apos;/home/jenkins/agent/workspace/history-coverage-model/target/site/jacoco/jacoco.xml&apos;</string>
+      <string>MODULE: 100.00% (1/1)</string>
+      <string>PACKAGE: 100.00% (3/3)</string>
+      <string>FILE: 100.00% (32/32)</string>
+      <string>CLASS: 100.00% (49/49)</string>
+      <string>METHOD: 95.79% (569/594)</string>
+      <string>LINE: 96.35% (2164/2246)</string>
+      <string>BRANCH: 92.92% (932/1003)</string>
+      <string>INSTRUCTION: 96.44% (10534/10923)</string>
+      <string>COMPLEXITY: 1105</string>
+      <string>COMPLEXITY_MAXIMUM: 16</string>
+      <string>COMPLEXITY_DENSITY: 1105/2246</string>
+      <string>LOC: 2246</string>
+      <string>Successfully processed file &apos;target/site/jacoco/jacoco.xml&apos;</string>
+      <string>Creating parser for JUnit Test Results</string>
+      <string>Searching for all files in &apos;/home/jenkins/agent/workspace/history-coverage-model&apos; that match the pattern &apos;**/target/*-reports/TEST-*.xml&apos;</string>
+      <string>Traversing of symbolic links: disabled</string>
+      <string>-&gt; found 31 files</string>
+      <string>Successfully parsed file &apos;/home/jenkins/agent/workspace/history-coverage-model/target/surefire-reports/TEST-edu.hm.hafner.ArchitectureTest.xml&apos;</string>
+      <string>MODULE: 0.00% (0/1)</string>
+      <string>PACKAGE: 0.00% (0/1)</string>
+      <string>CLASS: 0.00% (0/1)</string>
+      <string>TESTS: 9</string>
+      <string>Successfully processed file &apos;target/surefire-reports/TEST-edu.hm.hafner.ArchitectureTest.xml&apos;</string>
+      <string>Successfully parsed file &apos;/home/jenkins/agent/workspace/history-coverage-model/target/surefire-reports/TEST-edu.hm.hafner.PackageArchitectureTest.xml&apos;</string>
+      <string>MODULE: 0.00% (0/1)</string>
+      <string>PACKAGE: 0.00% (0/1)</string>
+      <string>CLASS: 0.00% (0/1)</string>
+      <string>TESTS: 1</string>
+      <string>Successfully processed file &apos;target/surefire-reports/TEST-edu.hm.hafner.PackageArchitectureTest.xml&apos;</string>
+      <string>Successfully parsed file &apos;/home/jenkins/agent/workspace/history-coverage-model/target/surefire-reports/TEST-edu.hm.hafner.coverage.ClassNodeTest.xml&apos;</string>
+      <string>MODULE: 0.00% (0/1)</string>
+      <string>PACKAGE: 0.00% (0/1)</string>
+      <string>CLASS: 0.00% (0/1)</string>
+      <string>TESTS: 7</string>
+      <string>Successfully processed file &apos;target/surefire-reports/TEST-edu.hm.hafner.coverage.ClassNodeTest.xml&apos;</string>
+      <string>Successfully parsed file &apos;/home/jenkins/agent/workspace/history-coverage-model/target/surefire-reports/TEST-edu.hm.hafner.coverage.ContainerNodeTest.xml&apos;</string>
+      <string>MODULE: 0.00% (0/1)</string>
+      <string>PACKAGE: 0.00% (0/1)</string>
+      <string>CLASS: 0.00% (0/1)</string>
+      <string>TESTS: 5</string>
+      <string>Successfully processed file &apos;target/surefire-reports/TEST-edu.hm.hafner.coverage.ContainerNodeTest.xml&apos;</string>
+      <string>Successfully parsed file &apos;/home/jenkins/agent/workspace/history-coverage-model/target/surefire-reports/TEST-edu.hm.hafner.coverage.CoverageParserTest.xml&apos;</string>
+      <string>MODULE: 0.00% (0/1)</string>
+      <string>PACKAGE: 0.00% (0/1)</string>
+      <string>CLASS: 0.00% (0/1)</string>
+      <string>TESTS: 1</string>
+      <string>Successfully processed file &apos;target/surefire-reports/TEST-edu.hm.hafner.coverage.CoverageParserTest.xml&apos;</string>
+      <string>Successfully parsed file &apos;/home/jenkins/agent/workspace/history-coverage-model/target/surefire-reports/TEST-edu.hm.hafner.coverage.CoverageTest.xml&apos;</string>
+      <string>MODULE: 0.00% (0/1)</string>
+      <string>PACKAGE: 0.00% (0/1)</string>
+      <string>CLASS: 0.00% (0/1)</string>
+      <string>TESTS: 33</string>
+      <string>Successfully processed file &apos;target/surefire-reports/TEST-edu.hm.hafner.coverage.CoverageTest.xml&apos;</string>
+      <string>Successfully parsed file &apos;/home/jenkins/agent/workspace/history-coverage-model/target/surefire-reports/TEST-edu.hm.hafner.coverage.CyclomaticComplexityTest.xml&apos;</string>
+      <string>MODULE: 0.00% (0/1)</string>
+      <string>PACKAGE: 0.00% (0/1)</string>
+      <string>CLASS: 0.00% (0/1)</string>
+      <string>TESTS: 7</string>
+      <string>Successfully processed file &apos;target/surefire-reports/TEST-edu.hm.hafner.coverage.CyclomaticComplexityTest.xml&apos;</string>
+      <string>Successfully parsed file &apos;/home/jenkins/agent/workspace/history-coverage-model/target/surefire-reports/TEST-edu.hm.hafner.coverage.FileNodeTest.xml&apos;</string>
+      <string>MODULE: 0.00% (0/1)</string>
+      <string>PACKAGE: 0.00% (0/1)</string>
+      <string>CLASS: 0.00% (0/1)</string>
+      <string>TESTS: 20</string>
+      <string>Successfully processed file &apos;target/surefire-reports/TEST-edu.hm.hafner.coverage.FileNodeTest.xml&apos;</string>
+      <string>Successfully parsed file &apos;/home/jenkins/agent/workspace/history-coverage-model/target/surefire-reports/TEST-edu.hm.hafner.coverage.FractionValueTest.xml&apos;</string>
+      <string>MODULE: 0.00% (0/1)</string>
+      <string>PACKAGE: 0.00% (0/1)</string>
+      <string>CLASS: 0.00% (0/1)</string>
+      <string>TESTS: 4</string>
+      <string>Successfully processed file &apos;target/surefire-reports/TEST-edu.hm.hafner.coverage.FractionValueTest.xml&apos;</string>
+      <string>Successfully parsed file &apos;/home/jenkins/agent/workspace/history-coverage-model/target/surefire-reports/TEST-edu.hm.hafner.coverage.LinesOfCodeTest.xml&apos;</string>
+      <string>MODULE: 0.00% (0/1)</string>
+      <string>PACKAGE: 0.00% (0/1)</string>
+      <string>CLASS: 0.00% (0/1)</string>
+      <string>TESTS: 7</string>
+      <string>Successfully processed file &apos;target/surefire-reports/TEST-edu.hm.hafner.coverage.LinesOfCodeTest.xml&apos;</string>
+      <string>Successfully parsed file &apos;/home/jenkins/agent/workspace/history-coverage-model/target/surefire-reports/TEST-edu.hm.hafner.coverage.MethodNodeTest.xml&apos;</string>
+      <string>MODULE: 0.00% (0/1)</string>
+      <string>PACKAGE: 0.00% (0/1)</string>
+      <string>CLASS: 0.00% (0/1)</string>
+      <string>TESTS: 11</string>
+      <string>Successfully processed file &apos;target/surefire-reports/TEST-edu.hm.hafner.coverage.MethodNodeTest.xml&apos;</string>
+      <string>Successfully parsed file &apos;/home/jenkins/agent/workspace/history-coverage-model/target/surefire-reports/TEST-edu.hm.hafner.coverage.MetricTest.xml&apos;</string>
+      <string>MODULE: 0.00% (0/1)</string>
+      <string>PACKAGE: 0.00% (0/1)</string>
+      <string>CLASS: 0.00% (0/1)</string>
+      <string>TESTS: 22</string>
+      <string>Successfully processed file &apos;target/surefire-reports/TEST-edu.hm.hafner.coverage.MetricTest.xml&apos;</string>
+      <string>Successfully parsed file &apos;/home/jenkins/agent/workspace/history-coverage-model/target/surefire-reports/TEST-edu.hm.hafner.coverage.ModuleNodeTest.xml&apos;</string>
+      <string>MODULE: 0.00% (0/1)</string>
+      <string>PACKAGE: 0.00% (0/1)</string>
+      <string>CLASS: 0.00% (0/1)</string>
+      <string>TESTS: 9</string>
+      <string>Successfully processed file &apos;target/surefire-reports/TEST-edu.hm.hafner.coverage.ModuleNodeTest.xml&apos;</string>
+      <string>Successfully parsed file &apos;/home/jenkins/agent/workspace/history-coverage-model/target/surefire-reports/TEST-edu.hm.hafner.coverage.MutationTest.xml&apos;</string>
+      <string>MODULE: 0.00% (0/1)</string>
+      <string>PACKAGE: 0.00% (0/1)</string>
+      <string>CLASS: 0.00% (0/1)</string>
+      <string>TESTS: 3</string>
+      <string>Successfully processed file &apos;target/surefire-reports/TEST-edu.hm.hafner.coverage.MutationTest.xml&apos;</string>
+      <string>Successfully parsed file &apos;/home/jenkins/agent/workspace/history-coverage-model/target/surefire-reports/TEST-edu.hm.hafner.coverage.NodeTest.xml&apos;</string>
+      <string>MODULE: 0.00% (0/1)</string>
+      <string>PACKAGE: 0.00% (0/1)</string>
+      <string>CLASS: 0.00% (0/1)</string>
+      <string>TESTS: 43</string>
+      <string>Successfully processed file &apos;target/surefire-reports/TEST-edu.hm.hafner.coverage.NodeTest.xml&apos;</string>
+      <string>Successfully parsed file &apos;/home/jenkins/agent/workspace/history-coverage-model/target/surefire-reports/TEST-edu.hm.hafner.coverage.PackageNodeTest.xml&apos;</string>
+      <string>MODULE: 0.00% (0/1)</string>
+      <string>PACKAGE: 0.00% (0/1)</string>
+      <string>CLASS: 0.00% (0/1)</string>
+      <string>TESTS: 9</string>
+      <string>Successfully processed file &apos;target/surefire-reports/TEST-edu.hm.hafner.coverage.PackageNodeTest.xml&apos;</string>
+      <string>Successfully parsed file &apos;/home/jenkins/agent/workspace/history-coverage-model/target/surefire-reports/TEST-edu.hm.hafner.coverage.PercentageTest.xml&apos;</string>
+      <string>MODULE: 0.00% (0/1)</string>
+      <string>PACKAGE: 0.00% (0/1)</string>
+      <string>CLASS: 0.00% (0/1)</string>
+      <string>TESTS: 7</string>
+      <string>Successfully processed file &apos;target/surefire-reports/TEST-edu.hm.hafner.coverage.PercentageTest.xml&apos;</string>
+      <string>Successfully parsed file &apos;/home/jenkins/agent/workspace/history-coverage-model/target/surefire-reports/TEST-edu.hm.hafner.coverage.SafeFractionTest.xml&apos;</string>
+      <string>MODULE: 0.00% (0/1)</string>
+      <string>PACKAGE: 0.00% (0/1)</string>
+      <string>CLASS: 0.00% (0/1)</string>
+      <string>TESTS: 6</string>
+      <string>Successfully processed file &apos;target/surefire-reports/TEST-edu.hm.hafner.coverage.SafeFractionTest.xml&apos;</string>
+      <string>Successfully parsed file &apos;/home/jenkins/agent/workspace/history-coverage-model/target/surefire-reports/TEST-edu.hm.hafner.coverage.TestCaseTest.xml&apos;</string>
+      <string>MODULE: 0.00% (0/1)</string>
+      <string>PACKAGE: 0.00% (0/1)</string>
+      <string>CLASS: 0.00% (0/1)</string>
+      <string>TESTS: 1</string>
+      <string>Successfully processed file &apos;target/surefire-reports/TEST-edu.hm.hafner.coverage.TestCaseTest.xml&apos;</string>
+      <string>Successfully parsed file &apos;/home/jenkins/agent/workspace/history-coverage-model/target/surefire-reports/TEST-edu.hm.hafner.coverage.TestCountTest.xml&apos;</string>
+      <string>MODULE: 0.00% (0/1)</string>
+      <string>PACKAGE: 0.00% (0/1)</string>
+      <string>CLASS: 0.00% (0/1)</string>
+      <string>TESTS: 7</string>
+      <string>Successfully processed file &apos;target/surefire-reports/TEST-edu.hm.hafner.coverage.TestCountTest.xml&apos;</string>
+      <string>Successfully parsed file &apos;/home/jenkins/agent/workspace/history-coverage-model/target/surefire-reports/TEST-edu.hm.hafner.coverage.ValueTest.xml&apos;</string>
+      <string>MODULE: 0.00% (0/1)</string>
+      <string>PACKAGE: 0.00% (0/1)</string>
+      <string>CLASS: 0.00% (0/1)</string>
+      <string>TESTS: 7</string>
+      <string>Successfully processed file &apos;target/surefire-reports/TEST-edu.hm.hafner.coverage.ValueTest.xml&apos;</string>
+      <string>Successfully parsed file &apos;/home/jenkins/agent/workspace/history-coverage-model/target/surefire-reports/TEST-edu.hm.hafner.coverage.parser.CoberturaParserTest.xml&apos;</string>
+      <string>MODULE: 0.00% (0/1)</string>
+      <string>PACKAGE: 0.00% (0/1)</string>
+      <string>CLASS: 0.00% (0/1)</string>
+      <string>TESTS: 21</string>
+      <string>Successfully processed file &apos;target/surefire-reports/TEST-edu.hm.hafner.coverage.parser.CoberturaParserTest.xml&apos;</string>
+      <string>Successfully parsed file &apos;/home/jenkins/agent/workspace/history-coverage-model/target/surefire-reports/TEST-edu.hm.hafner.coverage.parser.JacocoParserTest.xml&apos;</string>
+      <string>MODULE: 0.00% (0/1)</string>
+      <string>PACKAGE: 0.00% (0/1)</string>
+      <string>CLASS: 0.00% (0/1)</string>
+      <string>TESTS: 12</string>
+      <string>Successfully processed file &apos;target/surefire-reports/TEST-edu.hm.hafner.coverage.parser.JacocoParserTest.xml&apos;</string>
+      <string>Successfully parsed file &apos;/home/jenkins/agent/workspace/history-coverage-model/target/surefire-reports/TEST-edu.hm.hafner.coverage.parser.JunitParserTest.xml&apos;</string>
+      <string>MODULE: 0.00% (0/1)</string>
+      <string>PACKAGE: 0.00% (0/1)</string>
+      <string>CLASS: 0.00% (0/1)</string>
+      <string>TESTS: 13</string>
+      <string>Successfully processed file &apos;target/surefire-reports/TEST-edu.hm.hafner.coverage.parser.JunitParserTest.xml&apos;</string>
+      <string>Successfully parsed file &apos;/home/jenkins/agent/workspace/history-coverage-model/target/surefire-reports/TEST-edu.hm.hafner.coverage.parser.NunitParserTest.xml&apos;</string>
+      <string>MODULE: 0.00% (0/1)</string>
+      <string>PACKAGE: 0.00% (0/1)</string>
+      <string>CLASS: 0.00% (0/1)</string>
+      <string>TESTS: 7</string>
+      <string>Successfully processed file &apos;target/surefire-reports/TEST-edu.hm.hafner.coverage.parser.NunitParserTest.xml&apos;</string>
+      <string>Successfully parsed file &apos;/home/jenkins/agent/workspace/history-coverage-model/target/surefire-reports/TEST-edu.hm.hafner.coverage.parser.OpenCoverParserTest.xml&apos;</string>
+      <string>MODULE: 0.00% (0/1)</string>
+      <string>PACKAGE: 0.00% (0/1)</string>
+      <string>CLASS: 0.00% (0/1)</string>
+      <string>TESTS: 12</string>
+      <string>Successfully processed file &apos;target/surefire-reports/TEST-edu.hm.hafner.coverage.parser.OpenCoverParserTest.xml&apos;</string>
+      <string>Successfully parsed file &apos;/home/jenkins/agent/workspace/history-coverage-model/target/surefire-reports/TEST-edu.hm.hafner.coverage.parser.PitestParserTest.xml&apos;</string>
+      <string>MODULE: 0.00% (0/1)</string>
+      <string>PACKAGE: 0.00% (0/1)</string>
+      <string>CLASS: 0.00% (0/1)</string>
+      <string>TESTS: 7</string>
+      <string>Successfully processed file &apos;target/surefire-reports/TEST-edu.hm.hafner.coverage.parser.PitestParserTest.xml&apos;</string>
+      <string>Successfully parsed file &apos;/home/jenkins/agent/workspace/history-coverage-model/target/surefire-reports/TEST-edu.hm.hafner.coverage.parser.TestCaseMappingTest.xml&apos;</string>
+      <string>MODULE: 0.00% (0/1)</string>
+      <string>PACKAGE: 0.00% (0/1)</string>
+      <string>CLASS: 0.00% (0/1)</string>
+      <string>TESTS: 1</string>
+      <string>Successfully processed file &apos;target/surefire-reports/TEST-edu.hm.hafner.coverage.parser.TestCaseMappingTest.xml&apos;</string>
+      <string>Successfully parsed file &apos;/home/jenkins/agent/workspace/history-coverage-model/target/surefire-reports/TEST-edu.hm.hafner.coverage.parser.VectorCastParserTest.xml&apos;</string>
+      <string>MODULE: 0.00% (0/1)</string>
+      <string>PACKAGE: 0.00% (0/1)</string>
+      <string>CLASS: 0.00% (0/1)</string>
+      <string>TESTS: 5</string>
+      <string>Successfully processed file &apos;target/surefire-reports/TEST-edu.hm.hafner.coverage.parser.VectorCastParserTest.xml&apos;</string>
+      <string>Successfully parsed file &apos;/home/jenkins/agent/workspace/history-coverage-model/target/surefire-reports/TEST-edu.hm.hafner.coverage.parser.XunitParserTest.xml&apos;</string>
+      <string>MODULE: 0.00% (0/1)</string>
+      <string>PACKAGE: 0.00% (0/1)</string>
+      <string>CLASS: 0.00% (0/1)</string>
+      <string>TESTS: 6</string>
+      <string>Successfully processed file &apos;target/surefire-reports/TEST-edu.hm.hafner.coverage.parser.XunitParserTest.xml&apos;</string>
+      <string>Successfully parsed file &apos;/home/jenkins/agent/workspace/history-coverage-model/target/surefire-reports/TEST-edu.hm.hafner.coverage.registry.ParserRegistryTest.xml&apos;</string>
+      <string>MODULE: 0.00% (0/1)</string>
+      <string>PACKAGE: 0.00% (0/1)</string>
+      <string>CLASS: 0.00% (0/1)</string>
+      <string>TESTS: 2</string>
+      <string>Successfully processed file &apos;target/surefire-reports/TEST-edu.hm.hafner.coverage.registry.ParserRegistryTest.xml&apos;</string>
+      <string>Resolving source code files...</string>
+      <string>Searching for source code files in &apos;/home/jenkins/agent/workspace/history-coverage-model/src/main/java&apos;</string>
+      <string>-&gt; resolved absolute paths for all 32 source files</string>
+      <string>Making paths of 32 source code files relative to workspace root...</string>
+      <string>Obtaining result action of reference build</string>
+      <string>Obtaining reference build from reference recorder</string>
+      <string>-&gt; Found &apos;history-coverage-model #21&apos;</string>
+      <string>-&gt; Using reference build &apos;history-coverage-model #21&apos;</string>
+      <string>Calculating the code delta...</string>
+      <string>-&gt; Git delta calculator successfully created in working tree &apos;/home/jenkins/agent/workspace/history-coverage-model&apos;</string>
+      <string>-&gt; Using commit &apos;578e0a4&apos; as latest commit for build &apos;history-coverage-model #22&apos;</string>
+      <string>-&gt; Using commit &apos;de6a401&apos; as latest commit for build &apos;history-coverage-model #21&apos;</string>
+      <string>-&gt; Invoking Git delta calculator for determining the changes between commits &apos;578e0a4&apos; and &apos;de6a401&apos;</string>
+      <string>-&gt; Start scanning for differences between commits...</string>
+      <string>-&gt; 43 files contain changes</string>
+      <string>-&gt; Creating the Git diff file</string>
+      <string>-&gt; Git code delta successfully calculated</string>
+      <string>Preprocessing code changes...</string>
+      <string>Successfully mapped SCM paths to coverage report paths</string>
+      <string>Successfully verified that the coverage data matches with the code delta</string>
+      <string>Obtaining code changes for files...</string>
+      <string>Obtaining indirect coverage changes...</string>
+      <string>Obtaining coverage delta for files...</string>
+      <string>Calculating coverage deltas...</string>
+      <string>Evaluating quality gates</string>
+      <string>-&gt; All quality gates have been passed</string>
+      <string>-&gt; Details for each quality gate:</string>
+      <string>   - [Overall project - Line Coverage]: ≪Success≫ - (Actual value: 96.35%, Quality gate: 60.00)</string>
+      <string>   - [Overall project - Branch Coverage]: ≪Success≫ - (Actual value: 92.92%, Quality gate: 60.00)</string>
+      <string>   - [Overall project - Line Coverage]: ≪Success≫ - (Actual value: 96.35%, Quality gate: 50.00)</string>
+      <string>   - [Overall project - Branch Coverage]: ≪Success≫ - (Actual value: 92.92%, Quality gate: 50.00)</string>
+      <string>Executing source code painting...</string>
+      <string>Painting 32 source files on agent</string>
+      <string>-&gt; finished painting successfully</string>
+      <string>-&gt; zipping sources from folder &apos;/home/jenkins/agent/workspace/history-coverage-model/coverage&apos; as &apos;/home/jenkins/agent/workspace/history-coverage-model/coverage-sources.zip&apos;</string>
+      <string>Copying painted sources from agent to build folder</string>
+      <string>-&gt; extracting...</string>
+      <string>-&gt; done</string>
+      <string>Skipping cleaning of source code files in old builds</string>
+      <string>Finished coverage processing - adding the action to the build...</string>
+    </infoMessages>
+    <errorMessages/>
+  </log>
+  <projectValues>
+    <coverage>MODULE: 1/1</coverage>
+    <coverage>PACKAGE: 3/4</coverage>
+    <coverage>FILE: 32/32</coverage>
+    <coverage>CLASS: 49/52</coverage>
+    <coverage>METHOD: 569/594</coverage>
+    <coverage>LINE: 2164/2246</coverage>
+    <coverage>BRANCH: 932/1003</coverage>
+    <coverage>INSTRUCTION: 10534/10923</coverage>
+    <complexity>COMPLEXITY: 1105</complexity>
+    <complexity>COMPLEXITY_MAXIMUM: 16</complexity>
+    <fraction>COMPLEXITY_DENSITY: 1105/2246</fraction>
+    <loc>LOC: 2246</loc>
+    <edu.hm.hafner.coverage.TestCount>TESTS: 305</edu.hm.hafner.coverage.TestCount>
+  </projectValues>
+  <difference class="tree-map">[MODULE: 0, PACKAGE: 0, FILE: 0, CLASS: 29/1300, METHOD: -667/36234, LINE: -61800/4584086, BRANCH: -13599/914736, INSTRUCTION: -509536/35368674, COMPLEXITY: 92, COMPLEXITY_MAXIMUM: 3, COMPLEXITY_DENSITY: -19893/4584086, LOC: 205, TESTS: 9]</difference>
+  <modifiedLinesCoverage>
+    <coverage>MODULE: 1/1</coverage>
+    <coverage>PACKAGE: 3/3</coverage>
+    <coverage>FILE: 16/16</coverage>
+    <coverage>LINE: 216/250</coverage>
+    <coverage>BRANCH: 84/104</coverage>
+    <loc>LOC: 250</loc>
+  </modifiedLinesCoverage>
+  <modifiedLinesCoverageDifference class="tree-map">[MODULE: 0, PACKAGE: 0, FILE: 0, LINE: -16961/169750, BRANCH: -8612/62088, LOC: -1108]</modifiedLinesCoverageDifference>
+  <modifiedFilesCoverage>
+    <coverage>MODULE: 1/1</coverage>
+    <coverage>PACKAGE: 3/3</coverage>
+    <coverage>FILE: 16/16</coverage>
+    <coverage>CLASS: 28/28</coverage>
+    <coverage>METHOD: 413/431</coverage>
+    <coverage>LINE: 1309/1358</coverage>
+    <coverage>BRANCH: 565/597</coverage>
+    <coverage>INSTRUCTION: 6860/7138</coverage>
+    <complexity>COMPLEXITY: 738</complexity>
+    <complexity>COMPLEXITY_MAXIMUM: 16</complexity>
+    <fraction>COMPLEXITY_DENSITY: 738/1358</fraction>
+    <loc>LOC: 1358</loc>
+    <edu.hm.hafner.coverage.TestCount>TESTS: 174</edu.hm.hafner.coverage.TestCount>
+  </modifiedFilesCoverage>
+  <modifiedFilesCoverageDifference class="tree-map">[MODULE: 0, PACKAGE: 6/12, FILE: 0, CLASS: 112/812, METHOD: -4362/166366, LINE: -37485/1565774, BRANCH: -9028/302082, INSTRUCTION: -970152/42321202, COMPLEXITY: 92, COMPLEXITY_MAXIMUM: 3, COMPLEXITY_DENSITY: -26354/1565774, LOC: 205, TESTS: -4]</modifiedFilesCoverageDifference>
+  <indirectCoverageChanges>
+    <coverage>MODULE: 1/1</coverage>
+    <coverage>PACKAGE: 2/2</coverage>
+    <coverage>FILE: 2/3</coverage>
+    <coverage>LINE: 0/1</coverage>
+    <coverage>BRANCH: 3/4</coverage>
+    <loc>LOC: 1</loc>
+  </indirectCoverageChanges>
+</io.jenkins.plugins.coverage.metrics.steps.CoverageBuildAction>

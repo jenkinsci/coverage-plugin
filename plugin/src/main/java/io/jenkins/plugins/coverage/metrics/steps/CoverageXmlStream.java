@@ -1,19 +1,5 @@
 package io.jenkins.plugins.coverage.metrics.steps;
 
-import java.util.AbstractMap.SimpleEntry;
-import java.util.Arrays;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.NavigableMap;
-import java.util.NavigableSet;
-import java.util.Set;
-import java.util.SortedMap;
-import java.util.TreeMap;
-import java.util.TreeSet;
-import java.util.function.Function;
-import java.util.stream.Collector;
-import java.util.stream.Collectors;
-
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.Fraction;
 
@@ -35,6 +21,20 @@ import edu.hm.hafner.coverage.Node;
 import edu.hm.hafner.coverage.PackageNode;
 import edu.hm.hafner.coverage.Value;
 import edu.hm.hafner.util.VisibleForTesting;
+
+import java.util.AbstractMap.SimpleEntry;
+import java.util.Arrays;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.NavigableMap;
+import java.util.NavigableSet;
+import java.util.Set;
+import java.util.SortedMap;
+import java.util.TreeMap;
+import java.util.TreeSet;
+import java.util.function.Function;
+import java.util.stream.Collector;
+import java.util.stream.Collectors;
 
 import hudson.util.XStream2;
 
@@ -91,13 +91,10 @@ class CoverageXmlStream extends AbstractXmlStream<Node> {
         xStream.alias("value", Value.class);
         xStream.addImmutableType(Value.class, false);
 
-        // FIXME: what to do with these?
-//        xStream.alias("complexity", CyclomaticComplexity.class);
-//        xStream.addImmutableType(CyclomaticComplexity.class, false);
-//        xStream.alias("loc", LinesOfCode.class);
-//        xStream.addImmutableType(LinesOfCode.class, false);
-//        xStream.alias("fraction", FractionValue.class);
-//        xStream.addImmutableType(FractionValue.class, false);
+        xStream.alias("complexity", Value.class);
+        xStream.addImmutableType(Value.class, false);
+        xStream.alias("loc", Value.class);
+        xStream.addImmutableType(Value.class, false);
 
         xStream.registerConverter(new FractionConverter());
         xStream.registerConverter(new SimpleConverter<>(Value.class, Value::serialize, Value::valueOf));

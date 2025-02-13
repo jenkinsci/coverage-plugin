@@ -1,11 +1,5 @@
 package io.jenkins.plugins.coverage.metrics.steps;
 
-import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Locale;
-import java.util.stream.Collectors;
-
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.text.CaseUtils;
 
@@ -16,6 +10,13 @@ import edu.hm.hafner.coverage.Node;
 import edu.hm.hafner.coverage.Value;
 
 import j2html.tags.ContainerTag;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.EnumMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 import hudson.Functions;
 
@@ -51,6 +52,7 @@ class CoverageTableModel extends TableModel {
 
     static final DetailedCell<Integer> NO_COVERAGE
             = new DetailedCell<>(Messages.Coverage_Not_Available(), NO_COVERAGE_SORT);
+    private static final String SKIP_DELTA = "";
 
     private final ColorProvider colorProvider;
     private final Node root;
@@ -119,30 +121,30 @@ class CoverageTableModel extends TableModel {
 
         /* VectorCAST metrics */
         configureValueColumn("mcdcPairCoverage", Metric.MCDC_PAIR, Messages.Column_MCDCPairs(),
-                "", columns);
+                SKIP_DELTA, columns);
         configureValueColumn("functionCallCoverage", Metric.FUNCTION_CALL, Messages.Column_FunctionCall(),
-                "", columns);
+                SKIP_DELTA, columns);
 
         configureValueColumn("mutationCoverage", Metric.MUTATION, Messages.Column_MutationCoverage(),
                 Messages.Column_DeltaMutationCoverage("Δ"), columns);
         configureValueColumn("testStrength", Metric.TEST_STRENGTH, Messages.Column_TestStrength(),
                 Messages.Column_DeltaTestStrength("Δ"), columns);
 
-        List<Object[]> columnsEntries = List.of(
-                new Object[] {Metric.LOC, 200},
-                new Object[] {Metric.TESTS, 500},
-                new Object[] {Metric.CYCLOMATIC_COMPLEXITY, 500},
-                new Object[] {Metric.COGNITIVE_COMPLEXITY, 500},
-                new Object[] {Metric.NPATH_COMPLEXITY, 500},
-                new Object[] {Metric.NCSS, 500});
+        var entries = new EnumMap<>(Map.of(
+                Metric.LOC, 200,
+                Metric.TESTS, 500,
+                Metric.CYCLOMATIC_COMPLEXITY, 500,
+                Metric.COGNITIVE_COMPLEXITY, 500,
+                Metric.NPATH_COMPLEXITY, 500,
+                Metric.NCSS, 500));
 
-        for (Object[] column : columnsEntries) {
-            var metric = (Metric) column[0];
+        for (var column : entries.entrySet()) {
+            var metric = column.getKey();
             if (root.containsMetric(metric)) {
                 TableColumn tmp = new ColumnBuilder()
                         .withHeaderLabel(metric.getLabel())
                         .withDataPropertyKey(CaseUtils.toCamelCase(metric.name(), false, '_'))
-                        .withResponsivePriority((Integer) column[1])
+                        .withResponsivePriority(column.getValue())
                         .withType(ColumnType.NUMBER)
                         .build();
                 columns.add(tmp);
@@ -161,7 +163,7 @@ class CoverageTableModel extends TableModel {
                     .withResponsivePriority(1)
                     .build();
             columns.add(lineCoverage);
-            if (StringUtils.isNotEmpty(deltaHeaderLabel)) {
+            if (StringUtils.isNotEmpty(deltaHeaderLabel) && hasDelta(metric)) {
                 TableColumn lineCoverageDelta = new ColumnBuilder().withHeaderLabel(deltaHeaderLabel)
                         .withDataPropertyKey(key + "Delta")
                         .withDetailedCell()
@@ -171,6 +173,10 @@ class CoverageTableModel extends TableModel {
                 columns.add(lineCoverageDelta);
             }
         }
+    }
+
+    private boolean hasDelta(final Metric metric) {
+        return root.getAllFileNodes().stream().anyMatch(f -> f.hasDelta(metric));
     }
 
     @Override

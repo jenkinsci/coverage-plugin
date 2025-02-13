@@ -1,16 +1,5 @@
 package io.jenkins.plugins.coverage.metrics.steps;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
-import java.util.stream.Collectors;
-
 import org.apache.commons.lang3.StringUtils;
 
 import edu.hm.hafner.coverage.ClassNode;
@@ -21,6 +10,17 @@ import edu.hm.hafner.coverage.PackageNode;
 import edu.hm.hafner.util.FilteredLog;
 import edu.hm.hafner.util.TreeStringBuilder;
 import edu.umd.cs.findbugs.annotations.NonNull;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.kohsuke.stapler.AncestorInPath;
 import org.kohsuke.stapler.DataBoundConstructor;
@@ -65,6 +65,7 @@ import io.jenkins.plugins.util.ValidationUtilities;
 /**
  * A pipeline {@code Step} or Freestyle or Maven {@link Recorder} that reads and parses coverage results in a build and
  * adds the results to the persisted build results.
+ *
  * <p>
  * Stores the created issues in a {@link Node}. This result is then attached to the {@link Run build} by registering a
  * {@link CoverageBuildAction}.
@@ -558,9 +559,11 @@ public class CoverageRecorder extends Recorder {
             }
 
             var coverageTree = Node.merge(coverageNodes);
-            var unmappedNodes = coverageTree.mergeTests(testCases);
 
-            unmappedNodes.forEach(node -> mapTests(node, coverageTree));
+            if (!testCases.isEmpty()) {
+                var unmappedNodes = coverageTree.mergeTests(testCases);
+                unmappedNodes.forEach(node -> mapTests(node, coverageTree));
+            }
 
             return coverageTree;
         }
