@@ -76,6 +76,8 @@ class CoverageXmlStream extends AbstractXmlStream<Node> {
         xStream.alias("class", ClassNode.class);
         xStream.alias("method", MethodNode.class);
 
+        xStream.alias("edu.hm.hafner.coverage.TestCount", Value.class);
+
         xStream.registerLocalConverter(FileNode.class, "coveredPerLine", new IntegerLineMapConverter());
         xStream.registerLocalConverter(FileNode.class, "missedPerLine", new IntegerLineMapConverter());
         xStream.registerLocalConverter(FileNode.class, "indirectCoverageChanges", new IntegerLineMapConverter());

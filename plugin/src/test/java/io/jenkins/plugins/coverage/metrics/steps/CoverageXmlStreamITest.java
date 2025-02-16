@@ -74,6 +74,7 @@ class CoverageXmlStreamITest extends SerializableTest<Node> {
                                 "LINE: 96.35% (2164/2246)",
                                 "BRANCH: 92.92% (932/1003)",
                                 "INSTRUCTION: 96.44% (10534/10923)",
+                                "TESTS: 305",
                                 "CYCLOMATIC_COMPLEXITY: 1105",
                                 "LOC: 2246"));
     }
@@ -123,8 +124,8 @@ class CoverageXmlStreamITest extends SerializableTest<Node> {
                         "LINE: 294/323",
                         "BRANCH: 109/116",
                         "INSTRUCTION: 1260/1350",
-                        "CYCLOMATIC_COMPLEXITY: 160",
-                        "LOC: 323");
+                        "LOC: 323",
+                        "CYCLOMATIC_COMPLEXITY: 160");
 
         assertThat(Input.from(saved)).nodesByXPath("//" + ACTION_QUALIFIED_NAME + "/projectValues/coverage")
                 .hasSize(8).extractingText()
@@ -142,7 +143,7 @@ class CoverageXmlStreamITest extends SerializableTest<Node> {
                 Assertions.assertThat(serializeValues(a))
                         .containsExactly("MODULE: 1/1", "PACKAGE: 1/1", "FILE: 7/8", "CLASS: 15/16",
                                 "METHOD: 97/102", "LINE: 294/323", "BRANCH: 109/116", "INSTRUCTION: 1260/1350",
-                                "CYCLOMATIC_COMPLEXITY: 160", "LOC: 323"
+                                "LOC: 323", "CYCLOMATIC_COMPLEXITY: 160"
                         ));
     }
 

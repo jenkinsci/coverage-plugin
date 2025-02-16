@@ -59,6 +59,7 @@ public final class CoverageBuildAction extends BuildAction<Node> implements Stap
     private static final ElementFormatter FORMATTER = new ElementFormatter();
     private static final String NO_REFERENCE_BUILD = "-";
     private static final List<Difference> NO_VALUES = List.of();
+    private static final int MAX_METRICS_COUNT_IN_SUMMARY = 5;
 
     private final String id;
     private final String name;
@@ -74,6 +75,7 @@ public final class CoverageBuildAction extends BuildAction<Node> implements Stap
     private final List<? extends Value> projectValues;
 
     /** The delta of this build's coverages with respect to the reference build. */
+    @SuppressWarnings("MismatchedQueryAndUpdateOfCollection")
     private transient NavigableMap<Metric, Difference> difference;
     private /* almost final */ List<Difference> differences; // since 2.0.0
 
@@ -81,6 +83,7 @@ public final class CoverageBuildAction extends BuildAction<Node> implements Stap
     private final List<? extends Value> modifiedLinesCoverage;
 
     /** The coverage delta of the associated change request with respect to the reference build. */
+    @SuppressWarnings("MismatchedQueryAndUpdateOfCollection")
     private transient NavigableMap<Metric, Difference> modifiedLinesCoverageDifference;
     private /* almost final */ List<Difference> modifiedLinesDifferences; // since 2.0.0
 
@@ -88,6 +91,7 @@ public final class CoverageBuildAction extends BuildAction<Node> implements Stap
     private final List<? extends Value> modifiedFilesCoverage;
 
     /** The coverage delta of the modified lines. */
+    @SuppressWarnings("MismatchedQueryAndUpdateOfCollection")
     private transient NavigableMap<Metric, Difference> modifiedFilesCoverageDifference;
     private /* almost final */ List<Difference> modifiedFilesDifferences; // since 2.0.0
 
@@ -405,23 +409,28 @@ public final class CoverageBuildAction extends BuildAction<Node> implements Stap
 
     private List<Value> filterImportantMetrics(final Stream<? extends Value> values) {
         return values.filter(v -> getMetricsForSummary().contains(v.getMetric()))
+                .limit(MAX_METRICS_COUNT_IN_SUMMARY)
                 .collect(Collectors.toList());
     }
 
     private Stream<? extends Value> getValueStream(final Baseline baseline) {
+        Stream<? extends Value> stream;
         if (baseline == Baseline.PROJECT) {
-            return projectValues.stream();
+            stream = projectValues.stream();
         }
-        if (baseline == Baseline.MODIFIED_LINES) {
-            return modifiedLinesCoverage.stream();
+        else if (baseline == Baseline.MODIFIED_LINES) {
+            stream = modifiedLinesCoverage.stream();
         }
-        if (baseline == Baseline.MODIFIED_FILES) {
-            return modifiedFilesCoverage.stream();
+        else if (baseline == Baseline.MODIFIED_FILES) {
+            stream = modifiedFilesCoverage.stream();
         }
-        if (baseline == Baseline.INDIRECT) {
-            return indirectCoverageChanges.stream();
+        else if (baseline == Baseline.INDIRECT) {
+            stream = indirectCoverageChanges.stream();
         }
-        throw new NoSuchElementException("No such baseline: " + baseline);
+        else {
+            throw new NoSuchElementException("No such baseline: " + baseline);
+        }
+        return stream.sorted();
     }
 
     /**
@@ -649,7 +658,7 @@ public final class CoverageBuildAction extends BuildAction<Node> implements Stap
     }
 
     private String createChartModel(final String configuration, final boolean metrics) {
-        // FIXME: add without optional
+        // TODO: add without optional
         var iterable = new BuildActionIterable<>(CoverageBuildAction.class, Optional.of(this),
                 action -> getUrlName().equals(action.getUrlName()), CoverageBuildAction::getStatistics);
         return new JacksonFacade().toJson(TrendChart.createTrendChart(metrics)

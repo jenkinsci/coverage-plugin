@@ -1,11 +1,10 @@
 package io.jenkins.plugins.coverage.metrics.restapi;
 
-import java.util.List;
-
 import org.junit.jupiter.api.Test;
 
 import edu.hm.hafner.coverage.Metric;
 
+import java.util.List;
 import net.sf.json.JSON;
 
 import hudson.model.FreeStyleProject;
@@ -47,8 +46,7 @@ class CoverageApiITest extends AbstractCoverageITest {
                             "loc": "5798",
                             "method": "97.29%",
                             "module": "100.00%",
-                            "package": "100.00%",
-                            "tests":"0"}
+                            "package": "100.00%"}
                         """);
         assertThatJson(remoteApiResult)
                 .node("modifiedFilesStatistics").isEqualTo("{}");
@@ -105,8 +103,7 @@ class CoverageApiITest extends AbstractCoverageITest {
                           "loc": "-5798",
                           "method": "-2.06%",
                           "module": "±0%",
-                          "package": "±0%",
-                          "tests":"±0"
+                          "package": "±0%"
                         }""");
         assertThatJson(remoteApiResult).node("referenceBuild").asString()
                 .matches("<a href=\".*jenkins/job/test0/1/\".*>test0 #1</a>");

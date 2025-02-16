@@ -1,7 +1,5 @@
 package io.jenkins.plugins.coverage.metrics.steps;
 
-import java.util.List;
-
 import org.assertj.core.api.AbstractStringAssert;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -13,6 +11,8 @@ import edu.hm.hafner.coverage.Coverage;
 import edu.hm.hafner.coverage.Coverage.CoverageBuilder;
 import edu.hm.hafner.coverage.Metric;
 import edu.hm.hafner.coverage.Value;
+
+import java.util.List;
 
 import org.jenkinsci.plugins.workflow.job.WorkflowJob;
 import hudson.model.FreeStyleProject;
@@ -165,9 +165,8 @@ class CoveragePluginITest extends AbstractCoverageITest {
                         Metric.LINE,
                         Metric.BRANCH,
                         Metric.INSTRUCTION,
-                        Metric.CYCLOMATIC_COMPLEXITY,
                         Metric.LOC,
-                        Metric.TESTS);
+                        Metric.CYCLOMATIC_COMPLEXITY);
         assertThat(coverageResult.getAllValues(Baseline.PROJECT))
                 .contains(createLineCoverageBuilder()
                         .withCovered(JACOCO_ANALYSIS_MODEL_COVERED)
@@ -183,12 +182,9 @@ class CoveragePluginITest extends AbstractCoverageITest {
                         "File",
                         "Package",
                         "Line",
-                        "Line Δ",
                         "Branch",
-                        "Branch Δ",
-                        "Lines of Code",
-                        "Number of Tests",
-                        "Cyclomatic Complexity");
+                        "LOC",
+                        "Complexity");
         assertThat(tableModel.getRows())
                 .hasSize(307)
                 .first()
@@ -497,13 +493,9 @@ class CoveragePluginITest extends AbstractCoverageITest {
                         "File",
                         "Package",
                         "Line",
-                        "Line Δ",
                         "Mutation",
-                        "Mutation Δ",
                         "Test Strength",
-                        "Test Strength Δ",
-                        "Lines of Code",
-                        "Number of Tests");
+                        "LOC");
         assertThat(tableModel.getRows())
                 .hasSize(10)
                 .first()
@@ -710,9 +702,8 @@ class CoveragePluginITest extends AbstractCoverageITest {
                         Metric.BRANCH,
                         Metric.MCDC_PAIR,
                         Metric.FUNCTION_CALL,
-                        Metric.CYCLOMATIC_COMPLEXITY,
                         Metric.LOC,
-                        Metric.TESTS);
+                        Metric.CYCLOMATIC_COMPLEXITY);
         assertThat(coverageResult.getAllValues(Baseline.PROJECT)).contains(
                 new CoverageBuilder()
                         .withMetric(Metric.LINE)
@@ -754,14 +745,11 @@ class CoveragePluginITest extends AbstractCoverageITest {
                         "File",
                         "Package",
                         "Line",
-                        "Line Δ",
                         "Branch",
-                        "Branch Δ",
                         "MC/DC Pairs",
                         "Function Call",
-                        "Lines of Code",
-                        "Number of Tests",
-                        "Cyclomatic Complexity");
+                        "LOC",
+                        "Complexity");
         assertThat(coverageResult.getAllValues(Baseline.PROJECT))
                 .contains(createLineCoverageBuilder()
                         .withCovered(VECTORCAST_COVERED_LINES)

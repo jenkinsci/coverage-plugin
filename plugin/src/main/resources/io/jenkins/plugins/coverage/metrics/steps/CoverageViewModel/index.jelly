@@ -27,7 +27,7 @@
         </li>
         <j:forEach var="metric" items="${it.treeMetrics}">
           <li class="nav-item tab" role="presentation">
-            <a class="nav-link" id="${metric.toTagName()}-tab" data-bs-toggle="tab" data-bs-target="#${metric.toTagName()}" type="button" role="tab" aria-controls="${metric.toTagName()}" aria-selected="false">${formatter.getDisplayName(metric)}</a>
+            <a class="nav-link" id="${metric.toTagName()}-tab" data-bs-toggle="tab" data-bs-target="#${metric.toTagName()}" type="button" role="tab" aria-controls="${metric.toTagName()}" aria-selected="false">${metric.label}</a>
           </li>
         </j:forEach>
         <li class="nav-item tab" role="presentation">

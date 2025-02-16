@@ -3,6 +3,7 @@ package io.jenkins.plugins.coverage.metrics.steps;
 import org.apache.commons.lang3.StringUtils;
 
 import edu.hm.hafner.coverage.ClassNode;
+import edu.hm.hafner.coverage.ContainerNode;
 import edu.hm.hafner.coverage.CoverageParser.ProcessingMode;
 import edu.hm.hafner.coverage.ModuleNode;
 import edu.hm.hafner.coverage.Node;
@@ -545,6 +546,7 @@ public class CoverageRecorder extends Recorder {
                     .map(Entry::getValue)
                     .flatMap(Collection::stream)
                     .collect(Collectors.toList());
+
             if (coverageNodes.isEmpty() && !testCases.isEmpty()) {
                 log.logError("No coverage results were found, just tests! Configuration error?");
 
@@ -552,13 +554,14 @@ public class CoverageRecorder extends Recorder {
                 tests.addAllChildren(testCases);
                 return tests;
             }
-            else if (!metricsNodes.isEmpty()) {
-                var metrics = new ModuleNode("Metrics");
-                metrics.addAllChildren(metricsNodes);
-                return metrics;
-            }
 
             var coverageTree = Node.merge(coverageNodes);
+
+            if (!metricsNodes.isEmpty()) {
+                var metrics = new ContainerNode("Metrics");
+                metrics.addAllChildren(metricsNodes);
+                coverageTree.addChild(metrics);
+            }
 
             if (!testCases.isEmpty()) {
                 var unmappedNodes = coverageTree.mergeTests(testCases);
