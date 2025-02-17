@@ -1,8 +1,5 @@
 package io.jenkins.plugins.coverage.metrics.steps;
 
-import java.util.List;
-import java.util.NoSuchElementException;
-
 import org.apache.commons.lang3.StringUtils;
 import org.junit.jupiter.api.Test;
 
@@ -10,6 +7,9 @@ import edu.hm.hafner.coverage.FileNode;
 import edu.hm.hafner.coverage.ModuleNode;
 import edu.hm.hafner.coverage.Node;
 import edu.hm.hafner.util.FilteredLog;
+
+import java.util.List;
+import java.util.NoSuchElementException;
 
 import hudson.model.Run;
 
@@ -55,7 +55,7 @@ class CoverageViewModelTest extends AbstractCoverageTest {
         ensureValidPercentages(overview.getCoveredPercentages());
 
         var expectedMissed = List.of(0, 1, 1, 5, 29, 7, 90);
-           assertThat(overview.getMissed()).containsExactlyElementsOf(expectedMissed);
+        assertThat(overview.getMissed()).containsExactlyElementsOf(expectedMissed);
         ensureValidPercentages(overview.getMissedPercentages());
 
         assertThatJson(overview).node("metrics").isArray().containsExactly(expectedMetrics);

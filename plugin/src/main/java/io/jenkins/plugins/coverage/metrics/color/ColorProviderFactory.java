@@ -3,7 +3,7 @@ package io.jenkins.plugins.coverage.metrics.color;
 import java.awt.*;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.HashMap;
+import java.util.EnumMap;
 import java.util.Map;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -45,7 +45,7 @@ public class ColorProviderFactory {
         if (!colors.keySet().equals(CoverageColorJenkinsId.getAll()) || !verifyHexCodes(colors.values())) {
             return createDefaultColorProvider();
         }
-        Map<ColorId, DisplayColors> colorMap = new HashMap<>();
+        Map<ColorId, DisplayColors> colorMap = new EnumMap<>();
         // TODO: use dynamic text color (not provided yet)
         colorMap.put(ColorId.INSUFFICIENT,
                 createDisplayColor(colors.get(CoverageColorJenkinsId.RED.getJenkinsColorId()), "#ffffff"));

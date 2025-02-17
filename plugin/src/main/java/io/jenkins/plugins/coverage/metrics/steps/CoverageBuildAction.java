@@ -53,7 +53,7 @@ import static hudson.model.Run.*;
  *
  * @author Ullrich Hafner
  */
-@SuppressWarnings({"PMD.GodClass", "PMD.CyclomaticComplexity", "checkstyle:ClassDataAbstractionCoupling", "checkstyle:ClassFanOutComplexity"})
+@SuppressWarnings({"PMD.GodClass", "PMD.CyclomaticComplexity", "PMD.CouplingBetweenObjects", "checkstyle:ClassDataAbstractionCoupling", "checkstyle:ClassFanOutComplexity"})
 public final class CoverageBuildAction extends BuildAction<Node> implements StaplerProxy {
     @Serial
     private static final long serialVersionUID = -6023811049340671399L;

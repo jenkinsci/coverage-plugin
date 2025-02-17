@@ -4,7 +4,6 @@ import org.junit.jupiter.api.Test;
 
 import edu.hm.hafner.coverage.Coverage.CoverageBuilder;
 import edu.hm.hafner.coverage.FileNode;
-import edu.hm.hafner.coverage.Metric;
 import edu.hm.hafner.coverage.Node;
 import edu.hm.hafner.coverage.Value;
 
@@ -119,7 +118,7 @@ class DeltaComputationITest extends AbstractCoverageITest {
                         .withCovered(222)
                         .withMissed(246 - 222)
                         .build(),
-                new Value(Metric.LOC, 211));
+                new Value(LOC, 211));
     }
 
     private static void verifyFirstBuild(final Run<?, ?> firstBuild) {
@@ -135,8 +134,8 @@ class DeltaComputationITest extends AbstractCoverageITest {
                         .withCovered(1544 + 109)
                         .withMissed(1865 - (1544 + 109))
                         .build(),
-                new Value(Metric.LOC, JACOCO_ANALYSIS_MODEL_TOTAL + JACOCO_CODING_STYLE_TOTAL),
-                new Value(Metric.CYCLOMATIC_COMPLEXITY, 2718));
+                new Value(LOC, JACOCO_ANALYSIS_MODEL_TOTAL + JACOCO_CODING_STYLE_TOTAL),
+                new Value(CYCLOMATIC_COMPLEXITY, 2718));
     }
 
     private void verifyJaCoCoProjectValues(final CoverageBuildAction action) {
@@ -150,8 +149,8 @@ class DeltaComputationITest extends AbstractCoverageITest {
                         .withCovered(109)
                         .withMissed(7)
                         .build(),
-                new Value(Metric.LOC, JACOCO_CODING_STYLE_TOTAL),
-                new Value(Metric.CYCLOMATIC_COMPLEXITY, 160));
+                new Value(LOC, JACOCO_CODING_STYLE_TOTAL),
+                new Value(CYCLOMATIC_COMPLEXITY, 160));
     }
 
     /**

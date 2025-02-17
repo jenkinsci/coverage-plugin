@@ -1,13 +1,13 @@
 package io.jenkins.plugins.coverage.metrics;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import org.junit.jupiter.api.BeforeAll;
 
 import edu.hm.hafner.coverage.FileNode;
-import edu.hm.hafner.coverage.Metric;
 import edu.hm.hafner.coverage.Node;
+
+import java.util.EnumMap;
+import java.util.HashMap;
+import java.util.Map;
 
 import io.jenkins.plugins.coverage.metrics.steps.FileChangesProcessor;
 import io.jenkins.plugins.forensics.delta.Change;
@@ -62,7 +62,7 @@ public abstract class AbstractModifiedFilesCoverageTest extends AbstractCoverage
         var replace = new Change(ChangeEditType.REPLACE, 10, 11, 20, 22);
         var delete = new Change(ChangeEditType.DELETE, 16, 19, 26, 26);
         var fileChanges = new FileChanges(TEST_FILE_MODIFIED_PATH, TEST_FILE_MODIFIED_PATH_OLD,
-                "test", FileEditType.RENAME, new HashMap<>());
+                "test", FileEditType.RENAME, new EnumMap<>(ChangeEditType.class));
         fileChanges.addChange(insert1);
         fileChanges.addChange(insert2);
         fileChanges.addChange(insert3);
@@ -70,7 +70,8 @@ public abstract class AbstractModifiedFilesCoverageTest extends AbstractCoverage
         fileChanges.addChange(delete);
         CODE_CHANGES.put(TEST_FILE_MODIFIED_PATH, fileChanges);
         CODE_CHANGES.put(TEST_FILE_NOT_MODIFIED,
-                new FileChanges("empty", "empty", "", FileEditType.MODIFY, new HashMap<>()));
+                new FileChanges("empty", "empty", "", FileEditType.MODIFY,
+                        new EnumMap<>(ChangeEditType.class)));
         OLD_PATH_MAPPING.put(TEST_FILE_MODIFIED_PATH, TEST_FILE_MODIFIED_PATH_OLD);
     }
 
@@ -84,13 +85,6 @@ public abstract class AbstractModifiedFilesCoverageTest extends AbstractCoverage
         var fileChangesProcessor = createFileChangesProcessor();
         var reference = readJacocoResult(TEST_REPORT_BEFORE);
         var tree = readJacocoResult(TEST_REPORT_AFTER);
-
-        var value = tree.findFile("Test1.java")
-                .get()
-                .getValue(Metric.LINE);
-        var refValue = reference.findFile("Test1.java")
-                .get()
-                .getValue(Metric.LINE);
 
         fileChangesProcessor.attachChangedCodeLines(tree, CODE_CHANGES);
         fileChangesProcessor.attachFileCoverageDeltas(tree, reference, OLD_PATH_MAPPING);

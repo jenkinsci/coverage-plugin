@@ -306,4 +306,4 @@ class CoverageXmlStreamITest extends SerializableTest<Node> {
                 Value.valueOf("LOC: 123")
                 );
     }
-}
+} // NOPMD
