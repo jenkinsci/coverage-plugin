@@ -447,9 +447,13 @@ public class CoverageRecorder extends Recorder {
         if (!pathMapping.isEmpty()) {
             log.logInfo("Making paths of " + pathMapping.size() + " source code files relative to workspace root...");
             var builder = new TreeStringBuilder();
-            rootNode.getAllFileNodes().stream()
-                    .filter(file -> pathMapping.containsKey(file.getRelativePath()))
-                    .forEach(file -> file.setRelativePath(builder.intern(pathMapping.get(file.getRelativePath()))));
+            rootNode.getAllFileNodes().forEach(file -> {
+                String relativePath = file.getRelativePath();
+                if (pathMapping.containsKey(relativePath)) {
+                    file.setRelativePath(builder.intern(pathMapping.get(relativePath)));
+                }
+            });
+
             builder.dedup();
         }
     }
@@ -492,7 +496,7 @@ public class CoverageRecorder extends Recorder {
 
             try {
                 FileVisitorResult<ModuleNode> result = workspace.act(
-                        new CoverageReportScanner(parser, expandedPattern, "UTF-8", isSkipSymbolicLinks(),
+                        new CoverageReportScanner(parser, expandedPattern, "UTF-8", !isSkipSymbolicLinks(),
                                 ignoreErrors()));
                 log.merge(result.getLog());
 

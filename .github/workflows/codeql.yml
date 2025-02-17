@@ -3,12 +3,8 @@ name: "CodeQL"
 on:
   push:
     branches:
-      - master
       - main
-  pull_request:
-    branches:
-      - master
-      - main
+  pull_request_target:
   schedule:
     - cron: "32 3 * * 0"
 
@@ -27,8 +23,12 @@ jobs:
         language: [ java ]
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+        if: github.event_name == 'push'
+      - uses: actions/checkout@v4
+        with:
+          ref: "${{ github.event.pull_request.merge_commit_sha }}"
+        if: github.event_name == 'pull_request_target'
 
       - name: Setup Java
         uses: actions/setup-java@v4
@@ -40,7 +40,7 @@ jobs:
       - name: Set up Maven
         uses: stCarolas/setup-maven@v5
         with:
-          maven-version: 3.9.6
+          maven-version: 3.9.9
 
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v3

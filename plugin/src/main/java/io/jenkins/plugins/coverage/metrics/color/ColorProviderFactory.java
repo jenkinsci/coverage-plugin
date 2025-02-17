@@ -45,7 +45,7 @@ public class ColorProviderFactory {
         if (!colors.keySet().equals(CoverageColorJenkinsId.getAll()) || !verifyHexCodes(colors.values())) {
             return createDefaultColorProvider();
         }
-        Map<ColorId, DisplayColors> colorMap = new EnumMap<>();
+        Map<ColorId, DisplayColors> colorMap = new EnumMap<>(ColorId.class);
         // TODO: use dynamic text color (not provided yet)
         colorMap.put(ColorId.INSUFFICIENT,
                 createDisplayColor(colors.get(CoverageColorJenkinsId.RED.getJenkinsColorId()), "#ffffff"));
