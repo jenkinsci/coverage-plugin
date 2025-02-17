@@ -1,22 +1,9 @@
 package io.jenkins.plugins.coverage.metrics.steps;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.NavigableMap;
-import java.util.NavigableSet;
-import java.util.NoSuchElementException;
-import java.util.Optional;
-import java.util.Set;
-import java.util.TreeMap;
-import java.util.TreeSet;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.math.Fraction;
 
+import edu.hm.hafner.coverage.Coverage;
+import edu.hm.hafner.coverage.Difference;
 import edu.hm.hafner.coverage.Metric;
 import edu.hm.hafner.coverage.Node;
 import edu.hm.hafner.coverage.Value;
@@ -27,11 +14,25 @@ import edu.hm.hafner.util.VisibleForTesting;
 import edu.umd.cs.findbugs.annotations.NonNull;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
+import java.io.Serial;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.NavigableMap;
+import java.util.NavigableSet;
+import java.util.NoSuchElementException;
+import java.util.Optional;
+import java.util.Set;
+import java.util.TreeMap;
+import java.util.TreeSet;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
 import org.kohsuke.stapler.StaplerProxy;
 import hudson.Functions;
 import hudson.model.Run;
+import hudson.util.XStream2;
 
-import io.jenkins.plugins.coverage.metrics.charts.CoverageTrendChart;
+import io.jenkins.plugins.coverage.metrics.charts.TrendChart;
 import io.jenkins.plugins.coverage.metrics.model.Baseline;
 import io.jenkins.plugins.coverage.metrics.model.CoverageStatistics;
 import io.jenkins.plugins.coverage.metrics.model.ElementFormatter;
@@ -53,12 +54,15 @@ import static hudson.model.Run.*;
  *
  * @author Ullrich Hafner
  */
-@SuppressWarnings({"PMD.GodClass", "checkstyle:ClassDataAbstractionCoupling", "checkstyle:ClassFanOutComplexity"})
+@SuppressWarnings({"PMD.GodClass", "PMD.CyclomaticComplexity", "PMD.CouplingBetweenObjects", "checkstyle:ClassDataAbstractionCoupling", "checkstyle:ClassFanOutComplexity"})
 public final class CoverageBuildAction extends BuildAction<Node> implements StaplerProxy {
+    @Serial
     private static final long serialVersionUID = -6023811049340671399L;
 
     private static final ElementFormatter FORMATTER = new ElementFormatter();
     private static final String NO_REFERENCE_BUILD = "-";
+    private static final List<Difference> NO_VALUES = List.of();
+    private static final int MAX_METRICS_COUNT_IN_SUMMARY = 5;
 
     private final String id;
     private final String name;
@@ -68,40 +72,52 @@ public final class CoverageBuildAction extends BuildAction<Node> implements Stap
     private final QualityGateResult qualityGateResult;
 
     private final String icon;
-    // FIXME: Rethink if we need a separate result object that stores all data?
     private final FilteredLog log;
 
     /** The aggregated values of the result for the root of the tree. */
     private final List<? extends Value> projectValues;
 
     /** The delta of this build's coverages with respect to the reference build. */
-    private NavigableMap<Metric, Fraction> difference;
+    @SuppressWarnings("MismatchedQueryAndUpdateOfCollection")
+    @SuppressFBWarnings(value = "NP_NONNULL_FIELD_NOT_INITIALIZED_IN_CONSTRUCTOR", justification = "Not used anymore")
+    private transient NavigableMap<Metric, Difference> difference;
+    private /* almost final */ List<Difference> differences; // since 2.0.0
 
     /** The coverages filtered by modified lines of the associated change request. */
     private final List<? extends Value> modifiedLinesCoverage;
 
     /** The coverage delta of the associated change request with respect to the reference build. */
-    private NavigableMap<Metric, Fraction> modifiedLinesCoverageDifference;
+    @SuppressWarnings("MismatchedQueryAndUpdateOfCollection")
+    @SuppressFBWarnings(value = "NP_NONNULL_FIELD_NOT_INITIALIZED_IN_CONSTRUCTOR", justification = "Not used anymore")
+    private transient NavigableMap<Metric, Difference> modifiedLinesCoverageDifference;
+    private /* almost final */ List<Difference> modifiedLinesDifferences; // since 2.0.0
 
     /** The coverage of the modified lines. */
     private final List<? extends Value> modifiedFilesCoverage;
 
     /** The coverage delta of the modified lines. */
-    private NavigableMap<Metric, Fraction> modifiedFilesCoverageDifference;
+    @SuppressWarnings("MismatchedQueryAndUpdateOfCollection")
+    @SuppressFBWarnings(value = "NP_NONNULL_FIELD_NOT_INITIALIZED_IN_CONSTRUCTOR", justification = "Not used anymore")
+    private transient NavigableMap<Metric, Difference> modifiedFilesCoverageDifference;
+    private /* almost final */ List<Difference> modifiedFilesDifferences; // since 2.0.0
 
     /** The indirect coverage changes of the associated change request with respect to the reference build. */
     private final List<? extends Value> indirectCoverageChanges;
 
     static {
         CoverageXmlStream.registerConverters(XSTREAM2);
-        registerMapConverter("difference");
-        registerMapConverter("modifiedLinesCoverageDifference");
-        registerMapConverter("modifiedFilesCoverageDifference");
+
+        registerValueListConverters(XSTREAM2);
     }
 
-    private static void registerMapConverter(final String difference) {
-        XSTREAM2.registerLocalConverter(CoverageBuildAction.class, difference,
-                new MetricFractionMapConverter());
+    static void registerValueListConverters(final XStream2 xstream) {
+        registerMapConverter("difference", xstream);
+        registerMapConverter("modifiedLinesCoverageDifference", xstream);
+        registerMapConverter("modifiedFilesCoverageDifference", xstream);
+    }
+
+    private static void registerMapConverter(final String difference, final XStream2 xstream) {
+        xstream.registerLocalConverter(CoverageBuildAction.class, difference, new MetricFractionMapConverter());
     }
 
     /**
@@ -124,8 +140,8 @@ public final class CoverageBuildAction extends BuildAction<Node> implements Stap
      */
     public CoverageBuildAction(final Run<?, ?> owner, final String id, final String optionalName, final String icon,
             final Node result, final QualityGateResult qualityGateResult, final FilteredLog log) {
-        this(owner, id, optionalName, icon, result, qualityGateResult, log, NO_REFERENCE_BUILD,
-                new TreeMap<>(), List.of(), new TreeMap<>(), List.of(), new TreeMap<>(), List.of());
+        this(owner, id, optionalName, icon, result, qualityGateResult, log,
+                NO_REFERENCE_BUILD, NO_VALUES, NO_VALUES, NO_VALUES, NO_VALUES, NO_VALUES, NO_VALUES);
     }
 
     /**
@@ -164,11 +180,11 @@ public final class CoverageBuildAction extends BuildAction<Node> implements Stap
     public CoverageBuildAction(final Run<?, ?> owner, final String id, final String optionalName, final String icon,
             final Node result, final QualityGateResult qualityGateResult, final FilteredLog log,
             final String referenceBuildId,
-            final NavigableMap<Metric, Fraction> delta,
+            final List<? extends Difference> delta,
             final List<? extends Value> modifiedLinesCoverage,
-            final NavigableMap<Metric, Fraction> modifiedLinesCoverageDifference,
+            final List<? extends Difference> modifiedLinesCoverageDifference,
             final List<? extends Value> modifiedFilesCoverage,
-            final NavigableMap<Metric, Fraction> modifiedFilesCoverageDifference,
+            final List<? extends Difference> modifiedFilesCoverageDifference,
             final List<? extends Value> indirectCoverageChanges) {
         this(owner, id, optionalName, icon, result, qualityGateResult, log, referenceBuildId, delta,
                 modifiedLinesCoverage,
@@ -182,11 +198,11 @@ public final class CoverageBuildAction extends BuildAction<Node> implements Stap
     CoverageBuildAction(final Run<?, ?> owner, final String id, final String name, final String icon,
             final Node result, final QualityGateResult qualityGateResult, final FilteredLog log,
             final String referenceBuildId,
-            final NavigableMap<Metric, Fraction> delta,
+            final List<? extends Difference> differences,
             final List<? extends Value> modifiedLinesCoverage,
-            final NavigableMap<Metric, Fraction> modifiedLinesCoverageDifference,
+            final List<? extends Difference> modifiedLinesDifferences,
             final List<? extends Value> modifiedFilesCoverage,
-            final NavigableMap<Metric, Fraction> modifiedFilesCoverageDifference,
+            final List<? extends Difference> modifiedFilesDifferences,
             final List<? extends Value> indirectCoverageChanges,
             final boolean canSerialize) {
         super(owner, result, false);
@@ -198,33 +214,46 @@ public final class CoverageBuildAction extends BuildAction<Node> implements Stap
 
         projectValues = result.aggregateValues();
         this.qualityGateResult = qualityGateResult;
-        difference = delta;
-        this.modifiedLinesCoverage = new ArrayList<>(modifiedLinesCoverage);
-        this.modifiedLinesCoverageDifference = modifiedLinesCoverageDifference;
-        this.modifiedFilesCoverage = new ArrayList<>(modifiedFilesCoverage);
-        this.modifiedFilesCoverageDifference = modifiedFilesCoverageDifference;
-        this.indirectCoverageChanges = new ArrayList<>(indirectCoverageChanges);
         this.referenceBuildId = referenceBuildId;
+
+        this.differences = copy(differences);
+        this.modifiedLinesCoverage = copy(modifiedLinesCoverage);
+        this.modifiedLinesDifferences = copy(modifiedLinesDifferences);
+        this.modifiedFilesCoverage = copy(modifiedFilesCoverage);
+        this.modifiedFilesDifferences = copy(modifiedFilesDifferences);
+        this.indirectCoverageChanges = copy(indirectCoverageChanges);
 
         if (canSerialize) {
             createXmlStream().write(owner.getRootDir().toPath().resolve(getBuildResultBaseName()), result);
         }
     }
 
-    @Override @SuppressFBWarnings(value = "CRLF_INJECTION_LOGS", justification = "getOwner().toString() is under our control")
+    private <T> List<T> copy(final List<? extends T> list) {
+        return new ArrayList<>(list); // do not use immutable collections to simplify serialization
+    }
+
+    @Serial
+    @Override
     protected Object readResolve() {
         super.readResolve();
+
         if (difference == null) {
             difference = new TreeMap<>();
-            Logger.getLogger(CoverageBuildAction.class.getName()).log(Level.FINE, "Difference serialization was null: " + getOwner().getDisplayName());
         }
         if (modifiedLinesCoverageDifference == null) {
             modifiedLinesCoverageDifference = new TreeMap<>();
-            Logger.getLogger(CoverageBuildAction.class.getName()).log(Level.FINE, "Modified lines serialization was null: " + getOwner().getDisplayName());
         }
         if (modifiedFilesCoverageDifference == null) {
             modifiedFilesCoverageDifference = new TreeMap<>();
-            Logger.getLogger(CoverageBuildAction.class.getName()).log(Level.FINE, "Modified files serialization was null: " + getOwner().getDisplayName());
+        }
+        if (differences == null) { // before 2.0
+            differences = difference.values().stream().toList();
+        }
+        if (modifiedFilesDifferences == null) { // before 2.0
+            modifiedFilesDifferences = modifiedFilesCoverageDifference.values().stream().toList();
+        }
+        if (modifiedLinesDifferences == null) { // before 2.0
+            modifiedLinesDifferences = modifiedLinesCoverageDifference.values().stream().toList();
         }
 
         return this;
@@ -252,8 +281,8 @@ public final class CoverageBuildAction extends BuildAction<Node> implements Stap
     }
 
     public CoverageStatistics getStatistics() {
-        return new CoverageStatistics(projectValues, difference, modifiedLinesCoverage, modifiedLinesCoverageDifference,
-                modifiedFilesCoverage, modifiedFilesCoverageDifference);
+        return new CoverageStatistics(projectValues, differences, modifiedLinesCoverage, modifiedLinesDifferences,
+                modifiedFilesCoverage, modifiedFilesDifferences);
     }
 
     /**
@@ -348,15 +377,15 @@ public final class CoverageBuildAction extends BuildAction<Node> implements Stap
      * @throws NoSuchElementException
      *         if this baseline does not provide deltas
      */
-    public NavigableMap<Metric, Fraction> getAllDeltas(final Baseline baseline) {
+    public List<Difference> getAllDeltas(final Baseline baseline) {
         if (baseline == Baseline.PROJECT_DELTA) {
-            return difference;
+            return differences;
         }
         else if (baseline == Baseline.MODIFIED_LINES_DELTA) {
-            return modifiedLinesCoverageDifference;
+            return modifiedLinesDifferences;
         }
         else if (baseline == Baseline.MODIFIED_FILES_DELTA) {
-            return modifiedFilesCoverageDifference;
+            return modifiedFilesDifferences;
         }
         throw new NoSuchElementException("No delta baseline: " + baseline);
     }
@@ -394,23 +423,28 @@ public final class CoverageBuildAction extends BuildAction<Node> implements Stap
 
     private List<Value> filterImportantMetrics(final Stream<? extends Value> values) {
         return values.filter(v -> getMetricsForSummary().contains(v.getMetric()))
+                .limit(MAX_METRICS_COUNT_IN_SUMMARY)
                 .collect(Collectors.toList());
     }
 
     private Stream<? extends Value> getValueStream(final Baseline baseline) {
+        Stream<? extends Value> stream;
         if (baseline == Baseline.PROJECT) {
-            return projectValues.stream();
+            stream = projectValues.stream();
         }
-        if (baseline == Baseline.MODIFIED_LINES) {
-            return modifiedLinesCoverage.stream();
+        else if (baseline == Baseline.MODIFIED_LINES) {
+            stream = modifiedLinesCoverage.stream();
         }
-        if (baseline == Baseline.MODIFIED_FILES) {
-            return modifiedFilesCoverage.stream();
+        else if (baseline == Baseline.MODIFIED_FILES) {
+            stream = modifiedFilesCoverage.stream();
         }
-        if (baseline == Baseline.INDIRECT) {
-            return indirectCoverageChanges.stream();
+        else if (baseline == Baseline.INDIRECT) {
+            stream = indirectCoverageChanges.stream();
         }
-        throw new NoSuchElementException("No such baseline: " + baseline);
+        else {
+            throw new NoSuchElementException("No such baseline: " + baseline);
+        }
+        return stream.sorted();
     }
 
     /**
@@ -439,20 +473,26 @@ public final class CoverageBuildAction extends BuildAction<Node> implements Stap
      */
     public boolean hasDelta(final Baseline baseline, final Metric metric) {
         if (baseline == Baseline.PROJECT) {
-            return difference.containsKey(metric);
+            return containsMetric(metric, differences);
         }
         if (baseline == Baseline.MODIFIED_LINES) {
-            return modifiedLinesCoverageDifference.containsKey(metric)
-                    && Set.of(Metric.BRANCH, Metric.LINE).contains(metric);
+            return isLineOrBranchCoverage(metric) && containsMetric(metric, modifiedLinesDifferences);
         }
         if (baseline == Baseline.MODIFIED_FILES) {
-            return modifiedFilesCoverageDifference.containsKey(metric)
-                    && Set.of(Metric.BRANCH, Metric.LINE).contains(metric);
+            return isLineOrBranchCoverage(metric) && containsMetric(metric, modifiedFilesDifferences);
         }
         if (baseline == Baseline.INDIRECT) {
             return false;
         }
         throw new NoSuchElementException("No such baseline: " + baseline);
+    }
+
+    private boolean isLineOrBranchCoverage(final Metric metric) {
+        return Set.of(Metric.BRANCH, Metric.LINE).contains(metric);
+    }
+
+    private boolean containsMetric(final Metric metric, final List<Difference> values) {
+        return values.stream().map(Difference::getMetric).anyMatch(metric::equals);
     }
 
     /**
@@ -465,17 +505,21 @@ public final class CoverageBuildAction extends BuildAction<Node> implements Stap
      *
      * @return {@code true} if a delta is available for the specified metric, {@code false} otherwise
      */
-    public Optional<Fraction> getDelta(final Baseline baseline, final Metric metric) {
+    public Optional<Value> getDelta(final Baseline baseline, final Metric metric) {
         if (baseline == Baseline.PROJECT) {
-            return Optional.ofNullable(difference.get(metric));
+            return findDelta(metric, differences);
         }
         if (baseline == Baseline.MODIFIED_LINES) {
-            return Optional.ofNullable(modifiedLinesCoverageDifference.get(metric));
+            return findDelta(metric, modifiedLinesDifferences);
         }
         if (baseline == Baseline.MODIFIED_FILES) {
-            return Optional.ofNullable(modifiedFilesCoverageDifference.get(metric));
+            return findDelta(metric, modifiedFilesDifferences);
         }
         return Optional.empty();
+    }
+
+    private Optional<Value> findDelta(final Metric metric, final List<Difference> values) {
+        return values.stream().filter(d -> d.getMetric() == metric).findAny().map(Value.class::cast);
     }
 
     /**
@@ -520,17 +564,17 @@ public final class CoverageBuildAction extends BuildAction<Node> implements Stap
      *
      * @return the delta metric
      */
-    @SuppressWarnings("unused") // Called by jelly view
+    @SuppressWarnings({"unused", "OptionalGetWithoutIsPresent"}) // Called by jelly view
     public String formatDelta(final Baseline baseline, final Metric metric) {
         var currentLocale = Functions.getCurrentLocale();
         if (baseline == Baseline.PROJECT && hasDelta(baseline, metric)) {
-            return FORMATTER.formatDelta(metric, difference.get(metric), currentLocale);
+            return FORMATTER.formatDelta(metric, findDelta(metric, differences).get(), currentLocale);
         }
         if (baseline == Baseline.MODIFIED_LINES && hasDelta(baseline, metric)) {
-            return FORMATTER.formatDelta(metric, modifiedLinesCoverageDifference.get(metric), currentLocale);
+            return FORMATTER.formatDelta(metric, findDelta(metric, modifiedLinesDifferences).get(), currentLocale);
         }
         if (baseline == Baseline.MODIFIED_FILES && hasDelta(baseline, metric)) {
-            return FORMATTER.formatDelta(metric, modifiedFilesCoverageDifference.get(metric), currentLocale);
+            return FORMATTER.formatDelta(metric, findDelta(metric, modifiedFilesDifferences).get(), currentLocale);
         }
         return Messages.Coverage_Not_Available();
     }
@@ -549,7 +593,7 @@ public final class CoverageBuildAction extends BuildAction<Node> implements Stap
     public double getTrend(final Baseline baseline, final Metric metric) {
         var delta = getDelta(baseline, metric);
         if (delta.isPresent()) {
-            double deltaValue = delta.get().doubleValue();
+            double deltaValue = delta.get().asDouble();
             if (-0.001 < deltaValue && deltaValue < 0.001) {
                 // for var(--text-color)
                 return 0;
@@ -569,9 +613,16 @@ public final class CoverageBuildAction extends BuildAction<Node> implements Stap
      */
     @VisibleForTesting
     NavigableSet<Metric> getMetricsForSummary() {
+        // TODO: establish a useful order
         return new TreeSet<>(
-                Set.of(Metric.LINE, Metric.LOC, Metric.BRANCH, Metric.COMPLEXITY_DENSITY,
-                        Metric.MUTATION, Metric.TEST_STRENGTH, Metric.TESTS,
+                Set.of(
+                        // code coverage
+                        Metric.LINE, Metric.BRANCH,
+                        // mutation coverage
+                        Metric.MUTATION, Metric.TEST_STRENGTH,
+                        // software metrics
+                        Metric.LOC, Metric.NCSS, Metric.TESTS,
+                        Metric.CYCLOMATIC_COMPLEXITY, Metric.COGNITIVE_COMPLEXITY, Metric.NPATH_COMPLEXITY,
                         Metric.MCDC_PAIR, Metric.FUNCTION_CALL));
     }
 
@@ -616,15 +667,32 @@ public final class CoverageBuildAction extends BuildAction<Node> implements Stap
     @Override
     public CoverageViewModel getTarget() {
         return new CoverageViewModel(getOwner(), getUrlName(), name, getResult(),
-                getStatistics(), getQualityGateResult(), getReferenceBuildLink(), log, this::createChartModel);
+                getStatistics(), getQualityGateResult(), getReferenceBuildLink(), log,
+                this::createChartModel, this::checkForCoverageData);
     }
 
-    private String createChartModel(final String configuration) {
-        // FIXME: add without optional
+    private String createChartModel(final String configuration, final boolean metrics) {
+        // TODO: add without optional
         var iterable = new BuildActionIterable<>(CoverageBuildAction.class, Optional.of(this),
                 action -> getUrlName().equals(action.getUrlName()), CoverageBuildAction::getStatistics);
-        return new JacksonFacade().toJson(
-                new CoverageTrendChart().create(iterable, ChartModelConfiguration.fromJson(configuration)));
+        return new JacksonFacade().toJson(TrendChart.createTrendChart(metrics)
+                .create(iterable, ChartModelConfiguration.fromJson(configuration)));
+    }
+
+    private boolean checkForCoverageData() {
+        var iterator = new BuildActionIterable<>(CoverageBuildAction.class, Optional.of(this),
+                action -> getUrlName().equals(action.getUrlName()), CoverageBuildAction::getStatistics).iterator();
+        if (iterator.hasNext()) {
+            var lastResult = iterator.next().getResult();
+            return lastResult.getValue(Baseline.PROJECT, Metric.MODULE)
+                    .or(() -> lastResult.getValue(Baseline.PROJECT, Metric.PACKAGE))
+                    .or(() -> lastResult.getValue(Baseline.PROJECT, Metric.FILE))
+                    .or(() -> lastResult.getValue(Baseline.PROJECT, Metric.CLASS))
+                    .or(() -> lastResult.getValue(Baseline.PROJECT, Metric.METHOD))
+                    .map(value -> value instanceof Coverage && ((Coverage) value).isSet())
+                    .orElse(false);
+        }
+        return false;
     }
 
     @NonNull

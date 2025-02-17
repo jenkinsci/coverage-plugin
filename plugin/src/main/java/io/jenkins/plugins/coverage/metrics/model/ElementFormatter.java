@@ -1,27 +1,22 @@
 package io.jenkins.plugins.coverage.metrics.model;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
-import java.util.NoSuchElementException;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.math.Fraction;
 
 import edu.hm.hafner.coverage.Coverage;
-import edu.hm.hafner.coverage.FractionValue;
-import edu.hm.hafner.coverage.IntegerValue;
 import edu.hm.hafner.coverage.Metric;
 import edu.hm.hafner.coverage.Percentage;
-import edu.hm.hafner.coverage.SafeFraction;
 import edu.hm.hafner.coverage.Value;
 
 import hudson.Functions;
 import hudson.util.ListBoxModel;
 
-import io.jenkins.plugins.coverage.metrics.color.ColorProvider;
 import io.jenkins.plugins.coverage.metrics.color.ColorProvider.DisplayColors;
 import io.jenkins.plugins.coverage.metrics.color.ColorProviderFactory;
 
@@ -30,12 +25,8 @@ import io.jenkins.plugins.coverage.metrics.color.ColorProviderFactory;
  *
  * @author Florian Orendi
  */
-// TODO: create instances for the different types
-// TODO: rethink the approach of storing the delta values as FractionValues
 @SuppressWarnings({"PMD.GodClass", "PMD.CyclomaticComplexity"})
 public final class ElementFormatter {
-    private static final Fraction HUNDRED = Fraction.getFraction("100.0");
-    private static final String NO_COVERAGE_AVAILABLE = "-";
     private static final Pattern PERCENTAGE = Pattern.compile("\\d+(\\.\\d+)?%");
 
     /**
@@ -49,14 +40,7 @@ public final class ElementFormatter {
      * @return the formatted value as plain text
      */
     public String getTooltip(final Value value) {
-        if (value instanceof IntegerValue) {
-            return String.format("%s: %d", getLabel(value.getMetric()), ((IntegerValue) value).getValue());
-        }
-        var additional = formatAdditionalInformation(value);
-        if (additional.isBlank()) {
-            return formatValueWithMetric(value);
-        }
-        return formatValueWithMetric(value) + " (" + additional + ")";
+        return value.getDetails(getLocale());
     }
 
     /**
@@ -70,7 +54,11 @@ public final class ElementFormatter {
      * @return the formatted value as plain text
      */
     public String format(final Value value) {
-        return format(value, Functions.getCurrentLocale());
+        return format(value, getLocale());
+    }
+
+    private Locale getLocale() {
+        return Functions.getCurrentLocale();
     }
 
     /**
@@ -86,19 +74,7 @@ public final class ElementFormatter {
      * @return the formatted value as plain text
      */
     public String format(final Value value, final Locale locale) {
-        if (value instanceof Coverage) {
-            return formatPercentage((Coverage) value, locale);
-        }
-        if (value instanceof IntegerValue) {
-            return String.valueOf(((IntegerValue) value).getValue());
-        }
-        if (value instanceof FractionValue) {
-            if (value.getMetric() == Metric.COMPLEXITY_DENSITY) {
-                return String.format(locale, "%.2f", ((FractionValue) value).getFraction().doubleValue());
-            }
-            return formatDelta(value.getMetric(), ((FractionValue) value).getFraction(), locale);
-        }
-        return value.toString();
+        return value.asText(locale);
     }
 
     /**
@@ -112,7 +88,7 @@ public final class ElementFormatter {
      * @return the formatted value as plain text
      */
     public String formatDetails(final Value value) {
-        return formatDetails(value, Functions.getCurrentLocale());
+        return formatDetails(value, getLocale());
     }
 
     /**
@@ -128,21 +104,7 @@ public final class ElementFormatter {
      * @return the formatted value as plain text
      */
     private String formatDetails(final Value value, final Locale locale) {
-        if (value instanceof Coverage) {
-            var coverage = (Coverage) value;
-            return formatPercentage(coverage, locale)
-                    + formatRatio(coverage.getCovered(), coverage.getTotal());
-        }
-        if (value instanceof IntegerValue) {
-            return String.valueOf(((IntegerValue) value).getValue());
-        }
-        if (value instanceof FractionValue) {
-            if (value.getMetric() == Metric.COMPLEXITY_DENSITY) {
-                return String.format(locale, "%.2f", ((FractionValue) value).getFraction().doubleValue());
-            }
-            return String.format(locale, "%.2f%%", ((FractionValue) value).getFraction().doubleValue());
-        }
-        return value.toString();
+        return value.asInformativeText(locale);
     }
 
     /**
@@ -157,21 +119,20 @@ public final class ElementFormatter {
      * @return the formatted value as plain text
      */
     public String formatAdditionalInformation(final Value value) {
-        if (value instanceof Coverage) {
-            var coverage = (Coverage) value;
-            if (coverage.isSet()) {
-                if (coverage.getMetric() == Metric.MUTATION
-                        || coverage.getMetric() == Metric.TEST_STRENGTH) {
-                    return formatCoverage(coverage, Messages.Metric_MUTATION_Killed(),
-                            Messages.Metric_MUTATION_Survived());
-                }
-                else {
-                    return formatCoverage(coverage, Messages.Metric_Coverage_Covered(),
-                            Messages.Metric_Coverage_Missed());
-                }
-            }
+        if (value instanceof Coverage coverage && coverage.isSet()) {
+            return formatAdditionalCoverageInformation(coverage);
         }
         return StringUtils.EMPTY;
+    }
+
+    private String formatAdditionalCoverageInformation(final Coverage coverage) {
+        if (coverage.getMetric() == Metric.MUTATION
+                || coverage.getMetric() == Metric.TEST_STRENGTH) {
+            return formatCoverage(coverage, Messages.Metric_MUTATION_Killed(),
+                    Messages.Metric_MUTATION_Survived());
+        }
+        return formatCoverage(coverage, Messages.Metric_Coverage_Covered(),
+                Messages.Metric_Coverage_Missed());
     }
 
     private static String formatCoverage(final Coverage coverage, final String coveredText, final String missedText) {
@@ -207,10 +168,9 @@ public final class ElementFormatter {
             return baseline.getDisplayColors(((Coverage) value).getCoveredPercentage().toDouble(),
                     defaultColorProvider);
         }
-        else if (value instanceof FractionValue) {
-            return baseline.getDisplayColors(((FractionValue) value).getFraction().doubleValue(), defaultColorProvider);
+        else {
+            return baseline.getDisplayColors(value.asDouble(), defaultColorProvider);
         }
-        return ColorProvider.DEFAULT_COLOR;
     }
 
     /**
@@ -222,7 +182,7 @@ public final class ElementFormatter {
      * @return the value formatted as a string
      */
     public String formatValue(final Value value) {
-        return formatDetails(value, Functions.getCurrentLocale());
+        return formatDetails(value, getLocale());
     }
 
     /**
@@ -235,8 +195,7 @@ public final class ElementFormatter {
      */
     @SuppressWarnings("unused") // Called by jelly view
     public String formatValueWithMetric(final Value value) {
-        return getDisplayName(value.getMetric()) + ": "
-                + format(value, Functions.getCurrentLocale());
+        return value.getSummary(getLocale());
     }
 
     /**
@@ -249,9 +208,9 @@ public final class ElementFormatter {
      * @return the value formatted as a string
      */
     @SuppressWarnings("unused") // Called by jelly view
+    // FIXME: delete
     public String formatDetailedValueWithMetric(final Value value) {
-        return getDisplayName(value.getMetric()) + ": "
-                + formatDetails(value, Functions.getCurrentLocale());
+        return value.getDetails(getLocale());
     }
 
     /**
@@ -287,13 +246,6 @@ public final class ElementFormatter {
         return "100%";
     }
 
-    private String formatRatio(final int covered, final int total) {
-        if (total > 0) {
-            return String.format(" (%d/%d)", covered, total);
-        }
-        return StringUtils.EMPTY;
-    }
-
     /**
      * Formats a coverage as a percentage number. The shown value is multiplied by 100 and rounded by two decimals.
      *
@@ -305,10 +257,7 @@ public final class ElementFormatter {
      * @return the formatted percentage as plain text
      */
     public String formatPercentage(final Coverage coverage, final Locale locale) {
-        if (coverage.isSet()) {
-            return formatPercentage(coverage.getCoveredPercentage(), locale);
-        }
-        return NO_COVERAGE_AVAILABLE;
+        return coverage.asText(locale);
     }
 
     /**
@@ -349,24 +298,30 @@ public final class ElementFormatter {
      *
      * @param metric
      *         the metric of the value
-     * @param fraction
+     * @param value
      *         the value of the delta
      * @param locale
      *         the locale to use to render the values
      *
      * @return the formatted delta percentage as plain text with a leading sign
      */
-    public String formatDelta(final Metric metric, final Fraction fraction, final Locale locale) {
-        if (metric.equals(Metric.COMPLEXITY)
-                || metric.equals(Metric.COMPLEXITY_MAXIMUM)
-                || metric.equals(Metric.LOC)
-                || metric.equals(Metric.TESTS)) {
-            return String.format(locale, "%+d", fraction.intValue());
-        }
-        if (metric == Metric.COMPLEXITY_DENSITY) {
-            return String.format(locale, "%+.2f", fraction.doubleValue());
-        }
-        return String.format(locale, "%+.2f%%", new SafeFraction(fraction).multiplyBy(HUNDRED).doubleValue());
+    public String formatDelta(@SuppressWarnings("unused") final Metric metric, final Value value, final Locale locale) {
+        return formatDelta(value, locale);
+    }
+
+    /**
+     * Formats a delta percentage to its plain text representation with a leading sign and rounds the value to two
+     * decimals.
+     *
+     * @param value
+     *         the value of the delta
+     * @param locale
+     *         the locale to use to render the values
+     *
+     * @return the formatted delta percentage as plain text with a leading sign
+     */
+    public String formatDelta(final Value value, final Locale locale) {
+        return value.asText(locale);
     }
 
     /**
@@ -379,46 +334,7 @@ public final class ElementFormatter {
      */
     @SuppressWarnings("PMD.CyclomaticComplexity")
     public String getDisplayName(final Metric metric) {
-        switch (metric) {
-            case CONTAINER:
-                return Messages.Metric_CONTAINER();
-            case MODULE:
-                return Messages.Metric_MODULE();
-            case PACKAGE:
-                return Messages.Metric_PACKAGE();
-            case FILE:
-                return Messages.Metric_FILE();
-            case CLASS:
-                return Messages.Metric_CLASS();
-            case METHOD:
-                return Messages.Metric_METHOD();
-            case LINE:
-                return Messages.Metric_LINE();
-            case BRANCH:
-                return Messages.Metric_BRANCH();
-            case INSTRUCTION:
-                return Messages.Metric_INSTRUCTION();
-            case MUTATION:
-                return Messages.Metric_MUTATION();
-            case TEST_STRENGTH:
-                return Messages.Metric_TEST_STRENGTH();
-            case COMPLEXITY:
-                return Messages.Metric_COMPLEXITY();
-            case COMPLEXITY_MAXIMUM:
-                return Messages.Metric_COMPLEXITY_MAXIMUM();
-            case COMPLEXITY_DENSITY:
-                return Messages.Metric_COMPLEXITY_DENSITY();
-            case LOC:
-                return Messages.Metric_LOC();
-            case TESTS:
-                return Messages.Metric_TESTS();
-            case MCDC_PAIR:
-                return Messages.Metric_MCDC_PAIR();
-            case FUNCTION_CALL:
-                return Messages.Metric_FUNCTION_CALL();
-            default:
-                throw new NoSuchElementException("No display name found for metric " + metric);
-        }
+        return metric.getDisplayName();
     }
 
     /**
@@ -456,46 +372,7 @@ public final class ElementFormatter {
      */
     @SuppressWarnings("PMD.CyclomaticComplexity")
     public String getLabel(final Metric metric) {
-        switch (metric) {
-            case CONTAINER:
-                return Messages.Metric_Short_CONTAINER();
-            case MODULE:
-                return Messages.Metric_Short_MODULE();
-            case PACKAGE:
-                return Messages.Metric_Short_PACKAGE();
-            case FILE:
-                return Messages.Metric_Short_FILE();
-            case CLASS:
-                return Messages.Metric_Short_CLASS();
-            case METHOD:
-                return Messages.Metric_Short_METHOD();
-            case LINE:
-                return Messages.Metric_Short_LINE();
-            case BRANCH:
-                return Messages.Metric_Short_BRANCH();
-            case INSTRUCTION:
-                return Messages.Metric_Short_INSTRUCTION();
-            case MUTATION:
-                return Messages.Metric_Short_MUTATION();
-            case TEST_STRENGTH:
-                return Messages.Metric_Short_TEST_STRENGTH();
-            case COMPLEXITY:
-                return Messages.Metric_Short_COMPLEXITY();
-            case COMPLEXITY_MAXIMUM:
-                return Messages.Metric_Short_COMPLEXITY_MAXIMUM();
-            case COMPLEXITY_DENSITY:
-                return Messages.Metric_Short_COMPLEXITY_DENSITY();
-            case LOC:
-                return Messages.Metric_Short_LOC();
-            case TESTS:
-                return Messages.Metric_Short_TESTS();
-            case MCDC_PAIR:
-                return Messages.Metric_Short_MCDC_PAIR();
-            case FUNCTION_CALL:
-                return Messages.Metric_Short_FUNCTION_CALL();
-            default:
-                throw new NoSuchElementException("No label found for metric " + metric);
-        }
+        return metric.getLabel();
     }
 
     /**
@@ -507,24 +384,15 @@ public final class ElementFormatter {
      * @return the display name
      */
     public String getDisplayName(final Baseline baseline) {
-        switch (baseline) {
-            case PROJECT:
-                return Messages.Baseline_PROJECT();
-            case MODIFIED_LINES:
-                return Messages.Baseline_MODIFIED_LINES();
-            case MODIFIED_FILES:
-                return Messages.Baseline_MODIFIED_FILES();
-            case PROJECT_DELTA:
-                return Messages.Baseline_PROJECT_DELTA();
-            case MODIFIED_LINES_DELTA:
-                return Messages.Baseline_MODIFIED_LINES_DELTA();
-            case MODIFIED_FILES_DELTA:
-                return Messages.Baseline_MODIFIED_FILES_DELTA();
-            case INDIRECT:
-                return Messages.Baseline_INDIRECT();
-            default:
-                throw new NoSuchElementException("No display name found for baseline " + baseline);
-        }
+        return switch (baseline) {
+            case PROJECT -> Messages.Baseline_PROJECT();
+            case MODIFIED_LINES -> Messages.Baseline_MODIFIED_LINES();
+            case MODIFIED_FILES -> Messages.Baseline_MODIFIED_FILES();
+            case PROJECT_DELTA -> Messages.Baseline_PROJECT_DELTA();
+            case MODIFIED_LINES_DELTA -> Messages.Baseline_MODIFIED_LINES_DELTA();
+            case MODIFIED_FILES_DELTA -> Messages.Baseline_MODIFIED_FILES_DELTA();
+            case INDIRECT -> Messages.Baseline_INDIRECT();
+        };
     }
 
     /**
@@ -534,27 +402,12 @@ public final class ElementFormatter {
      */
     public ListBoxModel getMetricItems() {
         ListBoxModel options = new ListBoxModel();
-        add(options, Metric.MODULE);
-        add(options, Metric.PACKAGE);
-        add(options, Metric.FILE);
-        add(options, Metric.CLASS);
-        add(options, Metric.METHOD);
-        add(options, Metric.LINE);
-        add(options, Metric.BRANCH);
-        add(options, Metric.INSTRUCTION);
-        add(options, Metric.MUTATION);
-        add(options, Metric.TEST_STRENGTH);
-        add(options, Metric.COMPLEXITY);
-        add(options, Metric.COMPLEXITY_MAXIMUM);
-        add(options, Metric.LOC);
-        add(options, Metric.TESTS);
-        add(options, Metric.MCDC_PAIR);
-        add(options, Metric.FUNCTION_CALL);
-        return options;
-    }
 
-    private void add(final ListBoxModel options, final Metric metric) {
-        options.add(getDisplayName(metric), metric.name());
+        Arrays.stream(Metric.values())
+                .filter(m -> m != Metric.CONTAINER)
+                .forEach(m-> options.add(m.getDisplayName(), m.name()));
+
+        return options;
     }
 
     /**

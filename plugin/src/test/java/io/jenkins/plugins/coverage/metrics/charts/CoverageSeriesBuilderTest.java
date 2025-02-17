@@ -44,7 +44,7 @@ class CoverageSeriesBuilderTest extends ResourceTest {
 
     @Test
     void shouldCreateChart() {
-        CoverageTrendChart trendChart = new CoverageTrendChart();
+        TrendChart trendChart = new CoverageTrendChart();
 
         BuildResult<CoverageStatistics> smallLineCoverage = createResult(1,
                 new CoverageBuilder().withMetric(Metric.LINE).withCovered(1).withMissed(1).build(),
@@ -65,7 +65,7 @@ class CoverageSeriesBuilderTest extends ResourceTest {
 
     @Test
     void shouldCreateStackedChartByDefault() {
-        CoverageTrendChart trendChart = new CoverageTrendChart();
+        TrendChart trendChart = new CoverageTrendChart();
 
         BuildResult<CoverageStatistics> smallLineCoverage = createResult(1,
                 new CoverageBuilder().withMetric(Metric.LINE).withCovered(1).withMissed(1).build(),
@@ -83,7 +83,7 @@ class CoverageSeriesBuilderTest extends ResourceTest {
 
     @ParameterizedTest @EnumSource(value = Metric.class, names = {"MCDC_PAIR", "FUNCTION_CALL"})
     void shouldCreateLineChartForVectorCoverage(final Metric vector) {
-        CoverageTrendChart trendChart = new CoverageTrendChart();
+        TrendChart trendChart = new CoverageTrendChart();
 
         BuildResult<CoverageStatistics> smallLineCoverage = createResult(1,
                 new CoverageBuilder().withMetric(Metric.LINE).withCovered(1).withMissed(1).build(),
@@ -104,9 +104,7 @@ class CoverageSeriesBuilderTest extends ResourceTest {
     private BuildResult<CoverageStatistics> createResult(final int buildNumber,
             final Coverage... coverages) {
         var statistics = new CoverageStatistics(
-                List.of(coverages), Collections.emptyNavigableMap(),
-                Collections.emptyList(), Collections.emptyNavigableMap(),
-                Collections.emptyList(), Collections.emptyNavigableMap());
+                List.of(coverages), List.of(), List.of(), List.of(), List.of(), List.of());
         Build build = new Build(buildNumber);
 
         return new BuildResult<>(build, statistics);
@@ -165,7 +163,7 @@ class CoverageSeriesBuilderTest extends ResourceTest {
         assertThat(dataSet.getSeries(CoverageSeriesBuilder.BRANCH_COVERAGE))
                 .containsExactly(75.0, 25.0);
 
-        CoverageTrendChart trendChart = new CoverageTrendChart();
+        TrendChart trendChart = new CoverageTrendChart();
         var model = trendChart.create(List.of(first, second), createConfiguration());
 
         assertThatJson(model).isEqualTo(toString("chart.json"));

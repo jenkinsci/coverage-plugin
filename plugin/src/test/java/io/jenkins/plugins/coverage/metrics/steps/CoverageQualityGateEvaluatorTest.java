@@ -204,8 +204,8 @@ class CoverageQualityGateEvaluatorTest extends AbstractCoverageTest {
     void shouldReportUnstableIfLargerThanThreshold() {
         Collection<CoverageQualityGate> qualityGates = new ArrayList<>();
 
-        qualityGates.add(new CoverageQualityGate(149.0, Metric.COMPLEXITY, Baseline.PROJECT, QualityGateCriticality.UNSTABLE));
-        qualityGates.add(new CoverageQualityGate(14, Metric.COMPLEXITY_MAXIMUM, Baseline.PROJECT, QualityGateCriticality.UNSTABLE));
+        qualityGates.add(new CoverageQualityGate(149.0, Metric.CYCLOMATIC_COMPLEXITY, Baseline.PROJECT, QualityGateCriticality.UNSTABLE));
+        qualityGates.add(new CoverageQualityGate(14, Metric.NPATH_COMPLEXITY, Baseline.PROJECT, QualityGateCriticality.UNSTABLE));
         qualityGates.add(new CoverageQualityGate(999, Metric.LOC, Baseline.MODIFIED_LINES, QualityGateCriticality.UNSTABLE));
 
         CoverageQualityGateEvaluator evaluator = new CoverageQualityGateEvaluator(qualityGates, createStatistics());
@@ -214,7 +214,7 @@ class CoverageQualityGateEvaluatorTest extends AbstractCoverageTest {
 
         assertThat(result).hasOverallStatus(QualityGateStatus.WARNING).isNotSuccessful().isNotInactive().hasMessages(
                 "[Overall project - Cyclomatic Complexity]: ≪Unstable≫ - (Actual value: 150, Quality gate: 149.00)",
-                "[Overall project - Maximum Cyclomatic Complexity]: ≪Unstable≫ - (Actual value: 15, Quality gate: 14.00)",
+                "[Overall project - N-Path Complexity]: ≪Unstable≫ - (Actual value: 15, Quality gate: 14.00)",
                 "[Modified code lines - Lines of Code]: ≪Unstable≫ - (Actual value: 1000, Quality gate: 999.00)");
     }
 
@@ -223,7 +223,7 @@ class CoverageQualityGateEvaluatorTest extends AbstractCoverageTest {
         Collection<CoverageQualityGate> qualityGates = new ArrayList<>();
 
         var minimum = 0;
-        qualityGates.add(new CoverageQualityGate(minimum, Metric.COMPLEXITY, Baseline.PROJECT_DELTA, QualityGateCriticality.UNSTABLE));
+        qualityGates.add(new CoverageQualityGate(minimum, Metric.CYCLOMATIC_COMPLEXITY, Baseline.PROJECT_DELTA, QualityGateCriticality.UNSTABLE));
         qualityGates.add(new CoverageQualityGate(minimum, Metric.LOC, Baseline.PROJECT_DELTA, QualityGateCriticality.UNSTABLE));
 
         CoverageQualityGateEvaluator evaluator = new CoverageQualityGateEvaluator(qualityGates, createStatistics());

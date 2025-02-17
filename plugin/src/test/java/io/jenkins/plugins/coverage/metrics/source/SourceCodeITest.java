@@ -158,7 +158,7 @@ abstract class SourceCodeITest extends AbstractCoverageITest {
 
     private CpsFlowDefinition createPipelineWithSourceCode(final SourceCodeRetention sourceCodeRetention,
             final String sourceDirectory) {
-        return new CpsFlowDefinition("node ('coverage-agent') {"
+        return createPipelineScript("node ('coverage-agent') {"
                 + "    recordCoverage "
                 + "         tools: [[parser: 'JACOCO', pattern: '" + ACU_COBOL_PARSER_COVERAGE_REPORT + "']], \n"
                 + "         sourceCodeRetention: '" + sourceCodeRetention.name() + "', \n"
@@ -169,7 +169,7 @@ abstract class SourceCodeITest extends AbstractCoverageITest {
                 + "         sourceCodeRetention: '" + sourceCodeRetention.name() + "', \n"
                 + "         sourceCodeEncoding: 'UTF-8', \n"
                 + "         sourceDirectories: [[path: '" + sourceDirectory + "']]"
-                + "}", true);
+                + "}");
     }
 
     private void verifySourceCodeInBuild(final String pathPrefix, final Run<?, ?> build, final String acuCobolParserSourceCodeSnippet,

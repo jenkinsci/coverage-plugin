@@ -1,24 +1,22 @@
 package io.jenkins.plugins.coverage.metrics.steps;
 
-import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Locale;
-import java.util.stream.Collectors;
-
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.math.Fraction;
+import org.apache.commons.text.CaseUtils;
 
 import edu.hm.hafner.coverage.Coverage;
-import edu.hm.hafner.coverage.CyclomaticComplexity;
 import edu.hm.hafner.coverage.FileNode;
-import edu.hm.hafner.coverage.FractionValue;
-import edu.hm.hafner.coverage.LinesOfCode;
 import edu.hm.hafner.coverage.Metric;
 import edu.hm.hafner.coverage.Node;
-import edu.hm.hafner.coverage.TestCount;
+import edu.hm.hafner.coverage.Value;
 
 import j2html.tags.ContainerTag;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.EnumMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 import hudson.Functions;
 
@@ -54,6 +52,7 @@ class CoverageTableModel extends TableModel {
 
     static final DetailedCell<Integer> NO_COVERAGE
             = new DetailedCell<>(Messages.Coverage_Not_Available(), NO_COVERAGE_SORT);
+    private static final String SKIP_DELTA = "";
 
     private final ColorProvider colorProvider;
     private final Node root;
@@ -122,52 +121,34 @@ class CoverageTableModel extends TableModel {
 
         /* VectorCAST metrics */
         configureValueColumn("mcdcPairCoverage", Metric.MCDC_PAIR, Messages.Column_MCDCPairs(),
-                "", columns);
+                SKIP_DELTA, columns);
         configureValueColumn("functionCallCoverage", Metric.FUNCTION_CALL, Messages.Column_FunctionCall(),
-                "", columns);
+                SKIP_DELTA, columns);
 
         configureValueColumn("mutationCoverage", Metric.MUTATION, Messages.Column_MutationCoverage(),
                 Messages.Column_DeltaMutationCoverage("Δ"), columns);
         configureValueColumn("testStrength", Metric.TEST_STRENGTH, Messages.Column_TestStrength(),
                 Messages.Column_DeltaTestStrength("Δ"), columns);
-        TableColumn loc = new ColumnBuilder().withHeaderLabel(Messages.Column_LinesOfCode())
-                .withDataPropertyKey("loc")
-                .withResponsivePriority(200)
-                .withType(ColumnType.NUMBER)
-                .build();
-        columns.add(loc);
-        if (root.containsMetric(Metric.TESTS)) {
-            TableColumn complexity = new ColumnBuilder().withHeaderLabel(Messages.Column_Tests())
-                    .withDataPropertyKey("tests")
-                    .withResponsivePriority(500)
-                    .withType(ColumnType.NUMBER)
-                    .build();
-            columns.add(complexity);
-        }
-        if (root.containsMetric(Metric.COMPLEXITY)) {
-            TableColumn complexity = new ColumnBuilder().withHeaderLabel(Messages.Column_Complexity())
-                    .withDataPropertyKey("complexity")
-                    .withResponsivePriority(500)
-                    .withType(ColumnType.NUMBER)
-                    .build();
-            columns.add(complexity);
-        }
-        if (root.containsMetric(Metric.COMPLEXITY_MAXIMUM)) {
-            TableColumn maxComplexity = new ColumnBuilder().withHeaderLabel(Messages.Column_MaxComplexity())
-                    .withDataPropertyKey("maxComplexity")
-                    .withResponsivePriority(900)
-                    .withType(ColumnType.NUMBER)
-                    .build();
-            columns.add(maxComplexity);
-        }
-        if (root.containsMetric(Metric.COMPLEXITY_DENSITY)) {
-            TableColumn complexity = new ColumnBuilder().withHeaderLabel(Messages.Column_ComplexityDensity())
-                    .withDataPropertyKey("density")
-                    .withDetailedCell()
-                    .withResponsivePriority(700)
-                    .withType(ColumnType.NUMBER)
-                    .build();
-            columns.add(complexity);
+
+        var entries = new EnumMap<>(Map.of(
+                Metric.LOC, 200,
+                Metric.TESTS, 500,
+                Metric.CYCLOMATIC_COMPLEXITY, 500,
+                Metric.COGNITIVE_COMPLEXITY, 500,
+                Metric.NPATH_COMPLEXITY, 500,
+                Metric.NCSS, 500));
+
+        for (var column : entries.entrySet()) {
+            var metric = column.getKey();
+            if (root.containsMetric(metric)) {
+                TableColumn tmp = new ColumnBuilder()
+                        .withHeaderLabel(metric.getLabel())
+                        .withDataPropertyKey(CaseUtils.toCamelCase(metric.name(), false, '_'))
+                        .withResponsivePriority(column.getValue())
+                        .withType(ColumnType.NUMBER)
+                        .build();
+                columns.add(tmp);
+            }
         }
         return columns;
     }
@@ -182,7 +163,7 @@ class CoverageTableModel extends TableModel {
                     .withResponsivePriority(1)
                     .build();
             columns.add(lineCoverage);
-            if (StringUtils.isNotEmpty(deltaHeaderLabel)) {
+            if (StringUtils.isNotEmpty(deltaHeaderLabel) && hasDelta(metric)) {
                 TableColumn lineCoverageDelta = new ColumnBuilder().withHeaderLabel(deltaHeaderLabel)
                         .withDataPropertyKey(key + "Delta")
                         .withDetailedCell()
@@ -192,6 +173,10 @@ class CoverageTableModel extends TableModel {
                 columns.add(lineCoverageDelta);
             }
         }
+    }
+
+    private boolean hasDelta(final Metric metric) {
+        return root.getAllFileNodes().stream().anyMatch(f -> f.hasDelta(metric));
     }
 
     @Override
@@ -218,10 +203,13 @@ class CoverageTableModel extends TableModel {
         private static final String COVERAGE_COLUMN_OUTER = "coverage-cell-outer float-end";
         private static final String COVERAGE_COLUMN_INNER = "coverage-jenkins-cell-inner";
         private static final ElementFormatter FORMATTER = new ElementFormatter();
-        private static final FractionValue ZERO_DENSITY = new FractionValue(Metric.COMPLEXITY_DENSITY, 0, 1);
-        private static final LinesOfCode ZERO_LOC = new LinesOfCode(0);
-        private static final TestCount ZERO_TESTS = new TestCount(0);
-        private static final CyclomaticComplexity ZERO_COMPLEXITY = new CyclomaticComplexity(0);
+
+        private static final Value ZERO_LOC = new Value(Metric.LOC, 0);
+        private static final Value ZERO_TESTS = new Value(Metric.TESTS, 0);
+        private static final Value ZERO_CYCLOMATIC_COMPLEXITY = new Value(Metric.CYCLOMATIC_COMPLEXITY, 0);
+        private static final Value ZERO_COGNITIVE_COMPLEXITY = new Value(Metric.COGNITIVE_COMPLEXITY, 0);
+        private static final Value ZERO_NPATH_COMPLEXITY = new Value(Metric.NPATH_COMPLEXITY, 0);
+        private static final Value ZERO_NCSS = new Value(Metric.NCSS, 0);
 
         private final FileNode file;
         private final Locale browserLocale;
@@ -302,26 +290,27 @@ class CoverageTableModel extends TableModel {
         }
 
         public int getLoc() {
-            return file.getTypedValue(Metric.LOC, ZERO_LOC).getValue();
+            return file.getTypedValue(Metric.LOC, ZERO_LOC).asInteger();
         }
 
         public int getTests() {
-            return file.getTypedValue(Metric.TESTS, ZERO_TESTS).getValue();
+            return  file.getTypedValue(Metric.TESTS, ZERO_TESTS).asInteger();
         }
 
-        public int getComplexity() {
-            return file.getTypedValue(Metric.COMPLEXITY, ZERO_COMPLEXITY).getValue();
+        public int getCyclomaticComplexity() {
+            return file.getTypedValue(Metric.CYCLOMATIC_COMPLEXITY, ZERO_CYCLOMATIC_COMPLEXITY).asInteger();
         }
 
-        public int getMaxComplexity() {
-            return file.getTypedValue(Metric.COMPLEXITY_MAXIMUM, ZERO_COMPLEXITY).getValue();
+        public int getCognitiveComplexity() {
+            return file.getTypedValue(Metric.COGNITIVE_COMPLEXITY, ZERO_COGNITIVE_COMPLEXITY).asInteger();
         }
 
-        public DetailedCell<?> getDensity() {
-            double complexityDensity = file.getTypedValue(Metric.COMPLEXITY_DENSITY, ZERO_DENSITY)
-                    .getFraction()
-                    .doubleValue();
-            return new DetailedCell<>(String.format("%.2f", complexityDensity), complexityDensity);
+        public int getNpathComplexity() {
+            return file.getTypedValue(Metric.NPATH_COMPLEXITY, ZERO_NPATH_COMPLEXITY).asInteger();
+        }
+
+        public int getNcss() {
+            return file.getTypedValue(Metric.NCSS, ZERO_NCSS).asInteger();
         }
 
         /**
@@ -334,7 +323,7 @@ class CoverageTableModel extends TableModel {
          */
         protected DetailedCell<?> createColoredCoverageColumn(final Coverage coverage) {
             if (coverage.isSet()) {
-                double percentage = coverage.getCoveredPercentage().toDouble();
+                double percentage = coverage.asRounded();
                 DisplayColors colors = CoverageLevel.getDisplayColorsOfCoverageLevel(percentage, colorProvider);
                 String cell = div()
                         .withClasses(COVERAGE_COLUMN_OUTER).with(
@@ -363,8 +352,8 @@ class CoverageTableModel extends TableModel {
          *
          * @return the created {@link DetailedCell}
          */
-        protected DetailedCell<?> createColoredCoverageDeltaColumn(final Metric metric, final Fraction delta) {
-            double percentage = delta.doubleValue() * 100.0;
+        protected DetailedCell<?> createColoredCoverageDeltaColumn(final Metric metric, final Value delta) {
+            double percentage = delta.asRounded();
             DisplayColors colors = CoverageChangeTendency.getDisplayColorsForTendency(percentage, colorProvider);
             String cell = div().withClasses(COVERAGE_COLUMN_OUTER).with(
                             div().withClasses(COVERAGE_COLUMN_INNER)

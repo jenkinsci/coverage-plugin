@@ -3,16 +3,12 @@ package io.jenkins.plugins.coverage.metrics;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.util.List;
-import java.util.NavigableMap;
-import java.util.TreeMap;
 
-import org.apache.commons.lang3.math.Fraction;
 import org.junitpioneer.jupiter.DefaultLocale;
 
 import edu.hm.hafner.coverage.Coverage.CoverageBuilder;
 import edu.hm.hafner.coverage.CoverageParser;
-import edu.hm.hafner.coverage.CyclomaticComplexity;
-import edu.hm.hafner.coverage.LinesOfCode;
+import edu.hm.hafner.coverage.Difference;
 import edu.hm.hafner.coverage.Metric;
 import edu.hm.hafner.coverage.Node;
 import edu.hm.hafner.coverage.Value;
@@ -60,7 +56,7 @@ public abstract class AbstractCoverageTest extends ResourceTest {
     protected Node readVectorCastResult(final String fileName) {
         return readResult(fileName, new VectorCastParser(CoverageParser.ProcessingMode.FAIL_FAST));
     }
-    
+
     /**
      * Reads and parses a JaCoCo coverage report.
      *
@@ -104,7 +100,7 @@ public abstract class AbstractCoverageTest extends ResourceTest {
      */
     public static CoverageStatistics createOnlyProjectStatistics() {
         return new CoverageStatistics(fillValues(),
-                new TreeMap<>(), List.of(), new TreeMap<>(), List.of(), new TreeMap<>());
+                List.of(), List.of(), List.of(), List.of(), List.of());
     }
 
     private static List<Value> fillValues() {
@@ -113,18 +109,16 @@ public abstract class AbstractCoverageTest extends ResourceTest {
                 builder.withMetric(Metric.FILE).withCovered(3).withMissed(1).build(),
                 builder.withMetric(Metric.LINE).withCovered(2).withMissed(2).build(),
                 builder.withMetric(Metric.BRANCH).withCovered(9).withMissed(1).build(),
-                new CyclomaticComplexity(150),
-                new CyclomaticComplexity(15, Metric.COMPLEXITY_MAXIMUM),
-                new LinesOfCode(1000)
+                new Value(Metric.CYCLOMATIC_COMPLEXITY, 150),
+                new Value(Metric.NPATH_COMPLEXITY, 15),
+                new Value(Metric.LOC, 1000)
         );
     }
 
-    private static NavigableMap<Metric, Fraction> fillDeltas() {
-        final NavigableMap<Metric, Fraction> deltaMapping = new TreeMap<>();
-        deltaMapping.put(Metric.FILE, Fraction.getFraction(-10, 100));
-        deltaMapping.put(Metric.LINE, Fraction.getFraction(5, 100));
-        deltaMapping.put(Metric.COMPLEXITY, Fraction.getFraction(-10, 1));
-        deltaMapping.put(Metric.LOC, Fraction.getFraction(5, 1));
-        return deltaMapping;
+    private static List<Difference> fillDeltas() {
+        return List.of(new Difference(Metric.FILE, -10),
+                new Difference(Metric.LINE, 5),
+                new Difference(Metric.CYCLOMATIC_COMPLEXITY, -10),
+                new Difference(Metric.LOC, 5));
     }
 }

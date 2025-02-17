@@ -8,8 +8,8 @@ import org.junit.jupiter.api.Test;
 
 import edu.hm.hafner.echarts.line.LinesChartModel;
 
-import org.kohsuke.stapler.StaplerRequest;
-import org.kohsuke.stapler.StaplerResponse;
+import org.kohsuke.stapler.StaplerRequest2;
+import org.kohsuke.stapler.StaplerResponse2;
 import hudson.model.FreeStyleBuild;
 import hudson.model.FreeStyleProject;
 
@@ -34,8 +34,8 @@ class CoverageJobActionTest {
 
         assertThat(action.getProject()).isSameAs(job);
 
-        StaplerResponse response = mock(StaplerResponse.class);
-        action.doIndex(mock(StaplerRequest.class), response);
+        StaplerResponse2 response = mock(StaplerResponse2.class);
+        action.doIndex(mock(StaplerRequest2.class), response);
 
         verifyNoInteractions(response);
     }
@@ -59,8 +59,8 @@ class CoverageJobActionTest {
 
         CoverageJobAction jobAction = createAction(job);
 
-        StaplerResponse response = mock(StaplerResponse.class);
-        jobAction.doIndex(mock(StaplerRequest.class), response);
+        StaplerResponse2 response = mock(StaplerResponse2.class);
+        jobAction.doIndex(mock(StaplerRequest2.class), response);
 
         verify(response).sendRedirect2("../15/coverage");
     }

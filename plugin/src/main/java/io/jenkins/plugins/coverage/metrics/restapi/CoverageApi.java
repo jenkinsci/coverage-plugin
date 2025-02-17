@@ -5,6 +5,7 @@ import java.util.NavigableMap;
 import java.util.TreeMap;
 
 import edu.hm.hafner.coverage.Metric;
+import edu.hm.hafner.coverage.Value;
 
 import org.kohsuke.stapler.export.Exported;
 import org.kohsuke.stapler.export.ExportedBean;
@@ -119,9 +120,21 @@ public class CoverageApi {
 
         for (Metric metric : Metric.values()) {
             statistics.getValue(baseline, metric)
-                    .ifPresent(value -> values.put(metric.toTagName(), FORMATTER.format(value, Locale.ENGLISH)));
+                    .ifPresent(value -> values.put(metric.toTagName(), format(baseline, value)));
         }
 
         return values;
+    }
+
+    private String format(final Baseline baseline, final Value value) {
+        return baseline.isDelta() ? formatDelta(value) : formatValue(value);
+    }
+
+    private String formatValue(final Value value) {
+        return FORMATTER.format(value, Locale.ENGLISH);
+    }
+
+    private String formatDelta(final Value value) {
+        return FORMATTER.formatDelta(value, Locale.ENGLISH);
     }
 }

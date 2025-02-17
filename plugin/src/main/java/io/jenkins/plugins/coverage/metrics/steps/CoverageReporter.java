@@ -1,18 +1,16 @@
 package io.jenkins.plugins.coverage.metrics.steps;
 
-import java.util.List;
-import java.util.NavigableMap;
-import java.util.Optional;
-import java.util.Set;
-import java.util.TreeMap;
-
-import org.apache.commons.lang3.math.Fraction;
-
+import edu.hm.hafner.coverage.Coverage;
+import edu.hm.hafner.coverage.Difference;
 import edu.hm.hafner.coverage.FileNode;
 import edu.hm.hafner.coverage.Metric;
 import edu.hm.hafner.coverage.Node;
 import edu.hm.hafner.coverage.Value;
 import edu.hm.hafner.util.FilteredLog;
+
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 
 import hudson.FilePath;
 import hudson.model.Run;
@@ -35,7 +33,6 @@ import io.jenkins.plugins.util.ResultHandler;
  */
 @SuppressWarnings({"checkstyle:ClassDataAbstractionCoupling", "PMD.LooseCoupling", "PMD.CouplingBetweenObjects"})
 public class CoverageReporter {
-    private static final NavigableMap<Metric, Fraction> EMPTY_DELTA = new TreeMap<>();
     private static final List<Value> EMPTY_VALUES = List.of();
 
     @SuppressWarnings({"checkstyle:ParameterNumber", "checkstyle:JavaNCSS"})
@@ -71,7 +68,7 @@ public class CoverageReporter {
             final SourceCodeRetention sourceCodeRetention, final ResultHandler notifier,
             final FilteredLog log) throws InterruptedException {
         var statistics = new CoverageStatistics(rootNode.aggregateValues(),
-                EMPTY_DELTA, EMPTY_VALUES, EMPTY_DELTA, EMPTY_VALUES, EMPTY_DELTA);
+                List.of(), List.<Difference>of(), List.of(), EMPTY_VALUES, List.of());
         var evaluator = new CoverageQualityGateEvaluator(qualityGates, statistics);
         QualityGateResult qualityGateStatus = evaluator.evaluate(notifier, log);
 
@@ -100,21 +97,20 @@ public class CoverageReporter {
 
         Node modifiedLinesCoverageRoot = rootNode.filterByModifiedLines();
 
-        NavigableMap<Metric, Fraction> modifiedLinesDelta;
+        List<Difference> modifiedLinesDelta;
         List<Value> modifiedFilesValues;
-        NavigableMap<Metric, Fraction> modifiedFilesDelta;
+        List<Difference> modifiedFilesDelta;
         if (hasModifiedLinesCoverage(modifiedLinesCoverageRoot)) {
             Node modifiedFilesCoverageRoot = rootNode.filterByModifiedFiles();
             modifiedFilesValues = modifiedFilesCoverageRoot.aggregateValues();
             modifiedFilesDelta = modifiedFilesCoverageRoot.computeDelta(
                     referenceRoot.filterByFileNames(modifiedFilesCoverageRoot.getFiles()));
-
             modifiedLinesDelta = modifiedLinesCoverageRoot.computeDelta(modifiedFilesCoverageRoot);
         }
         else {
-            modifiedLinesDelta = EMPTY_DELTA;
-            modifiedFilesValues = EMPTY_VALUES;
-            modifiedFilesDelta = EMPTY_DELTA;
+            modifiedLinesDelta = List.of();
+            modifiedFilesValues = List.of();
+            modifiedFilesDelta = List.of();
 
             if (rootNode.hasModifiedLines()) {
                 log.logInfo("No detected code changes affect the code coverage");
@@ -122,7 +118,7 @@ public class CoverageReporter {
         }
 
         var overallValues = rootNode.aggregateValues();
-        NavigableMap<Metric, Fraction> overallDelta = rootNode.computeDelta(referenceRoot);
+        List<Difference> overallDelta = rootNode.computeDelta(referenceRoot);
         var modifiedLinesValues = modifiedLinesCoverageRoot.aggregateValues();
 
         var statistics = new CoverageStatistics(overallValues, overallDelta,
@@ -202,7 +198,7 @@ public class CoverageReporter {
     }
 
     private boolean hasLineCoverageSet(final Value value) {
-        return ((edu.hm.hafner.coverage.Coverage) value).isSet();
+        return value instanceof Coverage coverage && coverage.isSet();
     }
 
     private Optional<CoverageBuildAction> getReferenceBuildAction(final Run<?, ?> build, final String id,

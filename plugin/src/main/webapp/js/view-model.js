@@ -349,6 +349,7 @@ const CoverageChartGenerator = function ($, proxy) { // NOPMD
         // TODO: maybe it would make sense to render only visible charts
         function initializeCharts() {
             renderTrendChart();
+            renderMetricsTrendChart();
 
             proxy.getOverview(function (t) {
                 createOverview(t.responseObject(), 'coverage-overview');
@@ -364,7 +365,9 @@ const CoverageChartGenerator = function ($, proxy) { // NOPMD
         }
 
         function resizeChartOf(selector) {
-            $(selector)[0].echart.resize();
+            if (document.querySelector(selector)) {
+                $(selector)[0].echart.resize();
+            }
         }
 
         function renderTrendChart() {
@@ -375,11 +378,20 @@ const CoverageChartGenerator = function ($, proxy) { // NOPMD
             });
         }
 
+        function renderMetricsTrendChart() {
+            const configuration = JSON.stringify(echartsJenkinsApi.readFromLocalStorage('jenkins-echarts-chart-configuration-metrics-history'));
+            proxy.getMetricsTrendChart(configuration, function (t) {
+                echartsJenkinsApi.renderConfigurableZoomableTrendChart('metrics-trend', t.responseJSON, 'chart-configuration-metrics-history', openBuild);
+                resizeChartOf('#metrics-trend');
+            });
+        }
+
         /**
-         * Event handler to resizes all charts.
+         * Event handler to resize all charts.
          */
         function redrawCharts() {
             renderTrendChart(); // re-render since the configuration might have changed
+            renderMetricsTrendChart();
 
             resizeChartOf('#coverage-overview');
 

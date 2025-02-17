@@ -93,12 +93,6 @@ class JobDslITest extends IntegrationTestWithJenkinsPerTest {
                 .isSkipSymbolicLinks();
     }
 
-    /**
-     * Helper method to get jenkins configuration file.
-     *
-     * @param fileName
-     *         file with configuration.
-     */
     private void configureJenkins(final String fileName) {
         try {
             ConfigurationAsCode.get().configure(getResourceAsFile(fileName).toUri().toString());

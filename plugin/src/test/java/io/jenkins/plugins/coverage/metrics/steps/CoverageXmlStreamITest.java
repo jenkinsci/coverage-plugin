@@ -1,4 +1,17 @@
-package io.jenkins.plugins.coverage.metrics.steps;
+package io.jenkins.plugins.coverage.metrics.steps; // NOPMD
+
+import org.apache.commons.lang3.StringUtils;
+import org.junit.jupiter.api.Test;
+import org.xmlunit.builder.Input;
+import org.xmlunit.builder.Input.Builder;
+
+import edu.hm.hafner.coverage.Difference;
+import edu.hm.hafner.coverage.Metric;
+import edu.hm.hafner.coverage.Node;
+import edu.hm.hafner.coverage.Value;
+import edu.hm.hafner.coverage.parser.JacocoParser;
+import edu.hm.hafner.util.FilteredLog;
+import edu.hm.hafner.util.SerializableTest;
 
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -10,18 +23,6 @@ import java.util.NavigableSet;
 import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
-
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.math.Fraction;
-import org.junit.jupiter.api.Test;
-import org.xmlunit.builder.Input;
-
-import edu.hm.hafner.coverage.Metric;
-import edu.hm.hafner.coverage.Node;
-import edu.hm.hafner.coverage.Value;
-import edu.hm.hafner.coverage.parser.JacocoParser;
-import edu.hm.hafner.util.FilteredLog;
-import edu.hm.hafner.util.SerializableTest;
 
 import hudson.XmlFile;
 import hudson.model.FreeStyleBuild;
@@ -57,6 +58,23 @@ class CoverageXmlStreamITest extends SerializableTest<Node> {
     }
 
     @Test
+    void shouldRestoreAction() throws IOException {
+        var xmlStream = new CoverageXmlStream();
+        var file = getResourceAsFile("coverage-action-1.x.xml");
+        var stream = xmlStream.getStream();
+        var xmlFile = new XmlFile(stream, file.toFile());
+        var restored = xmlFile.read();
+
+        Assertions.assertThat(restored).isInstanceOfSatisfying(CoverageBuildAction.class,
+                a -> Assertions.assertThat(a.getAllValues(Baseline.PROJECT))
+                        .map(Object::toString).containsExactlyInAnyOrder("MODULE: 100.00% (1/1)",
+                                "PACKAGE: 75.00% (3/4)", "FILE: 100.00% (32/32)", "CLASS: 94.23% (49/52)",
+                                "METHOD: 95.79% (569/594)", "LINE: 96.35% (2164/2246)", "BRANCH: 92.92% (932/1003)",
+                                "INSTRUCTION: 96.44% (10534/10923)", "TESTS: 305", "CYCLOMATIC_COMPLEXITY: 1105",
+                                "LOC: 2246"));
+    }
+
+    @Test
     void shouldSaveAndRestoreTree() {
         Path saved = createTempFile();
         Node convertedNode = createSerializable();
@@ -70,7 +88,7 @@ class CoverageXmlStreamITest extends SerializableTest<Node> {
         var xml = Input.from(saved);
         assertThat(xml).nodesByXPath("//file[./name = 'TreeStringBuilder.java']/values/*")
                 .hasSize(4).extractingText()
-                .containsExactly("INSTRUCTION: 229/233", "BRANCH: 17/18", "LINE: 51/53", "COMPLEXITY: 23");
+                .containsExactly("INSTRUCTION: 229/233", "BRANCH: 17/18", "LINE: 51/53", "CYCLOMATIC_COMPLEXITY: 23");
         assertThat(xml).nodesByXPath("//file[./name = 'TreeStringBuilder.java']/coveredPerLine")
                 .hasSize(1).extractingText()
                 .containsExactly(
@@ -84,81 +102,125 @@ class CoverageXmlStreamITest extends SerializableTest<Node> {
     @Test
     void shouldStoreActionCompactly() throws IOException {
         Path saved = createTempFile();
-        var xmlStream = new TestXmlStream();
-        xmlStream.read(saved); // create the stream
 
-        var file = new XmlFile(xmlStream.getStream(), saved.toFile());
-        file.write(createAction());
+        var stream = new XStream2();
 
-        assertThat(Input.from(saved)).nodesByXPath("//" + ACTION_QUALIFIED_NAME + "/projectValues/*")
-                .hasSize(12).extractingText()
+        CoverageBuildAction.registerValueListConverters(stream);
+        CoverageXmlStream.registerConverters(stream);
+
+        var file = new XmlFile(stream, saved.toFile());
+        var buildAction = createAction();
+        file.write(buildAction);
+
+        var xml = Input.from(saved);
+        assertThat(xml).nodesByXPath("//" + ACTION_QUALIFIED_NAME + "/projectValues/*")
+                .hasSize(10).extractingText()
                 .containsExactly("MODULE: 1/1",
                         "PACKAGE: 1/1",
-                        "FILE: 7/10",
-                        "CLASS: 15/18",
+                        "FILE: 7/8",
+                        "CLASS: 15/16",
                         "METHOD: 97/102",
                         "LINE: 294/323",
                         "BRANCH: 109/116",
                         "INSTRUCTION: 1260/1350",
-                        "COMPLEXITY: 160",
-                        "COMPLEXITY_MAXIMUM: 6",
-                        "COMPLEXITY_DENSITY: 160/323",
-                        "LOC: 323");
+                        "LOC: 323",
+                        "CYCLOMATIC_COMPLEXITY: 160");
 
-        assertThat(Input.from(saved)).nodesByXPath("//" + ACTION_QUALIFIED_NAME + "/projectValues/coverage")
+        assertThat(xml).nodesByXPath("//" + ACTION_QUALIFIED_NAME + "/projectValues/coverage")
                 .hasSize(8).extractingText()
                 .containsExactly("MODULE: 1/1",
                         "PACKAGE: 1/1",
-                        "FILE: 7/10",
-                        "CLASS: 15/18",
+                        "FILE: 7/8",
+                        "CLASS: 15/16",
                         "METHOD: 97/102",
                         "LINE: 294/323",
                         "BRANCH: 109/116",
                         "INSTRUCTION: 1260/1350");
 
+        assertThatDifferencesAreCorrectlyStored(xml, "differences");
+        assertThatDifferencesAreCorrectlyStored(xml, "modifiedLinesDifferences");
+        assertThatDifferencesAreCorrectlyStored(xml, "modifiedFilesDifferences");
+
+        assertThatValuesAreCorrectlyStored(xml, "modifiedLinesCoverage");
+        assertThatValuesAreCorrectlyStored(xml, "modifiedFilesCoverage");
+        assertThatValuesAreCorrectlyStored(xml, "indirectCoverageChanges");
+
         var action = file.read();
-        assertThat(action).isNotNull().isInstanceOfSatisfying(CoverageBuildAction.class, a ->
-                Assertions.assertThat(serializeValues(a))
-                        .containsExactly("MODULE: 1/1", "PACKAGE: 1/1", "FILE: 7/10", "CLASS: 15/18",
-                                "METHOD: 97/102",
-                                "LINE: 294/323", "BRANCH: 109/116", "INSTRUCTION: 1260/1350",
-                                "COMPLEXITY: 160", "COMPLEXITY_MAXIMUM: 6", "COMPLEXITY_DENSITY: 160/323",
-                                "LOC: 323"
-                        ));
+        assertThat(action).isNotNull()
+                .isInstanceOfSatisfying(CoverageBuildAction.class, this::assertThatActionIsCorrectlyDeserialized);
     }
 
-    private static List<String> serializeValues(final CoverageBuildAction a) {
-        return a.getAllValues(Baseline.PROJECT).stream()
+    private void assertThatDifferencesAreCorrectlyStored(final Builder xml, final String name) {
+        assertThat(xml).nodesByXPath("//" + ACTION_QUALIFIED_NAME + "/" + name + "/*")
+                .hasSize(4).extractingText()
+                .containsExactly("LINE: Δ10", "BRANCH: Δ-10", "LOC: Δ-50", "CYCLOMATIC_COMPLEXITY: Δ50");
+    }
+
+    private void assertThatValuesAreCorrectlyStored(final Builder xml, final String name) {
+        assertThat(xml).nodesByXPath("//" + ACTION_QUALIFIED_NAME + "/" + name + "/*")
+                .hasSize(4).extractingText()
+                .containsExactly("LINE: 3/4", "BRANCH: 2/2", "MODULE: 1/1", "LOC: 123");
+    }
+
+    private void assertThatActionIsCorrectlyDeserialized(final CoverageBuildAction action) {
+        Assertions.assertThat(serializeValues(action.getAllValues(Baseline.PROJECT)))
+                .containsExactly("MODULE: 1/1", "PACKAGE: 1/1", "FILE: 7/8", "CLASS: 15/16",
+                        "METHOD: 97/102", "LINE: 294/323", "BRANCH: 109/116", "INSTRUCTION: 1260/1350",
+                        "LOC: 323", "CYCLOMATIC_COMPLEXITY: 160"
+                );
+
+        assertThatValuesAreCorrectlyDeserialized(action, Baseline.MODIFIED_FILES);
+        assertThatValuesAreCorrectlyDeserialized(action, Baseline.MODIFIED_LINES);
+        assertThatValuesAreCorrectlyDeserialized(action, Baseline.INDIRECT);
+        assertThatDifferencesAreCorrectlyDeserialized(action, Baseline.PROJECT_DELTA);
+        assertThatDifferencesAreCorrectlyDeserialized(action, Baseline.MODIFIED_FILES_DELTA);
+        assertThatDifferencesAreCorrectlyDeserialized(action, Baseline.MODIFIED_LINES_DELTA);
+    }
+
+    private void assertThatValuesAreCorrectlyDeserialized(final CoverageBuildAction action,
+            final Baseline baseline) {
+        Assertions.assertThat(serializeValues(action.getAllValues(baseline)))
+                .containsExactly("MODULE: 1/1", "LINE: 3/4", "BRANCH: 2/2", "LOC: 123");
+    }
+
+    private void assertThatDifferencesAreCorrectlyDeserialized(final CoverageBuildAction action,
+            final Baseline baseline) {
+        Assertions.assertThat(serializeValues(action.getAllDeltas(baseline)))
+                .containsExactly("LINE: Δ10", "BRANCH: Δ-10", "LOC: Δ-50", "CYCLOMATIC_COMPLEXITY: Δ50");
+    }
+
+    private static List<String> serializeValues(final List<? extends Value> values) {
+        return values.stream()
                 .map(Value::serialize)
                 .collect(Collectors.toList());
     }
 
     @Test
     void shouldConvertMetricMap2String() {
-        NavigableMap<Metric, Fraction> map = new TreeMap<>();
+        NavigableMap<Metric, Value> map = new TreeMap<>();
 
         MetricFractionMapConverter converter = new MetricFractionMapConverter();
 
         assertThat(converter.marshal(map)).isEqualTo(EMPTY);
 
-        map.put(BRANCH, Fraction.getFraction(50, 100));
-        assertThat(converter.marshal(map)).isEqualTo("[BRANCH: 50/100]");
+        map.put(BRANCH, new Value(BRANCH, 50, 100));
+        assertThat(converter.marshal(map)).isEqualTo("[BRANCH: 50:100]");
 
-        map.put(LINE, Fraction.getFraction(3, 4));
-        assertThat(converter.marshal(map)).isEqualTo("[LINE: 3/4, BRANCH: 50/100]");
+        map.put(LINE, new Value(LINE, 3, 4));
+        assertThat(converter.marshal(map)).isEqualTo("[LINE: 3:4, BRANCH: 50:100]");
     }
 
     @Test
     void shouldConvertString2MetricMap() {
-        MetricFractionMapConverter converter = new MetricFractionMapConverter();
+        var converter = new MetricFractionMapConverter();
 
         Assertions.assertThat(converter.unmarshal(EMPTY)).isEmpty();
-        Fraction first = Fraction.getFraction(50, 100);
         Assertions.assertThat(converter.unmarshal("[BRANCH: 50/100]"))
-                .containsExactly(entry(BRANCH, first));
-        Assertions.assertThat(converter.unmarshal("[LINE: 3/4, BRANCH: 50/100]"))
-                .containsExactly(entry(LINE, Fraction.getFraction(3, 4)),
-                        entry(BRANCH, first));
+                .containsExactly(entry(BRANCH, new Difference(BRANCH, 50, 1)));
+        Assertions.assertThat(converter.unmarshal("[LINE: 3/4, BRANCH: -50/100]"))
+                .containsExactly(
+                        entry(LINE, new Difference(LINE, 75)),
+                        entry(BRANCH, new Difference(BRANCH, -50)));
     }
 
     @Test
@@ -209,29 +271,32 @@ class CoverageXmlStreamITest extends SerializableTest<Node> {
         Assertions.assertThat(converter.unmarshal("[15, 20]")).containsExactly(15, 20);
     }
 
-    // TODO: Add content for the other baselines as well
     CoverageBuildAction createAction() {
         var tree = createSerializable();
 
-        return new CoverageBuildAction(mock(FreeStyleBuild.class), CoverageRecorder.DEFAULT_ID, StringUtils.EMPTY,
-                StringUtils.EMPTY,
+        return new CoverageBuildAction(mock(FreeStyleBuild.class),
+                CoverageRecorder.DEFAULT_ID, StringUtils.EMPTY, StringUtils.EMPTY,
                 tree, new QualityGateResult(), new FilteredLog("Test"), "-",
-                new TreeMap<>(), List.of(), new TreeMap<>(), List.of(),
-                new TreeMap<>(), List.of(), false);
+                createDifferences(), createCoverages(),
+                createDifferences(), createCoverages(),
+                createDifferences(), createCoverages(),
+                false);
     }
 
-    private static class TestXmlStream extends CoverageXmlStream {
-        private XStream2 xStream;
-
-        @Override
-        protected void configureXStream(final XStream2 xStream2) {
-            super.configureXStream(xStream2);
-
-            this.xStream = xStream2;
-        }
-
-        public XStream2 getStream() {
-            return xStream;
-        }
+    private List<? extends Difference> createDifferences() {
+        return List.of(
+                new Difference(LINE, 10),
+                new Difference(BRANCH, -10),
+                new Difference(LOC, -50),
+                new Difference(CYCLOMATIC_COMPLEXITY, 50));
     }
-}
+
+    private List<? extends Value> createCoverages() {
+        return List.of(
+                Value.valueOf("LINE: 3/4"),
+                Value.valueOf("BRANCH: 2/2"),
+                Value.valueOf("MODULE: 1/1"),
+                Value.valueOf("LOC: 123")
+                );
+    }
+} // NOPMD

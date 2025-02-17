@@ -2,6 +2,7 @@ package io.jenkins.plugins.coverage.metrics.source;
 
 import java.io.IOException;
 
+import org.junit.jupiter.api.Disabled;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.utility.MountableFile;
@@ -18,6 +19,7 @@ import hudson.model.Node;
  */
 @Testcontainers(disabledWithoutDocker = true)
 @SuppressFBWarnings("BC")
+@Disabled("Docker tests are failing with Java 17 Jenkins")
 class DockerAgentSourceCodeITest extends SourceCodeITest {
     private static final String SOURCES_IN_DOCKER_PATH = "/tmp/coverage";
     private static final String ACU_COBOL_PARSER_CONTAINER_PATH = SOURCES_IN_DOCKER_PATH + "/" + ACU_COBOL_PARSER_PACKAGE_PATH + ACU_COBOL_PARSER_FILE_NAME;

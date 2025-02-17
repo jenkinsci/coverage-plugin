@@ -2,6 +2,7 @@ package io.jenkins.plugins.coverage.metrics.steps;
 
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.Serial;
 import java.nio.charset.Charset;
 import java.nio.file.Path;
 import java.util.Optional;
@@ -26,6 +27,7 @@ import io.jenkins.plugins.util.AgentFileVisitor;
  * @author Ullrich Hafner
  */
 public class CoverageReportScanner extends AgentFileVisitor<ModuleNode> {
+    @Serial
     private static final long serialVersionUID = 6940864958150044554L;
 
     private static final PathUtil PATH_UTIL = new PathUtil();

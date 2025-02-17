@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.util.List;
 import java.util.function.Consumer;
 
-import org.jenkinsci.plugins.workflow.cps.CpsFlowDefinition;
 import org.jenkinsci.plugins.workflow.job.WorkflowJob;
 import hudson.model.FreeStyleProject;
 
@@ -68,16 +67,16 @@ public abstract class AbstractCoverageITest extends IntegrationTestWithJenkinsPe
     }
 
     protected void setPipelineScript(final WorkflowJob job, final String recorderSnippet) {
-        job.setDefinition(new CpsFlowDefinition(
+        job.setDefinition(createPipelineScript(
                 "node {\n"
                         + recorderSnippet + "\n"
-                        + " }\n", true));
+                        + " }\n"));
     }
 
     protected WorkflowJob createDeclarativePipeline(final Parser parser, final String... fileNames) {
         WorkflowJob job = createPipelineWithWorkspaceFiles(fileNames);
 
-        job.setDefinition(new CpsFlowDefinition("pipeline {\n"
+        job.setDefinition(createPipelineScript("pipeline {\n"
                 + "    agent any\n"
                 + "    stages {\n"
                 + "        stage('Test') {\n"
@@ -87,7 +86,7 @@ public abstract class AbstractCoverageITest extends IntegrationTestWithJenkinsPe
                 + "            )}\n"
                 + "        }\n"
                 + "    }\n"
-                + "}", true));
+                + "}"));
         return job;
     }
 }

@@ -1,5 +1,28 @@
 package io.jenkins.plugins.coverage.metrics.steps;
 
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.math.Fraction;
+
+import com.thoughtworks.xstream.converters.Converter;
+import com.thoughtworks.xstream.converters.MarshallingContext;
+import com.thoughtworks.xstream.converters.UnmarshallingContext;
+import com.thoughtworks.xstream.io.HierarchicalStreamReader;
+import com.thoughtworks.xstream.io.HierarchicalStreamWriter;
+
+import edu.hm.hafner.coverage.ClassNode;
+import edu.hm.hafner.coverage.ContainerNode;
+import edu.hm.hafner.coverage.Coverage;
+import edu.hm.hafner.coverage.Difference;
+import edu.hm.hafner.coverage.FileNode;
+import edu.hm.hafner.coverage.MethodNode;
+import edu.hm.hafner.coverage.Metric;
+import edu.hm.hafner.coverage.ModuleNode;
+import edu.hm.hafner.coverage.Mutation;
+import edu.hm.hafner.coverage.Node;
+import edu.hm.hafner.coverage.PackageNode;
+import edu.hm.hafner.coverage.Value;
+import edu.hm.hafner.util.VisibleForTesting;
+
 import java.util.AbstractMap.SimpleEntry;
 import java.util.Arrays;
 import java.util.Map;
@@ -14,32 +37,10 @@ import java.util.function.Function;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.math.Fraction;
-
-import com.thoughtworks.xstream.converters.Converter;
-import com.thoughtworks.xstream.converters.MarshallingContext;
-import com.thoughtworks.xstream.converters.UnmarshallingContext;
-import com.thoughtworks.xstream.io.HierarchicalStreamReader;
-import com.thoughtworks.xstream.io.HierarchicalStreamWriter;
-
-import edu.hm.hafner.coverage.ClassNode;
-import edu.hm.hafner.coverage.ContainerNode;
-import edu.hm.hafner.coverage.Coverage;
-import edu.hm.hafner.coverage.CyclomaticComplexity;
-import edu.hm.hafner.coverage.FileNode;
-import edu.hm.hafner.coverage.FractionValue;
-import edu.hm.hafner.coverage.LinesOfCode;
-import edu.hm.hafner.coverage.MethodNode;
-import edu.hm.hafner.coverage.Metric;
-import edu.hm.hafner.coverage.ModuleNode;
-import edu.hm.hafner.coverage.Node;
-import edu.hm.hafner.coverage.PackageNode;
-import edu.hm.hafner.coverage.Value;
-
 import hudson.util.XStream2;
 
 import io.jenkins.plugins.util.AbstractXmlStream;
+import io.jenkins.plugins.util.QualityGateResult.QualityGateResultItem;
 
 /**
  * Configures the XML stream for the coverage tree, which consists of {@link Node}s.
@@ -61,6 +62,11 @@ class CoverageXmlStream extends AbstractXmlStream<Node> {
         super(Node.class);
     }
 
+    @VisibleForTesting
+    public XStream2 getStream() {
+        return createStream();
+    }
+
     @Override
     protected void configureXStream(final XStream2 xStream) {
         registerConverters(xStream);
@@ -71,6 +77,7 @@ class CoverageXmlStream extends AbstractXmlStream<Node> {
         xStream.alias("file", FileNode.class);
         xStream.alias("class", ClassNode.class);
         xStream.alias("method", MethodNode.class);
+        xStream.alias("mutation", Mutation.class);
 
         xStream.registerLocalConverter(FileNode.class, "coveredPerLine", new IntegerLineMapConverter());
         xStream.registerLocalConverter(FileNode.class, "missedPerLine", new IntegerLineMapConverter());
@@ -81,16 +88,21 @@ class CoverageXmlStream extends AbstractXmlStream<Node> {
     }
 
     static void registerConverters(final XStream2 xStream) {
-        xStream.alias("metric", Metric.class);
+        // old values that are not used anymore
+        xStream.alias("edu.hm.hafner.coverage.TestCount", Value.class);
+        xStream.alias("loc", Value.class);
+        xStream.alias("complexity", Value.class);
 
+        // old values that are not used anymore
+        xStream.alias("metric", Metric.class);
         xStream.alias("coverage", Coverage.class);
+        xStream.alias("value", Value.class);
+        xStream.alias("delta", Difference.class);
+
         xStream.addImmutableType(Coverage.class, false);
-        xStream.alias("complexity", CyclomaticComplexity.class);
-        xStream.addImmutableType(CyclomaticComplexity.class, false);
-        xStream.alias("loc", LinesOfCode.class);
-        xStream.addImmutableType(LinesOfCode.class, false);
-        xStream.alias("fraction", FractionValue.class);
-        xStream.addImmutableType(FractionValue.class, false);
+        xStream.addImmutableType(Value.class, false);
+
+        xStream.alias("item", QualityGateResultItem.class);
 
         xStream.registerConverter(new FractionConverter());
         xStream.registerConverter(new SimpleConverter<>(Value.class, Value::serialize, Value::valueOf));
@@ -129,15 +141,20 @@ class CoverageXmlStream extends AbstractXmlStream<Node> {
      * {@link Converter} for a {@link TreeMap} of coverage percentages per metric. Stores the mapping in the condensed
      * format {@code metric1: numerator1/denominator1, metric2: numerator2/denominator2, ...}.
      */
-    static final class MetricFractionMapConverter extends TreeMapConverter<Metric, Fraction> {
+    static final class MetricFractionMapConverter extends TreeMapConverter<Metric, Value> {
         @Override
-        protected Function<Entry<Metric, Fraction>, String> createMapEntry() {
-            return e -> String.format("%s: %s", e.getKey().name(), e.getValue().toProperString());
+        protected Function<Entry<Metric, Value>, String> createMapEntry() {
+            return e -> e.getValue().serialize();
         }
 
         @Override
-        protected Entry<Metric, Fraction> createMapping(final String key, final String value) {
-            return entry(Metric.valueOf(key), Fraction.getFraction(value));
+        protected Entry<Metric, Value> createMapping(final String key, final String value) {
+            var metric = Metric.valueOf(key);
+            var deserialized = Fraction.getFraction(value);
+            if (metric.isCoverage()) {
+                deserialized = deserialized.multiplyBy(Fraction.getFraction(100)); // previously stored not as percentage
+            }
+            return entry(metric, new Difference(metric, deserialized));
         }
     }
 
@@ -240,7 +257,7 @@ class CoverageXmlStream extends AbstractXmlStream<Node> {
 
     /**
      * {@link Converter} for a {@link SortedMap} of coverages per line. Stores the mapping in the condensed format
-     * {@code key1: covered1/missed1, key2: covered2/missed2, ...}.
+     * {@code key1: value1, key2: valued2, ...}.
      */
     static final class IntegerLineMapConverter extends TreeMapConverter<Integer, Integer> {
         @Override

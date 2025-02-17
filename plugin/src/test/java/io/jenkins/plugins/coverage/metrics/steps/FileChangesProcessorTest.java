@@ -2,9 +2,9 @@ package io.jenkins.plugins.coverage.metrics.steps;
 
 import java.util.AbstractMap.SimpleEntry;
 
-import org.apache.commons.lang3.math.Fraction;
 import org.junit.jupiter.api.Test;
 
+import edu.hm.hafner.coverage.Difference;
 import edu.hm.hafner.coverage.FileNode;
 import edu.hm.hafner.coverage.Metric;
 
@@ -72,11 +72,11 @@ class FileChangesProcessorTest extends AbstractModifiedFilesCoverageTest {
      */
     private void verifyFileCoverageDeltaOfTestFile1(final FileNode file) {
         assertThat(file.getName()).isEqualTo(getNameOfFileWithModifiedLines());
-        assertThat(file.getDelta(Metric.LINE)).isEqualTo(Fraction.getFraction(3, 117));
-        assertThat(file.getDelta(Metric.BRANCH)).isEqualTo(Fraction.getFraction(3, 24));
-        assertThat(file.getDelta(Metric.INSTRUCTION)).isEqualTo(Fraction.getFraction(90, 999));
-        assertThat(file.getDelta(Metric.METHOD)).isEqualTo(Fraction.getFraction(-4, 30));
-        assertThat(file.getDelta(Metric.CLASS)).isEqualTo(Fraction.ZERO);
-        assertThat(file.getDelta(Metric.FILE)).isEqualTo(Fraction.ZERO);
+        assertThat(file.getDelta(Metric.LINE)).isEqualTo(new Difference(Metric.LINE, 100, 39));
+        assertThat(file.getDelta(Metric.BRANCH)).isEqualTo(new Difference(Metric.BRANCH, 25, 2));
+        assertThat(file.getDelta(Metric.INSTRUCTION)).isEqualTo(new Difference(Metric.INSTRUCTION, 1000, 111));
+        assertThat(file.getDelta(Metric.METHOD)).isEqualTo(new Difference(Metric.METHOD, -40, 3));
+        assertThat(file.getDelta(Metric.CLASS)).isEqualTo(Difference.nullObject(Metric.CLASS));
+        assertThat(file.getDelta(Metric.FILE)).isEqualTo(Difference.nullObject(Metric.FILE));
     }
 }

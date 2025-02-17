@@ -5,15 +5,13 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
-import java.util.TreeMap;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.math.Fraction;
 import org.junit.jupiter.api.Test;
 import org.junitpioneer.jupiter.DefaultLocale;
 
 import edu.hm.hafner.coverage.Coverage.CoverageBuilder;
-import edu.hm.hafner.coverage.FractionValue;
+import edu.hm.hafner.coverage.Difference;
 import edu.hm.hafner.coverage.Metric;
 import edu.hm.hafner.coverage.Value;
 import edu.hm.hafner.util.FilteredLog;
@@ -209,14 +207,13 @@ class CoverageMetricColumnTest extends AbstractCoverageTest {
         CoverageMetricColumn column = createColumn();
         column.setBaseline(Baseline.PROJECT_DELTA);
 
-        Fraction coverageDelta = Fraction.getFraction(1, 20);
         Job<?, ?> job = createJobWithCoverageAction();
-
         assertThat(column.getCoverageText(job)).isEqualTo("+5.00%");
+
         assertThat(column.getCoverageValue(job))
                 .isNotEmpty()
                 .satisfies(coverage -> {
-                    assertThat(coverage.get()).isEqualTo(new FractionValue(Metric.BRANCH, coverageDelta));
+                    assertThat(coverage.get()).isEqualTo(new Difference(Metric.BRANCH, 5));
                     assertThat(column.getDisplayColors(job, coverage))
                             .isEqualTo(COLOR_PROVIDER.getDisplayColorsOf(
                                     CoverageChangeTendency.INCREASED.getColorizationId()));
@@ -234,12 +231,11 @@ class CoverageMetricColumnTest extends AbstractCoverageTest {
     private Job<?, ?> createJobWithCoverageAction() {
         var node = readJacocoResult(JACOCO_CODING_STYLE_FILE);
         var run = mock(Run.class);
-        var delta = new TreeMap<Metric, Fraction>();
-        delta.put(Metric.BRANCH, Fraction.getFraction("0.05"));
+        var delta = List.of(new Difference(Metric.BRANCH, 5));
         CoverageBuildAction coverageBuildAction =
                 new CoverageBuildAction(run, "coverage", "Code Coverage", StringUtils.EMPTY,
                         node, new QualityGateResult(), new FilteredLog("Test"),
-                        "-", delta, List.of(), new TreeMap<>(), List.of(), new TreeMap<>(), List.of(), false);
+                        "-", delta, List.of(), List.of(), List.of(), List.of(), List.of(), false);
         when(run.getAction(CoverageBuildAction.class)).thenReturn(coverageBuildAction);
         when(run.getActions(CoverageBuildAction.class)).thenReturn(Collections.singletonList(coverageBuildAction));
 

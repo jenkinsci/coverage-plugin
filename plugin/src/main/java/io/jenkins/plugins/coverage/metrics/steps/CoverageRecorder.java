@@ -1,5 +1,17 @@
 package io.jenkins.plugins.coverage.metrics.steps;
 
+import org.apache.commons.lang3.StringUtils;
+
+import edu.hm.hafner.coverage.ClassNode;
+import edu.hm.hafner.coverage.ContainerNode;
+import edu.hm.hafner.coverage.CoverageParser.ProcessingMode;
+import edu.hm.hafner.coverage.ModuleNode;
+import edu.hm.hafner.coverage.Node;
+import edu.hm.hafner.coverage.PackageNode;
+import edu.hm.hafner.util.FilteredLog;
+import edu.hm.hafner.util.TreeStringBuilder;
+import edu.umd.cs.findbugs.annotations.NonNull;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -10,17 +22,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.stream.Collectors;
-
-import org.apache.commons.lang3.StringUtils;
-
-import edu.hm.hafner.coverage.ClassNode;
-import edu.hm.hafner.coverage.CoverageParser.ProcessingMode;
-import edu.hm.hafner.coverage.ModuleNode;
-import edu.hm.hafner.coverage.Node;
-import edu.hm.hafner.coverage.PackageNode;
-import edu.hm.hafner.util.FilteredLog;
-import edu.hm.hafner.util.TreeStringBuilder;
-import edu.umd.cs.findbugs.annotations.NonNull;
 
 import org.kohsuke.stapler.AncestorInPath;
 import org.kohsuke.stapler.DataBoundConstructor;
@@ -65,6 +66,7 @@ import io.jenkins.plugins.util.ValidationUtilities;
 /**
  * A pipeline {@code Step} or Freestyle or Maven {@link Recorder} that reads and parses coverage results in a build and
  * adds the results to the persisted build results.
+ *
  * <p>
  * Stores the created issues in a {@link Node}. This result is then attached to the {@link Run build} by registering a
  * {@link CoverageBuildAction}.
@@ -451,7 +453,7 @@ public class CoverageRecorder extends Recorder {
                     file.setRelativePath(builder.intern(pathMapping.get(relativePath)));
                 }
             });
-    
+
             builder.dedup();
         }
     }
@@ -528,7 +530,9 @@ public class CoverageRecorder extends Recorder {
             return new ModuleNode("Empty");
         }
         else {
-            var testCases = results.entrySet().stream().filter(entry -> entry.getKey().getParserType() == ParserType.TEST)
+            var testCases = results.entrySet()
+                    .stream()
+                    .filter(entry -> entry.getKey().getParserType() == ParserType.TEST)
                     .map(Entry::getValue)
                     .flatMap(Collection::stream)
                     .map(Node::getAllClassNodes)
@@ -540,7 +544,14 @@ public class CoverageRecorder extends Recorder {
                     .map(Entry::getValue)
                     .flatMap(Collection::stream)
                     .collect(Collectors.toList());
-            if (coverageNodes.isEmpty()) {
+            var metricsNodes = results.entrySet()
+                    .stream()
+                    .filter(entry -> entry.getKey().getParserType() == ParserType.METRICS)
+                    .map(Entry::getValue)
+                    .flatMap(Collection::stream)
+                    .collect(Collectors.toList());
+
+            if (coverageNodes.isEmpty() && !testCases.isEmpty()) {
                 log.logError("No coverage results were found, just tests! Configuration error?");
 
                 var tests = new ModuleNode("Tests");
@@ -549,9 +560,17 @@ public class CoverageRecorder extends Recorder {
             }
 
             var coverageTree = Node.merge(coverageNodes);
-            var unmappedNodes = coverageTree.mergeTests(testCases);
 
-            unmappedNodes.forEach(node -> mapTests(node, coverageTree));
+            if (!metricsNodes.isEmpty()) {
+                var metrics = new ContainerNode("Metrics");
+                metrics.addAllChildren(metricsNodes);
+                coverageTree.addChild(metrics);
+            }
+
+            if (!testCases.isEmpty()) {
+                var unmappedNodes = coverageTree.mergeTests(testCases);
+                unmappedNodes.forEach(node -> mapTests(node, coverageTree));
+            }
 
             return coverageTree;
         }
