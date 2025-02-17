@@ -14,6 +14,7 @@ import edu.hm.hafner.util.VisibleForTesting;
 import edu.umd.cs.findbugs.annotations.NonNull;
 
 import java.io.Serial;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.NavigableMap;
 import java.util.NavigableSet;
@@ -28,12 +29,15 @@ import java.util.stream.Stream;
 import org.kohsuke.stapler.StaplerProxy;
 import hudson.Functions;
 import hudson.model.Run;
+import hudson.util.XStream2;
 
 import io.jenkins.plugins.coverage.metrics.charts.TrendChart;
 import io.jenkins.plugins.coverage.metrics.model.Baseline;
 import io.jenkins.plugins.coverage.metrics.model.CoverageStatistics;
 import io.jenkins.plugins.coverage.metrics.model.ElementFormatter;
+import io.jenkins.plugins.coverage.metrics.steps.CoverageXmlStream.DifferencesConverter;
 import io.jenkins.plugins.coverage.metrics.steps.CoverageXmlStream.MetricFractionMapConverter;
+import io.jenkins.plugins.coverage.metrics.steps.CoverageXmlStream.ValuesConverter;
 import io.jenkins.plugins.echarts.GenericBuildActionIterator.BuildActionIterable;
 import io.jenkins.plugins.forensics.reference.ReferenceBuild;
 import io.jenkins.plugins.util.AbstractXmlStream;
@@ -101,13 +105,33 @@ public final class CoverageBuildAction extends BuildAction<Node> implements Stap
     static {
         CoverageXmlStream.registerConverters(XSTREAM2);
 
-        registerMapConverter("difference");
-        registerMapConverter("modifiedLinesCoverageDifference");
-        registerMapConverter("modifiedFilesCoverageDifference");
+        registerValueListConverters(XSTREAM2);
     }
 
-    private static void registerMapConverter(final String difference) {
-        XSTREAM2.registerLocalConverter(CoverageBuildAction.class, difference, new MetricFractionMapConverter());
+    static void registerValueListConverters(final XStream2 xstream) {
+        registerMapConverter("difference", xstream);
+        registerMapConverter("modifiedLinesCoverageDifference", xstream);
+        registerMapConverter("modifiedFilesCoverageDifference", xstream);
+
+        registerValuesListConverter("modifiedLinesCoverage", xstream);
+        registerValuesListConverter("modifiedFilesCoverage", xstream);
+        registerValuesListConverter("indirectCoverageChanges", xstream);
+
+        registerDifferencesListConverter("differences", xstream);
+        registerDifferencesListConverter("modifiedLinesDifferences", xstream);
+        registerDifferencesListConverter("modifiedFilesDifferences", xstream);
+    }
+
+    private static void registerMapConverter(final String difference, final XStream2 xstream) {
+        xstream.registerLocalConverter(CoverageBuildAction.class, difference, new MetricFractionMapConverter());
+    }
+
+    private static void registerValuesListConverter(final String value, final XStream2 xstream) {
+        xstream.registerLocalConverter(CoverageBuildAction.class, value, new ValuesConverter());
+    }
+
+    private static void registerDifferencesListConverter(final String difference, final XStream2 xstream) {
+        xstream.registerLocalConverter(CoverageBuildAction.class, difference, new DifferencesConverter());
     }
 
     /**
@@ -206,16 +230,20 @@ public final class CoverageBuildAction extends BuildAction<Node> implements Stap
         this.qualityGateResult = qualityGateResult;
         this.referenceBuildId = referenceBuildId;
 
-        this.differences = List.copyOf(differences);
-        this.modifiedLinesCoverage = List.copyOf(modifiedLinesCoverage);
-        this.modifiedLinesDifferences = List.copyOf(modifiedLinesDifferences);
-        this.modifiedFilesCoverage = List.copyOf(modifiedFilesCoverage);
-        this.modifiedFilesDifferences = List.copyOf(modifiedFilesDifferences);
-        this.indirectCoverageChanges = List.copyOf(indirectCoverageChanges);
+        this.differences = copy(differences);
+        this.modifiedLinesCoverage = copy(modifiedLinesCoverage);
+        this.modifiedLinesDifferences = copy(modifiedLinesDifferences);
+        this.modifiedFilesCoverage = copy(modifiedFilesCoverage);
+        this.modifiedFilesDifferences = copy(modifiedFilesDifferences);
+        this.indirectCoverageChanges = copy(indirectCoverageChanges);
 
         if (canSerialize) {
             createXmlStream().write(owner.getRootDir().toPath().resolve(getBuildResultBaseName()), result);
         }
+    }
+
+    private <T> List<T> copy(final List<? extends T> list) {
+        return new ArrayList<>(list); // do not use immutable collections to simplify serialization
     }
 
     @Serial

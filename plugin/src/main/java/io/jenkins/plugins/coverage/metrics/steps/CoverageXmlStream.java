@@ -23,7 +23,9 @@ import edu.hm.hafner.coverage.Value;
 import edu.hm.hafner.util.VisibleForTesting;
 
 import java.util.AbstractMap.SimpleEntry;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.NavigableMap;
@@ -39,6 +41,7 @@ import java.util.stream.Collectors;
 import hudson.util.XStream2;
 
 import io.jenkins.plugins.util.AbstractXmlStream;
+import io.jenkins.plugins.util.QualityGateResult.QualityGateResultItem;
 
 /**
  * Configures the XML stream for the coverage tree, which consists of {@link Node}s.
@@ -76,8 +79,6 @@ class CoverageXmlStream extends AbstractXmlStream<Node> {
         xStream.alias("class", ClassNode.class);
         xStream.alias("method", MethodNode.class);
 
-        xStream.alias("edu.hm.hafner.coverage.TestCount", Value.class);
-
         xStream.registerLocalConverter(FileNode.class, "coveredPerLine", new IntegerLineMapConverter());
         xStream.registerLocalConverter(FileNode.class, "missedPerLine", new IntegerLineMapConverter());
         xStream.registerLocalConverter(FileNode.class, "indirectCoverageChanges", new IntegerLineMapConverter());
@@ -87,16 +88,21 @@ class CoverageXmlStream extends AbstractXmlStream<Node> {
     }
 
     static void registerConverters(final XStream2 xStream) {
+        // old values that are not used anymore
+        xStream.alias("edu.hm.hafner.coverage.TestCount", Value.class);
+        xStream.alias("loc", Value.class);
+        xStream.alias("complexity", Value.class);
+
+        // old values that are not used anymore
         xStream.alias("metric", Metric.class);
         xStream.alias("coverage", Coverage.class);
-        xStream.addImmutableType(Coverage.class, false);
         xStream.alias("value", Value.class);
+        xStream.alias("delta", Difference.class);
+
+        xStream.addImmutableType(Coverage.class, false);
         xStream.addImmutableType(Value.class, false);
 
-        xStream.alias("complexity", Value.class);
-        xStream.addImmutableType(Value.class, false);
-        xStream.alias("loc", Value.class);
-        xStream.addImmutableType(Value.class, false);
+        xStream.alias("item", QualityGateResultItem.class);
 
         xStream.registerConverter(new FractionConverter());
         xStream.registerConverter(new SimpleConverter<>(Value.class, Value::serialize, Value::valueOf));
@@ -143,8 +149,12 @@ class CoverageXmlStream extends AbstractXmlStream<Node> {
 
         @Override
         protected Entry<Metric, Value> createMapping(final String key, final String value) {
-            var deserialized = Fraction.getFraction(value).multiplyBy(Fraction.getFraction(100));
-            return entry(Metric.valueOf(key), new Difference(Metric.valueOf(key), deserialized));
+            var metric = Metric.valueOf(key);
+            var deserialized = Fraction.getFraction(value);
+            if (metric.isCoverage()) {
+                deserialized = deserialized.multiplyBy(Fraction.getFraction(100)); // previously stored not as percentage
+            }
+            return entry(metric, new Difference(metric, deserialized));
         }
     }
 
@@ -246,8 +256,84 @@ class CoverageXmlStream extends AbstractXmlStream<Node> {
     }
 
     /**
+     * {@link Converter} base class for {@link List} instances of {@link Difference differences}.
+     * Stores the mappings in a condensed format {@code key1: value1, key2: value2, ...}.
+     */
+    static class DifferencesConverter implements Converter {
+        @Override
+        @SuppressWarnings({"PMD.NullAssignment", "unchecked"})
+        public void marshal(final Object source, final HierarchicalStreamWriter writer,
+                final MarshallingContext context) {
+            writer.setValue(source instanceof List ? marshal((List<Difference>) source) : null);
+        }
+
+        String marshal(final List<Difference> source) {
+            return source.stream()
+                    .map(Value::serialize)
+                    .collect(ARRAY_JOINER);
+        }
+
+        @Override
+        public boolean canConvert(final Class type) {
+            return List.class.isAssignableFrom(type);
+        }
+
+        @Override
+        public List<Difference> unmarshal(final HierarchicalStreamReader reader, final UnmarshallingContext context) {
+            return unmarshal(reader.getValue());
+        }
+
+        List<Difference> unmarshal(final String value) {
+            List<Difference> differences = new ArrayList<>();
+
+            for (String marshalledValue : toArray(value)) {
+                differences.add((Difference) Value.valueOf(marshalledValue));
+            }
+            return differences;
+        }
+    }
+
+    /**
+     * {@link Converter} base class for {@link List} instances of {@link Difference differences}.
+     * Stores the mappings in a condensed format {@code key1: value1, key2: value2, ...}.
+     */
+    static class ValuesConverter implements Converter {
+        @Override
+        @SuppressWarnings({"PMD.NullAssignment", "unchecked"})
+        public void marshal(final Object source, final HierarchicalStreamWriter writer,
+                final MarshallingContext context) {
+            writer.setValue(source instanceof List ? marshal((List<Value>) source) : null);
+        }
+
+        String marshal(final List<Value> source) {
+            return source.stream()
+                    .map(Value::serialize)
+                    .collect(ARRAY_JOINER);
+        }
+
+        @Override
+        public boolean canConvert(final Class type) {
+            return List.class.isAssignableFrom(type);
+        }
+
+        @Override
+        public List<Value> unmarshal(final HierarchicalStreamReader reader, final UnmarshallingContext context) {
+            return unmarshal(reader.getValue());
+        }
+
+        List<Value> unmarshal(final String value) {
+            List<Value> values = new ArrayList<>();
+
+            for (String marshalledValue : toArray(value)) {
+                values.add(Value.valueOf(marshalledValue));
+            }
+            return values;
+        }
+    }
+
+    /**
      * {@link Converter} for a {@link SortedMap} of coverages per line. Stores the mapping in the condensed format
-     * {@code key1: covered1/missed1, key2: covered2/missed2, ...}.
+     * {@code key1: value1, key2: valued2, ...}.
      */
     static final class IntegerLineMapConverter extends TreeMapConverter<Integer, Integer> {
         @Override

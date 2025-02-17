@@ -25,6 +25,7 @@ import java.util.stream.Collectors;
 
 import hudson.XmlFile;
 import hudson.model.FreeStyleBuild;
+import hudson.util.XStream2;
 
 import io.jenkins.plugins.coverage.metrics.Assertions;
 import io.jenkins.plugins.coverage.metrics.model.Baseline;
@@ -108,13 +109,17 @@ class CoverageXmlStreamITest extends SerializableTest<Node> {
     void shouldStoreActionCompactly() throws IOException {
         Path saved = createTempFile();
 
-        var xmlStream = new CoverageXmlStream();
+        var stream = new XStream2();
 
-        var file = new XmlFile(xmlStream.getStream(), saved.toFile());
+        CoverageBuildAction.registerValueListConverters(stream);
+        CoverageXmlStream.registerConverters(stream);
+
+        var file = new XmlFile(stream, saved.toFile());
         var buildAction = createAction();
         file.write(buildAction);
 
-        assertThat(Input.from(saved)).nodesByXPath("//" + ACTION_QUALIFIED_NAME + "/projectValues/*")
+        var xml = Input.from(saved);
+        assertThat(xml).nodesByXPath("//" + ACTION_QUALIFIED_NAME + "/projectValues/*")
                 .hasSize(10).extractingText()
                 .containsExactly("MODULE: 1/1",
                         "PACKAGE: 1/1",
@@ -127,7 +132,7 @@ class CoverageXmlStreamITest extends SerializableTest<Node> {
                         "LOC: 323",
                         "CYCLOMATIC_COMPLEXITY: 160");
 
-        assertThat(Input.from(saved)).nodesByXPath("//" + ACTION_QUALIFIED_NAME + "/projectValues/coverage")
+        assertThat(xml).nodesByXPath("//" + ACTION_QUALIFIED_NAME + "/projectValues/coverage")
                 .hasSize(8).extractingText()
                 .containsExactly("MODULE: 1/1",
                         "PACKAGE: 1/1",
@@ -138,17 +143,52 @@ class CoverageXmlStreamITest extends SerializableTest<Node> {
                         "BRANCH: 109/116",
                         "INSTRUCTION: 1260/1350");
 
+        assertThat(xml).nodesByXPath("//" + ACTION_QUALIFIED_NAME + "/differences")
+                .hasSize(1)
+                .extractingText()
+                .asString().isEqualToIgnoringWhitespace(""" 
+                        [[
+                            LINE: Δ10,
+                            BRANCH: Δ-10,
+                            LOC: Δ-50,
+                            CYCLOMATIC_COMPLEXITY: Δ50
+                        ]]
+                        """);
+
         var action = file.read();
-        assertThat(action).isNotNull().isInstanceOfSatisfying(CoverageBuildAction.class, a ->
-                Assertions.assertThat(serializeValues(a))
-                        .containsExactly("MODULE: 1/1", "PACKAGE: 1/1", "FILE: 7/8", "CLASS: 15/16",
-                                "METHOD: 97/102", "LINE: 294/323", "BRANCH: 109/116", "INSTRUCTION: 1260/1350",
-                                "LOC: 323", "CYCLOMATIC_COMPLEXITY: 160"
-                        ));
+        assertThat(action).isNotNull()
+                .isInstanceOfSatisfying(CoverageBuildAction.class, this::assertThatActionIsCorrectlyDeserialized);
     }
 
-    private static List<String> serializeValues(final CoverageBuildAction a) {
-        return a.getAllValues(Baseline.PROJECT).stream()
+    private void assertThatActionIsCorrectlyDeserialized(final CoverageBuildAction action) {
+        Assertions.assertThat(serializeValues(action.getAllValues(Baseline.PROJECT)))
+                .containsExactly("MODULE: 1/1", "PACKAGE: 1/1", "FILE: 7/8", "CLASS: 15/16",
+                        "METHOD: 97/102", "LINE: 294/323", "BRANCH: 109/116", "INSTRUCTION: 1260/1350",
+                        "LOC: 323", "CYCLOMATIC_COMPLEXITY: 160"
+                );
+
+        assertThatValuesAreCorrectlyDeserialized(action, Baseline.MODIFIED_FILES);
+        assertThatValuesAreCorrectlyDeserialized(action, Baseline.MODIFIED_LINES);
+        assertThatValuesAreCorrectlyDeserialized(action, Baseline.INDIRECT);
+        assertThatDifferencesAreCorrectlyDeserialized(action, Baseline.PROJECT_DELTA);
+        assertThatDifferencesAreCorrectlyDeserialized(action, Baseline.MODIFIED_FILES_DELTA);
+        assertThatDifferencesAreCorrectlyDeserialized(action, Baseline.MODIFIED_LINES_DELTA);
+    }
+
+    private void assertThatValuesAreCorrectlyDeserialized(final CoverageBuildAction action,
+            final Baseline baseline) {
+        Assertions.assertThat(serializeValues(action.getAllValues(baseline)))
+                .containsExactly("MODULE: 1/1", "LINE: 3/4", "BRANCH: 2/2", "LOC: 123");
+    }
+
+    private void assertThatDifferencesAreCorrectlyDeserialized(final CoverageBuildAction action,
+            final Baseline baseline) {
+        Assertions.assertThat(serializeValues(action.getAllDeltas(baseline)))
+                .containsExactly("LINE: Δ10", "BRANCH: Δ-10", "LOC: Δ-50", "CYCLOMATIC_COMPLEXITY: Δ50");
+    }
+
+    private static List<String> serializeValues(final List<? extends Value> values) {
+        return values.stream()
                 .map(Value::serialize)
                 .collect(Collectors.toList());
     }
@@ -229,13 +269,32 @@ class CoverageXmlStreamITest extends SerializableTest<Node> {
         Assertions.assertThat(converter.unmarshal("[15, 20]")).containsExactly(15, 20);
     }
 
-    // TODO: Add content for the other baselines as well
     CoverageBuildAction createAction() {
         var tree = createSerializable();
 
-        return new CoverageBuildAction(mock(FreeStyleBuild.class), CoverageRecorder.DEFAULT_ID, StringUtils.EMPTY,
-                StringUtils.EMPTY,
+        return new CoverageBuildAction(mock(FreeStyleBuild.class),
+                CoverageRecorder.DEFAULT_ID, StringUtils.EMPTY, StringUtils.EMPTY,
                 tree, new QualityGateResult(), new FilteredLog("Test"), "-",
-                List.of(), List.of(), List.of(), List.of(), List.of(), List.of(), false);
+                createDifferences(), createCoverages(),
+                createDifferences(), createCoverages(),
+                createDifferences(), createCoverages(),
+                false);
+    }
+
+    private List<? extends Difference> createDifferences() {
+        return List.of(
+                new Difference(LINE, 10),
+                new Difference(BRANCH, -10),
+                new Difference(LOC, -50),
+                new Difference(CYCLOMATIC_COMPLEXITY, 50));
+    }
+
+    private List<? extends Value> createCoverages() {
+        return List.of(
+                Value.valueOf("LINE: 3/4"),
+                Value.valueOf("BRANCH: 2/2"),
+                Value.valueOf("MODULE: 1/1"),
+                Value.valueOf("LOC: 123")
+                );
     }
 }
