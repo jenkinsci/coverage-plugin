@@ -323,7 +323,7 @@ class CoverageTableModel extends TableModel {
          */
         protected DetailedCell<?> createColoredCoverageColumn(final Coverage coverage) {
             if (coverage.isSet()) {
-                double percentage = coverage.getCoveredPercentage().toDouble();
+                double percentage = coverage.asRounded();
                 DisplayColors colors = CoverageLevel.getDisplayColorsOfCoverageLevel(percentage, colorProvider);
                 String cell = div()
                         .withClasses(COVERAGE_COLUMN_OUTER).with(
@@ -353,7 +353,7 @@ class CoverageTableModel extends TableModel {
          * @return the created {@link DetailedCell}
          */
         protected DetailedCell<?> createColoredCoverageDeltaColumn(final Metric metric, final Value delta) {
-            double percentage = delta.asDouble();
+            double percentage = delta.asRounded();
             DisplayColors colors = CoverageChangeTendency.getDisplayColorsForTendency(percentage, colorProvider);
             String cell = div().withClasses(COVERAGE_COLUMN_OUTER).with(
                             div().withClasses(COVERAGE_COLUMN_INNER)
