@@ -12,6 +12,7 @@ import edu.hm.hafner.echarts.JacksonFacade;
 import edu.hm.hafner.util.FilteredLog;
 import edu.hm.hafner.util.VisibleForTesting;
 import edu.umd.cs.findbugs.annotations.NonNull;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
 import java.io.Serial;
 import java.util.ArrayList;
@@ -78,6 +79,7 @@ public final class CoverageBuildAction extends BuildAction<Node> implements Stap
 
     /** The delta of this build's coverages with respect to the reference build. */
     @SuppressWarnings("MismatchedQueryAndUpdateOfCollection")
+    @SuppressFBWarnings(value = "NP_NONNULL_FIELD_NOT_INITIALIZED_IN_CONSTRUCTOR", justification = "Not used anymore")
     private transient NavigableMap<Metric, Difference> difference;
     private /* almost final */ List<Difference> differences; // since 2.0.0
 
@@ -86,6 +88,7 @@ public final class CoverageBuildAction extends BuildAction<Node> implements Stap
 
     /** The coverage delta of the associated change request with respect to the reference build. */
     @SuppressWarnings("MismatchedQueryAndUpdateOfCollection")
+    @SuppressFBWarnings(value = "NP_NONNULL_FIELD_NOT_INITIALIZED_IN_CONSTRUCTOR", justification = "Not used anymore")
     private transient NavigableMap<Metric, Difference> modifiedLinesCoverageDifference;
     private /* almost final */ List<Difference> modifiedLinesDifferences; // since 2.0.0
 
@@ -94,6 +97,7 @@ public final class CoverageBuildAction extends BuildAction<Node> implements Stap
 
     /** The coverage delta of the modified lines. */
     @SuppressWarnings("MismatchedQueryAndUpdateOfCollection")
+    @SuppressFBWarnings(value = "NP_NONNULL_FIELD_NOT_INITIALIZED_IN_CONSTRUCTOR", justification = "Not used anymore")
     private transient NavigableMap<Metric, Difference> modifiedFilesCoverageDifference;
     private /* almost final */ List<Difference> modifiedFilesDifferences; // since 2.0.0
 

@@ -1,10 +1,10 @@
 package io.jenkins.plugins.coverage.metrics.charts;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import edu.hm.hafner.coverage.Metric;
 import edu.hm.hafner.echarts.line.SeriesBuilder;
+
+import java.util.HashMap;
+import java.util.Map;
 
 import io.jenkins.plugins.coverage.metrics.model.Baseline;
 import io.jenkins.plugins.coverage.metrics.model.CoverageStatistics;
@@ -34,8 +34,8 @@ public class CoverageSeriesBuilder extends SeriesBuilder<CoverageStatistics> {
         add(statistics, Metric.MCDC_PAIR, MCDC_PAIR_COVERAGE, series);
         add(statistics, Metric.FUNCTION_CALL, FUNCTION_CALL_COVERAGE, series);
 
-        if (statistics.containsValue(Baseline.PROJECT, Metric.MCDC_PAIR)
-                || statistics.containsValue(Baseline.PROJECT, Metric.FUNCTION_CALL)) {
+        if (statistics.containsValue(Metric.MCDC_PAIR, Baseline.PROJECT)
+                || statistics.containsValue(Metric.FUNCTION_CALL, Baseline.PROJECT)) {
             // Method coverage is only relevant if MC/DC pair or function call coverage is available
             add(statistics, Metric.METHOD, METHOD_COVERAGE, series);
         }
@@ -45,7 +45,7 @@ public class CoverageSeriesBuilder extends SeriesBuilder<CoverageStatistics> {
 
     private void add(final CoverageStatistics statistics, final Metric metric, final String chartId,
             final Map<String, Double> series) {
-        if (statistics.containsValue(Baseline.PROJECT, metric)) {
+        if (statistics.containsValue(metric, Baseline.PROJECT)) {
             series.put(chartId, statistics.roundValue(Baseline.PROJECT, metric));
         }
     }

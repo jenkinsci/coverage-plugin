@@ -1,15 +1,16 @@
 package io.jenkins.plugins.coverage.metrics.steps;
 
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
-
+import edu.hm.hafner.coverage.Coverage;
 import edu.hm.hafner.coverage.Difference;
 import edu.hm.hafner.coverage.FileNode;
 import edu.hm.hafner.coverage.Metric;
 import edu.hm.hafner.coverage.Node;
 import edu.hm.hafner.coverage.Value;
 import edu.hm.hafner.util.FilteredLog;
+
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 
 import hudson.FilePath;
 import hudson.model.Run;
@@ -197,7 +198,7 @@ public class CoverageReporter {
     }
 
     private boolean hasLineCoverageSet(final Value value) {
-        return ((edu.hm.hafner.coverage.Coverage) value).isSet();
+        return value instanceof Coverage coverage && coverage.isSet();
     }
 
     private Optional<CoverageBuildAction> getReferenceBuildAction(final Run<?, ?> build, final String id,

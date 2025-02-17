@@ -1,4 +1,4 @@
-package io.jenkins.plugins.coverage.metrics.steps;
+package io.jenkins.plugins.coverage.metrics.steps; // NOPMD
 
 import org.apache.commons.lang3.StringUtils;
 import org.junit.jupiter.api.Test;
@@ -69,15 +69,9 @@ class CoverageXmlStreamITest extends SerializableTest<Node> {
         Assertions.assertThat(restored).isInstanceOfSatisfying(CoverageBuildAction.class,
                 a -> Assertions.assertThat(a.getAllValues(Baseline.PROJECT))
                         .map(Object::toString).containsExactlyInAnyOrder("MODULE: 100.00% (1/1)",
-                                "PACKAGE: 75.00% (3/4)",
-                                "FILE: 100.00% (32/32)",
-                                "CLASS: 94.23% (49/52)",
-                                "METHOD: 95.79% (569/594)",
-                                "LINE: 96.35% (2164/2246)",
-                                "BRANCH: 92.92% (932/1003)",
-                                "INSTRUCTION: 96.44% (10534/10923)",
-                                "TESTS: 305",
-                                "CYCLOMATIC_COMPLEXITY: 1105",
+                                "PACKAGE: 75.00% (3/4)", "FILE: 100.00% (32/32)", "CLASS: 94.23% (49/52)",
+                                "METHOD: 95.79% (569/594)", "LINE: 96.35% (2164/2246)", "BRANCH: 92.92% (932/1003)",
+                                "INSTRUCTION: 96.44% (10534/10923)", "TESTS: 305", "CYCLOMATIC_COMPLEXITY: 1105",
                                 "LOC: 2246"));
     }
 

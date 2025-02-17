@@ -1,13 +1,12 @@
 package io.jenkins.plugins.coverage.metrics.model;
 
-import java.util.List;
-import java.util.NavigableMap;
-import java.util.NoSuchElementException;
-import java.util.Optional;
-
 import edu.hm.hafner.coverage.Difference;
 import edu.hm.hafner.coverage.Metric;
 import edu.hm.hafner.coverage.Value;
+
+import java.util.List;
+import java.util.NoSuchElementException;
+import java.util.Optional;
 
 /**
  * Provides statistics for values and differences for all Base  the different mappings of coverage metric and baseline to actual values.
@@ -110,21 +109,17 @@ public class CoverageStatistics {
         return roundValue(Baseline.PROJECT, metric);
     }
 
-    private Optional<Value> getValue(final Metric metric, final NavigableMap<Metric, Difference> mapping) {
-        return Optional.ofNullable(mapping.get(metric));
-    }
-
     /**
      * Returns whether a value for the specified metric and baseline is available.
      *
-     * @param baseline
-     *         the baseline of the value
      * @param metric
      *         the metric of the value
+     * @param baseline
+     *         the baseline of the value
      *
      * @return {@code true}, if a value is available, {@code false} otherwise
      */
-    public boolean containsValue(final Baseline baseline, final Metric metric) {
+    public boolean containsValue(final Metric metric, final Baseline baseline) {
         return getValue(baseline, metric).isPresent();
     }
 
@@ -136,8 +131,7 @@ public class CoverageStatistics {
      *
      * @return {@code true}, if a value is available, {@code false} otherwise
      */
-    // FIXME: reoder overloaded name
     public boolean containsValue(final Metric metric) {
-        return containsValue(Baseline.PROJECT, metric);
+        return containsValue(metric, Baseline.PROJECT);
     }
 }
