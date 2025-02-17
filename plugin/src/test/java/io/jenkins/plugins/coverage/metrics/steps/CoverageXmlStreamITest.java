@@ -38,7 +38,6 @@ import io.jenkins.plugins.util.QualityGateResult;
 import static edu.hm.hafner.coverage.Metric.*;
 import static org.assertj.core.api.BDDAssertions.*;
 import static org.mockito.Mockito.*;
-import static org.xmlunit.assertj.XmlAssert.*;
 import static org.xmlunit.assertj.XmlAssert.assertThat;
 
 /**
