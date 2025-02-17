@@ -35,9 +35,7 @@ import io.jenkins.plugins.coverage.metrics.charts.TrendChart;
 import io.jenkins.plugins.coverage.metrics.model.Baseline;
 import io.jenkins.plugins.coverage.metrics.model.CoverageStatistics;
 import io.jenkins.plugins.coverage.metrics.model.ElementFormatter;
-import io.jenkins.plugins.coverage.metrics.steps.CoverageXmlStream.DifferencesConverter;
 import io.jenkins.plugins.coverage.metrics.steps.CoverageXmlStream.MetricFractionMapConverter;
-import io.jenkins.plugins.coverage.metrics.steps.CoverageXmlStream.ValuesConverter;
 import io.jenkins.plugins.echarts.GenericBuildActionIterator.BuildActionIterable;
 import io.jenkins.plugins.forensics.reference.ReferenceBuild;
 import io.jenkins.plugins.util.AbstractXmlStream;
@@ -112,26 +110,10 @@ public final class CoverageBuildAction extends BuildAction<Node> implements Stap
         registerMapConverter("difference", xstream);
         registerMapConverter("modifiedLinesCoverageDifference", xstream);
         registerMapConverter("modifiedFilesCoverageDifference", xstream);
-
-        registerValuesListConverter("modifiedLinesCoverage", xstream);
-        registerValuesListConverter("modifiedFilesCoverage", xstream);
-        registerValuesListConverter("indirectCoverageChanges", xstream);
-
-        registerDifferencesListConverter("differences", xstream);
-        registerDifferencesListConverter("modifiedLinesDifferences", xstream);
-        registerDifferencesListConverter("modifiedFilesDifferences", xstream);
     }
 
     private static void registerMapConverter(final String difference, final XStream2 xstream) {
         xstream.registerLocalConverter(CoverageBuildAction.class, difference, new MetricFractionMapConverter());
-    }
-
-    private static void registerValuesListConverter(final String value, final XStream2 xstream) {
-        xstream.registerLocalConverter(CoverageBuildAction.class, value, new ValuesConverter());
-    }
-
-    private static void registerDifferencesListConverter(final String difference, final XStream2 xstream) {
-        xstream.registerLocalConverter(CoverageBuildAction.class, difference, new DifferencesConverter());
     }
 
     /**

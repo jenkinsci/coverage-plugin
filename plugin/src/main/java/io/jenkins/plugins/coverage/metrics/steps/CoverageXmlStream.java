@@ -17,15 +17,14 @@ import edu.hm.hafner.coverage.FileNode;
 import edu.hm.hafner.coverage.MethodNode;
 import edu.hm.hafner.coverage.Metric;
 import edu.hm.hafner.coverage.ModuleNode;
+import edu.hm.hafner.coverage.Mutation;
 import edu.hm.hafner.coverage.Node;
 import edu.hm.hafner.coverage.PackageNode;
 import edu.hm.hafner.coverage.Value;
 import edu.hm.hafner.util.VisibleForTesting;
 
 import java.util.AbstractMap.SimpleEntry;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.NavigableMap;
@@ -78,6 +77,7 @@ class CoverageXmlStream extends AbstractXmlStream<Node> {
         xStream.alias("file", FileNode.class);
         xStream.alias("class", ClassNode.class);
         xStream.alias("method", MethodNode.class);
+        xStream.alias("mutation", Mutation.class);
 
         xStream.registerLocalConverter(FileNode.class, "coveredPerLine", new IntegerLineMapConverter());
         xStream.registerLocalConverter(FileNode.class, "missedPerLine", new IntegerLineMapConverter());
@@ -252,82 +252,6 @@ class CoverageXmlStream extends AbstractXmlStream<Node> {
 
         protected SimpleEntry<K, V> entry(final K key, final V value) {
             return new SimpleEntry<>(key, value);
-        }
-    }
-
-    /**
-     * {@link Converter} base class for {@link List} instances of {@link Difference differences}.
-     * Stores the mappings in a condensed format {@code key1: value1, key2: value2, ...}.
-     */
-    static class DifferencesConverter implements Converter {
-        @Override
-        @SuppressWarnings({"PMD.NullAssignment", "unchecked"})
-        public void marshal(final Object source, final HierarchicalStreamWriter writer,
-                final MarshallingContext context) {
-            writer.setValue(source instanceof List ? marshal((List<Difference>) source) : null);
-        }
-
-        String marshal(final List<Difference> source) {
-            return source.stream()
-                    .map(Value::serialize)
-                    .collect(ARRAY_JOINER);
-        }
-
-        @Override
-        public boolean canConvert(final Class type) {
-            return List.class.isAssignableFrom(type);
-        }
-
-        @Override
-        public List<Difference> unmarshal(final HierarchicalStreamReader reader, final UnmarshallingContext context) {
-            return unmarshal(reader.getValue());
-        }
-
-        List<Difference> unmarshal(final String value) {
-            List<Difference> differences = new ArrayList<>();
-
-            for (String marshalledValue : toArray(value)) {
-                differences.add((Difference) Value.valueOf(marshalledValue));
-            }
-            return differences;
-        }
-    }
-
-    /**
-     * {@link Converter} base class for {@link List} instances of {@link Difference differences}.
-     * Stores the mappings in a condensed format {@code key1: value1, key2: value2, ...}.
-     */
-    static class ValuesConverter implements Converter {
-        @Override
-        @SuppressWarnings({"PMD.NullAssignment", "unchecked"})
-        public void marshal(final Object source, final HierarchicalStreamWriter writer,
-                final MarshallingContext context) {
-            writer.setValue(source instanceof List ? marshal((List<Value>) source) : null);
-        }
-
-        String marshal(final List<Value> source) {
-            return source.stream()
-                    .map(Value::serialize)
-                    .collect(ARRAY_JOINER);
-        }
-
-        @Override
-        public boolean canConvert(final Class type) {
-            return List.class.isAssignableFrom(type);
-        }
-
-        @Override
-        public List<Value> unmarshal(final HierarchicalStreamReader reader, final UnmarshallingContext context) {
-            return unmarshal(reader.getValue());
-        }
-
-        List<Value> unmarshal(final String value) {
-            List<Value> values = new ArrayList<>();
-
-            for (String marshalledValue : toArray(value)) {
-                values.add(Value.valueOf(marshalledValue));
-            }
-            return values;
         }
     }
 

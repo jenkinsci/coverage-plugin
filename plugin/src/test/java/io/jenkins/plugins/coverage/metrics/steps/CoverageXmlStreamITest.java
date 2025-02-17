@@ -3,6 +3,7 @@ package io.jenkins.plugins.coverage.metrics.steps;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.jupiter.api.Test;
 import org.xmlunit.builder.Input;
+import org.xmlunit.builder.Input.Builder;
 
 import edu.hm.hafner.coverage.Difference;
 import edu.hm.hafner.coverage.Metric;
@@ -143,21 +144,29 @@ class CoverageXmlStreamITest extends SerializableTest<Node> {
                         "BRANCH: 109/116",
                         "INSTRUCTION: 1260/1350");
 
-        assertThat(xml).nodesByXPath("//" + ACTION_QUALIFIED_NAME + "/differences")
-                .hasSize(1)
-                .extractingText()
-                .asString().isEqualToIgnoringWhitespace(""" 
-                        [[
-                            LINE: Δ10,
-                            BRANCH: Δ-10,
-                            LOC: Δ-50,
-                            CYCLOMATIC_COMPLEXITY: Δ50
-                        ]]
-                        """);
+        assertThatDifferencesAreCorrectlyStored(xml, "differences");
+        assertThatDifferencesAreCorrectlyStored(xml, "modifiedLinesDifferences");
+        assertThatDifferencesAreCorrectlyStored(xml, "modifiedFilesDifferences");
+
+        assertThatValuesAreCorrectlyStored(xml, "modifiedLinesCoverage");
+        assertThatValuesAreCorrectlyStored(xml, "modifiedFilesCoverage");
+        assertThatValuesAreCorrectlyStored(xml, "indirectCoverageChanges");
 
         var action = file.read();
         assertThat(action).isNotNull()
                 .isInstanceOfSatisfying(CoverageBuildAction.class, this::assertThatActionIsCorrectlyDeserialized);
+    }
+
+    private void assertThatDifferencesAreCorrectlyStored(final Builder xml, final String name) {
+        assertThat(xml).nodesByXPath("//" + ACTION_QUALIFIED_NAME + "/" + name + "/*")
+                .hasSize(4).extractingText()
+                .containsExactly("LINE: Δ10", "BRANCH: Δ-10", "LOC: Δ-50", "CYCLOMATIC_COMPLEXITY: Δ50");
+    }
+
+    private void assertThatValuesAreCorrectlyStored(final Builder xml, final String name) {
+        assertThat(xml).nodesByXPath("//" + ACTION_QUALIFIED_NAME + "/" + name + "/*")
+                .hasSize(4).extractingText()
+                .containsExactly("LINE: 3/4", "BRANCH: 2/2", "MODULE: 1/1", "LOC: 123");
     }
 
     private void assertThatActionIsCorrectlyDeserialized(final CoverageBuildAction action) {
