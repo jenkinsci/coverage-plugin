@@ -406,6 +406,17 @@ public final class CoverageBuildAction extends BuildAction<Node> implements Stap
     }
 
     /**
+     * Returns whether this action represents results with coverage metrics. Otherwise, this action represents software
+     * metrics.
+     *
+     * @return {@code true} if this action represents coverage metrics, {@code false} if this action represents software
+     *         metrics
+     */
+    public boolean hasCoverage() {
+        return getAllValues(Baseline.PROJECT).stream().map(Value::getMetric).anyMatch(Metric::isCoverage);
+    }
+
+    /**
      * Returns the value for the specified metric, if available.
      *
      * @param baseline

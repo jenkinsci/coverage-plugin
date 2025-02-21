@@ -4,9 +4,10 @@ import edu.hm.hafner.coverage.Metric;
 import edu.hm.hafner.echarts.BuildResult;
 import edu.hm.hafner.echarts.ChartModelConfiguration;
 import edu.hm.hafner.echarts.JacksonFacade;
-import edu.hm.hafner.echarts.line.LineSeries.FilledMode;
 import edu.hm.hafner.echarts.line.LinesChartModel;
 import edu.hm.hafner.echarts.line.LinesDataSet;
+
+import java.util.Set;
 
 import io.jenkins.plugins.coverage.metrics.model.CoverageStatistics;
 import io.jenkins.plugins.echarts.JenkinsPalette;
@@ -21,6 +22,18 @@ import io.jenkins.plugins.echarts.JenkinsPalette;
  * @see JacksonFacade
  */
 public class MetricsTrendChart extends TrendChart {
+    /**
+     * Creates a new {@link MetricsTrendChart}.
+     *
+     * @param visibleMetrics
+     *         the metrics to render in the trend chart
+     * @param useLines
+     *         determines if the chart should use lines or filled areas
+     */
+    public MetricsTrendChart(final Set<Metric> visibleMetrics, final boolean useLines) {
+        super(visibleMetrics, useLines);
+    }
+
     @Override
     public LinesChartModel create(final Iterable<BuildResult<CoverageStatistics>> results,
             final ChartModelConfiguration configuration) {
@@ -36,8 +49,8 @@ public class MetricsTrendChart extends TrendChart {
             for (var tag : dataSet.getDataSetIds()) {
                 Metric metric = Metric.fromTag(tag);
                 addSeriesIfAvailable(dataSet, model, metric.getDisplayName(),
-                        tag, JenkinsPalette.chartColor(colorIndex++).normal(),
-                        FilledMode.LINES);
+                        tag, JenkinsPalette.chartColor(colorIndex++).normal()
+                );
             }
         }
         return model;

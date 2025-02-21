@@ -1,12 +1,14 @@
 package io.jenkins.plugins.coverage.metrics.steps;
 
-import java.io.IOException;
-import java.util.List;
-
 import org.apache.commons.lang3.StringUtils;
 import org.junit.jupiter.api.Test;
 
+import edu.hm.hafner.coverage.Metric;
+import edu.hm.hafner.coverage.Value;
 import edu.hm.hafner.echarts.line.LinesChartModel;
+
+import java.io.IOException;
+import java.util.List;
 
 import org.kohsuke.stapler.StaplerRequest2;
 import org.kohsuke.stapler.StaplerResponse2;
@@ -25,6 +27,68 @@ import static org.mockito.Mockito.*;
  */
 class CoverageJobActionTest {
     private static final String URL = "coverage";
+
+    @Test
+    void shouldSelectMetrics() {
+        var jobAction = new CoverageJobAction(mock(FreeStyleProject.class), URL, "Coverage Results", "icon");
+
+        assertThat(jobAction.getVisibleMetrics("""
+                {
+                    "metrics": {
+                        "LINE": false,
+                        "BRANCH": true
+                    }
+                }
+                """)).containsExactly(Metric.BRANCH);
+        assertThat(jobAction.getVisibleMetrics("""
+                {
+                    "metrics": {
+                        "LINE": true,
+                        "BRANCH": false
+                    }
+                }
+                """)).containsExactly(Metric.LINE);
+        assertThat(jobAction.getVisibleMetrics("""
+                {
+                    "metrics": {
+                        "LINE": true,
+                        "BRANCH": true
+                    }
+                }
+                """)).containsExactlyInAnyOrder(Metric.LINE, Metric.BRANCH);
+        assertThat(jobAction.getVisibleMetrics("""
+                {
+                    "metrics": {
+                        "LINE": false,
+                        "BRANCH": false
+                    }
+                }
+                """)).isEmpty();
+        assertThat(jobAction.getVisibleMetrics("""
+                {
+                    "metrics": {
+                    }
+                }
+                """)).isEqualTo(CoverageJobAction.DEFAULT_TREND_METRICS);
+        assertThat(jobAction.getVisibleMetrics("""
+                {
+                    "metrics": {
+                        "LINE": 1.0
+                    }
+                }
+                """)).isEqualTo(CoverageJobAction.DEFAULT_TREND_METRICS);
+        assertThat(jobAction.getVisibleMetrics("""
+                {
+                    "metrics": {
+                        "WRONG-METRIC": true
+                    }
+                }
+                """)).isEqualTo(CoverageJobAction.DEFAULT_TREND_METRICS);
+        assertThat(jobAction.getVisibleMetrics("{}"))
+                .isEqualTo(CoverageJobAction.DEFAULT_TREND_METRICS);
+        assertThat(jobAction.getVisibleMetrics("broken"))
+                .isEqualTo(CoverageJobAction.DEFAULT_TREND_METRICS);
+    }
 
     @Test
     void shouldIgnoreIndexIfNoActionFound() throws IOException {
@@ -102,6 +166,9 @@ class CoverageJobActionTest {
         CoverageBuildAction action = mock(CoverageBuildAction.class);
         when(action.getOwner()).thenAnswer(i -> build);
         when(action.getUrlName()).thenReturn(URL);
+        when(action.getAllValues(any())).thenReturn(List.of(
+                Value.nullObject(Metric.LINE),
+                Value.nullObject(Metric.BRANCH)));
         return action;
     }
 }

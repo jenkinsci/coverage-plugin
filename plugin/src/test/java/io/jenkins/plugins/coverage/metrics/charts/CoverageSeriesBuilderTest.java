@@ -1,9 +1,5 @@
 package io.jenkins.plugins.coverage.metrics.charts;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
@@ -19,6 +15,11 @@ import edu.hm.hafner.echarts.line.LinesChartModel;
 import edu.hm.hafner.echarts.line.LinesDataSet;
 import edu.hm.hafner.util.ResourceTest;
 import edu.hm.hafner.util.VisibleForTesting;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Set;
 
 import io.jenkins.plugins.coverage.metrics.model.CoverageStatistics;
 
@@ -44,7 +45,7 @@ class CoverageSeriesBuilderTest extends ResourceTest {
 
     @Test
     void shouldCreateChart() {
-        TrendChart trendChart = new CoverageTrendChart();
+        TrendChart trendChart = createTrend();
 
         BuildResult<CoverageStatistics> smallLineCoverage = createResult(1,
                 new CoverageBuilder().withMetric(Metric.LINE).withCovered(1).withMissed(1).build(),
@@ -65,7 +66,7 @@ class CoverageSeriesBuilderTest extends ResourceTest {
 
     @Test
     void shouldCreateStackedChartByDefault() {
-        TrendChart trendChart = new CoverageTrendChart();
+        TrendChart trendChart = createTrend();
 
         BuildResult<CoverageStatistics> smallLineCoverage = createResult(1,
                 new CoverageBuilder().withMetric(Metric.LINE).withCovered(1).withMissed(1).build(),
@@ -81,9 +82,13 @@ class CoverageSeriesBuilderTest extends ResourceTest {
         assertThat(lineCoverage.getRangeMin()).isEqualTo(50.0);
     }
 
+    private CoverageTrendChart createTrend() {
+        return new CoverageTrendChart(Set.of(Metric.LINE, Metric.BRANCH), false);
+    }
+
     @ParameterizedTest @EnumSource(value = Metric.class, names = {"MCDC_PAIR", "FUNCTION_CALL"})
     void shouldCreateLineChartForVectorCoverage(final Metric vector) {
-        TrendChart trendChart = new CoverageTrendChart();
+        TrendChart trendChart = new CoverageTrendChart(Set.of(Metric.LINE, Metric.BRANCH, vector), true);
 
         BuildResult<CoverageStatistics> smallLineCoverage = createResult(1,
                 new CoverageBuilder().withMetric(Metric.LINE).withCovered(1).withMissed(1).build(),
@@ -163,7 +168,7 @@ class CoverageSeriesBuilderTest extends ResourceTest {
         assertThat(dataSet.getSeries(CoverageSeriesBuilder.BRANCH_COVERAGE))
                 .containsExactly(75.0, 25.0);
 
-        TrendChart trendChart = new CoverageTrendChart();
+        TrendChart trendChart = createTrend();
         var model = trendChart.create(List.of(first, second), createConfiguration());
 
         assertThatJson(model).isEqualTo(toString("chart.json"));
