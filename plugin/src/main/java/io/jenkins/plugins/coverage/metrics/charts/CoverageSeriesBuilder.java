@@ -18,7 +18,6 @@ public class CoverageSeriesBuilder extends SeriesBuilder<CoverageStatistics> {
     @Override
     protected Map<String, Double> computeSeries(final CoverageStatistics statistics) {
         return Arrays.stream(Metric.values())
-                .filter(Metric::isCoverage)
                 .filter(statistics::containsValue)
                 .collect(Collectors.toMap(Metric::toTagName, statistics::roundValue));
     }

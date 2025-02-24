@@ -38,11 +38,10 @@ public class MetricsTrendChart extends TrendChart {
     @Override
     public LinesChartModel create(final Iterable<BuildResult<CoverageStatistics>> results,
             final ChartModelConfiguration configuration) {
-        LinesDataSet dataSet = new MetricSeriesBuilder().createDataSet(configuration, results);
+        LinesDataSet dataSet = new CoverageSeriesBuilder().createDataSet(configuration, results);
 
         LinesChartModel model = new LinesChartModel(dataSet);
         if (dataSet.isNotEmpty()) {
-
             int colorIndex = 0;
             for (var tag : dataSet.getDataSetIds()) {
                 Metric metric = Metric.fromTag(tag);
@@ -51,6 +50,7 @@ public class MetricsTrendChart extends TrendChart {
             }
 
             model.useContinuousRangeAxis();
+            // FIXME: once part of ECharts we should remove this code
             model.setRangeMax(model.getSeries()
                     .stream()
                     .map(LineSeries::getData)
