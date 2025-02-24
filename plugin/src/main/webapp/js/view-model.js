@@ -346,9 +346,8 @@ const CoverageChartGenerator = function ($, proxy) { // NOPMD
         /**
          * Loads all chart JSON models via AJAX calls from the server and renders the corresponding echarts.
          */
-        // TODO: maybe it would make sense to render only visible charts
         function initializeCharts() {
-            renderTrendChart();
+            renderCoverageTrendChart();
             renderMetricsTrendChart();
 
             proxy.getOverview(function (t) {
@@ -370,27 +369,31 @@ const CoverageChartGenerator = function ($, proxy) { // NOPMD
             }
         }
 
-        function renderTrendChart() {
-            const configuration = JSON.stringify(echartsJenkinsApi.readFromLocalStorage('jenkins-echarts-chart-configuration-coverage-history'));
-            proxy.getTrendChart(configuration, function (t) {
-                echartsJenkinsApi.renderConfigurableZoomableTrendChart('coverage-trend', t.responseJSON, 'chart-configuration-coverage-history', openBuild);
-                resizeChartOf('#coverage-trend');
-            });
+        function renderCoverageTrendChart() {
+            if ($('#coverage-trend').is(':visible')) {
+                const configuration = JSON.stringify(echartsJenkinsApi.readFromLocalStorage('jenkins-echarts-chart-configuration-coverage-history'));
+                proxy.getTrendChart(configuration, function (t) {
+                    echartsJenkinsApi.renderConfigurableZoomableTrendChart('coverage-trend', t.responseJSON, 'chart-configuration-coverage-history', openBuild);
+                    resizeChartOf('#coverage-trend');
+                });
+            }
         }
 
         function renderMetricsTrendChart() {
-            const configuration = JSON.stringify(echartsJenkinsApi.readFromLocalStorage('jenkins-echarts-chart-configuration-metrics-history'));
-            proxy.getMetricsTrendChart(configuration, function (t) {
-                echartsJenkinsApi.renderConfigurableZoomableTrendChart('metrics-trend', t.responseJSON, 'chart-configuration-metrics-history', openBuild);
-                resizeChartOf('#metrics-trend');
-            });
+            if ($('#metrics-trend').is(':visible')) {
+                const configuration = JSON.stringify(echartsJenkinsApi.readFromLocalStorage('jenkins-echarts-chart-configuration-metrics-history'));
+                proxy.getMetricsTrendChart(configuration, function (t) {
+                    echartsJenkinsApi.renderConfigurableZoomableTrendChart('metrics-trend', t.responseJSON, 'chart-configuration-metrics-history', openBuild);
+                    resizeChartOf('#metrics-trend');
+                });
+            }
         }
 
         /**
          * Event handler to resize all charts.
          */
         function redrawCharts() {
-            renderTrendChart(); // re-render since the configuration might have changed
+            renderCoverageTrendChart();
             renderMetricsTrendChart();
 
             resizeChartOf('#coverage-overview');
@@ -400,8 +403,15 @@ const CoverageChartGenerator = function ($, proxy) { // NOPMD
             });
         }
 
-        function registerTrendChartConfiguration() {
+        function registerCoverageChartConfiguration() {
             const trendConfigurationDialogId = 'chart-configuration-coverage-history';
+            $('#' + trendConfigurationDialogId).on('hidden.bs.modal', function () {
+                redrawCharts();
+            });
+        }
+
+        function registerMetricsChartConfiguration() {
+            const trendConfigurationDialogId = 'chart-configuration-metrics-history';
             $('#' + trendConfigurationDialogId).on('hidden.bs.modal', function () {
                 redrawCharts();
             });
@@ -461,7 +471,8 @@ const CoverageChartGenerator = function ($, proxy) { // NOPMD
             });
         }
 
-        registerTrendChartConfiguration();
+        registerCoverageChartConfiguration();
+        registerMetricsChartConfiguration();
         registerTabEvents();
 
         initializeCharts();

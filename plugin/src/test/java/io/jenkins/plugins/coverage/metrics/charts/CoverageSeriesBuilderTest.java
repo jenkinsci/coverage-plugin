@@ -33,6 +33,9 @@ import static org.mockito.Mockito.*;
  * @author Ullrich Hafner
  */
 class CoverageSeriesBuilderTest extends ResourceTest {
+    private static final String LINE_COVERAGE = Metric.LINE.toTagName();
+    private static final String BRANCH_COVERAGE = Metric.BRANCH.toTagName();
+
     @Test
     void shouldHaveEmptyDataSetForEmptyIterator() {
         CoverageSeriesBuilder builder = new CoverageSeriesBuilder();
@@ -136,11 +139,11 @@ class CoverageSeriesBuilderTest extends ResourceTest {
         assertThat(dataSet.getDomainAxisLabels()).containsExactly("#1");
 
         assertThat(dataSet.getDataSetIds()).containsExactlyInAnyOrder(
-                CoverageSeriesBuilder.LINE_COVERAGE,
-                CoverageSeriesBuilder.BRANCH_COVERAGE);
+                LINE_COVERAGE,
+                BRANCH_COVERAGE);
 
-        assertThat(dataSet.getSeries(CoverageSeriesBuilder.LINE_COVERAGE)).containsExactly(50.0);
-        assertThat(dataSet.getSeries(CoverageSeriesBuilder.BRANCH_COVERAGE)).containsExactly(75.0);
+        assertThat(dataSet.getSeries(LINE_COVERAGE)).containsExactly(50.0);
+        assertThat(dataSet.getSeries(BRANCH_COVERAGE)).containsExactly(75.0);
     }
 
     @Test
@@ -160,12 +163,12 @@ class CoverageSeriesBuilderTest extends ResourceTest {
         assertThat(dataSet.getDomainAxisLabels()).containsExactly("#1", "#2");
 
         assertThat(dataSet.getDataSetIds()).containsExactlyInAnyOrder(
-                CoverageSeriesBuilder.LINE_COVERAGE,
-                CoverageSeriesBuilder.BRANCH_COVERAGE);
+                LINE_COVERAGE,
+                BRANCH_COVERAGE);
 
-        assertThat(dataSet.getSeries(CoverageSeriesBuilder.LINE_COVERAGE))
+        assertThat(dataSet.getSeries(LINE_COVERAGE))
                 .containsExactly(50.0, 25.0);
-        assertThat(dataSet.getSeries(CoverageSeriesBuilder.BRANCH_COVERAGE))
+        assertThat(dataSet.getSeries(BRANCH_COVERAGE))
                 .containsExactly(75.0, 25.0);
 
         TrendChart trendChart = createTrend();

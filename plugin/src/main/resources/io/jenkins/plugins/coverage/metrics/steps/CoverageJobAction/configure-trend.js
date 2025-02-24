@@ -19,7 +19,7 @@ window.addEventListener("DOMContentLoaded", () => {
         function saveCoverage(trendConfiguration) {
             const metrics = {};
 
-            trendConfiguration.find('input[type="checkbox"][id^="coverage-"]').each(function () {
+            trendConfiguration.find('input[type="checkbox"][id^="coverage-"][id*="-metric-"]').each(function () {
                 metrics[jQuery3(this).attr('name')] = jQuery3(this).prop('checked');
             });
             return {

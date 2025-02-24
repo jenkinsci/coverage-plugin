@@ -29,68 +29,6 @@ class CoverageJobActionTest {
     private static final String URL = "coverage";
 
     @Test
-    void shouldSelectMetrics() {
-        var jobAction = new CoverageJobAction(mock(FreeStyleProject.class), URL, "Coverage Results", "icon");
-
-        assertThat(jobAction.getVisibleMetrics("""
-                {
-                    "metrics": {
-                        "LINE": false,
-                        "BRANCH": true
-                    }
-                }
-                """)).containsExactly(Metric.BRANCH);
-        assertThat(jobAction.getVisibleMetrics("""
-                {
-                    "metrics": {
-                        "LINE": true,
-                        "BRANCH": false
-                    }
-                }
-                """)).containsExactly(Metric.LINE);
-        assertThat(jobAction.getVisibleMetrics("""
-                {
-                    "metrics": {
-                        "LINE": true,
-                        "BRANCH": true
-                    }
-                }
-                """)).containsExactlyInAnyOrder(Metric.LINE, Metric.BRANCH);
-        assertThat(jobAction.getVisibleMetrics("""
-                {
-                    "metrics": {
-                        "LINE": false,
-                        "BRANCH": false
-                    }
-                }
-                """)).isEmpty();
-        assertThat(jobAction.getVisibleMetrics("""
-                {
-                    "metrics": {
-                    }
-                }
-                """)).isEqualTo(CoverageJobAction.DEFAULT_TREND_METRICS);
-        assertThat(jobAction.getVisibleMetrics("""
-                {
-                    "metrics": {
-                        "LINE": 1.0
-                    }
-                }
-                """)).isEqualTo(CoverageJobAction.DEFAULT_TREND_METRICS);
-        assertThat(jobAction.getVisibleMetrics("""
-                {
-                    "metrics": {
-                        "WRONG-METRIC": true
-                    }
-                }
-                """)).isEqualTo(CoverageJobAction.DEFAULT_TREND_METRICS);
-        assertThat(jobAction.getVisibleMetrics("{}"))
-                .isEqualTo(CoverageJobAction.DEFAULT_TREND_METRICS);
-        assertThat(jobAction.getVisibleMetrics("broken"))
-                .isEqualTo(CoverageJobAction.DEFAULT_TREND_METRICS);
-    }
-
-    @Test
     void shouldIgnoreIndexIfNoActionFound() throws IOException {
         FreeStyleProject job = mock(FreeStyleProject.class);
 

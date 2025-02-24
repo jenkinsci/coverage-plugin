@@ -10,6 +10,7 @@ import edu.hm.hafner.util.FilteredLog;
 
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.function.Function;
 
 import hudson.model.Run;
 
@@ -117,6 +118,6 @@ class CoverageViewModelTest extends AbstractCoverageTest {
     private CoverageViewModel createModel(final Node node) {
         return new CoverageViewModel(mock(Run.class), "id", StringUtils.EMPTY,
                 node, createStatistics(), new QualityGateResult(), "-", new FilteredLog("Errors"),
-                (i, b) -> i, () -> true);
+                Function.identity(), Function.identity());
     }
 }

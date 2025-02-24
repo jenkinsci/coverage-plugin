@@ -15,14 +15,6 @@ import io.jenkins.plugins.coverage.metrics.model.CoverageStatistics;
  * @author Ullrich Hafner
  */
 public class CoverageSeriesBuilder extends SeriesBuilder<CoverageStatistics> {
-    static final String LINE_COVERAGE = Metric.LINE.toTagName();
-    static final String BRANCH_COVERAGE = Metric.BRANCH.toTagName();
-    static final String MUTATION_COVERAGE = Metric.MUTATION.toTagName();
-    static final String TEST_STRENGTH = Metric.TEST_STRENGTH.toTagName();
-    static final String MCDC_PAIR_COVERAGE = Metric.MCDC_PAIR.toTagName();
-    static final String FUNCTION_CALL_COVERAGE = Metric.FUNCTION_CALL.toTagName();
-    static final String METHOD_COVERAGE = Metric.METHOD.toTagName();
-
     @Override
     protected Map<String, Double> computeSeries(final CoverageStatistics statistics) {
         return Arrays.stream(Metric.values())

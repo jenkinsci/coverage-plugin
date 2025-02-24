@@ -7,7 +7,6 @@ import edu.hm.hafner.coverage.Difference;
 import edu.hm.hafner.coverage.Metric;
 import edu.hm.hafner.coverage.Node;
 import edu.hm.hafner.coverage.Value;
-import edu.hm.hafner.echarts.ChartModelConfiguration;
 import edu.hm.hafner.echarts.JacksonFacade;
 import edu.hm.hafner.util.FilteredLog;
 import edu.hm.hafner.util.VisibleForTesting;
@@ -32,7 +31,6 @@ import hudson.Functions;
 import hudson.model.Run;
 import hudson.util.XStream2;
 
-import io.jenkins.plugins.coverage.metrics.charts.TrendChart;
 import io.jenkins.plugins.coverage.metrics.model.Baseline;
 import io.jenkins.plugins.coverage.metrics.model.CoverageStatistics;
 import io.jenkins.plugins.coverage.metrics.model.ElementFormatter;
@@ -679,15 +677,15 @@ public final class CoverageBuildAction extends BuildAction<Node> implements Stap
     public CoverageViewModel getTarget() {
         return new CoverageViewModel(getOwner(), getUrlName(), name, getResult(),
                 getStatistics(), getQualityGateResult(), getReferenceBuildLink(), log,
-                this::createChartModel, this::checkForCoverageData);
+                this::createCoverageModel, this::createMetricsModel);
     }
 
-    private String createChartModel(final String configuration, final boolean metrics) {
-        // TODO: add without optional
-        var iterable = new BuildActionIterable<>(CoverageBuildAction.class, Optional.of(this),
-                action -> getUrlName().equals(action.getUrlName()), CoverageBuildAction::getStatistics);
-        return new JacksonFacade().toJson(TrendChart.createTrendChart(metrics)
-                .create(iterable, ChartModelConfiguration.fromJson(configuration)));
+    private String createCoverageModel(final String configuration) {
+        return new JacksonFacade().toJson(new TrendChartFactory().createChartModel(configuration, this));
+    }
+
+    private String createMetricsModel(final String configuration) {
+        return new JacksonFacade().toJson(new TrendChartFactory().createMetricsModel(configuration, this));
     }
 
     private boolean checkForCoverageData() {

@@ -10,8 +10,8 @@
     <j:forEach var="metric" items="${from.trendMetrics}">
       <div class="mb-1">
         <input class="form-check-input" type="checkbox"
-               name="${metric}" id="${suffix}-${metric}"/>
-        <label class="form-check-label" for="${suffix}-${metric}">
+               name="${metric}" id="${suffix}-metric-${metric}"/>
+        <label class="form-check-label" for="${suffix}-metric-${metric}">
           ${metric.displayName}
         </label>
       </div>
