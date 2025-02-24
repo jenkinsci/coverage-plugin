@@ -2,7 +2,6 @@ package io.jenkins.plugins.coverage.metrics.steps;
 
 import org.apache.commons.lang3.StringUtils;
 
-import edu.hm.hafner.coverage.Coverage;
 import edu.hm.hafner.coverage.Difference;
 import edu.hm.hafner.coverage.Metric;
 import edu.hm.hafner.coverage.Node;
@@ -35,7 +34,6 @@ import io.jenkins.plugins.coverage.metrics.model.Baseline;
 import io.jenkins.plugins.coverage.metrics.model.CoverageStatistics;
 import io.jenkins.plugins.coverage.metrics.model.ElementFormatter;
 import io.jenkins.plugins.coverage.metrics.steps.CoverageXmlStream.MetricFractionMapConverter;
-import io.jenkins.plugins.echarts.GenericBuildActionIterator.BuildActionIterable;
 import io.jenkins.plugins.forensics.reference.ReferenceBuild;
 import io.jenkins.plugins.util.AbstractXmlStream;
 import io.jenkins.plugins.util.BuildAction;
@@ -686,22 +684,6 @@ public final class CoverageBuildAction extends BuildAction<Node> implements Stap
 
     private String createMetricsModel(final String configuration) {
         return new JacksonFacade().toJson(new TrendChartFactory().createMetricsModel(configuration, this));
-    }
-
-    private boolean checkForCoverageData() {
-        var iterator = new BuildActionIterable<>(CoverageBuildAction.class, Optional.of(this),
-                action -> getUrlName().equals(action.getUrlName()), CoverageBuildAction::getStatistics).iterator();
-        if (iterator.hasNext()) {
-            var lastResult = iterator.next().getResult();
-            return lastResult.getValue(Baseline.PROJECT, Metric.MODULE)
-                    .or(() -> lastResult.getValue(Baseline.PROJECT, Metric.PACKAGE))
-                    .or(() -> lastResult.getValue(Baseline.PROJECT, Metric.FILE))
-                    .or(() -> lastResult.getValue(Baseline.PROJECT, Metric.CLASS))
-                    .or(() -> lastResult.getValue(Baseline.PROJECT, Metric.METHOD))
-                    .map(value -> value instanceof Coverage && ((Coverage) value).isSet())
-                    .orElse(false);
-        }
-        return false;
     }
 
     @NonNull
