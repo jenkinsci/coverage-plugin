@@ -1,20 +1,21 @@
 package io.jenkins.plugins.coverage.metrics.steps;
 
-import java.util.Optional;
-import java.util.function.Predicate;
-
 import org.apache.commons.lang3.StringUtils;
 
+import edu.hm.hafner.coverage.Metric;
 import edu.hm.hafner.coverage.Node;
-import edu.hm.hafner.echarts.ChartModelConfiguration;
+import edu.hm.hafner.coverage.Value;
 import edu.hm.hafner.echarts.line.LinesChartModel;
 import edu.umd.cs.findbugs.annotations.NonNull;
 
+import java.util.Collection;
+import java.util.List;
+import java.util.Optional;
+
 import hudson.model.Job;
 
-import io.jenkins.plugins.coverage.metrics.charts.CoverageTrendChart;
+import io.jenkins.plugins.coverage.metrics.model.Baseline;
 import io.jenkins.plugins.echarts.ActionSelector;
-import io.jenkins.plugins.echarts.GenericBuildActionIterator.BuildActionIterable;
 import io.jenkins.plugins.echarts.TrendChartJobAction;
 
 /**
@@ -25,6 +26,8 @@ import io.jenkins.plugins.echarts.TrendChartJobAction;
  * @author Ullrich Hafner
  */
 public class CoverageJobAction extends TrendChartJobAction<CoverageBuildAction> {
+    private static final LinesChartModel EMPTY_CHART = new LinesChartModel();
+
     private final String id;
     private final String name;
     private final String icon;
@@ -72,20 +75,37 @@ public class CoverageJobAction extends TrendChartJobAction<CoverageBuildAction> 
         return getUrlName();
     }
 
+    /**
+     * Returns the metrics that are available for the trend chart.
+     *
+     * @return the available metrics
+     */
+    @SuppressWarnings("unused") // Used in trend chart configuration
+    public List<Metric> getTrendMetrics() {
+        var latestAction = getLatestAction();
+
+        return latestAction.stream()
+                .map(a -> a.getAllValues(Baseline.PROJECT))
+                .flatMap(Collection::stream)
+                .map(Value::getMetric)
+                .filter(m -> !TrendChartFactory.IGNORED_TREND_METRICS.contains(m))
+                .filter(m -> m.isCoverage() || latestAction.map(a -> !a.hasCoverage()).orElse(true))
+                .toList();
+    }
+
     @Override
     protected LinesChartModel createChartModel(final String configuration) {
-        var iterable = new BuildActionIterable<>(CoverageBuildAction.class, getLatestAction(),
-                selectByUrl(), CoverageBuildAction::getStatistics);
+        var latestAction = getLatestAction();
 
-        return new CoverageTrendChart().create(iterable, ChartModelConfiguration.fromJson(configuration));
+        return latestAction
+                .map(a -> new TrendChartFactory().createChartModel(configuration, a))
+                .orElse(EMPTY_CHART);
     }
 
     @Override
     public Optional<CoverageBuildAction> getLatestAction() {
-        return new ActionSelector<>(CoverageBuildAction.class, selectByUrl()).findFirst(getOwner().getLastBuild());
-    }
-
-    private Predicate<CoverageBuildAction> selectByUrl() {
-        return action -> getUrlName().equals(action.getUrlName());
+        return new ActionSelector<>(CoverageBuildAction.class,
+                action -> getUrlName().equals(action.getUrlName()))
+                .findFirst(getOwner().getLastBuild());
     }
 }

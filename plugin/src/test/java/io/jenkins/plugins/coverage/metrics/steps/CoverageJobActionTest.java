@@ -1,12 +1,14 @@
 package io.jenkins.plugins.coverage.metrics.steps;
 
-import java.io.IOException;
-import java.util.List;
-
 import org.apache.commons.lang3.StringUtils;
 import org.junit.jupiter.api.Test;
 
+import edu.hm.hafner.coverage.Metric;
+import edu.hm.hafner.coverage.Value;
 import edu.hm.hafner.echarts.line.LinesChartModel;
+
+import java.io.IOException;
+import java.util.List;
 
 import org.kohsuke.stapler.StaplerRequest2;
 import org.kohsuke.stapler.StaplerResponse2;
@@ -102,6 +104,9 @@ class CoverageJobActionTest {
         CoverageBuildAction action = mock(CoverageBuildAction.class);
         when(action.getOwner()).thenAnswer(i -> build);
         when(action.getUrlName()).thenReturn(URL);
+        when(action.getAllValues(any())).thenReturn(List.of(
+                Value.nullObject(Metric.LINE),
+                Value.nullObject(Metric.BRANCH)));
         return action;
     }
 }

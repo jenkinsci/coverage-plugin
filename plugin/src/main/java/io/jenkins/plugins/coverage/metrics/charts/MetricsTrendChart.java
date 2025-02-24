@@ -4,41 +4,67 @@ import edu.hm.hafner.coverage.Metric;
 import edu.hm.hafner.echarts.BuildResult;
 import edu.hm.hafner.echarts.ChartModelConfiguration;
 import edu.hm.hafner.echarts.JacksonFacade;
-import edu.hm.hafner.echarts.line.LineSeries.FilledMode;
+import edu.hm.hafner.echarts.line.LineSeries;
 import edu.hm.hafner.echarts.line.LinesChartModel;
 import edu.hm.hafner.echarts.line.LinesDataSet;
+
+import java.util.List;
+import java.util.Set;
 
 import io.jenkins.plugins.coverage.metrics.model.CoverageStatistics;
 import io.jenkins.plugins.echarts.JenkinsPalette;
 
 /**
- * Builds the Java side model for a trend chart showing the metrics of a project. The number of builds
- * to consider is controlled by a {@link ChartModelConfiguration} instance. The created model object can be serialized
- * to JSON (e.g., using the {@link JacksonFacade}) and can be used 1:1 as ECharts configuration object in the
- * corresponding JS file.
+ * Builds the Java side model for a trend chart showing the metrics of a project. The number of builds to consider is
+ * controlled by a {@link ChartModelConfiguration} instance. The created model object can be serialized to JSON (e.g.,
+ * using the {@link JacksonFacade}) and can be used 1:1 as ECharts configuration object in the corresponding JS file.
  *
  * @author Ullrich Hafner
  * @see JacksonFacade
  */
 public class MetricsTrendChart extends TrendChart {
+    /**
+     * Creates a new {@link MetricsTrendChart}.
+     *
+     * @param visibleMetrics
+     *         the metrics to render in the trend chart
+     * @param useLines
+     *         determines if the chart should use lines or filled areas
+     */
+    public MetricsTrendChart(final Set<Metric> visibleMetrics, final boolean useLines) {
+        super(visibleMetrics, useLines);
+    }
+
     @Override
     public LinesChartModel create(final Iterable<BuildResult<CoverageStatistics>> results,
             final ChartModelConfiguration configuration) {
-        LinesDataSet dataSet = new MetricSeriesBuilder().createDataSet(configuration, results);
+        LinesDataSet dataSet = new CoverageSeriesBuilder().createDataSet(configuration, results);
 
         LinesChartModel model = new LinesChartModel(dataSet);
         if (dataSet.isNotEmpty()) {
-            model.useContinuousRangeAxis();
-            model.setRangeMax(dataSet.getMaximumValue());
-            model.setRangeMin(dataSet.getMinimumValue());
-
             int colorIndex = 0;
             for (var tag : dataSet.getDataSetIds()) {
                 Metric metric = Metric.fromTag(tag);
                 addSeriesIfAvailable(dataSet, model, metric.getDisplayName(),
-                        tag, JenkinsPalette.chartColor(colorIndex++).normal(),
-                        FilledMode.LINES);
+                        tag, JenkinsPalette.chartColor(colorIndex++).normal());
             }
+
+            model.useContinuousRangeAxis();
+            // FIXME: once part of ECharts we should remove this code
+            model.setRangeMax(model.getSeries()
+                    .stream()
+                    .map(LineSeries::getData)
+                    .flatMap(List::stream)
+                    .mapToDouble(Number::doubleValue)
+                    .max()
+                    .orElse(0));
+            model.setRangeMin(model.getSeries()
+                    .stream()
+                    .map(LineSeries::getData)
+                    .flatMap(List::stream)
+                    .mapToDouble(Number::doubleValue)
+                    .min()
+                    .orElse(0));
         }
         return model;
     }

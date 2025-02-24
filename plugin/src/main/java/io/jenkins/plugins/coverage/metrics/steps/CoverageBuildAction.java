@@ -2,12 +2,10 @@ package io.jenkins.plugins.coverage.metrics.steps;
 
 import org.apache.commons.lang3.StringUtils;
 
-import edu.hm.hafner.coverage.Coverage;
 import edu.hm.hafner.coverage.Difference;
 import edu.hm.hafner.coverage.Metric;
 import edu.hm.hafner.coverage.Node;
 import edu.hm.hafner.coverage.Value;
-import edu.hm.hafner.echarts.ChartModelConfiguration;
 import edu.hm.hafner.echarts.JacksonFacade;
 import edu.hm.hafner.util.FilteredLog;
 import edu.hm.hafner.util.VisibleForTesting;
@@ -32,12 +30,10 @@ import hudson.Functions;
 import hudson.model.Run;
 import hudson.util.XStream2;
 
-import io.jenkins.plugins.coverage.metrics.charts.TrendChart;
 import io.jenkins.plugins.coverage.metrics.model.Baseline;
 import io.jenkins.plugins.coverage.metrics.model.CoverageStatistics;
 import io.jenkins.plugins.coverage.metrics.model.ElementFormatter;
 import io.jenkins.plugins.coverage.metrics.steps.CoverageXmlStream.MetricFractionMapConverter;
-import io.jenkins.plugins.echarts.GenericBuildActionIterator.BuildActionIterable;
 import io.jenkins.plugins.forensics.reference.ReferenceBuild;
 import io.jenkins.plugins.util.AbstractXmlStream;
 import io.jenkins.plugins.util.BuildAction;
@@ -406,6 +402,17 @@ public final class CoverageBuildAction extends BuildAction<Node> implements Stap
     }
 
     /**
+     * Returns whether this action represents results with coverage metrics. Otherwise, this action represents software
+     * metrics.
+     *
+     * @return {@code true} if this action represents coverage metrics, {@code false} if this action represents software
+     *         metrics
+     */
+    public boolean hasCoverage() {
+        return getAllValues(Baseline.PROJECT).stream().map(Value::getMetric).anyMatch(Metric::isCoverage);
+    }
+
+    /**
      * Returns the value for the specified metric, if available.
      *
      * @param baseline
@@ -668,31 +675,15 @@ public final class CoverageBuildAction extends BuildAction<Node> implements Stap
     public CoverageViewModel getTarget() {
         return new CoverageViewModel(getOwner(), getUrlName(), name, getResult(),
                 getStatistics(), getQualityGateResult(), getReferenceBuildLink(), log,
-                this::createChartModel, this::checkForCoverageData);
+                this::createCoverageModel, this::createMetricsModel);
     }
 
-    private String createChartModel(final String configuration, final boolean metrics) {
-        // TODO: add without optional
-        var iterable = new BuildActionIterable<>(CoverageBuildAction.class, Optional.of(this),
-                action -> getUrlName().equals(action.getUrlName()), CoverageBuildAction::getStatistics);
-        return new JacksonFacade().toJson(TrendChart.createTrendChart(metrics)
-                .create(iterable, ChartModelConfiguration.fromJson(configuration)));
+    private String createCoverageModel(final String configuration) {
+        return new JacksonFacade().toJson(new TrendChartFactory().createChartModel(configuration, this));
     }
 
-    private boolean checkForCoverageData() {
-        var iterator = new BuildActionIterable<>(CoverageBuildAction.class, Optional.of(this),
-                action -> getUrlName().equals(action.getUrlName()), CoverageBuildAction::getStatistics).iterator();
-        if (iterator.hasNext()) {
-            var lastResult = iterator.next().getResult();
-            return lastResult.getValue(Baseline.PROJECT, Metric.MODULE)
-                    .or(() -> lastResult.getValue(Baseline.PROJECT, Metric.PACKAGE))
-                    .or(() -> lastResult.getValue(Baseline.PROJECT, Metric.FILE))
-                    .or(() -> lastResult.getValue(Baseline.PROJECT, Metric.CLASS))
-                    .or(() -> lastResult.getValue(Baseline.PROJECT, Metric.METHOD))
-                    .map(value -> value instanceof Coverage && ((Coverage) value).isSet())
-                    .orElse(false);
-        }
-        return false;
+    private String createMetricsModel(final String configuration) {
+        return new JacksonFacade().toJson(new TrendChartFactory().createMetricsModel(configuration, this));
     }
 
     @NonNull

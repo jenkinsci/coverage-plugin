@@ -12,6 +12,7 @@ import edu.hm.hafner.coverage.FileNode;
 import edu.hm.hafner.coverage.Metric;
 import edu.hm.hafner.coverage.Node;
 import edu.hm.hafner.coverage.Percentage;
+import edu.hm.hafner.coverage.Value;
 import edu.hm.hafner.echarts.LabeledTreeMapNode;
 import edu.hm.hafner.util.FilteredLog;
 import edu.hm.hafner.util.VisibleForTesting;
@@ -26,10 +27,8 @@ import java.util.NavigableSet;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.Set;
-import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Predicate;
-import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -95,8 +94,8 @@ public class CoverageViewModel extends DefaultAsyncTableContentProvider implemen
 
     private final Node modifiedLinesCoverageTreeRoot;
     private final Node indirectCoverageChangesTreeRoot;
-    private final BiFunction<String, Boolean, String> trendChartFunction;
-    private final Supplier<Boolean> coverageSupplier;
+    private final Function<String, String> trendChartFunction;
+    private final Function<String, String> metricsTrendFunction;
 
     private ColorProvider colorProvider = ColorProviderFactory.createDefaultColorProvider();
 
@@ -104,7 +103,8 @@ public class CoverageViewModel extends DefaultAsyncTableContentProvider implemen
     CoverageViewModel(final Run<?, ?> owner, final String id, final String displayName, final Node node,
             final CoverageStatistics statistics, final QualityGateResult qualityGateResult,
             final String referenceBuild, final FilteredLog log,
-            final BiFunction<String, Boolean, String> trendChartFunction, final Supplier<Boolean> coverageSupplier) {
+            final Function<String, String> trendChartFunction,
+            final Function<String, String> metricsTrendFunction) {
         super();
 
         this.owner = owner;
@@ -122,7 +122,7 @@ public class CoverageViewModel extends DefaultAsyncTableContentProvider implemen
         modifiedLinesCoverageTreeRoot = node.filterByModifiedLines();
         indirectCoverageChangesTreeRoot = node.filterByIndirectChanges();
         this.trendChartFunction = trendChartFunction;
-        this.coverageSupplier = coverageSupplier;
+        this.metricsTrendFunction = metricsTrendFunction;
     }
 
     @VisibleForTesting
@@ -158,6 +158,34 @@ public class CoverageViewModel extends DefaultAsyncTableContentProvider implemen
         return valueMetrics;
     }
 
+    /**
+     * Returns the metrics that are available for the trend chart.
+     *
+     * @return the available metrics
+     */
+    @SuppressWarnings("unused") // Used in trend chart configuration
+    public List<Metric> getCoverageMetrics() {
+        return node.aggregateValues().stream()
+                .map(Value::getMetric)
+                .filter(Metric::isCoverage)
+                .filter(m -> !TrendChartFactory.IGNORED_TREND_METRICS.contains(m))
+                .toList();
+    }
+
+    /**
+     * Returns the metrics that are available for the trend chart.
+     *
+     * @return the available metrics
+     */
+    @SuppressWarnings("unused") // Used in trend chart configuration
+    public List<Metric> getSoftwareMetrics() {
+        return node.aggregateValues().stream()
+                .map(Value::getMetric)
+                .filter(Predicate.not(Metric::isCoverage))
+                .filter(m -> !TrendChartFactory.IGNORED_TREND_METRICS.contains(m))
+                .toList();
+    }
+
     @Override
     public String getDisplayName() {
         if (StringUtils.isBlank(displayName)) {
@@ -187,10 +215,10 @@ public class CoverageViewModel extends DefaultAsyncTableContentProvider implemen
     }
 
     /**
-     * Creates a new {@link ColorProvider} based on the passed color json string which contains the set Jenkins colors.
+     * Creates a new {@link ColorProvider} based on the passed color JSON string which contains the set Jenkins colors.
      *
      * @param colors
-     *         The dynamically loaded Jenkins colors to be used for highlighting the coverage tree as json string
+     *         The dynamically loaded Jenkins colors to be used for highlighting the coverage tree as JSON string
      */
     @JavaScriptMethod
     @SuppressWarnings("unused")
@@ -199,10 +227,10 @@ public class CoverageViewModel extends DefaultAsyncTableContentProvider implemen
     }
 
     /**
-     * Parses the passed color json string to a {@link ColorProvider}.
+     * Parses the passed color JSON string to a {@link ColorProvider}.
      *
      * @param json
-     *         The color json
+     *         The color JSON
      *
      * @return the created color provider
      */
@@ -233,7 +261,7 @@ public class CoverageViewModel extends DefaultAsyncTableContentProvider implemen
     @JavaScriptMethod
     @SuppressWarnings("unused")
     public String getTrendChart(final String configuration) {
-        return trendChartFunction.apply(configuration, false);
+        return trendChartFunction.apply(configuration);
     }
 
     /**
@@ -247,16 +275,16 @@ public class CoverageViewModel extends DefaultAsyncTableContentProvider implemen
     @JavaScriptMethod
     @SuppressWarnings("unused")
     public String getMetricsTrendChart(final String configuration) {
-        return trendChartFunction.apply(configuration, true);
+        return metricsTrendFunction.apply(configuration);
     }
 
     /**
-     * Returns if the last job had any coverage data.
+     * Returns if the model has any coverage data.
      *
      * @return if the last job has coverage data
      */
     public boolean hasCoverage() {
-        return coverageSupplier.get();
+        return node.aggregateValues().stream().map(Value::getMetric).anyMatch(Metric::isCoverage);
     }
 
     /**

@@ -22,12 +22,21 @@
 
     <div class="tabBarFrame">
       <ul class="flex-wrap tabBar" role="tablist" id="tab-details">
-        <li class="nav-item tab" role="presentation">
-          <a class="nav-link" id="overview-tab" data-bs-toggle="tab" data-bs-target="#overview" type="button" role="tab" aria-controls="overview" aria-selected="false">${%tab.name.overview}</a>
-        </li>
+        <j:if test="${hasCoverage}">
+          <li class="nav-item tab" role="presentation">
+            <a class="nav-link" id="overview-tab" data-bs-toggle="tab" data-bs-target="#overview" type="button"
+               role="tab" aria-controls="overview" aria-selected="false">${%tab.name.overview}
+            </a>
+          </li>
+        </j:if>
+        <j:if test="${hasMetrics}">
+          <li class="nav-item tab" role="presentation">
+            <a class="nav-link" id="metrics-tab" data-bs-toggle="tab" data-bs-target="#metrics" type="button" role="tab" aria-controls="metrics" aria-selected="false">${%tab.name.metrics}</a>
+          </li>
+        </j:if>
         <j:forEach var="metric" items="${it.treeMetrics}">
           <li class="nav-item tab" role="presentation">
-            <a class="nav-link" id="${metric.toTagName()}-tab" data-bs-toggle="tab" data-bs-target="#${metric.toTagName()}" type="button" role="tab" aria-controls="${metric.toTagName()}" aria-selected="false">${metric.label}</a>
+            <a class="nav-link" id="${metric.toTagName()}-tab" data-bs-toggle="tab" data-bs-target="#${metric.toTagName()}" type="button" role="tab" aria-controls="${metric.toTagName()}" aria-selected="false">${metric.displayName}</a>
           </li>
         </j:forEach>
         <li class="nav-item tab" role="presentation">
@@ -63,7 +72,9 @@
             </div>
           </div>
         </j:if>
-        <j:if test="${hasMetrics}">
+      </div>
+      <j:if test="${hasMetrics}">
+        <div role="tabpanel" id="metrics" class="tab-pane fade" aria-labelledby="metrics-tab" >
           <div class="row">
             <div class="col-12 py-3">
               <bs:card title="${%Metrics trend}" fontAwesomeIcon="chart-line">
@@ -71,8 +82,8 @@
               </bs:card>
             </div>
           </div>
-        </j:if>
-      </div>
+        </div>
+      </j:if>
       <j:forEach var="metric" items="${it.treeMetrics}">
         <div role="tabpanel" id="${metric.toTagName()}" class="tab-pane fade" aria-labelledby="${metric.toTagName()}-tab">
           <bs:card title="${formatter.getDisplayName(metric)}" fontAwesomeIcon="folder-tree" class="flex-fill" bodyClass="d-flex flex-column">
@@ -101,7 +112,63 @@
 
   </bs:page>
 
-  <c:chart-setup id="coverage-history"/>
+  <c:chart-custom-setup id="coverage-history">
+    <div class="mb-3">
+      <label class="form-label fw-bold">
+        Metrics to show
+      </label>
+    </div>
+    <j:forEach var="metric" items="${it.coverageMetrics}">
+      <div class="mb-1">
+        <input class="form-check-input" type="checkbox"
+               name="${metric}" id="coverage-history-metric-${metric}"/>
+        <label class="form-check-label" for="coverage-history-metric-${metric}">
+          ${metric.displayName}
+        </label>
+      </div>
+    </j:forEach>
+    <div class="mb-3">
+      <label class="form-label fw-bold">
+        General configuration
+      </label>
+    </div>
+    <div class="mb-3">
+      <input class="form-check-input" type="checkbox"
+             name="lines" id="coverage-history-lines"/>
+      <label class="form-check-label" for="coverage-history-lines">
+        Show results as a lines chart
+      </label>
+    </div>
+  </c:chart-custom-setup>
+
+  <c:chart-custom-setup id="metrics-history">
+    <div class="mb-3">
+      <label class="form-label fw-bold">
+        Metrics to show
+      </label>
+    </div>
+    <j:forEach var="metric" items="${it.softwareMetrics}">
+      <div class="mb-1">
+        <input class="form-check-input" type="checkbox"
+               name="${metric}" id="metric-history-metric-${metric}"/>
+        <label class="form-check-label" for="metric-history-metric-${metric}">
+          ${metric.displayName}
+        </label>
+      </div>
+    </j:forEach>
+    <div class="mb-3">
+      <label class="form-label fw-bold">
+        General configuration
+      </label>
+    </div>
+    <div class="mb-3">
+      <input class="form-check-input" type="checkbox"
+             name="lines" id="metric-history-lines"/>
+      <label class="form-check-label" for="metric-history-lines">
+        Show results as a lines chart
+      </label>
+    </div>
+  </c:chart-custom-setup>
 
   <st:bind var="proxy" value="${it}" />
   <st:adjunct includes="io.jenkins.plugins.coverage.metrics.steps.CoverageViewModel.init-view-model"/>

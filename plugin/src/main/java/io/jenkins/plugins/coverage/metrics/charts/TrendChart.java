@@ -10,6 +10,10 @@ import edu.hm.hafner.echarts.line.LineSeries.StackedMode;
 import edu.hm.hafner.echarts.line.LinesChartModel;
 import edu.hm.hafner.echarts.line.LinesDataSet;
 
+import java.util.Arrays;
+import java.util.Set;
+import java.util.stream.Collectors;
+
 import io.jenkins.plugins.coverage.metrics.model.CoverageStatistics;
 
 /**
@@ -21,15 +25,25 @@ import io.jenkins.plugins.coverage.metrics.model.CoverageStatistics;
  * @see JacksonFacade
  */
 public abstract class TrendChart {
+    private static final Set<Metric> ALL_METRICS = Arrays.stream(Metric.values()).collect(Collectors.toSet());
+
     /**
-     * Create a Trend Chart Instance that is either for Coverage or Metrics.
+     * Create a trend chart instance for coverage or software metrics.
      *
      * @param metrics if the instance should be the metrics
      *
      * @return the created Trend Chart Instance
      */
     public static TrendChart createTrendChart(final boolean metrics) {
-        return metrics ? new MetricsTrendChart() : new CoverageTrendChart();
+        return metrics ? new MetricsTrendChart(ALL_METRICS, true) : new CoverageTrendChart(ALL_METRICS, false);
+    }
+
+    private final Set<Metric> visibleMetrics;
+    private final FilledMode filledMode;
+
+    TrendChart(final Set<Metric> visibleMetrics, final boolean useLines) {
+        this.visibleMetrics = visibleMetrics;
+        filledMode = useLines ? FilledMode.LINES : FilledMode.FILLED;
     }
 
     /**
@@ -47,8 +61,8 @@ public abstract class TrendChart {
             ChartModelConfiguration configuration);
 
     void addSeriesIfAvailable(final LinesDataSet dataSet, final LinesChartModel model,
-                   final String name, final String seriesId, final String color, final FilledMode filledMode) {
-        if (dataSet.containsSeries(seriesId)) {
+                   final String name, final String seriesId, final String color) {
+        if (dataSet.containsSeries(seriesId) && isVisible(seriesId)) {
             LineSeries branchSeries = new LineSeries(name,
                     color, StackedMode.SEPARATE_LINES, filledMode, dataSet.getSeries(seriesId));
 
@@ -57,13 +71,17 @@ public abstract class TrendChart {
     }
 
     void addSeriesIfAvailable(final LinesDataSet dataSet, final LinesChartModel model,
-                   final Metric metric, final String color, final FilledMode filledMode) {
+                   final Metric metric, final String color) {
         var tagName = metric.toTagName();
-        if (dataSet.containsSeries(tagName)) {
+        if (dataSet.containsSeries(tagName) && isVisible(tagName)) {
             LineSeries branchSeries = new LineSeries(metric.getDisplayName(),
                     color, StackedMode.SEPARATE_LINES, filledMode, dataSet.getSeries(tagName));
 
             model.addSeries(branchSeries);
         }
+    }
+
+    private boolean isVisible(final String seriesId) {
+        return visibleMetrics.contains(Metric.fromTag(seriesId));
     }
 }

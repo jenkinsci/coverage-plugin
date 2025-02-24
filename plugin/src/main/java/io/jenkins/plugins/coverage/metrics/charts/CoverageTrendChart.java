@@ -4,9 +4,12 @@ import edu.hm.hafner.coverage.Metric;
 import edu.hm.hafner.echarts.BuildResult;
 import edu.hm.hafner.echarts.ChartModelConfiguration;
 import edu.hm.hafner.echarts.JacksonFacade;
-import edu.hm.hafner.echarts.line.LineSeries.FilledMode;
+import edu.hm.hafner.echarts.line.LineSeries;
 import edu.hm.hafner.echarts.line.LinesChartModel;
-import edu.hm.hafner.echarts.line.LinesDataSet;
+import edu.hm.hafner.util.VisibleForTesting;
+
+import java.util.List;
+import java.util.Set;
 
 import io.jenkins.plugins.coverage.metrics.model.CoverageStatistics;
 import io.jenkins.plugins.echarts.JenkinsPalette;
@@ -21,6 +24,23 @@ import io.jenkins.plugins.echarts.JenkinsPalette;
  * @see JacksonFacade
  */
 public class CoverageTrendChart extends TrendChart {
+    @VisibleForTesting
+    CoverageTrendChart() {
+        super(Set.of(), false);
+    }
+
+    /**
+     * Creates a new {@link CoverageTrendChart}.
+     *
+     * @param visibleMetrics
+     *         the metrics to render in the trend chart
+     * @param useLines
+     *         determines if the chart should use lines or filled areas
+     */
+    public CoverageTrendChart(final Set<Metric> visibleMetrics, final boolean useLines) {
+        super(visibleMetrics, useLines);
+    }
+
     @Override
     public LinesChartModel create(final Iterable<BuildResult<CoverageStatistics>> results,
             final ChartModelConfiguration configuration) {
@@ -28,37 +48,25 @@ public class CoverageTrendChart extends TrendChart {
 
         LinesChartModel model = new LinesChartModel(dataSet);
         if (dataSet.isNotEmpty()) {
+            int colorIndex = 0;
+            for (Metric metric : List.of(Metric.MODULE, Metric.PACKAGE, Metric.FILE, Metric.CLASS, Metric.METHOD)) {
+                addSeriesIfAvailable(dataSet, model, metric, JenkinsPalette.chartColor(colorIndex++).normal());
+            }
+
+            addSeriesIfAvailable(dataSet, model, Metric.LINE, JenkinsPalette.GREEN.normal());
+            addSeriesIfAvailable(dataSet, model, Metric.BRANCH, JenkinsPalette.GREEN.dark());
+            addSeriesIfAvailable(dataSet, model, Metric.INSTRUCTION, JenkinsPalette.GREEN.light());
+
+            addSeriesIfAvailable(dataSet, model, Metric.MUTATION, JenkinsPalette.GREEN.dark());
+            addSeriesIfAvailable(dataSet, model, Metric.TEST_STRENGTH, JenkinsPalette.GREEN.light());
+
+            addSeriesIfAvailable(dataSet, model, Metric.MCDC_PAIR, JenkinsPalette.RED.light());
+            addSeriesIfAvailable(dataSet, model, Metric.FUNCTION_CALL, JenkinsPalette.RED.dark());
+
             model.useContinuousRangeAxis();
-            model.setRangeMax(100);
-            model.setRangeMin(dataSet.getMinimumValue());
-
-            var filledMode = computeFilledMode(dataSet);
-            addSeriesIfAvailable(dataSet, model, Metric.LINE, JenkinsPalette.GREEN.normal(), filledMode);
-            addSeriesIfAvailable(dataSet, model, Metric.BRANCH, JenkinsPalette.GREEN.dark(), filledMode);
-            addSeriesIfAvailable(dataSet, model, Metric.MUTATION, JenkinsPalette.GREEN.dark(), filledMode);
-            addSeriesIfAvailable(dataSet, model, Metric.TEST_STRENGTH, JenkinsPalette.GREEN.light(), filledMode);
-
-            addSeriesIfAvailable(dataSet, model, Metric.MCDC_PAIR, JenkinsPalette.RED.light(), filledMode);
-            addSeriesIfAvailable(dataSet, model, Metric.METHOD, JenkinsPalette.RED.normal(), filledMode);
-            addSeriesIfAvailable(dataSet, model, Metric.FUNCTION_CALL, JenkinsPalette.RED.dark(), filledMode);
+            model.setRangeMax(100); // Restrict the range to 100%
+            model.setRangeMin(model.getSeries().stream().map(LineSeries::getData).flatMap(List::stream).mapToDouble(Number::doubleValue).min().orElse(0));
         }
         return model;
-    }
-
-    /**
-     * Returns the filled mode based on the contained coverage values. If the dataset contains MCDC or Function Call
-     * coverage, then the filled mode is set to LINES, otherwise FILLED.
-     *
-     * @param dataSet
-     *         the dataset to check
-     *
-     * @return the filled mode
-     */
-    private FilledMode computeFilledMode(final LinesDataSet dataSet) {
-        if (dataSet.containsSeries(CoverageSeriesBuilder.MCDC_PAIR_COVERAGE)
-                || dataSet.containsSeries(CoverageSeriesBuilder.FUNCTION_CALL_COVERAGE)) {
-            return FilledMode.LINES;
-        }
-        return FilledMode.FILLED;
     }
 }
