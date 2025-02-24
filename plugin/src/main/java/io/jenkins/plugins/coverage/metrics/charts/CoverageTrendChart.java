@@ -4,7 +4,6 @@ import edu.hm.hafner.coverage.Metric;
 import edu.hm.hafner.echarts.BuildResult;
 import edu.hm.hafner.echarts.ChartModelConfiguration;
 import edu.hm.hafner.echarts.JacksonFacade;
-import edu.hm.hafner.echarts.line.LineSeries;
 import edu.hm.hafner.echarts.line.LinesChartModel;
 import edu.hm.hafner.util.VisibleForTesting;
 
@@ -64,8 +63,8 @@ public class CoverageTrendChart extends TrendChart {
             addSeriesIfAvailable(dataSet, model, Metric.FUNCTION_CALL, JenkinsPalette.RED.dark());
 
             model.useContinuousRangeAxis();
+            model.computeVisibleRange();
             model.setRangeMax(100); // Restrict the range to 100%
-            model.setRangeMin(model.getSeries().stream().map(LineSeries::getData).flatMap(List::stream).mapToDouble(Number::doubleValue).min().orElse(0));
         }
         return model;
     }
