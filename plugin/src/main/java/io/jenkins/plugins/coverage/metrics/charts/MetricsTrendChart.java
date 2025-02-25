@@ -4,11 +4,9 @@ import edu.hm.hafner.coverage.Metric;
 import edu.hm.hafner.echarts.BuildResult;
 import edu.hm.hafner.echarts.ChartModelConfiguration;
 import edu.hm.hafner.echarts.JacksonFacade;
-import edu.hm.hafner.echarts.line.LineSeries;
 import edu.hm.hafner.echarts.line.LinesChartModel;
 import edu.hm.hafner.echarts.line.LinesDataSet;
 
-import java.util.List;
 import java.util.Set;
 
 import io.jenkins.plugins.coverage.metrics.model.CoverageStatistics;
@@ -50,21 +48,7 @@ public class MetricsTrendChart extends TrendChart {
             }
 
             model.useContinuousRangeAxis();
-            // FIXME: once part of ECharts we should remove this code
-            model.setRangeMax(model.getSeries()
-                    .stream()
-                    .map(LineSeries::getData)
-                    .flatMap(List::stream)
-                    .mapToDouble(Number::doubleValue)
-                    .max()
-                    .orElse(0));
-            model.setRangeMin(model.getSeries()
-                    .stream()
-                    .map(LineSeries::getData)
-                    .flatMap(List::stream)
-                    .mapToDouble(Number::doubleValue)
-                    .min()
-                    .orElse(0));
+            model.computeVisibleRange();
         }
         return model;
     }
