@@ -129,6 +129,11 @@ const CoverageChartGenerator = function ($, proxy) { // NOPMD
                             color: coveredColor
                         }
                     },
+                    emphasis: {
+                        itemStyle: {
+                            color: 'inherit'
+                        }
+                    },
                     label: {
                         show: true,
                         position: 'insideLeft',
@@ -147,6 +152,11 @@ const CoverageChartGenerator = function ($, proxy) { // NOPMD
                     itemStyle: {
                         normal: {
                             color: missedColor
+                        }
+                    },
+                    emphasis: {
+                        itemStyle: {
+                            color: 'inherit'
                         }
                     },
                     label: {
