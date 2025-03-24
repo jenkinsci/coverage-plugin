@@ -31,9 +31,7 @@
 
     <!-- Test Library Dependencies Versions -->
     <xmlunit.version>2.10.0</xmlunit.version>
-    <testcontainers.version>1.20.5</testcontainers.version>
-
-    <arcmutate.git.version>2.0.0</arcmutate.git.version>
+    <testcontainers.version>1.20.6</testcontainers.version>
   </properties>
 
   <developers>
@@ -347,23 +345,6 @@
             <param>*jmh_generated*</param>
           </excludedTestClasses>
         </configuration>
-        <dependencies>
-          <dependency>
-            <groupId>com.groupcdg.pitest</groupId>
-            <artifactId>pitest-accelerator-junit5</artifactId>
-            <version>1.0.6</version>
-          </dependency>
-          <dependency>
-            <groupId>org.pitest</groupId>
-            <artifactId>pitest-junit5-plugin</artifactId>
-            <version>1.2.2</version>
-          </dependency>
-          <dependency>
-            <groupId>com.groupcdg</groupId>
-            <artifactId>pitest-git-plugin</artifactId>
-            <version>1.1.4</version>
-          </dependency>
-        </dependencies>
       </plugin>
       <plugin>
         <groupId>org.revapi</groupId>
@@ -373,44 +354,7 @@
         </configuration>
       </plugin>
     </plugins>
-    <pluginManagement>
-      <plugins>
-        <plugin>
-          <groupId>com.arcmutate</groupId>
-          <artifactId>pitest-git-maven-plugin</artifactId>
-          <version>${arcmutate.git.version}</version>
-        </plugin>
-        <!-- provides direct integration with github when accepting PRs from trusted branches -->
-        <plugin>
-          <groupId>com.arcmutate</groupId>
-          <artifactId>pitest-github-maven-plugin</artifactId>
-          <version>${arcmutate.git.version}</version>
-        </plugin>
-      </plugins>
-    </pluginManagement>
   </build>
-
-  <profiles>
-    <profile>
-      <id>pit</id>
-      <build>
-        <plugins>
-          <plugin>
-            <groupId>org.pitest</groupId>
-            <artifactId>pitest-maven</artifactId>
-            <executions>
-              <execution>
-                <id>test</id>
-                <goals>
-                  <goal>mutationCoverage</goal>
-                </goals>
-              </execution>
-            </executions>
-          </plugin>
-        </plugins>
-      </build>
-    </profile>
-  </profiles>
 
   <scm>
     <connection>scm:git:https://github.com/${gitHubRepo}.git</connection>
