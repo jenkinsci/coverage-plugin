@@ -33,7 +33,7 @@
     <xmlunit.version>2.10.0</xmlunit.version>
     <testcontainers.version>1.20.6</testcontainers.version>
 
-    <arcmutate.git.version>2.1.0</arcmutate.git.version>
+    <arcmutate.git.version>2.2.0</arcmutate.git.version>
   </properties>
 
   <developers>
