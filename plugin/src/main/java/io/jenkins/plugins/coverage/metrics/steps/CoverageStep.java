@@ -1,18 +1,18 @@
 package io.jenkins.plugins.coverage.metrics.steps;
 
+import org.apache.commons.lang3.StringUtils;
+
+import edu.umd.cs.findbugs.annotations.CheckForNull;
+import edu.umd.cs.findbugs.annotations.NonNull;
+
 import java.io.IOException;
+import java.io.Serial;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
-import org.apache.commons.lang3.StringUtils;
-
-import edu.umd.cs.findbugs.annotations.CheckForNull;
-import edu.umd.cs.findbugs.annotations.NonNull;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
 import org.kohsuke.stapler.AncestorInPath;
 import org.kohsuke.stapler.DataBoundConstructor;
@@ -53,6 +53,7 @@ import static io.jenkins.plugins.coverage.metrics.steps.CoverageRecorder.*;
  */
 @SuppressWarnings("PMD.DataClass")
 public class CoverageStep extends Step implements Serializable {
+    @Serial
     private static final long serialVersionUID = 34386077204781270L;
     private static final ValidationUtilities VALIDATION_UTILITIES = new ValidationUtilities();
 
@@ -330,8 +331,8 @@ public class CoverageStep extends Step implements Serializable {
     /**
      * Actually performs the execution of the associated step.
      */
-    @SuppressFBWarnings(value = "THROWS", justification = "false positive")
     static class Execution extends AbstractExecution<Void> {
+        @Serial
         private static final long serialVersionUID = -2840020502160375407L;
         private static final Void UNUSED = null;
 
