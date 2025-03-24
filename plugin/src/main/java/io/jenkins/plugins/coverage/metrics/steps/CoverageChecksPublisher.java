@@ -1,5 +1,15 @@
 package io.jenkins.plugins.coverage.metrics.steps;
 
+import org.apache.commons.lang3.StringUtils;
+
+import edu.hm.hafner.coverage.FileNode;
+import edu.hm.hafner.coverage.Metric;
+import edu.hm.hafner.coverage.Mutation;
+import edu.hm.hafner.coverage.Node;
+import edu.hm.hafner.coverage.Value;
+import edu.hm.hafner.util.LineRange;
+import edu.hm.hafner.util.VisibleForTesting;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -14,16 +24,6 @@ import java.util.function.Function;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
-import org.apache.commons.lang3.StringUtils;
-
-import edu.hm.hafner.coverage.FileNode;
-import edu.hm.hafner.coverage.Metric;
-import edu.hm.hafner.coverage.Mutation;
-import edu.hm.hafner.coverage.Node;
-import edu.hm.hafner.coverage.Value;
-import edu.hm.hafner.util.LineRange;
-import edu.hm.hafner.util.VisibleForTesting;
 
 import hudson.model.TaskListener;
 
@@ -477,14 +477,10 @@ class CoverageChecksPublisher {
     }
 
     private String formatText(final TextFormat format, final String text) {
-        switch (format) {
-            case BOLD:
-                return "**" + text + "**";
-            case CURSIVE:
-                return "_" + text + "_";
-            default:
-                return text;
-        }
+        return switch (format) {
+            case BOLD -> "**" + text + "**";
+            case CURSIVE -> "_" + text + "_";
+        };
     }
 
     private String getTrendIcon(final String trend) {
@@ -508,18 +504,10 @@ class CoverageChecksPublisher {
     }
 
     private ChecksConclusion getCheckConclusion(final QualityGateStatus status) {
-        switch (status) {
-            case INACTIVE:
-            case PASSED:
-                return ChecksConclusion.SUCCESS;
-            case FAILED:
-            case ERROR:
-            case WARNING:
-            case NOTE:
-                return ChecksConclusion.FAILURE;
-            default:
-                throw new IllegalArgumentException("Unsupported quality gate status: " + status);
-        }
+        return switch (status) {
+            case INACTIVE, PASSED -> ChecksConclusion.SUCCESS;
+            case FAILED, ERROR, WARNING, NOTE -> ChecksConclusion.FAILURE;
+        };
     }
 
     private enum Icon {

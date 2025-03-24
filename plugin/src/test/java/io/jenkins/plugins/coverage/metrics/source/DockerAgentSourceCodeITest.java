@@ -1,13 +1,11 @@
 package io.jenkins.plugins.coverage.metrics.source;
 
-import java.io.IOException;
-
 import org.junit.jupiter.api.Disabled;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.utility.MountableFile;
 
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import java.io.IOException;
 
 import org.jenkinsci.plugins.workflow.job.WorkflowJob;
 import hudson.model.Node;
@@ -18,7 +16,6 @@ import hudson.model.Node;
  * @author Ullrich Hafner
  */
 @Testcontainers(disabledWithoutDocker = true)
-@SuppressFBWarnings("BC")
 @Disabled("Docker tests are failing with Java 17 Jenkins")
 class DockerAgentSourceCodeITest extends SourceCodeITest {
     private static final String SOURCES_IN_DOCKER_PATH = "/tmp/coverage";
