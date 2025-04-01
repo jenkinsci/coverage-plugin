@@ -1,0 +1,12 @@
+mode: atomic
+github.com/example/project/pkg/utils/file1.go:5.12,8.22 3 1
+github.com/example/project/pkg/utils/file1.go:10.9,15.23 5 3
+github.com/example/project/pkg/utils/file1.go:19.16,20.23 2 0
+github.com/example/project/pkg/utils/file1.go:24.3,25.25 1 1
+github.com/example/project/pkg/utils/file1.go:30.16,32.25 1 1
+github.com/example/project/pkg/db/file2.go:12.7,15.7 1 0
+github.com/example/project/pkg/db/file2.go:17.7,22.14 3 2
+github.com/example/project/cmd/file3.go:10.12,10.21 1 0
+github.com/example/project/cmd/file3.go:15.17,17.27 3 0
+github.com/example/project/pkg/test/file4.go:10.12,11.21 1 0
+github.com/example/project/pkg/test/file4.go:10.12,11.21 1 1

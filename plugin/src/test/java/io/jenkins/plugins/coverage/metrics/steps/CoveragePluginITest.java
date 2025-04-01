@@ -641,6 +641,62 @@ class CoveragePluginITest extends AbstractCoverageITest {
                 .doesNotContain("Expanding pattern");
     }
 
+    @Test
+    void shouldParseFileWithClover() {
+        WorkflowJob job = createPipeline();
+        copyFilesToWorkspace(job, "clover.xml");
+        job.setDefinition(createPipelineScript(
+                """
+                node {
+                    recordCoverage tools: [[parser: 'CLOVER']]
+                }
+                """));
+
+        Run<?, ?> run = buildWithResult(job, Result.SUCCESS);
+
+        assertThat(getConsoleLog(run))
+                .contains("Using default pattern '**/clover.xml' since user defined pattern is not set",
+                        "-> found 1 file",
+                        "MODULE: 100.00% (1/1)",
+                        "PACKAGE: 100.00% (3/3)",
+                        "FILE: 100.00% (6/6)",
+                        "METHOD: 73.38% (736/1003)",
+                        "INSTRUCTION: 87.56% (169/193)",
+                        "LINE: 86.67% (143/165)",
+                        "BRANCH: 73.96% (1068/1444)",
+                        "LOC: 165")
+                .containsPattern("Searching for all files in '.*' that match the pattern '\\*\\*/clover.xml'")
+                .containsPattern("Successfully parsed file .*/clover.xml")
+                .doesNotContain("Expanding pattern");
+    }
+
+    @Test
+    void shouldParseFileWithGoCov() {
+        WorkflowJob job = createPipeline();
+        copyFilesToWorkspace(job, "go-coverage.out");
+        job.setDefinition(createPipelineScript(
+                """
+                node {
+                    recordCoverage tools: [[parser: 'GO_COV', pattern: 'go-coverage.out']]
+                }
+                """));
+
+        Run<?, ?> run = buildWithResult(job, Result.SUCCESS);
+
+        assertThat(getConsoleLog(run))
+                .contains("that match the pattern 'go-coverage.out'",
+                        "-> found 1 file",
+                        "MODULE: 100.00% (2/2)",
+                        "PACKAGE: 75.00% (3/4)",
+                        "FILE: 75.00% (3/4)",
+                        "LINE: 69.70% (23/33)",
+                        "INSTRUCTION: 63.64% (14/22)",
+                        "LOC: 33")
+                .containsPattern("Searching for all files in '.*' that match the pattern 'go-coverage.out'")
+                .containsPattern("Successfully parsed file .*/go-coverage.out")
+                .doesNotContain("Expanding pattern");
+    }
+
     private void assertContentOfFirstVectorCastRow(final CoverageRow r) {
         assertThatCell(r.getFileName())
                 .contains("title=\"CurrentRelease/database/src/database.c\"");
