@@ -655,7 +655,7 @@ class CoveragePluginITest extends AbstractCoverageITest {
         Run<?, ?> run = buildWithResult(job, Result.SUCCESS);
 
         assertThat(getConsoleLog(run))
-                .contains("Using default pattern '**/clover.xml' since user defined pattern is not set",
+                .contains("Using default pattern '**/*clover*.xml,**/*Clover*.xml' since user defined pattern is not set",
                         "-> found 1 file",
                         "MODULE: 100.00% (1/1)",
                         "PACKAGE: 100.00% (3/3)",
@@ -665,7 +665,7 @@ class CoveragePluginITest extends AbstractCoverageITest {
                         "LINE: 86.67% (143/165)",
                         "BRANCH: 73.96% (1068/1444)",
                         "LOC: 165")
-                .containsPattern("Searching for all files in '.*' that match the pattern '\\*\\*/clover.xml'")
+                .containsPattern("Searching for all files in '.*' that match the pattern '.*clover\\*.xml,.*Clover\\*.xml'")
                 .containsPattern("Successfully parsed file .*/clover.xml")
                 .doesNotContain("Expanding pattern");
     }
