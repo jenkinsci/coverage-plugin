@@ -353,7 +353,7 @@
           <analysisConfiguration>
             <revapi.filter>
               <elements>
-                <exclude>
+                <exclude combine.children="append">
                   <item>
                     <matcher>java-package</matcher>
                     <match>/edu\.hm\.hafner\.util(\..*)?/</match>
