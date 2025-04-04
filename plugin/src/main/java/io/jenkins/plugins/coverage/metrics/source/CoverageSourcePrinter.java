@@ -1,11 +1,12 @@
 package io.jenkins.plugins.coverage.metrics.source;
 
-import java.io.Serializable;
-import java.util.Arrays;
-
 import org.apache.commons.lang3.StringUtils;
 
 import edu.hm.hafner.coverage.FileNode;
+
+import java.io.Serial;
+import java.io.Serializable;
+import java.util.Arrays;
 
 import io.jenkins.plugins.prism.Sanitizer;
 
@@ -16,14 +17,15 @@ import static j2html.TagCreator.*;
  * line and branch coverage in HTML.
  */
 class CoverageSourcePrinter implements Serializable {
+    @Serial
     private static final long serialVersionUID = -6044649044983631852L;
-    protected static final Sanitizer SANITIZER = new Sanitizer();
 
+    static final Sanitizer SANITIZER = new Sanitizer();
     static final String UNDEFINED = "noCover";
     static final String NO_COVERAGE = "coverNone";
     static final String FULL_COVERAGE = "coverFull";
     static final String PARTIAL_COVERAGE = "coverPart";
-    protected static final String NBSP = "&nbsp;";
+    static final String NBSP = "&nbsp;";
 
     private final String path;
     private final int[] linesToPaint;
@@ -133,7 +135,7 @@ class CoverageSourcePrinter implements Serializable {
         }
         return 0;
     }
-    
+
     public String getColumnHeader() {
         return StringUtils.EMPTY;
     }

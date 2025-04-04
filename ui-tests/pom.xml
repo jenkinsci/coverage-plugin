@@ -5,7 +5,7 @@
   <parent>
     <groupId>edu.hm.hafner</groupId>
     <artifactId>codingstyle-pom</artifactId>
-    <version>5.16.0</version>
+    <version>5.17.0</version>
     <relativePath/>
   </parent>
 
@@ -16,7 +16,7 @@
   <name>UI Tests of Code Coverage Plugin</name>
 
   <properties>
-    <jenkins.version>2.503</jenkins.version>
+    <jenkins.version>2.504</jenkins.version>
     <hpi-plugin.version>3.62</hpi-plugin.version>
     <json-smart.version>2.3</json-smart.version>
     <json-unit-assertj.version>4.1.0</json-unit-assertj.version>
@@ -48,7 +48,7 @@
     <dependency>
       <groupId>org.jenkins-ci</groupId>
       <artifactId>acceptance-test-harness</artifactId>
-      <version>6133.v358d9a_47674f</version>
+      <version>6180.v889d0fe56785</version>
     </dependency>
     <dependency>
       <groupId>com.fasterxml.jackson.core</groupId>
