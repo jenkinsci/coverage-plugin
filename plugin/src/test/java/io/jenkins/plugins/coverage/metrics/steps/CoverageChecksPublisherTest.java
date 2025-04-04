@@ -1,7 +1,5 @@
 package io.jenkins.plugins.coverage.metrics.steps;
 
-import java.util.List;
-
 import org.apache.commons.lang3.StringUtils;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -14,6 +12,8 @@ import edu.hm.hafner.coverage.Metric;
 import edu.hm.hafner.coverage.Node;
 import edu.hm.hafner.coverage.Value;
 import edu.hm.hafner.coverage.parser.PitestParser;
+
+import java.util.List;
 
 import hudson.model.Run;
 
@@ -32,11 +32,11 @@ import static org.mockito.Mockito.*;
 
 @DefaultLocale("en")
 class CoverageChecksPublisherTest extends AbstractCoverageTest {
-    protected static final String JENKINS_BASE_URL = "http://127.0.0.1:8080";
-    protected static final String BUILD_LINK = "job/pipeline-coding-style/job/5";
-    protected static final String COVERAGE_ID = "coverage";
-    protected static final String REPORT_NAME = "Name";
-    protected static final int ANNOTATIONS_COUNT_FOR_MODIFIED = 3;
+    static final String JENKINS_BASE_URL = "http://127.0.0.1:8080";
+    static final String BUILD_LINK = "job/pipeline-coding-style/job/5";
+    static final String COVERAGE_ID = "coverage";
+    static final String REPORT_NAME = "Name";
+    static final int ANNOTATIONS_COUNT_FOR_MODIFIED = 3;
 
     @Test
     void shouldShowQualityGateDetails() {
