@@ -356,7 +356,7 @@
                 <exclude combine.children="append">
                   <item>
                     <matcher>java-package</matcher>
-                    <match>/edu\.hm\.hafner\.util(\..*)?/</match>
+                    <match>/edu\.hm\.hafner(\..*)?/</match>
                   </item>
                   <item>
                     <matcher>java</matcher>
