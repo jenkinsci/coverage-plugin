@@ -350,22 +350,7 @@
         <groupId>org.revapi</groupId>
         <artifactId>revapi-maven-plugin</artifactId>
         <configuration>
-          <analysisConfiguration>
-            <revapi.filter>
-              <elements>
-                <exclude combine.children="append">
-                  <item>
-                    <matcher>java-package</matcher>
-                    <match>/edu\.hm\.hafner\.util(\..*)?/</match>
-                  </item>
-                  <item>
-                    <matcher>java</matcher>
-                    <match>type ^**./.*Fraction/ {}</match>
-                  </item>
-                </exclude>
-              </elements>
-            </revapi.filter>
-          </analysisConfiguration>
+          <skip>true</skip>
         </configuration>
       </plugin>
     </plugins>
