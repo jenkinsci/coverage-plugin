@@ -33,10 +33,4 @@ jobs:
       - name: Build with Maven
         env:
           BROWSER: chrome-container
-        run: mvn -V --color always -ntp clean verify '-Djenkins.test.timeout=5000' '-Dgpg.skip' -Pno-ui-tests -Pskip
-      - name: Build with Maven
-        env:
-          BROWSER: chrome-container
-        run: mvn -V --color always -ntp clean verify '-Djenkins.test.timeout=5000' '-Dgpg.skip' -Pno-ui-tests -Pskip
-      - name: RevApi Check
-        run: mvn -X revapi:check
+        run: mvn -V --color always -ntp clean verify '-Djenkins.test.timeout=5000' '-Dgpg.skip' -Pno-ui-tests

@@ -7,28 +7,33 @@
 [![Codecov](https://codecov.io/gh/jenkinsci/coverage-plugin/branch/main/graph/badge.svg)](https://codecov.io/gh/jenkinsci/coverage-plugin/branch/main)
 [![CodeQL](https://github.com/jenkinsci/coverage-plugin/workflows/CodeQL/badge.svg)](https://github.com/jenkinsci/coverage-plugin/actions/workflows/codeql.yml)
 
-The Jenkins Coverage Plug-in collects reports of code coverage or mutation coverage tools. It has support for the following report formats:
+The Jenkins Coverage Plug-in collects reports of code coverage or mutation coverage tools. 
+It has support for the following report formats:
 
-- [JaCoCo](https://www.jacoco.org/jacoco): Code Coverage
-- [Cobertura](https://cobertura.github.io/cobertura/): Code Coverage
-- [OpenCover](https://github.com/OpenCover/opencover): Code Coverage
-- [VectorCAST](https://www.vector.com/int/en/products/products-a-z/software/vectorcast): Code Coverage including MC/DC, Function, Function Call coverages
-- [PIT](https://pitest.org/): Mutation Coverage
-- [JUnit](https://ant.apache.org/manual/Tasks/junitreport.html): Test Results
-- [NUnit](https://nunit.org/): Test Results
-- [XUnit](https://xunit.net/): Test Results
-- Metrics XML report
-
+- [Cobertura](https://cobertura.github.io/cobertura/) code coverage results
+- [Open Clover](https://openclover.org/) code coverage results
+- [Go Coverage](https://go.dev/doc/build-cover) results
+- [JaCoCo](https://www.jacoco.org/) code coverage results
+- [OpenCover](https://github.com/OpenCover/opencover) code coverage results
+- [VectorCAST](https://www.vector.com/int/en/products/products-a-z/software/vectorcast) code coverage results including MC/DC, Function, Function Call coverages
+- [PIT](https://pitest.org/) mutation coverage results
+- [JUnit](https://junit.org/junit5/) test results
+- [NUnit](https://nunit.org) test results
+- [XUnit](https://xunit.net) test results
+- [PMD software metrics](https://github.com/uhafner/codingstyle-pom/blob/main/pom.xml#L945-L960) via a patched version of [PMD](https://pmd.github.io/)
 If your coverage tool is not yet supported by the coverage plugin, feel free to provide a pull request for the [Coverage Model](https://github.com/jenkinsci/coverage-model/pulls).
 
-The plugin publishes a report of the code and mutation coverage in your build, so you can navigate to a summary report from the main build page. Additionally, the plugin gathers several metrics (lines of code, cyclomatic complexity, number of tests per class) and visualizes these results along with the coverage information. 
+The plugin publishes a report of the code and mutation coverage in your build, so you can navigate to a summary report from the main build page. 
+Additionally, the plugin gathers several metrics (lines of code, cyclomatic complexity, number of tests per class) and visualizes these results along with the coverage information. 
 From there you can also dive into the details:
 - tree charts that show the distribution of the metrics by type (line, branch, complexity, tests, etc.)
 - tabular listing of all files with their coverage, complexity and number of tests 
 - source code of the files with the coverage highlighted
 - trend charts of the coverage over time
 
-The initial version of this plugin has been developed by Shenyu Zheng in [GSoC 2018](https://jenkins.io/projects/gsoc/2018/code-coverage-api-plugin/). After several incompatible improvements of the pipeline steps and API classes, we decided to move the whole source code to a clean and new plugin. The old plugin containing the deprecated steps and code is still available at [GitHub](https://github.com/jenkinsci/code-coverage-api-plugin) and [Jenkins](https://plugins.jenkins.io/code-coverage-api/).
+The initial version of this plugin has been developed by Shenyu Zheng in [GSoC 2018](https://jenkins.io/projects/gsoc/2018/code-coverage-api-plugin/). 
+After several incompatible improvements of the pipeline steps and API classes, we decided to move the whole source code to a clean and new plugin. 
+The old plugin containing the deprecated steps and code is still available at [GitHub](https://github.com/jenkinsci/code-coverage-api-plugin) and [Jenkins](https://plugins.jenkins.io/code-coverage-api/).
 
 This code of this plugin is also available as a standalone GitHub or GitLab action that runs without Jenkins now:
 - [Quality Monitor GitHub Action](https://github.com/uhafner/quality-monitor): action that monitors the quality of projects based on a configurable set of metrics and gives feedback on pull requests (or single commits) in GitHub.

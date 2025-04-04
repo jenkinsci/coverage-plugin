@@ -1,0 +1,198 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<coverage generated="1695944532781" clover="3.2.0">
+    <project timestamp="1695944532781" name="All files">
+        <metrics statements="193" coveredstatements="169" conditionals="1444" coveredconditionals="1068" methods="1003" coveredmethods="736" elements="5504" coveredelements="4382" complexity="0" loc="3057" ncloc="3057" packages="68" files="170" classes="170"/>
+        <package name="actions">
+            <metrics statements="108" coveredstatements="101" conditionals="17" coveredconditionals="12" methods="115" coveredmethods="93"/>
+            <file name="File1.js" path="/home/jenkins/agent/workspace/dir/src/js/actions/File1.js">
+                <metrics statements="68" coveredstatements="68" conditionals="0" coveredconditionals="0" methods="0" coveredmethods="0"/>
+                <line num="4" count="18" type="stmt"/>
+                <line num="5" count="18" type="stmt"/>
+                <line num="6" count="18" type="stmt"/>
+                <line num="7" count="18" type="stmt"/>
+                <line num="12" count="18" type="stmt"/>
+                <line num="13" count="18" type="stmt"/>
+                <line num="14" count="18" type="stmt"/>
+                <line num="15" count="18" type="stmt"/>
+                <line num="16" count="18" type="stmt"/>
+                <line num="17" count="18" type="stmt"/>
+                <line num="18" count="18" type="stmt"/>
+                <line num="19" count="18" type="stmt"/>
+                <line num="20" count="18" type="stmt"/>
+                <line num="21" count="18" type="stmt"/>
+                <line num="22" count="18" type="stmt"/>
+                <line num="24" count="18" type="stmt"/>
+                <line num="25" count="18" type="stmt"/>
+                <line num="26" count="18" type="stmt"/>
+                <line num="27" count="18" type="stmt"/>
+                <line num="28" count="18" type="stmt"/>
+                <line num="29" count="18" type="stmt"/>
+                <line num="30" count="18" type="stmt"/>
+                <line num="31" count="18" type="stmt"/>
+                <line num="32" count="18" type="stmt"/>
+                <line num="33" count="18" type="stmt"/>
+                <line num="34" count="18" type="stmt"/>
+                <line num="35" count="18" type="stmt"/>
+                <line num="36" count="18" type="stmt"/>
+                <line num="37" count="18" type="stmt"/>
+                <line num="38" count="18" type="stmt"/>
+                <line num="39" count="18" type="stmt"/>
+                <line num="40" count="18" type="stmt"/>
+                <line num="41" count="18" type="stmt"/>
+                <line num="42" count="18" type="stmt"/>
+                <line num="43" count="18" type="stmt"/>
+                <line num="45" count="18" type="stmt"/>
+                <line num="46" count="18" type="stmt"/>
+                <line num="47" count="18" type="stmt"/>
+                <line num="48" count="18" type="stmt"/>
+                <line num="49" count="18" type="stmt"/>
+                <line num="50" count="18" type="stmt"/>
+                <line num="51" count="18" type="stmt"/>
+                <line num="52" count="18" type="stmt"/>
+                <line num="53" count="18" type="stmt"/>
+                <line num="54" count="18" type="stmt"/>
+                <line num="55" count="18" type="stmt"/>
+                <line num="56" count="18" type="stmt"/>
+                <line num="57" count="18" type="stmt"/>
+                <line num="58" count="18" type="stmt"/>
+                <line num="59" count="18" type="stmt"/>
+                <line num="60" count="18" type="stmt"/>
+                <line num="61" count="18" type="stmt"/>
+                <line num="62" count="18" type="stmt"/>
+                <line num="63" count="18" type="stmt"/>
+                <line num="64" count="18" type="stmt"/>
+                <line num="65" count="18" type="stmt"/>
+                <line num="66" count="18" type="stmt"/>
+                <line num="67" count="18" type="stmt"/>
+                <line num="68" count="18" type="stmt"/>
+                <line num="69" count="18" type="stmt"/>
+                <line num="70" count="18" type="stmt"/>
+                <line num="71" count="18" type="stmt"/>
+                <line num="72" count="18" type="stmt"/>
+                <line num="73" count="18" type="stmt"/>
+                <line num="74" count="18" type="stmt"/>
+                <line num="75" count="18" type="stmt"/>
+                <line num="76" count="18" type="stmt"/>
+                <line num="77" count="18" type="stmt"/>
+            </file>
+            <file name="File2.js" path="/home/jenkins/agent/workspace/dir/src/js/actions/File2.js">
+                <metrics statements="40" coveredstatements="33" conditionals="17" coveredconditionals="12" methods="115" coveredmethods="93"/>
+                <line num="21" count="19" type="stmt"/>
+                <line num="38" count="1" type="stmt"/>
+                <line num="51" count="163" type="stmt"/>
+                <line num="65" count="149" type="stmt"/>
+                <line num="79" count="1" type="stmt"/>
+                <line num="92" count="0" type="stmt"/>
+                <line num="105" count="1" type="stmt"/>
+                <line num="117" count="15" type="stmt"/>
+                <line num="127" count="0" type="stmt"/>
+                <line num="138" count="11" type="stmt"/>
+                <line num="151" count="25" type="stmt"/>
+                <line num="164" count="26" type="stmt"/>
+                <line num="176" count="24" type="stmt"/>
+                <line num="190" count="72" type="stmt"/>
+                <line num="204" count="0" type="stmt"/>
+                <line num="215" count="32" type="stmt"/>
+                <line num="228" count="32" type="stmt"/>
+                <line num="243" count="4" type="stmt"/>
+                <line num="257" count="24" type="stmt"/>
+                <line num="268" count="1" type="stmt"/>
+                <line num="287" count="10" type="stmt"/>
+                <line num="303" count="1" type="stmt"/>
+                <line num="317" count="5" type="stmt"/>
+                <line num="329" count="11" type="stmt"/>
+                <line num="339" count="1" type="stmt"/>
+                <line num="349" count="2" type="stmt"/>
+                <line num="359" count="4" type="stmt"/>
+                <line num="369" count="0" type="stmt"/>
+                <line num="380" count="44" type="stmt"/>
+                <line num="393" count="32" type="stmt"/>
+                <line num="405" count="2" type="stmt"/>
+                <line num="416" count="4" type="stmt"/>
+                <line num="429" count="1" type="stmt"/>
+                <line num="443" count="1" type="stmt"/>
+                <line num="456" count="8" type="stmt"/>
+                <line num="467" count="2" type="stmt"/>
+                <line num="480" count="2" type="stmt"/>
+                <line num="492" count="0" type="stmt"/>
+                <line num="503" count="0" type="stmt"/>
+                <line num="515" count="0" type="stmt"/>
+            </file>
+        </package>
+        <package name="components">
+            <metrics statements="46" coveredstatements="35" conditionals="12" coveredconditionals="8" methods="17" coveredmethods="7"/>
+            <file name="File3.jsx" path="/home/jenkins/agent/workspace/dir/src/js/components/File3.jsx">
+                <metrics statements="17" coveredstatements="11" conditionals="2" coveredconditionals="2" methods="8" coveredmethods="3"/>
+                <line num="13" count="1" type="stmt"/>
+                <line num="21" count="1" type="stmt"/>
+                <line num="26" count="1" type="stmt"/>
+                <line num="29" count="1" type="stmt"/>
+                <line num="32" count="1" type="stmt"/>
+                <line num="45" count="0" type="stmt"/>
+                <line num="46" count="0" type="stmt"/>
+                <line num="60" count="145" type="stmt"/>
+                <line num="61" count="145" type="cond" truecount="2" falsecount="0"/>
+                <line num="62" count="1" type="stmt"/>
+                <line num="78" count="0" type="stmt"/>
+                <line num="89" count="144" type="stmt"/>
+                <line num="93" count="1" type="stmt"/>
+                <line num="103" count="1" type="stmt"/>
+                <line num="104" count="0" type="stmt"/>
+                <line num="105" count="0" type="stmt"/>
+                <line num="106" count="0" type="stmt"/>
+            </file>
+            <file name="File4.jsx" path="/home/jenkins/agent/workspace/dir/src/js/components/File4.jsx">
+                <metrics statements="21" coveredstatements="17" conditionals="4" coveredconditionals="2" methods="7" coveredmethods="3"/>
+                <line num="4" count="3" type="stmt"/>
+                <line num="8" count="0" type="stmt"/>
+                <line num="11" count="3" type="stmt"/>
+                <line num="14" count="28" type="stmt"/>
+                <line num="30" count="3" type="stmt"/>
+                <line num="38" count="3" type="stmt"/>
+                <line num="43" count="3" type="stmt"/>
+                <line num="46" count="1697" type="cond" truecount="2" falsecount="0"/>
+                <line num="49" count="3" type="stmt"/>
+                <line num="50" count="0" type="stmt"/>
+                <line num="51" count="0" type="cond" truecount="0" falsecount="2"/>
+                <line num="57" count="3" type="stmt"/>
+                <line num="58" count="0" type="stmt"/>
+                <line num="61" count="3" type="stmt"/>
+                <line num="68" count="3" type="stmt"/>
+                <line num="72" count="3" type="stmt"/>
+                <line num="77" count="3" type="stmt"/>
+                <line num="81" count="3" type="stmt"/>
+                <line num="85" count="3" type="stmt"/>
+                <line num="89" count="3" type="stmt"/>
+                <line num="90" count="4" type="stmt"/>
+            </file>
+            <file name="File5.jsx" path="/home/jenkins/agent/workspace/dir/src/js/components/File5.jsx">
+                <metrics statements="8" coveredstatements="7" conditionals="6" coveredconditionals="4" methods="2" coveredmethods="1"/>
+                <line num="18" count="1" type="stmt"/>
+                <line num="19" count="2" type="stmt"/>
+                <line num="20" count="2" type="stmt"/>
+                <line num="24" count="2" type="cond" truecount="3" falsecount="1"/>
+                <line num="25" count="0" type="stmt"/>
+                <line num="31" count="2" type="stmt"/>
+                <line num="50" count="1" type="stmt"/>
+                <line num="59" count="1" type="stmt"/>
+            </file>
+        </package>
+        <package name="components.AddEditCategories">
+            <metrics statements="11" coveredstatements="7" conditionals="4" coveredconditionals="1" methods="12" coveredmethods="7"/>
+            <file name="File6.jsx" path="/home/jenkins/agent/workspace/dir/src/js/components/AddEditCategories/File6.jsx">
+                <metrics statements="11" coveredstatements="7" conditionals="4" coveredconditionals="1" methods="5" coveredmethods="2"/>
+                <line num="23" count="1" type="stmt"/>
+                <line num="24" count="2" type="stmt"/>
+                <line num="31" count="2" type="stmt"/>
+                <line num="32" count="0" type="cond" truecount="0" falsecount="2"/>
+                <line num="33" count="0" type="stmt"/>
+                <line num="35" count="0" type="stmt"/>
+                <line num="38" count="2" type="stmt"/>
+                <line num="72" count="24" type="stmt"/>
+                <line num="79" count="1" type="stmt"/>
+                <line num="90" count="1" type="stmt"/>
+                <line num="92" count="0" type="stmt"/>
+            </file>
+        </package>
+    </project>
+</coverage>

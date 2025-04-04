@@ -1,10 +1,5 @@
 package io.jenkins.plugins.coverage.metrics.steps;
 
-import java.io.Serializable;
-import java.util.List;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
 import org.apache.commons.lang3.StringUtils;
 
 import edu.hm.hafner.coverage.CoverageParser;
@@ -13,6 +8,12 @@ import edu.hm.hafner.coverage.Node;
 import edu.hm.hafner.coverage.registry.ParserRegistry;
 import edu.hm.hafner.util.VisibleForTesting;
 import edu.umd.cs.findbugs.annotations.CheckForNull;
+
+import java.io.Serial;
+import java.io.Serializable;
+import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.kohsuke.stapler.AncestorInPath;
 import org.kohsuke.stapler.DataBoundConstructor;
@@ -41,6 +42,7 @@ import io.jenkins.plugins.util.ValidationUtilities;
  */
 @SuppressWarnings("PMD.DataClass")
 public class CoverageTool extends AbstractDescribableImpl<CoverageTool> implements Serializable {
+    @Serial
     private static final long serialVersionUID = -8612521458890553037L;
     private static final ValidationUtilities VALIDATION_UTILITIES = new ValidationUtilities();
 
@@ -85,10 +87,11 @@ public class CoverageTool extends AbstractDescribableImpl<CoverageTool> implemen
     }
 
     /**
-     * Called after de-serialization to retain backward compatibility.
+     * Called after deserialization to retain backward compatibility.
      *
      * @return this
      */
+    @Serial
     protected Object readResolve() {
         jenkins = new JenkinsFacade();
 
@@ -215,30 +218,36 @@ public class CoverageTool extends AbstractDescribableImpl<CoverageTool> implemen
         COBERTURA(Messages._Parser_Cobertura(), ParserType.COVERAGE,
                 "**/cobertura.xml",
                 "symbol-footsteps-outline plugin-ionicons-api"),
-        VECTORCAST(Messages._Parser_VectorCAST(), ParserType.COVERAGE,
-                "xml_data/cobertura/coverage_results*.xml",
+        CLOVER(Messages._Parser_Clover(), ParserType.COVERAGE,
+                "**/*clover*.xml,**/*Clover*.xml",
+                "symbol-footsteps-outline plugin-ionicons-api"),
+        GO_COV(Messages._Parser_GoCov(), ParserType.COVERAGE,
+                "**/*coverage*.out,**/*coverage*.txt,**/cover.out",
                 "symbol-footsteps-outline plugin-ionicons-api"),
         JACOCO(Messages._Parser_JaCoCo(), ParserType.COVERAGE,
                 "**/jacoco.xml",
                 "symbol-footsteps-outline plugin-ionicons-api"),
+        JUNIT(Messages._Parser_Junit(), ParserType.TEST,
+                "**/TEST-*.xml",
+                "symbol-solid/list-check plugin-font-awesome-api"),
+        METRICS(Messages._Parser_Metrics(), ParserType.METRICS,
+                "**/metrics.xml",
+                "symbol-solid/scale-balanced plugin-font-awesome-api"),
+        NUNIT(Messages._Parser_Nunit(), ParserType.TEST,
+                "**/nunit.xml,**/TestResult.xml",
+                "symbol-solid/list-check plugin-font-awesome-api"),
         OPENCOVER(Messages._Parser_OpenCover(), ParserType.COVERAGE,
                 "**/*opencover.xml",
                 "symbol-footsteps-outline plugin-ionicons-api"),
         PIT(Messages._Parser_PIT(), ParserType.COVERAGE,
                 "**/mutations.xml",
                 "symbol-solid/virus-slash plugin-font-awesome-api"),
-        JUNIT(Messages._Parser_Junit(), ParserType.TEST,
-                "**/TEST-*.xml",
-                "symbol-solid/list-check plugin-font-awesome-api"),
-        NUNIT(Messages._Parser_Nunit(), ParserType.TEST,
-                "**/nunit.xml,**/TestResult.xml",
-                "symbol-solid/list-check plugin-font-awesome-api"),
+        VECTORCAST(Messages._Parser_VectorCAST(), ParserType.COVERAGE,
+                "xml_data/cobertura/coverage_results*.xml",
+                "symbol-footsteps-outline plugin-ionicons-api"),
         XUNIT(Messages._Parser_Xunit(), ParserType.TEST,
                 "**/xunit.xml,**/TestResult.xml",
-                "symbol-solid/list-check plugin-font-awesome-api"),
-        METRICS(Messages._Parser_Metrics(), ParserType.METRICS,
-                "**/metrics.xml",
-                "symbol-solid/scale-balanced plugin-font-awesome-api");
+                "symbol-solid/list-check plugin-font-awesome-api");
 
         private final Localizable displayName;
         private final ParserType parserType;
