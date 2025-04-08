@@ -1,4 +1,4 @@
-package io.jenkins.plugins.coverage.metrics;
+package io.jenkins.plugins.coverage.archunit;
 
 import com.tngtech.archunit.junit.AnalyzeClasses;
 import com.tngtech.archunit.junit.ArchTest;
