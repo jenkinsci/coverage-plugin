@@ -13,6 +13,7 @@
       "data": [
         50.0, 25.0
       ],
+      "emphasis": null,
       "itemStyle": {
         "color": "--green",
         "borderColor": "#ffffff",
@@ -30,6 +31,7 @@
       "data": [
         75.0, 25.0
       ],
+      "emphasis": null,
       "itemStyle": {
         "color": "--dark-green",
         "borderColor": "#ffffff",
