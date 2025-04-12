@@ -35,7 +35,7 @@ class DockerAgentSourceCodeITest extends SourceCodeITest {
     @Override
     protected Node crateCoverageAgent() {
         try {
-            Node agent = createDockerAgent(AGENT_CONTAINER);
+            var agent = createDockerAgent(AGENT_CONTAINER);
             agent.setLabelString(AGENT_LABEL);
             return agent;
         }

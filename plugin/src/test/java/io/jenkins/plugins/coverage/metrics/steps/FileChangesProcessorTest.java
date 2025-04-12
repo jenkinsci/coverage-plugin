@@ -1,12 +1,12 @@
 package io.jenkins.plugins.coverage.metrics.steps;
 
-import java.util.AbstractMap.SimpleEntry;
-
 import org.junit.jupiter.api.Test;
 
 import edu.hm.hafner.coverage.Difference;
 import edu.hm.hafner.coverage.FileNode;
 import edu.hm.hafner.coverage.Metric;
+
+import java.util.AbstractMap.SimpleEntry;
 
 import io.jenkins.plugins.coverage.metrics.AbstractModifiedFilesCoverageTest;
 
@@ -55,7 +55,7 @@ class FileChangesProcessorTest extends AbstractModifiedFilesCoverageTest {
                 .isNotEmpty()
                 .satisfies(node -> {
                     assertThat(node.get()).isInstanceOf(FileNode.class);
-                    FileNode file = (FileNode) node.get();
+                    var file = (FileNode) node.get();
                     assertThat(file.getIndirectCoverageChanges()).containsExactly(
                             new SimpleEntry<>(11, -1),
                             new SimpleEntry<>(29, -1),

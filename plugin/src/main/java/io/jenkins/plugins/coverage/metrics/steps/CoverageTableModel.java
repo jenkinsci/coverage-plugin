@@ -79,7 +79,7 @@ class CoverageTableModel extends TableModel {
 
     @Override
     public TableConfiguration getTableConfiguration() {
-        TableConfiguration tableConfiguration = new TableConfiguration();
+        var tableConfiguration = new TableConfiguration();
         tableConfiguration.responsive();
         if (getId().contains("inline")) {
             tableConfiguration.select(SelectStyle.SINGLE);
@@ -92,23 +92,23 @@ class CoverageTableModel extends TableModel {
     public List<TableColumn> getColumns() {
         List<TableColumn> columns = new ArrayList<>();
 
-        TableColumn fileHash = new ColumnBuilder().withHeaderLabel("Hash")
+        var fileHash = new ColumnBuilder().withHeaderLabel("Hash")
                 .withDataPropertyKey("fileHash")
                 .withHeaderClass(ColumnCss.HIDDEN)
                 .build();
         columns.add(fileHash);
-        TableColumn modified = new ColumnBuilder().withHeaderLabel("Modified")
+        var modified = new ColumnBuilder().withHeaderLabel("Modified")
                 .withDataPropertyKey("modified")
                 .withHeaderClass(ColumnCss.HIDDEN)
                 .build();
         columns.add(modified);
-        TableColumn fileName = new ColumnBuilder().withHeaderLabel(Messages.Column_File())
+        var fileName = new ColumnBuilder().withHeaderLabel(Messages.Column_File())
                 .withDataPropertyKey("fileName")
                 .withDetailedCell()
                 .withResponsivePriority(1)
                 .build();
         columns.add(fileName);
-        TableColumn packageName = new ColumnBuilder().withHeaderLabel(Messages.Column_Package())
+        var packageName = new ColumnBuilder().withHeaderLabel(Messages.Column_Package())
                 .withDataPropertyKey("packageName")
                 .withResponsivePriority(50_000)
                 .build();
@@ -141,7 +141,7 @@ class CoverageTableModel extends TableModel {
         for (var column : entries.entrySet()) {
             var metric = column.getKey();
             if (root.containsMetric(metric)) {
-                TableColumn tmp = new ColumnBuilder()
+                var tmp = new ColumnBuilder()
                         .withHeaderLabel(metric.getLabel())
                         .withDataPropertyKey(CaseUtils.toCamelCase(metric.name(), false, '_'))
                         .withResponsivePriority(column.getValue())
@@ -156,7 +156,7 @@ class CoverageTableModel extends TableModel {
     private void configureValueColumn(final String key, final Metric metric, final String headerLabel,
             final String deltaHeaderLabel, final List<TableColumn> columns) {
         if (root.containsMetric(metric)) {
-            TableColumn lineCoverage = new ColumnBuilder().withHeaderLabel(headerLabel)
+            var lineCoverage = new ColumnBuilder().withHeaderLabel(headerLabel)
                     .withDataPropertyKey(key)
                     .withDetailedCell()
                     .withType(ColumnType.NUMBER)
@@ -164,7 +164,7 @@ class CoverageTableModel extends TableModel {
                     .build();
             columns.add(lineCoverage);
             if (StringUtils.isNotEmpty(deltaHeaderLabel) && hasDelta(metric)) {
-                TableColumn lineCoverageDelta = new ColumnBuilder().withHeaderLabel(deltaHeaderLabel)
+                var lineCoverageDelta = new ColumnBuilder().withHeaderLabel(deltaHeaderLabel)
                         .withDataPropertyKey(key + "Delta")
                         .withDetailedCell()
                         .withType(ColumnType.NUMBER)
@@ -325,17 +325,16 @@ class CoverageTableModel extends TableModel {
             if (coverage.isSet()) {
                 double percentage = coverage.asRounded();
                 DisplayColors colors = CoverageLevel.getDisplayColorsOfCoverageLevel(percentage, colorProvider);
-                String cell = div()
+                var cell = div()
                         .withClasses(COVERAGE_COLUMN_OUTER).with(
-                                div().withClasses(COVERAGE_COLUMN_INNER)
-                                        .withStyle(String.format(
-                                                "background-image: linear-gradient(90deg, %s %f%%, transparent %f%%);",
-                                                colors.getFillColorAsRGBAHex(TABLE_COVERAGE_COLOR_ALPHA),
-                                                percentage, percentage))
-                                        .attr("data-bs-toggle", "tooltip")
-                                        .attr("data-bs-placement", "top")
-                                        .withTitle(FORMATTER.formatAdditionalInformation(coverage))
-                                        .withText(FORMATTER.formatPercentage(coverage, browserLocale)))
+                        div().withClasses(COVERAGE_COLUMN_INNER)
+                                .withStyle("background-image: linear-gradient(90deg, %s %f%%, transparent %f%%);".formatted(
+                                        colors.getFillColorAsRGBAHex(TABLE_COVERAGE_COLOR_ALPHA),
+                                        percentage, percentage))
+                                .attr("data-bs-toggle", "tooltip")
+                                .attr("data-bs-placement", "top")
+                                .withTitle(FORMATTER.formatAdditionalInformation(coverage))
+                                .withText(FORMATTER.formatPercentage(coverage, browserLocale)))
                         .render();
                 return new DetailedCell<>(cell, percentage);
             }
@@ -355,11 +354,11 @@ class CoverageTableModel extends TableModel {
         protected DetailedCell<?> createColoredCoverageDeltaColumn(final Metric metric, final Value delta) {
             double percentage = delta.asRounded();
             DisplayColors colors = CoverageChangeTendency.getDisplayColorsForTendency(percentage, colorProvider);
-            String cell = div().withClasses(COVERAGE_COLUMN_OUTER).with(
-                            div().withClasses(COVERAGE_COLUMN_INNER)
-                                    .withStyle(String.format("background-color:%s;", colors.getFillColorAsRGBAHex(
-                                            TABLE_COVERAGE_COLOR_ALPHA)))
-                                    .withText(FORMATTER.formatDelta(metric, delta, browserLocale)))
+            var cell = div().withClasses(COVERAGE_COLUMN_OUTER).with(
+                    div().withClasses(COVERAGE_COLUMN_INNER)
+                            .withStyle("background-color:%s;".formatted(colors.getFillColorAsRGBAHex(
+                                    TABLE_COVERAGE_COLOR_ALPHA)))
+                            .withText(FORMATTER.formatDelta(metric, delta, browserLocale)))
                     .render();
             return new DetailedCell<>(cell, percentage);
         }

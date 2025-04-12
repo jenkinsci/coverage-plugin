@@ -33,7 +33,7 @@ import static org.mockito.Mockito.*;
 class CoverageViewModelTest extends AbstractCoverageTest {
     @Test
     void shouldReturnEmptySourceViewForExistingLinkButMissingSourceFile() {
-        CoverageViewModel model = createModelFromCodingStyleReport();
+        var model = createModelFromCodingStyleReport();
 
         String hash = String.valueOf("PathUtil.java".hashCode());
         assertThat(model.getSourceCode(hash, ABSOLUTE_COVERAGE_TABLE_ID)).isEqualTo("n/a");
@@ -44,9 +44,9 @@ class CoverageViewModelTest extends AbstractCoverageTest {
     @Test
     @SuppressWarnings("PMD.ConfusingArgumentToVarargsMethod")
     void shouldReportOverview() {
-        CoverageViewModel model = createModelFromCodingStyleReport();
+        var model = createModelFromCodingStyleReport();
 
-        CoverageOverview overview = model.getOverview();
+        var overview = model.getOverview();
 
         var expectedMetrics = new String[]{"Package", "File", "Class", "Method", "Line", "Branch", "Instruction"};
         assertThat(overview.getMetrics()).containsExactly(expectedMetrics);
@@ -78,9 +78,9 @@ class CoverageViewModelTest extends AbstractCoverageTest {
 
     @Test
     void shouldProvideIndirectCoverageChanges() {
-        Node node = createIndirectCoverageChangesNode();
+        var node = createIndirectCoverageChangesNode();
 
-        CoverageViewModel model = createModel(node);
+        var model = createModel(node);
 
         assertThat(model.hasIndirectCoverageChanges()).isTrue();
     }
@@ -101,7 +101,7 @@ class CoverageViewModelTest extends AbstractCoverageTest {
 
     @Test
     void shouldProvideRightTableModelById() {
-        CoverageViewModel model = createModelFromCodingStyleReport();
+        var model = createModelFromCodingStyleReport();
         assertThat(model.getTableModel(MODIFIED_LINES_COVERAGE_TABLE_ID)).isInstanceOf(
                 ModifiedLinesCoverageTableModel.class);
         assertThat(model.getTableModel(INDIRECT_COVERAGE_TABLE_ID)).isInstanceOf(IndirectCoverageChangesTable.class);

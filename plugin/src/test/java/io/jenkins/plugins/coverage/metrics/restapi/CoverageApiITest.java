@@ -7,7 +7,6 @@ import edu.hm.hafner.coverage.Metric;
 import java.util.List;
 import net.sf.json.JSON;
 
-import hudson.model.FreeStyleProject;
 import hudson.model.Result;
 import hudson.model.Run;
 
@@ -29,7 +28,7 @@ import static net.javacrumbs.jsonunit.assertj.JsonAssertions.*;
 class CoverageApiITest extends AbstractCoverageITest {
     @Test
     void shouldProvideRemoteApi() {
-        FreeStyleProject project = createFreestyleJob(Parser.JACOCO, JACOCO_ANALYSIS_MODEL_FILE);
+        var project = createFreestyleJob(Parser.JACOCO, JACOCO_ANALYSIS_MODEL_FILE);
 
         Run<?, ?> build = buildWithResult(project, Result.SUCCESS);
 
@@ -61,7 +60,7 @@ class CoverageApiITest extends AbstractCoverageITest {
         qualityGate.setBaseline(Baseline.PROJECT);
         qualityGate.setCriticality(QualityGateCriticality.UNSTABLE);
         var qualityGates = List.of(qualityGate);
-        FreeStyleProject project = createFreestyleJob(Parser.JACOCO, r -> r.setQualityGates(qualityGates),
+        var project = createFreestyleJob(Parser.JACOCO, r -> r.setQualityGates(qualityGates),
                 JACOCO_ANALYSIS_MODEL_FILE);
 
         Run<?, ?> build = buildWithResult(project, Result.UNSTABLE);

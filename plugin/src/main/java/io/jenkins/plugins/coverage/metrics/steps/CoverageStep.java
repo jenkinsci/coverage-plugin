@@ -395,7 +395,7 @@ public class CoverageStep extends Step implements Serializable {
 
         @Override
         public String argumentsToString(@NonNull final Map<String, Object> namedArgs) {
-            String formatted = super.argumentsToString(namedArgs);
+            var formatted = super.argumentsToString(namedArgs);
             if (formatted != null) {
                 return formatted;
             }

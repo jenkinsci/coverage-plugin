@@ -133,13 +133,13 @@ class CoverageChecksPublisher {
     }
 
     private String formatValue(final Baseline baseline, final Metric metric, final Value value) {
-        return String.format("%s: %s%s",
+        return "%s: %s%s".formatted(
                 FORMATTER.getDisplayName(metric), FORMATTER.format(value), getDeltaDetails(baseline, metric));
     }
 
     private String getDeltaDetails(final Baseline baseline, final Metric metric) {
         if (action.hasDelta(baseline, metric)) {
-            return String.format(" (%s)", action.formatDelta(baseline, metric));
+            return " (%s)".formatted(action.formatDelta(baseline, metric));
         }
         return StringUtils.EMPTY;
     }
@@ -173,7 +173,7 @@ class CoverageChecksPublisher {
             summary.append("- 1 line has been modified");
         }
         else {
-            summary.append(String.format("- %d lines have been modified", total));
+            summary.append("- %d lines have been modified".formatted(total));
         }
         summary.append(NEW_LINE);
     }
@@ -191,7 +191,7 @@ class CoverageChecksPublisher {
             summary.append("- 1 line is not covered");
         }
         else {
-            summary.append(String.format("- %d lines are not covered", missed));
+            summary.append("- %d lines are not covered".formatted(missed));
         }
         summary.append(NEW_LINE);
     }
@@ -207,7 +207,7 @@ class CoverageChecksPublisher {
                 summary.append("- 1 line is covered only partially");
             }
             else {
-                summary.append(String.format("- %d lines are covered only partially", partiallyCovered));
+                summary.append("- %d lines are covered only partially".formatted(partiallyCovered));
             }
             summary.append(NEW_LINE);
         }
@@ -228,14 +228,14 @@ class CoverageChecksPublisher {
                     summary.append("- 1 mutation has been killed");
                 }
                 else {
-                    summary.append(String.format("- all %d mutations have been killed", mutations));
+                    summary.append("- all %d mutations have been killed".formatted(mutations));
                 }
             }
             else if (survived == 1) {
-                summary.append(String.format("- 1 mutation survived (of %d)", mutations));
+                summary.append("- 1 mutation survived (of %d)".formatted(mutations));
             }
             else {
-                summary.append(String.format("- %d mutations survived (of %d)", survived, mutations));
+                summary.append("- %d mutations survived (of %d)".formatted(survived, mutations));
             }
             summary.append(NEW_LINE);
         }
@@ -280,11 +280,11 @@ class CoverageChecksPublisher {
     private ChecksAnnotation rangeToAnnotation(final LineRange range, final ChecksAnnotationBuilder builder) {
         if (range.getStart() == range.getEnd()) {
             builder.withTitle("Not covered line")
-                    .withMessage(String.format("Line %d is not covered by tests", range.getStart()));
+                    .withMessage("Line %d is not covered by tests".formatted(range.getStart()));
         }
         else {
             builder.withTitle("Not covered lines").withMessage(
-                    String.format("Lines %d-%d are not covered by tests", range.getStart(), range.getEnd()));
+                    "Lines %d-%d are not covered by tests".formatted(range.getStart(), range.getEnd()));
         }
         return builder
                 .withStartLine(range.getStart())
@@ -307,15 +307,15 @@ class CoverageChecksPublisher {
 
     private String createMutationDetails(final List<Mutation> mutations) {
         return mutations.stream()
-                .map(mutation -> String.format("- %s (%s)", mutation.getDescription(), mutation.getMutator()))
+                .map(mutation -> "- %s (%s)".formatted(mutation.getDescription(), mutation.getMutator()))
                 .collect(Collectors.joining("\n", "Survived mutations:\n", ""));
     }
 
     private String createMutationMessage(final int line, final List<Mutation> survived) {
         if (survived.size() == 1) {
-            return String.format("One mutation survived in line %d (%s)", line, formatMutator(survived));
+            return "One mutation survived in line %d (%s)".formatted(line, formatMutator(survived));
         }
-        return String.format("%d mutations survived in line %d", survived.size(), line);
+        return "%d mutations survived in line %d".formatted(survived.size(), line);
     }
 
     private String formatMutator(final List<Mutation> survived) {
@@ -335,9 +335,9 @@ class CoverageChecksPublisher {
 
     private String createBranchMessage(final int line, final int missed) {
         if (missed == 1) {
-            return String.format("Line %d is only partially covered, one branch is missing", line);
+            return "Line %d is only partially covered, one branch is missing".formatted(line);
         }
-        return String.format("Line %d is only partially covered, %d branches are missing", line, missed);
+        return "Line %d is only partially covered, %d branches are missing".formatted(line, missed);
     }
 
     private ChecksAnnotationBuilder createAnnotationBuilder(final FileNode fileNode) {
@@ -364,7 +364,7 @@ class CoverageChecksPublisher {
     }
 
     private String createDeltaBaselinesOverview() {
-        StringBuilder description = new StringBuilder(getSectionHeader(TITLE_HEADER_LEVEL, "Overview by baseline"));
+        var description = new StringBuilder(getSectionHeader(TITLE_HEADER_LEVEL, "Overview by baseline"));
 
         for (Baseline baseline : getBaselines()) {
             if (action.hasBaselineResult(baseline)) {
@@ -372,9 +372,9 @@ class CoverageChecksPublisher {
                         formatText(TextFormat.BOLD,
                                 getUrlText(action.getTitle(baseline), getBaseUrl() + baseline.getUrl()))));
                 for (Value value : getValues(baseline)) {
-                    String display = FORMATTER.formatDetailedValueWithMetric(value);
+                    var display = FORMATTER.formatDetailedValueWithMetric(value);
                     if (action.hasDelta(baseline, value.getMetric())) {
-                        display += String.format(" - Delta: %s", action.formatDelta(baseline, value.getMetric()));
+                        display += " - Delta: %s".formatted(action.formatDelta(baseline, value.getMetric()));
                     }
                     description.append(getBulletListItem(TITLE_HEADER_LEVEL, display));
                 }
@@ -391,7 +391,7 @@ class CoverageChecksPublisher {
     }
 
     private String createProjectOverview() {
-        StringBuilder description = new StringBuilder(getSectionHeader(TITLE_HEADER_LEVEL, "Project Overview"));
+        var description = new StringBuilder(getSectionHeader(TITLE_HEADER_LEVEL, "Project Overview"));
         description.append("No changes detected, that affect the code coverage.\n");
 
         for (Value value : getValues(Baseline.PROJECT)) {
@@ -408,7 +408,7 @@ class CoverageChecksPublisher {
      * @return the markdown string representing the status summary
      */
     private String getQualityGatesSummary() {
-        String summary = getSectionHeader(TITLE_HEADER_LEVEL, "Quality Gates Summary");
+        var summary = getSectionHeader(TITLE_HEADER_LEVEL, "Quality Gates Summary");
         var qualityGateResult = action.getQualityGateResult();
         if (qualityGateResult.isInactive()) {
             return summary + "No active quality gates.";
@@ -441,7 +441,7 @@ class CoverageChecksPublisher {
                 .collect(asColumn()));
         for (Baseline baseline : action.getBaselines()) {
             if (action.hasBaselineResult(baseline)) {
-                builder.append(String.format("%s **%s**|", Icon.FEET.markdown,
+                builder.append("%s **%s**|".formatted(Icon.FEET.markdown,
                         FORMATTER.getDisplayName(baseline)));
                 builder.append(getMetricStream()
                         .map(metric -> action.formatValue(baseline, metric))
@@ -449,7 +449,7 @@ class CoverageChecksPublisher {
 
                 var deltaBaseline = action.getDeltaBaseline(baseline);
                 if (deltaBaseline != baseline) {
-                    builder.append(String.format("%s **%s**|", Icon.CHART_UPWARDS_TREND.markdown,
+                    builder.append("%s **%s**|".formatted(Icon.CHART_UPWARDS_TREND.markdown,
                             FORMATTER.getDisplayName(deltaBaseline)));
                     builder.append(getMetricStream()
                             .map(metric -> getFormatDelta(baseline, metric))
@@ -496,7 +496,7 @@ class CoverageChecksPublisher {
     }
 
     private String getUrlText(final String text, final String url) {
-        return String.format("[%s](%s)", text, url);
+        return "[%s](%s)".formatted(text, url);
     }
 
     private String getSectionHeader(final int level, final String text) {

@@ -668,7 +668,7 @@ public final class CoverageBuildAction extends BuildAction<Node> implements Stap
 
     @Override
     protected String getBuildResultBaseName() {
-        return String.format("%s.xml", id);
+        return "%s.xml".formatted(id);
     }
 
     @Override
@@ -706,6 +706,6 @@ public final class CoverageBuildAction extends BuildAction<Node> implements Stap
 
     @Override
     public String toString() {
-        return String.format("%s (%s): %s", getDisplayName(), getUrlName(), projectValues);
+        return "%s (%s): %s".formatted(getDisplayName(), getUrlName(), projectValues);
     }
 }

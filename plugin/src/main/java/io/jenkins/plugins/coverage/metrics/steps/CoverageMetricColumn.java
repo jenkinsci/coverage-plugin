@@ -1,12 +1,12 @@
 package io.jenkins.plugins.coverage.metrics.steps;
 
-import java.util.List;
-import java.util.Optional;
-
 import edu.hm.hafner.coverage.Metric;
 import edu.hm.hafner.coverage.Value;
 import edu.hm.hafner.util.VisibleForTesting;
 import edu.umd.cs.findbugs.annotations.NonNull;
+
+import java.util.List;
+import java.util.Optional;
 
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.DataBoundSetter;
@@ -199,7 +199,7 @@ public class CoverageMetricColumn extends ListViewColumn {
      */
     public String getRelativeCoverageUrl(final Job<?, ?> job) {
         if (hasCoverageAction(job)) {
-            CoverageBuildAction action = job.getLastCompletedBuild().getAction(CoverageBuildAction.class);
+            var action = job.getLastCompletedBuild().getAction(CoverageBuildAction.class);
             return action.getUrlName() + "/" + baseline.getUrl();
         }
         return "";

@@ -1,5 +1,8 @@
 package io.jenkins.plugins.coverage.metrics.steps;
 
+import edu.hm.hafner.util.FilteredLog;
+import edu.hm.hafner.util.PathUtil;
+
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.InvalidPathException;
@@ -11,9 +14,6 @@ import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
-
-import edu.hm.hafner.util.FilteredLog;
-import edu.hm.hafner.util.PathUtil;
 
 import hudson.FilePath;
 import hudson.remoting.VirtualChannel;
@@ -105,7 +105,7 @@ public class PathResolver {
         @Override
         public RemoteResultWrapper<HashMap<String, String>> invoke(
                 final File workspaceFile, final VirtualChannel channel) {
-            FilteredLog log = new FilteredLog("Errors while resolving source files on agent:");
+            var log = new FilteredLog("Errors while resolving source files on agent:");
 
             Set<String> sourceDirectories = filterSourceDirectories(workspaceFile, log);
             if (sourceDirectories.isEmpty()) {
@@ -143,7 +143,7 @@ public class PathResolver {
         }
 
         private Set<String> filterSourceDirectories(final File workspace, final FilteredLog log) {
-            SourceDirectoryFilter filter = new SourceDirectoryFilter();
+            var filter = new SourceDirectoryFilter();
             return filter.getPermittedSourceDirectories(workspace.getAbsolutePath(),
                     permittedSourceDirectories, requestedSourceDirectories, log);
         }
@@ -151,18 +151,18 @@ public class PathResolver {
         private Optional<String> locateSource(final String relativePath, final FilePath workspace,
                 final Set<String> sourceSearchDirectories, final FilteredLog log) {
             try {
-                FilePath absolutePath = new FilePath(new File(relativePath));
+                var absolutePath = new FilePath(new File(relativePath));
                 if (absolutePath.exists()) {
                     return enforcePermissionFor(absolutePath, workspace, sourceSearchDirectories, log);
                 }
 
-                FilePath relativePathInWorkspace = workspace.child(relativePath);
+                var relativePathInWorkspace = workspace.child(relativePath);
                 if (relativePathInWorkspace.exists()) {
                     return enforcePermissionFor(relativePathInWorkspace, workspace, sourceSearchDirectories, log);
                 }
 
                 for (String sourceFolder : sourceSearchDirectories) {
-                    FilePath sourcePath = workspace.child(sourceFolder).child(relativePath);
+                    var sourcePath = workspace.child(sourceFolder).child(relativePath);
                     if (sourcePath.exists()) {
                         return enforcePermissionFor(sourcePath, workspace, sourceSearchDirectories, log);
                     }
@@ -178,7 +178,7 @@ public class PathResolver {
 
         private Optional<String> enforcePermissionFor(final FilePath absolutePath, final FilePath workspace,
                 final Set<String> sourceDirectories, final FilteredLog log) {
-            FilePermissionEnforcer enforcer = new FilePermissionEnforcer();
+            var enforcer = new FilePermissionEnforcer();
             var fileName = absolutePath.getRemote();
             if (enforcer.isInWorkspace(fileName, workspace, sourceDirectories)) {
                 if (isWithinWorkspace(fileName, workspace)) {

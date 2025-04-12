@@ -1,11 +1,11 @@
 package io.jenkins.plugins.coverage.metrics.source;
 
+import edu.hm.hafner.util.PathUtil;
+
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
-
-import edu.hm.hafner.util.PathUtil;
 
 import org.jenkinsci.plugins.workflow.job.WorkflowJob;
 import hudson.model.Node;
@@ -38,7 +38,7 @@ class LocalAgentSourceCodeITest extends SourceCodeITest {
 
     private void createFile(final Path tempDirectory,
             final String packagePath, final String sourceName, final String fileName) throws IOException {
-        Path sourceCodeDirectory = tempDirectory.resolve(packagePath);
+        var sourceCodeDirectory = tempDirectory.resolve(packagePath);
         Files.createDirectories(sourceCodeDirectory);
         Files.copy(getResourceAsFile(sourceName), sourceCodeDirectory.resolve(fileName), StandardCopyOption.REPLACE_EXISTING);
     }

@@ -1,9 +1,5 @@
 package io.jenkins.plugins.coverage.metrics;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.util.List;
-
 import org.junitpioneer.jupiter.DefaultLocale;
 
 import edu.hm.hafner.coverage.Coverage.CoverageBuilder;
@@ -17,6 +13,10 @@ import edu.hm.hafner.coverage.parser.VectorCastParser;
 import edu.hm.hafner.util.FilteredLog;
 import edu.hm.hafner.util.ResourceTest;
 import edu.hm.hafner.util.SecureXmlParserFactory.ParsingException;
+
+import java.io.IOException;
+import java.nio.file.Files;
+import java.util.List;
 
 import io.jenkins.plugins.coverage.metrics.model.CoverageStatistics;
 

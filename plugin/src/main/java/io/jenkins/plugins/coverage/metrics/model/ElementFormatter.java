@@ -136,7 +136,7 @@ public final class ElementFormatter {
     }
 
     private static String formatCoverage(final Coverage coverage, final String coveredText, final String missedText) {
-        return String.format("%s: %d - %s: %d", coveredText, coverage.getCovered(),
+        return "%s: %d - %s: %d".formatted(coveredText, coverage.getCovered(),
                 missedText, coverage.getMissed());
     }
 
@@ -164,8 +164,8 @@ public final class ElementFormatter {
      */
     public DisplayColors getDisplayColors(final Baseline baseline, final Value value) {
         var defaultColorProvider = ColorProviderFactory.createDefaultColorProvider();
-        if (value instanceof Coverage) {
-            return baseline.getDisplayColors(((Coverage) value).getCoveredPercentage().toDouble(),
+        if (value instanceof Coverage coverage) {
+            return baseline.getDisplayColors(coverage.getCoveredPercentage().toDouble(),
                     defaultColorProvider);
         }
         else {
@@ -223,7 +223,7 @@ public final class ElementFormatter {
      * @return the formatted percentage string
      */
     public String getBackgroundColorFillPercentage(final String percentage) {
-        String formattedPercentage = percentage.replace(",", ".");
+        var formattedPercentage = percentage.replace(",", ".");
         if (PERCENTAGE.matcher(formattedPercentage).matches()) {
             return formattedPercentage;
         }
@@ -401,7 +401,7 @@ public final class ElementFormatter {
      * @return the metrics in a {@link ListBoxModel}
      */
     public ListBoxModel getMetricItems() {
-        ListBoxModel options = new ListBoxModel();
+        var options = new ListBoxModel();
 
         Arrays.stream(Metric.values())
                 .filter(m -> m != Metric.CONTAINER)
@@ -416,7 +416,7 @@ public final class ElementFormatter {
      * @return the baselines in a {@link ListBoxModel}
      */
     public ListBoxModel getBaselineItems() {
-        ListBoxModel options = new ListBoxModel();
+        var options = new ListBoxModel();
         add(options, Baseline.PROJECT);
         add(options, Baseline.MODIFIED_LINES);
         add(options, Baseline.MODIFIED_FILES);

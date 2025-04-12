@@ -60,7 +60,7 @@ public enum CoverageLevel {
     private static DisplayColors getBlendedColors(final double coveragePercentage,
             @NonNull final ColorProvider colorProvider) {
         for (int i = 0; i < values().length - 1; i++) {
-            CoverageLevel level = values()[i];
+            var level = values()[i];
             if (coveragePercentage >= level.level) {
                 if (i == 0) {
                     return colorProvider.getDisplayColorsOf(level.colorizationId);
@@ -69,7 +69,7 @@ public enum CoverageLevel {
                 if (distanceLevel == 0) {
                     return colorProvider.getDisplayColorsOf(level.colorizationId);
                 }
-                CoverageLevel upperLevel = values()[i - 1];
+                var upperLevel = values()[i - 1];
                 double distanceUpper = upperLevel.level - coveragePercentage;
                 return colorProvider.getBlendedDisplayColors(
                         distanceLevel, distanceUpper,

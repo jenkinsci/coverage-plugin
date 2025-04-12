@@ -6,8 +6,6 @@ import edu.hm.hafner.coverage.Metric;
 
 import hudson.model.Descriptor;
 import hudson.model.FreeStyleProject;
-import hudson.model.TopLevelItem;
-import hudson.model.View;
 import hudson.tasks.Publisher;
 import hudson.util.DescribableList;
 import hudson.views.ListViewColumn;
@@ -36,7 +34,7 @@ class JobDslITest extends IntegrationTestWithJenkinsPerTest {
     void shouldCreateColumnFromYamlConfiguration() {
         configureJenkins("column-metric-dsl.yaml");
 
-        View view = getJenkins().getInstance().getView("dsl-view");
+        var view = getJenkins().getInstance().getView("dsl-view");
 
         assertThat(view).isNotNull();
 
@@ -58,7 +56,7 @@ class JobDslITest extends IntegrationTestWithJenkinsPerTest {
     void shouldCreateFreestyleJobFromYamlConfiguration() {
         configureJenkins("job-dsl.yaml");
 
-        TopLevelItem project = getJenkins().jenkins.getItem("dsl-freestyle-job");
+        var project = getJenkins().jenkins.getItem("dsl-freestyle-job");
 
         assertThat(project).isNotNull();
         assertThat(project).isInstanceOf(FreeStyleProject.class);
@@ -66,7 +64,7 @@ class JobDslITest extends IntegrationTestWithJenkinsPerTest {
         DescribableList<Publisher, Descriptor<Publisher>> publishers = ((FreeStyleProject) project).getPublishersList();
         assertThat(publishers).hasSize(1);
 
-        Publisher publisher = publishers.get(0);
+        var publisher = publishers.get(0);
         assertThat(publisher).isInstanceOfSatisfying(CoverageRecorder.class, this::assertRecorderProperties);
     }
 

@@ -1,5 +1,8 @@
 package io.jenkins.plugins.coverage.metrics.steps;
 
+import edu.hm.hafner.coverage.FileNode;
+import edu.hm.hafner.coverage.Node;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -14,9 +17,6 @@ import java.util.TreeMap;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-
-import edu.hm.hafner.coverage.FileNode;
-import edu.hm.hafner.coverage.Node;
 
 import io.jenkins.plugins.forensics.delta.Change;
 import io.jenkins.plugins.forensics.delta.ChangeEditType;
@@ -43,7 +43,7 @@ public class FileChangesProcessor {
 
         codeChanges.forEach((path, fileChange) -> {
             if (nodePathMapping.containsKey(path)) {
-                FileNode changedNode = nodePathMapping.get(path);
+                var changedNode = nodePathMapping.get(path);
                 attachChanges(changedNode, fileChange.getChangesByType(ChangeEditType.INSERT));
                 attachChanges(changedNode, fileChange.getChangesByType(ChangeEditType.REPLACE));
             }
@@ -116,13 +116,13 @@ public class FileChangesProcessor {
         Map<String, FileNode> referenceFileNodes = getReferenceFileNodeMapping(fileNodes, referenceNode);
 
         for (Map.Entry<String, FileNode> entry : fileNodes.entrySet()) {
-            String referencePath = entry.getKey();
-            FileNode fileNode = entry.getValue();
+            var referencePath = entry.getKey();
+            var fileNode = entry.getValue();
             Optional<SortedMap<Integer, Integer>> referenceCoveragePerLine =
                     getReferenceCoveragePerLine(referenceFileNodes, referencePath);
             if (referenceCoveragePerLine.isPresent()) {
                 SortedMap<Integer, Integer> referenceCoverageMapping = new TreeMap<>(referenceCoveragePerLine.get());
-                String currentPath = fileNode.getRelativePath();
+                var currentPath = fileNode.getRelativePath();
                 if (codeChanges.containsKey(currentPath)) {
                     adjustedCoveragePerLine(referenceCoverageMapping, codeChanges.get(currentPath));
                 }
@@ -215,7 +215,7 @@ public class FileChangesProcessor {
 
         coveragePerLine.clear();
         for (int line = 1; line < adjustedCoveragesList.size(); line++) {
-            Integer coverage = adjustedCoveragesList.get(line);
+            var coverage = adjustedCoveragesList.get(line);
             if (coverage != null) {
                 coveragePerLine.put(line, coverage);
             }

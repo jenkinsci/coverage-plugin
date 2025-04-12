@@ -1,10 +1,10 @@
 package io.jenkins.plugins.coverage.metrics.source;
 
-import java.io.IOException;
-
 import org.apache.commons.lang3.exception.ExceptionUtils;
 
 import edu.hm.hafner.coverage.FileNode;
+
+import java.io.IOException;
 
 import hudson.model.ModelObject;
 import hudson.model.Run;

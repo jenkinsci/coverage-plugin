@@ -89,7 +89,7 @@ class CoverageSourcePrinter implements Serializable {
             if (covered == 0) {
                 return "No branches covered";
             }
-            return String.format("Partially covered, branch coverage: %d/%d", covered, covered + missed);
+            return "Partially covered, branch coverage: %d/%d".formatted(covered, covered + missed);
         }
         else if (covered == 1) {
             return "Covered at least once";
@@ -103,7 +103,7 @@ class CoverageSourcePrinter implements Serializable {
         var covered = getCovered(line);
         var missed = getMissed(line);
         if (covered + missed > 1) {
-            return String.format("%d/%d", covered, covered + missed);
+            return "%d/%d".formatted(covered, covered + missed);
         }
         return String.valueOf(covered);
     }

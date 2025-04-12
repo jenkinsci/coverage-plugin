@@ -3,6 +3,8 @@ package io.jenkins.plugins.coverage.metrics.steps;
 import edu.hm.hafner.coverage.Metric;
 import edu.hm.hafner.util.VisibleForTesting;
 
+import java.io.Serial;
+
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.DataBoundSetter;
 import org.kohsuke.stapler.verb.POST;
@@ -23,6 +25,7 @@ import io.jenkins.plugins.util.QualityGate;
  * @author Johannes Walter
  */
 public class CoverageQualityGate extends QualityGate {
+    @Serial
     private static final long serialVersionUID = -397278599489426668L;
 
     private static final ElementFormatter FORMATTER = new ElementFormatter();
@@ -75,7 +78,7 @@ public class CoverageQualityGate extends QualityGate {
      */
     @Override
     public String getName() {
-        return String.format("%s - %s", FORMATTER.getDisplayName(getBaseline()),
+        return "%s - %s".formatted(FORMATTER.getDisplayName(getBaseline()),
                 FORMATTER.getDisplayName(getMetric()));
     }
 

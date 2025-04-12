@@ -41,7 +41,7 @@ public enum CoverageChangeLevel {
     public static DisplayColors getDisplayColorsOfCoverageChange(final double coverageDifference,
             @NonNull final ColorProvider colorProvider) {
         for (int i = 0; i < values().length - 1; i++) {
-            CoverageChangeLevel level = values()[i];
+            var level = values()[i];
             if (coverageDifference >= level.change) {
                 if (i == 0) {
                     return colorProvider.getDisplayColorsOf(level.colorizationId);
@@ -50,7 +50,7 @@ public enum CoverageChangeLevel {
                 if (distanceLevel == 0) {
                     return colorProvider.getDisplayColorsOf(level.colorizationId);
                 }
-                CoverageChangeLevel upperLevel = values()[i - 1];
+                var upperLevel = values()[i - 1];
                 double distanceUpper = upperLevel.change - coverageDifference;
                 return colorProvider.getBlendedDisplayColors(
                         distanceLevel, distanceUpper,

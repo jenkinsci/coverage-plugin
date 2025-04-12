@@ -1,11 +1,5 @@
 package io.jenkins.plugins.coverage.metrics.source;
 
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Paths;
-import java.util.List;
-import java.util.Optional;
-
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -15,6 +9,12 @@ import edu.hm.hafner.coverage.FileNode;
 import edu.hm.hafner.coverage.Metric;
 import edu.hm.hafner.coverage.Node;
 import edu.hm.hafner.util.PathUtil;
+
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Path;
+import java.util.List;
+import java.util.Optional;
 
 import org.jenkinsci.plugins.workflow.cps.CpsFlowDefinition;
 import org.jenkinsci.plugins.workflow.job.WorkflowJob;
@@ -66,7 +66,7 @@ abstract class SourceCodeITest extends AbstractCoverageITest {
 
     @Test
     void verifySourcesInApprovedExternalFolder() throws IOException {
-        String directory = createExternalFolder();
+        var directory = createExternalFolder();
         PrismConfiguration.getInstance().setSourceDirectories(List.of(new PermittedSourceCodeDirectory(directory)));
 
         Run<?, ?> externalDirectory = runCoverageWithSourceCode(directory, false);
@@ -79,9 +79,9 @@ abstract class SourceCodeITest extends AbstractCoverageITest {
         PrismConfiguration.getInstance().setSourceDirectories(List.of());
 
         var localAgent = crateCoverageAgent();
-        String sourceDirectory = createExternalFolder();
+        var sourceDirectory = createExternalFolder();
 
-        WorkflowJob job = createPipeline();
+        var job = createPipeline();
         var subFolder = "ignore/";
         copySourceFileToAgent(subFolder, localAgent, job);
         copyReports(localAgent, job);
@@ -93,8 +93,7 @@ abstract class SourceCodeITest extends AbstractCoverageITest {
         assertThat(getConsoleLog(firstBuild))
                 .contains("-> finished resolving of absolute paths (found: 0, not found: 1)")
                 .contains("-> finished painting (0 files have been painted, 1 files failed)")
-                .contains(String.format(
-                        "[-ERROR-] Removing non-workspace source directory '%s' - it has not been approved in Jenkins' global configuration.",
+                .contains("[-ERROR-] Removing non-workspace source directory '%s' - it has not been approved in Jenkins' global configuration.".formatted(
                         sourceDirectory))
                 .contains("- Source file '" + ACU_COBOL_PARSER_SOURCE_FILE_PATH + "' not found");
         localAgent.setLabelString("<null>");
@@ -104,15 +103,15 @@ abstract class SourceCodeITest extends AbstractCoverageITest {
             throws IOException {
         var localAgent = crateCoverageAgent();
 
-        WorkflowJob job = createPipeline();
+        var job = createPipeline();
         copyReports(localAgent, job);
         copySourceFileToAgent(sourceDir, localAgent, job);
 
         // get the temporary directory - used by unit tests - to verify its content
-        File temporaryDirectory = new File(System.getProperty("java.io.tmpdir"));
-        assertThat(temporaryDirectory.exists()).isTrue();
-        assertThat(temporaryDirectory.isDirectory()).isTrue();
-        File[] temporaryFiles = temporaryDirectory.listFiles();
+        var temporaryDirectory = new File(System.getProperty("java.io.tmpdir"));
+        assertThat(temporaryDirectory).exists();
+        assertThat(temporaryDirectory).isDirectory();
+        var temporaryFiles = temporaryDirectory.listFiles();
 
         String requestedSourceFolder;
         if (useAbsolutePath) {
@@ -200,7 +199,7 @@ abstract class SourceCodeITest extends AbstractCoverageITest {
     }
 
     private String getRelativePath(final String path, final String filePath) {
-        return UTIL.getRelativePath(Paths.get(path, filePath));
+        return UTIL.getRelativePath(Path.of(path, filePath));
     }
 
     String createDestinationPath(final String sourceDirectory, final String packagePath, final String fileName) {

@@ -123,7 +123,7 @@ class CoverageXmlStream extends AbstractXmlStream<Node> {
         @Override
         public void marshal(final Object source, final HierarchicalStreamWriter writer,
                 final MarshallingContext context) {
-            writer.setValue(source instanceof Fraction ? ((Fraction) source).toProperString() : null);
+            writer.setValue(source instanceof Fraction f ? f.toProperString() : null);
         }
 
         @Override
@@ -262,7 +262,7 @@ class CoverageXmlStream extends AbstractXmlStream<Node> {
     static final class IntegerLineMapConverter extends TreeMapConverter<Integer, Integer> {
         @Override
         protected Function<Entry<Integer, Integer>, String> createMapEntry() {
-            return e -> String.format("%d: %d", e.getKey(), e.getValue());
+            return e -> "%d: %d".formatted(e.getKey(), e.getValue());
         }
 
         @Override

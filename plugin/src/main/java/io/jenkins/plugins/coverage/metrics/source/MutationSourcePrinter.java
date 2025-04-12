@@ -1,12 +1,5 @@
 package io.jenkins.plugins.coverage.metrics.source;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map.Entry;
-import java.util.NavigableMap;
-import java.util.function.Predicate;
-import java.util.stream.Collectors;
-
 import org.apache.commons.lang3.StringUtils;
 
 import edu.hm.hafner.coverage.FileNode;
@@ -14,6 +7,13 @@ import edu.hm.hafner.coverage.Mutation;
 
 import j2html.tags.ContainerTag;
 import j2html.tags.UnescapedText;
+import java.io.Serial;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map.Entry;
+import java.util.NavigableMap;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 import static j2html.TagCreator.*;
 
@@ -22,6 +22,7 @@ import static j2html.TagCreator.*;
  * line and mutation coverage in HTML.
  */
 final class MutationSourcePrinter extends CoverageSourcePrinter {
+    @Serial
     private static final long serialVersionUID = -2215657894423024907L;
 
     private final int[] survivedPerLine;
@@ -57,9 +58,9 @@ final class MutationSourcePrinter extends CoverageSourcePrinter {
     }
 
     private String createInfo(final List<Mutation> allMutations) {
-        ContainerTag killedContainer = listMutations(allMutations,
+        var killedContainer = listMutations(allMutations,
                 Mutation::isKilled, "Killed Mutations:");
-        ContainerTag survivedContainer = listMutations(allMutations,
+        var survivedContainer = listMutations(allMutations,
                 Mutation::hasSurvived, "Survived Mutations:");
         if (killedContainer.getNumChildren() == 0 && survivedContainer.getNumChildren() == 0) {
             return "Not covered";
@@ -79,7 +80,7 @@ final class MutationSourcePrinter extends CoverageSourcePrinter {
 
     private List<ContainerTag> asBulletPoints(final List<Mutation> mutations, final Predicate<Mutation> predicate) {
         return mutations.stream().filter(predicate).map(mutation ->
-                li().withText(String.format("%s (%s)", mutation.getDescription(), mutation.getMutator())))
+                li().withText("%s (%s)".formatted(mutation.getDescription(), mutation.getMutator())))
                 .collect(Collectors.toList());
     }
 
@@ -117,7 +118,7 @@ final class MutationSourcePrinter extends CoverageSourcePrinter {
         var killed = getKilled(line);
         var survived = getSurvived(line);
         if (survived + killed > 0) {
-            return String.format("%d/%d", killed, survived + killed);
+            return "%d/%d".formatted(killed, survived + killed);
         }
         return String.valueOf(killed);
     }

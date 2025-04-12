@@ -1,5 +1,14 @@
 package io.jenkins.plugins.coverage.metrics.source;
 
+import org.apache.commons.lang3.StringUtils;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
+import org.jsoup.parser.Parser;
+
+import edu.hm.hafner.coverage.FileNode;
+import edu.hm.hafner.util.FilteredLog;
+
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -13,16 +22,6 @@ import java.util.SortedSet;
 import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
-
-import org.apache.commons.lang3.StringUtils;
-import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
-import org.jsoup.nodes.Element;
-import org.jsoup.parser.Parser;
-import org.jsoup.select.Elements;
-
-import edu.hm.hafner.coverage.FileNode;
-import edu.hm.hafner.util.FilteredLog;
 
 import hudson.FilePath;
 import hudson.model.Run;
@@ -61,12 +60,12 @@ public class SourceCodeFacade {
     public String read(final File buildResults, final String id, final String path)
             throws IOException, InterruptedException {
         Path tempDir = Files.createTempDirectory(COVERAGE_SOURCES_DIRECTORY);
-        FilePath unzippedSourcesDir = new FilePath(tempDir.toFile());
+        var unzippedSourcesDir = new FilePath(tempDir.toFile());
         try {
-            FilePath inputZipFile = new FilePath(createFileInBuildFolder(buildResults, id, path));
+            var inputZipFile = new FilePath(createFileInBuildFolder(buildResults, id, path));
             inputZipFile.unzip(unzippedSourcesDir);
             String actualPaintedSourceFileName = StringUtils.removeEnd(sanitizeFilename(path), ZIP_FILE_EXTENSION);
-            File sourceFile = tempDir.resolve(actualPaintedSourceFileName).toFile();
+            var sourceFile = tempDir.resolve(actualPaintedSourceFileName).toFile();
 
             return new TextFile(sourceFile).read();
         }
@@ -103,9 +102,9 @@ public class SourceCodeFacade {
      * @return {@code true} whether source files has been stored, else {@code false}
      */
     public boolean hasStoredSourceCode(final File buildResults, final String id) {
-        File sourceFolder = new File(buildResults, COVERAGE_SOURCES_DIRECTORY);
-        File elementFolder = new File(sourceFolder, id);
-        File[] files = elementFolder.listFiles();
+        var sourceFolder = new File(buildResults, COVERAGE_SOURCES_DIRECTORY);
+        var elementFolder = new File(sourceFolder, id);
+        var files = elementFolder.listFiles();
         return files != null && files.length > 0;
     }
 
@@ -130,8 +129,8 @@ public class SourceCodeFacade {
     void copySourcesToBuildFolder(final Run<?, ?> build, final FilePath workspace, final FilteredLog log)
             throws InterruptedException {
         try {
-            FilePath buildFolder = new FilePath(build.getRootDir()).child(COVERAGE_SOURCES_DIRECTORY);
-            FilePath buildZip = buildFolder.child(COVERAGE_SOURCES_ZIP);
+            var buildFolder = new FilePath(build.getRootDir()).child(COVERAGE_SOURCES_DIRECTORY);
+            var buildZip = buildFolder.child(COVERAGE_SOURCES_ZIP);
             workspace.child(COVERAGE_SOURCES_ZIP).copyTo(buildZip);
             log.logInfo("-> extracting...");
             buildZip.unzip(buildFolder);
@@ -156,8 +155,8 @@ public class SourceCodeFacade {
      * @return the file
      */
     File createFileInBuildFolder(final File buildResults, final String id, final String path) {
-        File sourceFolder = new File(buildResults, COVERAGE_SOURCES_DIRECTORY);
-        File elementFolder = new File(sourceFolder, id);
+        var sourceFolder = new File(buildResults, COVERAGE_SOURCES_DIRECTORY);
+        var elementFolder = new File(sourceFolder, id);
 
         return new File(elementFolder, sanitizeFilename(path) + ZIP_FILE_EXTENSION);
     }
@@ -180,9 +179,9 @@ public class SourceCodeFacade {
         int maxLine = Integer.parseInt(Objects.requireNonNull(
                 doc.select("tr").last()).select("a").text());
         Map<String, Boolean> linesMapping = calculateLineMapping(lines, maxLine);
-        Elements elements = doc.select("tr");
+        var elements = doc.select("tr");
         for (Element element : elements) {
-            String line = element.select("td > a").text();
+            var line = element.select("td > a").text();
             if (linesMapping.containsKey(line)) {
                 if (linesMapping.get(line)) {
                     changeCodeToSkipLine(element);
@@ -220,7 +219,7 @@ public class SourceCodeFacade {
                 doc.select("tr").last()).select("a").text());
         Map<String, Boolean> linesMapping = calculateLineMapping(lines.keySet(), maxLine);
         doc.select("tr").forEach(element -> {
-            String line = element.select("td > a").text();
+            var line = element.select("td > a").text();
             if (linesMapping.containsKey(line)) {
                 colorIndirectCoverageChangeLine(element, line, linesMapping, indirectCoverageChangesAsText);
             }
@@ -264,7 +263,7 @@ public class SourceCodeFacade {
         }
         else if (indirectCoverageChangesAsText.containsKey(line)) {
             element.removeClass(element.className());
-            String hits = indirectCoverageChangesAsText.get(line);
+            var hits = indirectCoverageChangesAsText.get(line);
             if (hits.startsWith("-")) {
                 element.addClass("coverNone");
             }

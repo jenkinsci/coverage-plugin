@@ -1,10 +1,10 @@
 package io.jenkins.plugins.coverage.metrics.steps;
 
-import java.util.List;
-
 import org.junit.jupiter.api.Test;
 
 import edu.hm.hafner.coverage.Metric;
+
+import java.util.List;
 
 import hudson.FilePath;
 import hudson.model.AbstractBuild;

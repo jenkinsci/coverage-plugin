@@ -1,9 +1,8 @@
 package io.jenkins.plugins.coverage.metrics.color;
 
-import java.awt.*;
-
 import org.junit.jupiter.api.Test;
 
+import java.awt.*;
 import nl.jqno.equalsverifier.EqualsVerifier;
 
 import static io.jenkins.plugins.coverage.metrics.color.ColorProvider.*;
@@ -17,8 +16,8 @@ import static org.assertj.core.api.Assertions.*;
 class ColorProviderTest {
     @Test
     void shouldGetDisplayColorsOfId() {
-        ColorProvider colorProvider = createDefaultColorProvider();
-        DisplayColors displayColors = colorProvider.getDisplayColorsOf(ColorId.EXCELLENT);
+        var colorProvider = createDefaultColorProvider();
+        var displayColors = colorProvider.getDisplayColorsOf(ColorId.EXCELLENT);
 
         assertThat(displayColors.getFillColor()).isEqualTo(CoverageColorPalette.GREEN.getFillColor());
         assertThat(displayColors.getLineColor()).isEqualTo(CoverageColorPalette.GREEN.getLineColor());
@@ -27,14 +26,14 @@ class ColorProviderTest {
 
     @Test
     void shouldCheckForExistentColorId() {
-        ColorProvider colorProvider = createDefaultColorProvider();
+        var colorProvider = createDefaultColorProvider();
         assertThat(colorProvider.containsColorId(ColorId.EXCELLENT)).isTrue();
         assertThat(colorProvider.containsColorId(null)).isFalse();
     }
 
     @Test
     void shouldGetBlendedDisplayColors() {
-        ColorProvider colorProvider = createDefaultColorProvider();
+        var colorProvider = createDefaultColorProvider();
 
         assertThat(colorProvider.getBlendedDisplayColors(1, 1, null, ColorId.EXCELLENT))
                 .isEqualTo(DEFAULT_COLOR);
@@ -55,8 +54,8 @@ class ColorProviderTest {
 
     @Test
     void shouldBlendWeightedColors() {
-        Color first = new Color(200, 200, 200);
-        Color second = new Color(0, 0, 0);
+        var first = new Color(200, 200, 200);
+        var second = new Color(0, 0, 0);
         double firstWeight = 1;
         double secondWeight = 3;
 
@@ -78,7 +77,7 @@ class ColorProviderTest {
 
     @Test
     void shouldProvideColorAsHexForDisplayColors() {
-        DisplayColors displayColors = new DisplayColors(Color.black, Color.white);
+        var displayColors = new DisplayColors(Color.black, Color.white);
 
         assertThat(displayColors.getFillColorAsRGBAHex(255)).isEqualTo("#FFFFFFFF");
         assertThat(displayColors.getLineColorAsRGBHex()).isEqualTo("#000000");

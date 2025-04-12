@@ -1,11 +1,11 @@
 package io.jenkins.plugins.coverage.metrics.restapi;
 
+import edu.hm.hafner.coverage.Metric;
+import edu.hm.hafner.coverage.Value;
+
 import java.util.Locale;
 import java.util.NavigableMap;
 import java.util.TreeMap;
-
-import edu.hm.hafner.coverage.Metric;
-import edu.hm.hafner.coverage.Value;
 
 import org.kohsuke.stapler.export.Exported;
 import org.kohsuke.stapler.export.ExportedBean;

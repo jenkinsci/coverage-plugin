@@ -1,9 +1,9 @@
 package io.jenkins.plugins.coverage.metrics.steps;
 
-import java.util.Locale;
-
 import edu.hm.hafner.coverage.FileNode;
 import edu.hm.hafner.coverage.Node;
+
+import java.util.Locale;
 
 import io.jenkins.plugins.coverage.metrics.color.ColorProvider;
 

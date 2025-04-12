@@ -68,7 +68,7 @@ class TrendChartFactory {
     Set<Metric> getVisibleMetrics(final String configuration) {
         try {
             var objectMapper = new ObjectMapper();
-            ObjectNode jsonNodes = objectMapper.readValue(configuration, ObjectNode.class);
+            var jsonNodes = objectMapper.readValue(configuration, ObjectNode.class);
             var metrics = jsonNodes.get("metrics");
             @SuppressWarnings("unchecked")
             Map<String, Boolean> metricMapping = objectMapper.convertValue(metrics, Map.class);

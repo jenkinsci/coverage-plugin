@@ -45,7 +45,7 @@ public class CoverageTrendChart extends TrendChart {
             final ChartModelConfiguration configuration) {
         var dataSet = new CoverageSeriesBuilder().createDataSet(configuration, results);
 
-        LinesChartModel model = new LinesChartModel(dataSet);
+        var model = new LinesChartModel(dataSet);
         if (dataSet.isNotEmpty()) {
             int colorIndex = 0;
             for (Metric metric : List.of(Metric.MODULE, Metric.PACKAGE, Metric.FILE, Metric.CLASS, Metric.METHOD)) {
