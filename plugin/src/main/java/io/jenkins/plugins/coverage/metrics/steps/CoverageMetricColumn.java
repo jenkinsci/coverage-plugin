@@ -144,7 +144,7 @@ public class CoverageMetricColumn extends ListViewColumn {
      * @return the coverage text
      */
     public String getCoverageText(final Job<?, ?> job) {
-        Optional<? extends Value> coverageValue = getCoverageValue(job);
+        Optional<Value> coverageValue = getCoverageValue(job);
         if (coverageValue.isPresent()) {
             return FORMATTER.format(coverageValue.get(), Functions.getCurrentLocale());
         }
@@ -159,7 +159,7 @@ public class CoverageMetricColumn extends ListViewColumn {
      *
      * @return the coverage percentage
      */
-    public Optional<? extends Value> getCoverageValue(final Job<?, ?> job) {
+    public Optional<Value> getCoverageValue(final Job<?, ?> job) {
         return findAction(job).flatMap(action -> action.getStatistics().getValue(getBaseline(), metric));
     }
 

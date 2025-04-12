@@ -196,7 +196,8 @@ class CoverageMetricColumnTest extends AbstractCoverageTest {
         assertThat(column.getCoverageValue(job))
                 .isNotEmpty()
                 .satisfies(coverage -> {
-                    assertThat(coverage.get()).isEqualTo(new CoverageBuilder().withMetric(Metric.BRANCH).withCovered(109).withMissed(7).build());
+                    assertThat(coverage).contains(
+                            new CoverageBuilder().withMetric(Metric.BRANCH).withCovered(109).withMissed(7).build());
                     assertThat(column.getDisplayColors(job, coverage).getLineColor())
                             .isEqualTo(Color.white);
                 });
@@ -213,7 +214,7 @@ class CoverageMetricColumnTest extends AbstractCoverageTest {
         assertThat(column.getCoverageValue(job))
                 .isNotEmpty()
                 .satisfies(coverage -> {
-                    assertThat(coverage.get()).isEqualTo(new Difference(Metric.BRANCH, 5));
+                    assertThat(coverage).contains(new Difference(Metric.BRANCH, 5));
                     assertThat(column.getDisplayColors(job, coverage))
                             .isEqualTo(COLOR_PROVIDER.getDisplayColorsOf(
                                     CoverageChangeTendency.INCREASED.getColorizationId()));
