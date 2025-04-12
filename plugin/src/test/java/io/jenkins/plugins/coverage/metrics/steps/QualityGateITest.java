@@ -1,12 +1,12 @@
 package io.jenkins.plugins.coverage.metrics.steps;
 
-import java.util.List;
-import java.util.Objects;
-
 import org.junit.jupiter.api.Test;
 import org.junitpioneer.jupiter.Issue;
 
 import edu.hm.hafner.coverage.Metric;
+
+import java.util.List;
+import java.util.Objects;
 
 import org.jenkinsci.plugins.workflow.actions.WarningAction;
 import org.jenkinsci.plugins.workflow.graph.FlowNode;
@@ -112,7 +112,7 @@ class QualityGateITest extends AbstractCoverageITest {
                         + "     [threshold: 90.0, metric: 'LINE', baseline: 'PROJECT', criticality: 'UNSTABLE'], "
                         + "     [threshold: 90.0, metric: 'BRANCH', baseline: 'PROJECT', criticality: 'UNSTABLE']])\n");
 
-        WorkflowRun build = (WorkflowRun)buildWithResult(project, Result.UNSTABLE);
+        WorkflowRun build = (WorkflowRun) buildWithResult(project, Result.UNSTABLE);
 
         CoverageBuildAction coverageResult = build.getAction(CoverageBuildAction.class);
         assertThat(coverageResult.getQualityGateResult()).hasOverallStatus(QualityGateStatus.WARNING);
@@ -137,7 +137,7 @@ class QualityGateITest extends AbstractCoverageITest {
                         + "     [threshold: 90.0, metric: 'LINE', baseline: 'PROJECT', criticality: 'NOTE'], "
                         + "     [threshold: 90.0, metric: 'BRANCH', baseline: 'PROJECT', criticality: 'NOTE']])\n");
 
-        WorkflowRun build = (WorkflowRun)buildSuccessfully(project);
+        WorkflowRun build = (WorkflowRun) buildSuccessfully(project);
 
         CoverageBuildAction coverageResult = build.getAction(CoverageBuildAction.class);
         assertThat(coverageResult.getQualityGateResult()).hasOverallStatus(QualityGateStatus.NOTE);

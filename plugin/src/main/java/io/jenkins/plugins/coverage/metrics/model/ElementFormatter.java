@@ -1,18 +1,18 @@
 package io.jenkins.plugins.coverage.metrics.model;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.Locale;
-import java.util.regex.Pattern;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
 import org.apache.commons.lang3.StringUtils;
 
 import edu.hm.hafner.coverage.Coverage;
 import edu.hm.hafner.coverage.Metric;
 import edu.hm.hafner.coverage.Percentage;
 import edu.hm.hafner.coverage.Value;
+
+import java.util.Arrays;
+import java.util.List;
+import java.util.Locale;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import hudson.Functions;
 import hudson.util.ListBoxModel;
@@ -405,7 +405,7 @@ public final class ElementFormatter {
 
         Arrays.stream(Metric.values())
                 .filter(m -> m != Metric.CONTAINER)
-                .forEach(m-> options.add(m.getDisplayName(), m.name()));
+                .forEach(m -> options.add(m.getDisplayName(), m.name()));
 
         return options;
     }

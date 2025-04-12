@@ -410,7 +410,7 @@ public class CoverageViewModel extends DefaultAsyncTableContentProvider implemen
         if (targetResult.isPresent()) {
             try {
                 Node fileNode = targetResult.get();
-                return readSourceCode((FileNode)fileNode, tableId);
+                return readSourceCode((FileNode) fileNode, tableId);
             }
             catch (IOException | InterruptedException exception) {
                 return ExceptionUtils.getStackTrace(exception);

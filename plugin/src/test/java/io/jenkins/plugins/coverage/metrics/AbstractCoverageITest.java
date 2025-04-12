@@ -8,6 +8,7 @@ import org.jenkinsci.plugins.workflow.job.WorkflowJob;
 import hudson.model.FreeStyleProject;
 
 import io.jenkins.plugins.coverage.metrics.steps.CoverageRecorder;
+import io.jenkins.plugins.coverage.metrics.steps.CoverageTool;
 import io.jenkins.plugins.coverage.metrics.steps.CoverageTool.Parser;
 import io.jenkins.plugins.forensics.reference.SimpleReferenceRecorder;
 import io.jenkins.plugins.util.IntegrationTestWithJenkinsPerSuite;
@@ -41,7 +42,7 @@ public abstract class AbstractCoverageITest extends IntegrationTestWithJenkinsPe
             final Parser parser, final String pattern, final Consumer<CoverageRecorder> configuration) {
         CoverageRecorder recorder = new CoverageRecorder();
 
-        var tool = new io.jenkins.plugins.coverage.metrics.steps.CoverageTool();
+        var tool = new CoverageTool();
         tool.setParser(parser);
         tool.setPattern(pattern);
         recorder.setTools(List.of(tool));

@@ -18,7 +18,11 @@ import static com.tngtech.archunit.library.plantuml.rules.PlantUmlArchCondition.
  */
 @SuppressWarnings("hideutilityclassconstructor")
 @AnalyzeClasses(packages = "io.jenkins.plugins.coverage.metrics", importOptions = DoNotIncludeTests.class)
-class PackageArchitectureTest {
+final class PackageArchitectureTest {
+    private PackageArchitectureTest() {
+        // prevents instantiation
+    }
+
     private static final URL PACKAGE_DESIGN = PackageArchitectureTest.class.getResource("/design.puml");
 
     @ArchTest
