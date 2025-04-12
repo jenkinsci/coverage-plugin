@@ -1,10 +1,10 @@
 package io.jenkins.plugins.coverage.metrics.color;
 
+import org.junit.jupiter.api.Test;
+
 import java.awt.*;
 import java.util.HashMap;
 import java.util.Map;
-
-import org.junit.jupiter.api.Test;
 
 import static io.jenkins.plugins.coverage.metrics.color.CoverageColorJenkinsId.*;
 import static org.assertj.core.api.Assertions.*;

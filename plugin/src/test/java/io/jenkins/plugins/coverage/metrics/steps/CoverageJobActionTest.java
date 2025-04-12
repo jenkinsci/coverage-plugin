@@ -5,7 +5,6 @@ import org.junit.jupiter.api.Test;
 
 import edu.hm.hafner.coverage.Metric;
 import edu.hm.hafner.coverage.Value;
-import edu.hm.hafner.echarts.line.LinesChartModel;
 
 import java.io.IOException;
 import java.util.List;
@@ -50,7 +49,7 @@ class CoverageJobActionTest {
     void shouldNavigateToLastAction() throws IOException {
         FreeStyleBuild build = mock(FreeStyleBuild.class);
 
-        CoverageBuildAction action = createBuildAction(build);
+        var action = createBuildAction(build);
 
         when(build.getActions(CoverageBuildAction.class)).thenReturn(List.of(action));
         when(build.getNumber()).thenReturn(15);
@@ -71,7 +70,7 @@ class CoverageJobActionTest {
     void shouldCreateTrendChartForLineAndBranchCoverage() {
         FreeStyleBuild build = mock(FreeStyleBuild.class);
 
-        CoverageBuildAction action = createBuildAction(build);
+        var action = createBuildAction(build);
         when(build.getActions(CoverageBuildAction.class)).thenReturn(List.of(action));
         when(action.getStatistics()).thenReturn(createStatistics());
 
@@ -84,7 +83,7 @@ class CoverageJobActionTest {
 
         CoverageJobAction jobAction = createAction(job);
 
-        LinesChartModel chart = jobAction.createChartModel("{}");
+        var chart = jobAction.createChartModel("{}");
 
         assertThatJson(chart).node("buildNumbers").isArray().hasSize(1).containsExactly(buildNumber);
         assertThatJson(chart).node("domainAxisLabels").isArray().hasSize(1).containsExactly("#15");

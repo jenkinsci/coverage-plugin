@@ -1,5 +1,8 @@
 package io.jenkins.plugins.coverage.metrics.steps;
 
+import edu.hm.hafner.coverage.Node;
+import edu.hm.hafner.util.FilteredLog;
+
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -11,10 +14,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-
-import edu.hm.hafner.coverage.Node;
-import edu.hm.hafner.util.FilteredLog;
-
 import one.util.streamex.StreamEx;
 
 import hudson.FilePath;
@@ -166,7 +165,7 @@ class CodeDeltaCalculator {
         // replacing the old SCM paths with the old report paths
         Set<String> newReportPathsWithRename = oldPathMapping.keySet();
         oldPathMapping.forEach((reportPath, oldScmPath) -> {
-            String oldReportPath = oldScmToOldReportPathMapping.get(oldScmPath);
+            var oldReportPath = oldScmToOldReportPathMapping.get(oldScmPath);
             oldPathMapping.replace(reportPath, oldReportPath);
         });
         if (!newReportPathsWithRename.equals(oldPathMapping.keySet())) {
@@ -248,7 +247,7 @@ class CodeDeltaCalculator {
                 .collect(Collectors.toSet());
         if (!pathsWithEmptyReferences.isEmpty()) {
             pathsWithEmptyReferences.forEach(oldPathMapping::remove); // remove entries which represent missing reference files
-            String skippedFiles = pathsWithEmptyReferences.stream()
+            var skippedFiles = pathsWithEmptyReferences.stream()
                     .limit(20) // prevent log overflows
                     .collect(Collectors.joining("," + System.lineSeparator()));
             log.logInfo(EMPTY_OLD_PATHS_WARNING + System.lineSeparator() + skippedFiles);
@@ -279,12 +278,11 @@ class CodeDeltaCalculator {
                 .collect(Collectors.toMap(Entry::getKey, Entry::getValue));
 
         if (!duplicates.isEmpty()) {
-            String mismatches = duplicateEntries.entrySet().stream()
+            var mismatches = duplicateEntries.entrySet().stream()
                     .limit(20) // prevent log overflows
-                    .map(entry -> String.format("new: '%s' - former: '%s'", entry.getKey(), entry.getValue()))
+                    .map(entry -> "new: '%s' - former: '%s'".formatted(entry.getKey(), entry.getValue()))
                     .collect(Collectors.joining("," + System.lineSeparator()));
-            String errorMessage =
-                    CODE_DELTA_TO_COVERAGE_DATA_MISMATCH_ERROR_TEMPLATE + System.lineSeparator() + mismatches;
+            var errorMessage = CODE_DELTA_TO_COVERAGE_DATA_MISMATCH_ERROR_TEMPLATE + System.lineSeparator() + mismatches;
             throw new IllegalStateException(errorMessage);
         }
         log.logInfo("Successfully verified that the coverage data matches with the code delta");

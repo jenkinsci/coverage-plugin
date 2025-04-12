@@ -1,13 +1,12 @@
 package io.jenkins.plugins.coverage.metrics.charts;
 
-import java.util.List;
-import java.util.stream.Collectors;
-
 import org.junit.jupiter.api.Test;
 
 import edu.hm.hafner.coverage.Metric;
-import edu.hm.hafner.coverage.Node;
 import edu.hm.hafner.echarts.LabeledTreeMapNode;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 import io.jenkins.plugins.coverage.metrics.AbstractCoverageTest;
 import io.jenkins.plugins.coverage.metrics.color.ColorProvider;
@@ -27,9 +26,9 @@ class TreeMapNodeConverterTest extends AbstractCoverageTest {
 
     @Test
     void shouldConvertCodingStyleToTree() {
-        Node tree = readJacocoResult(PREFIX + JACOCO_CODING_STYLE_FILE);
+        var tree = readJacocoResult(PREFIX + JACOCO_CODING_STYLE_FILE);
 
-        LabeledTreeMapNode root = new TreeMapNodeConverter().toTreeChartModel(tree, Metric.LINE, COLOR_PROVIDER);
+        var root = new TreeMapNodeConverter().toTreeChartModel(tree, Metric.LINE, COLOR_PROVIDER);
         assertThat(root.getName()).isEqualTo("Java coding style");
 
         var overallCoverage = String.valueOf(JACOCO_CODING_STYLE_TOTAL);
@@ -42,21 +41,21 @@ class TreeMapNodeConverterTest extends AbstractCoverageTest {
                 node -> {
                     assertThat(node.getName()).isEqualTo("edu.hm.hafner.util");
                     assertThat(node.getValue()).contains(overallCoverage);
-                    assertThat(root.getItemStyle().getColor()).isEqualTo(getNodeColorAsRGBHex(overallCoveragePercentage));
+                    assertThat(root.getItemStyle().getColor()).isEqualTo(
+                            getNodeColorAsRGBHex(overallCoveragePercentage));
                 }
         );
     }
 
     @Test
     void shouldReadBranchCoverage() {
-        Node tree = readJacocoResult(PREFIX + JACOCO_ANALYSIS_MODEL_FILE);
+        var tree = readJacocoResult(PREFIX + JACOCO_ANALYSIS_MODEL_FILE);
 
-        LabeledTreeMapNode root = new TreeMapNodeConverter().toTreeChartModel(tree, Metric.BRANCH, COLOR_PROVIDER);
+        var root = new TreeMapNodeConverter().toTreeChartModel(tree, Metric.BRANCH, COLOR_PROVIDER);
 
         var nodes = aggregateChildren(root);
-        nodes.stream().filter(node -> node.getName().endsWith(".java")).forEach(node -> {
-            assertThat(node.getValue()).hasSize(2);
-        });
+        nodes.stream().filter(node -> node.getName().endsWith(".java")).forEach(node ->
+                assertThat(node.getValue()).hasSize(2));
     }
 
     private List<LabeledTreeMapNode> aggregateChildren(final LabeledTreeMapNode root) {

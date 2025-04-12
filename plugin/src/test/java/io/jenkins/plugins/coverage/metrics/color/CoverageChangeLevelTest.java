@@ -1,8 +1,8 @@
 package io.jenkins.plugins.coverage.metrics.color;
 
-import java.awt.*;
-
 import org.junit.jupiter.api.Test;
+
+import java.awt.*;
 
 import io.jenkins.plugins.coverage.metrics.color.ColorProvider.DisplayColors;
 
@@ -18,14 +18,14 @@ class CoverageChangeLevelTest {
 
     @Test
     void shouldHaveWorkingGetters() {
-        CoverageChangeLevel coverageChangeLevel = CoverageChangeLevel.INCREASE_2;
+        var coverageChangeLevel = CoverageChangeLevel.INCREASE_2;
         assertThat(coverageChangeLevel.getChange()).isEqualTo(2.0);
         assertThat(coverageChangeLevel.getColorizationId()).isEqualTo(ColorId.VERY_GOOD);
     }
 
     @Test
     void shouldGetDisplayColorsOfCoveragePercentage() {
-        Color blendedLineColor = COLOR_PROVIDER.getDisplayColorsOf(ColorId.BLACK).getFillColor();
+        var blendedLineColor = COLOR_PROVIDER.getDisplayColorsOf(ColorId.BLACK).getFillColor();
         Color blendedColorIncreased = ColorProvider.blendColors(
                 COLOR_PROVIDER.getDisplayColorsOf(CoverageChangeLevel.INCREASE_2.getColorizationId()).getFillColor(),
                 COLOR_PROVIDER.getDisplayColorsOf(CoverageChangeLevel.EQUALS.getColorizationId()).getFillColor());

@@ -1,7 +1,5 @@
 package io.jenkins.plugins.coverage.metrics.model;
 
-import java.util.Locale;
-
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
@@ -12,6 +10,8 @@ import edu.hm.hafner.coverage.Coverage.CoverageBuilder;
 import edu.hm.hafner.coverage.Difference;
 import edu.hm.hafner.coverage.Metric;
 import edu.hm.hafner.coverage.Value;
+
+import java.util.Locale;
 
 import static org.assertj.core.api.Assertions.*;
 

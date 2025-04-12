@@ -18,7 +18,6 @@ import edu.hm.hafner.util.FilteredLog;
 import edu.hm.hafner.util.VisibleForTesting;
 import edu.umd.cs.findbugs.annotations.CheckForNull;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
@@ -236,7 +235,7 @@ public class CoverageViewModel extends DefaultAsyncTableContentProvider implemen
      */
     private ColorProvider createColorProvider(final String json) {
         try {
-            ObjectMapper mapper = new ObjectMapper();
+            var mapper = new ObjectMapper();
             Map<String, String> colorMapping = mapper.readValue(json, new ColorMappingType());
             return ColorProviderFactory.createColorProvider(colorMapping);
         }
@@ -312,7 +311,7 @@ public class CoverageViewModel extends DefaultAsyncTableContentProvider implemen
     @JavaScriptMethod
     @SuppressWarnings("unused")
     public LabeledTreeMapNode getCoverageTree(final String coverageMetric) {
-        Metric metric = getCoverageMetricFromText(coverageMetric);
+        var metric = getCoverageMetricFromText(coverageMetric);
         return TREE_MAP_NODE_CONVERTER.toTreeChartModel(getNode(), metric, colorProvider);
     }
 
@@ -346,9 +345,9 @@ public class CoverageViewModel extends DefaultAsyncTableContentProvider implemen
      */
     @Override
     public TableModel getTableModel(final String tableId) {
-        RowRenderer renderer = createRenderer(tableId);
+        var renderer = createRenderer(tableId);
 
-        String actualId = tableId.replace(INLINE_SUFFIX, StringUtils.EMPTY);
+        var actualId = tableId.replace(INLINE_SUFFIX, StringUtils.EMPTY);
         switch (actualId) {
             case ABSOLUTE_COVERAGE_TABLE_ID:
                 return new CoverageTableModel(tableId, getNode(), renderer, colorProvider);
@@ -409,8 +408,8 @@ public class CoverageViewModel extends DefaultAsyncTableContentProvider implemen
                 = getNode().findByHashCode(Metric.FILE, Integer.parseInt(fileHash));
         if (targetResult.isPresent()) {
             try {
-                Node fileNode = targetResult.get();
-                return readSourceCode((FileNode)fileNode, tableId);
+                var fileNode = targetResult.get();
+                return readSourceCode((FileNode) fileNode, tableId);
             }
             catch (IOException | InterruptedException exception) {
                 return ExceptionUtils.getStackTrace(exception);
@@ -436,8 +435,8 @@ public class CoverageViewModel extends DefaultAsyncTableContentProvider implemen
      */
     private String readSourceCode(final FileNode sourceNode, final String tableId)
             throws IOException, InterruptedException {
-        String content = "";
-        File rootDir = getOwner().getRootDir();
+        var content = "";
+        var rootDir = getOwner().getRootDir();
         if (isSourceFileAvailable(sourceNode)) {
             content = SOURCE_CODE_FACADE.read(rootDir, getId(), sourceNode.getRelativePath());
         }

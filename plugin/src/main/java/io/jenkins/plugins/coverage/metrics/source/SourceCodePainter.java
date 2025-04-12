@@ -1,17 +1,5 @@
 package io.jenkins.plugins.coverage.metrics.source;
 
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.IOException;
-import java.nio.charset.Charset;
-import java.nio.file.Files;
-import java.nio.file.InvalidPathException;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
-
 import org.apache.commons.io.FileUtils;
 
 import edu.hm.hafner.coverage.FileNode;
@@ -19,6 +7,17 @@ import edu.hm.hafner.coverage.Metric;
 import edu.hm.hafner.coverage.Node;
 import edu.hm.hafner.util.FilteredLog;
 import edu.umd.cs.findbugs.annotations.NonNull;
+
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.IOException;
+import java.nio.charset.Charset;
+import java.nio.file.Files;
+import java.nio.file.InvalidPathException;
+import java.nio.file.Path;
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 import hudson.FilePath;
 import hudson.model.Run;
@@ -73,7 +72,7 @@ public class SourceCodePainter {
     public void processSourceCodePainting(final Node rootNode, final List<FileNode> files,
             final String sourceCodeEncoding, final SourceCodeRetention sourceCodeRetention, final FilteredLog log)
             throws InterruptedException {
-        SourceCodeFacade sourceCodeFacade = new SourceCodeFacade();
+        var sourceCodeFacade = new SourceCodeFacade();
         if (sourceCodeRetention != SourceCodeRetention.NEVER) {
             var paintedFiles = files.stream()
                     .map(f -> createFileModel(rootNode, f))
@@ -91,8 +90,8 @@ public class SourceCodePainter {
     private CoverageSourcePrinter createFileModel(final Node rootNode, final FileNode fileNode) {
         if (rootNode.getValue(Metric.MUTATION).isPresent()) {
             return new MutationSourcePrinter(fileNode);
-        }        
-        else if (rootNode.getValue(Metric.MCDC_PAIR).isPresent() 
+        }
+        else if (rootNode.getValue(Metric.MCDC_PAIR).isPresent()
                 || rootNode.getValue(Metric.FUNCTION_CALL).isPresent()) {
             return new VectorCastSourcePrinter(fileNode);
         }
@@ -105,7 +104,7 @@ public class SourceCodePainter {
             final String sourceCodeEncoding, final FilteredLog log) throws InterruptedException {
         try {
             var painter = new AgentCoveragePainter(paintedFiles, sourceCodeEncoding, id);
-            FilteredLog agentLog = workspace.act(painter);
+            var agentLog = workspace.act(painter);
             log.merge(agentLog);
         }
         catch (IOException exception) {
@@ -146,11 +145,11 @@ public class SourceCodePainter {
 
         @Override
         public FilteredLog invoke(final File workspaceFile, final VirtualChannel channel) {
-            FilteredLog log = new FilteredLog("Errors during source code painting:");
-            FilePath workspace = new FilePath(workspaceFile);
+            var log = new FilteredLog("Errors during source code painting:");
+            var workspace = new FilePath(workspaceFile);
 
             try {
-                FilePath outputFolder = workspace.child(directory);
+                var outputFolder = workspace.child(directory);
                 outputFolder.mkdirs();
 
                 Path temporaryFolder = Files.createTempDirectory(directory);
@@ -167,7 +166,7 @@ public class SourceCodePainter {
                             count, paintedFiles.size() - count);
                 }
 
-                FilePath zipFile = workspace.child(SourceCodeFacade.COVERAGE_SOURCES_ZIP);
+                var zipFile = workspace.child(SourceCodeFacade.COVERAGE_SOURCES_ZIP);
                 outputFolder.zip(zipFile);
                 log.logInfo("-> zipping sources from folder '%s' as '%s'", outputFolder, zipFile);
 
@@ -191,8 +190,8 @@ public class SourceCodePainter {
 
         private int paintSource(final CoverageSourcePrinter fileNode, final FilePath workspace,
                 final Path temporaryFolder, final FilteredLog log) {
-            String relativePathIdentifier = fileNode.getPath();
-            FilePath paintedFilesDirectory = workspace.child(directory);
+            var relativePathIdentifier = fileNode.getPath();
+            var paintedFilesDirectory = workspace.child(directory);
             return findSourceFile(workspace, relativePathIdentifier, log)
                     .map(resolvedPath -> paint(fileNode, relativePathIdentifier, resolvedPath,
                             paintedFilesDirectory, temporaryFolder, getCharset(), log))
@@ -203,14 +202,14 @@ public class SourceCodePainter {
                 final FilePath resolvedPath, final FilePath paintedFilesDirectory,
                 final Path temporaryFolder, final Charset charset, final FilteredLog log) {
             String sanitizedFileName = SourceCodeFacade.sanitizeFilename(relativePathIdentifier);
-            FilePath zipOutputPath = paintedFilesDirectory.child(
+            var zipOutputPath = paintedFilesDirectory.child(
                     sanitizedFileName + SourceCodeFacade.ZIP_FILE_EXTENSION);
             try {
                 Path paintedFilesFolder = Files.createTempDirectory(temporaryFolder, directory);
-                Path fullSourcePath = paintedFilesFolder.resolve(sanitizedFileName);
+                var fullSourcePath = paintedFilesFolder.resolve(sanitizedFileName);
                 try (BufferedWriter output = Files.newBufferedWriter(fullSourcePath)) {
-                    List<String> lines = Files.readAllLines(Paths.get(resolvedPath.getRemote()), charset);
-                    
+                    List<String> lines = Files.readAllLines(Path.of(resolvedPath.getRemote()), charset);
+
                     // added a header to display what is being shown in each column
                     output.write(paint.getColumnHeader());
                     for (int line = 0; line < lines.size(); line++) {
@@ -231,12 +230,12 @@ public class SourceCodePainter {
         private Optional<FilePath> findSourceFile(final FilePath workspace, final String fileName,
                 final FilteredLog log) {
             try {
-                FilePath absolutePath = new FilePath(new File(fileName));
+                var absolutePath = new FilePath(new File(fileName));
                 if (absolutePath.exists()) {
                     return Optional.of(absolutePath);
                 }
 
-                FilePath relativePath = workspace.child(fileName);
+                var relativePath = workspace.child(fileName);
                 if (relativePath.exists()) {
                     return Optional.of(relativePath);
                 }

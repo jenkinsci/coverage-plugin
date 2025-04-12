@@ -22,7 +22,6 @@ import io.jenkins.plugins.forensics.delta.Delta;
 import io.jenkins.plugins.forensics.delta.FileChanges;
 import io.jenkins.plugins.forensics.reference.ReferenceFinder;
 import io.jenkins.plugins.prism.SourceCodeRetention;
-import io.jenkins.plugins.util.QualityGateResult;
 import io.jenkins.plugins.util.ResultHandler;
 
 /**
@@ -70,7 +69,7 @@ public class CoverageReporter {
         var statistics = new CoverageStatistics(rootNode.aggregateValues(),
                 List.of(), List.<Difference>of(), List.of(), EMPTY_VALUES, List.of());
         var evaluator = new CoverageQualityGateEvaluator(qualityGates, statistics);
-        QualityGateResult qualityGateStatus = evaluator.evaluate(notifier, log);
+        var qualityGateStatus = evaluator.evaluate(notifier, log);
 
         paintSourceFiles(build, workspace, sourceCodeEncoding, sourceCodeRetention, id, rootNode,
                 rootNode.getAllFileNodes(), log);
@@ -87,21 +86,21 @@ public class CoverageReporter {
             final CoverageBuildAction referenceAction, final String scm,
             final TaskListener listener, final FilteredLog log) throws InterruptedException {
         log.logInfo("Calculating the code delta...");
-        CodeDeltaCalculator codeDeltaCalculator = new CodeDeltaCalculator(build, workspace, listener, scm);
+        var codeDeltaCalculator = new CodeDeltaCalculator(build, workspace, listener, scm);
         Optional<Delta> delta = codeDeltaCalculator.calculateCodeDeltaToReference(referenceAction.getOwner(), log);
 
-        Node referenceRoot = referenceAction.getResult();
+        var referenceRoot = referenceAction.getResult();
         delta.ifPresent(value -> createDeltaReports(rootNode, log, referenceRoot, codeDeltaCalculator, value));
 
         log.logInfo("Calculating coverage deltas...");
 
-        Node modifiedLinesCoverageRoot = rootNode.filterByModifiedLines();
+        var modifiedLinesCoverageRoot = rootNode.filterByModifiedLines();
 
         List<Difference> modifiedLinesDelta;
         List<Value> modifiedFilesValues;
         List<Difference> modifiedFilesDelta;
         if (hasModifiedLinesCoverage(modifiedLinesCoverageRoot)) {
-            Node modifiedFilesCoverageRoot = rootNode.filterByModifiedFiles();
+            var modifiedFilesCoverageRoot = rootNode.filterByModifiedFiles();
             modifiedFilesValues = modifiedFilesCoverageRoot.aggregateValues();
             modifiedFilesDelta = modifiedFilesCoverageRoot.computeDelta(
                     referenceRoot.filterByFileNames(modifiedFilesCoverageRoot.getFiles()));
@@ -124,7 +123,7 @@ public class CoverageReporter {
         var statistics = new CoverageStatistics(overallValues, overallDelta,
                 modifiedLinesValues, modifiedLinesDelta, modifiedFilesValues, modifiedFilesDelta);
         var evaluator = new CoverageQualityGateEvaluator(qualityGates, statistics);
-        QualityGateResult qualityGateResult = evaluator.evaluate(notifier, log);
+        var qualityGateResult = evaluator.evaluate(notifier, log);
 
         var filesToStore = computePaintedFiles(rootNode, sourceCodeRetention, log, modifiedLinesCoverageRoot);
         paintSourceFiles(build, workspace, sourceCodeEncoding, sourceCodeRetention, id, rootNode, filesToStore, log);
@@ -154,7 +153,7 @@ public class CoverageReporter {
             final SourceCodeRetention sourceCodeRetention, final String id, final Node rootNode,
             final List<FileNode> filesToStore, final FilteredLog log) throws InterruptedException {
         log.logInfo("Executing source code painting...");
-        SourceCodePainter sourceCodePainter = new SourceCodePainter(build, workspace, id);
+        var sourceCodePainter = new SourceCodePainter(build, workspace, id);
         sourceCodePainter.processSourceCodePainting(rootNode, filesToStore,
                 sourceCodeEncoding, sourceCodeRetention, log);
         log.logInfo("Finished coverage processing - adding the action to the build...");
@@ -162,7 +161,7 @@ public class CoverageReporter {
 
     private void createDeltaReports(final Node rootNode, final FilteredLog log, final Node referenceRoot,
             final CodeDeltaCalculator codeDeltaCalculator, final Delta delta) {
-        FileChangesProcessor fileChangesProcessor = new FileChangesProcessor();
+        var fileChangesProcessor = new FileChangesProcessor();
 
         try {
             log.logInfo("Preprocessing code changes...");
@@ -205,7 +204,7 @@ public class CoverageReporter {
             final FilteredLog log) {
         log.logInfo("Obtaining result action of reference build");
 
-        ReferenceFinder referenceFinder = new ReferenceFinder();
+        var referenceFinder = new ReferenceFinder();
         Optional<Run<?, ?>> reference = referenceFinder.findReference(build, log);
 
         if (reference.isPresent()) {

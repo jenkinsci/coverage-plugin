@@ -1,11 +1,5 @@
 package io.jenkins.plugins.coverage.metrics.steps;
 
-import java.awt.*;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
-
 import org.apache.commons.lang3.StringUtils;
 import org.junit.jupiter.api.Test;
 import org.junitpioneer.jupiter.DefaultLocale;
@@ -16,6 +10,12 @@ import edu.hm.hafner.coverage.Metric;
 import edu.hm.hafner.coverage.Value;
 import edu.hm.hafner.util.FilteredLog;
 import edu.hm.hafner.util.VisibleForTesting;
+
+import java.awt.*;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
 
 import hudson.model.Job;
 import hudson.model.Run;
@@ -94,7 +94,7 @@ class CoverageMetricColumnTest extends AbstractCoverageTest {
 
     @Test
     void shouldHaveWorkingDataGetters() {
-        CoverageMetricColumn column = createColumn();
+        var column = createColumn();
 
         assertThat(column.getColumnName()).isEqualTo(COLUMN_NAME);
         assertThat(column.getBaseline()).isEqualTo(Baseline.PROJECT);
@@ -104,7 +104,7 @@ class CoverageMetricColumnTest extends AbstractCoverageTest {
 
     @Test
     void shouldProvideSelectedColumn() {
-        CoverageMetricColumn column = createColumn();
+        var column = createColumn();
         Job<?, ?> job = createJobWithCoverageAction();
 
         column.setBaseline(Baseline.PROJECT);
@@ -138,7 +138,7 @@ class CoverageMetricColumnTest extends AbstractCoverageTest {
 
     @Test
     void shouldProvideBackgroundColorFillPercentage() {
-        CoverageMetricColumn column = createColumn();
+        var column = createColumn();
 
         assertThat(column.getBackgroundColorFillPercentage("+5,0%")).isEqualTo("100%");
         assertThat(column.getBackgroundColorFillPercentage("+5.0%")).isEqualTo("100%");
@@ -148,7 +148,7 @@ class CoverageMetricColumnTest extends AbstractCoverageTest {
 
     @Test
     void shouldShowNoResultIfBuild() {
-        CoverageMetricColumn column = createColumn();
+        var column = createColumn();
 
         Job<?, ?> job = mock(Job.class);
 
@@ -161,7 +161,7 @@ class CoverageMetricColumnTest extends AbstractCoverageTest {
 
     @Test
     void shouldShowNoResultIfNoAction() {
-        CoverageMetricColumn column = createColumn();
+        var column = createColumn();
 
         Job<?, ?> job = createJobWithActions();
 
@@ -172,7 +172,7 @@ class CoverageMetricColumnTest extends AbstractCoverageTest {
 
     @Test
     void shouldShowNoResultForUnavailableMetric() {
-        CoverageMetricColumn column = createColumn();
+        var column = createColumn();
         column.setMetric(Metric.MUTATION);
 
         Job<?, ?> job = createJobWithCoverageAction();
@@ -196,7 +196,8 @@ class CoverageMetricColumnTest extends AbstractCoverageTest {
         assertThat(column.getCoverageValue(job))
                 .isNotEmpty()
                 .satisfies(coverage -> {
-                    assertThat(coverage.get()).isEqualTo(new CoverageBuilder().withMetric(Metric.BRANCH).withCovered(109).withMissed(7).build());
+                    assertThat(coverage).contains(
+                            new CoverageBuilder().withMetric(Metric.BRANCH).withCovered(109).withMissed(7).build());
                     assertThat(column.getDisplayColors(job, coverage).getLineColor())
                             .isEqualTo(Color.white);
                 });
@@ -213,7 +214,7 @@ class CoverageMetricColumnTest extends AbstractCoverageTest {
         assertThat(column.getCoverageValue(job))
                 .isNotEmpty()
                 .satisfies(coverage -> {
-                    assertThat(coverage.get()).isEqualTo(new Difference(Metric.BRANCH, 5));
+                    assertThat(coverage).contains(new Difference(Metric.BRANCH, 5));
                     assertThat(column.getDisplayColors(job, coverage))
                             .isEqualTo(COLOR_PROVIDER.getDisplayColorsOf(
                                     CoverageChangeTendency.INCREASED.getColorizationId()));
@@ -221,7 +222,7 @@ class CoverageMetricColumnTest extends AbstractCoverageTest {
     }
 
     private CoverageMetricColumn createColumn() {
-        CoverageMetricColumn column = new CoverageMetricColumn();
+        var column = new CoverageMetricColumn();
         column.setColumnName(COLUMN_NAME);
         column.setBaseline(Baseline.PROJECT);
         column.setMetric(COVERAGE_METRIC);
@@ -232,10 +233,9 @@ class CoverageMetricColumnTest extends AbstractCoverageTest {
         var node = readJacocoResult(JACOCO_CODING_STYLE_FILE);
         var run = mock(Run.class);
         var delta = List.of(new Difference(Metric.BRANCH, 5));
-        CoverageBuildAction coverageBuildAction =
-                new CoverageBuildAction(run, "coverage", "Code Coverage", StringUtils.EMPTY,
-                        node, new QualityGateResult(), new FilteredLog("Test"),
-                        "-", delta, List.of(), List.of(), List.of(), List.of(), List.of(), false);
+        var coverageBuildAction = new CoverageBuildAction(run, "coverage", "Code Coverage", StringUtils.EMPTY,
+                node, new QualityGateResult(), new FilteredLog("Test"),
+                "-", delta, List.of(), List.of(), List.of(), List.of(), List.of(), false);
         when(run.getAction(CoverageBuildAction.class)).thenReturn(coverageBuildAction);
         when(run.getActions(CoverageBuildAction.class)).thenReturn(Collections.singletonList(coverageBuildAction));
 

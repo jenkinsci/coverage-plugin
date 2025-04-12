@@ -1,19 +1,16 @@
 package io.jenkins.plugins.coverage.metrics.steps;
 
-import java.util.List;
-import java.util.Objects;
-
 import org.junit.jupiter.api.Test;
 import org.junitpioneer.jupiter.Issue;
 
 import edu.hm.hafner.coverage.Metric;
 
+import java.util.List;
+import java.util.Objects;
+
 import org.jenkinsci.plugins.workflow.actions.WarningAction;
-import org.jenkinsci.plugins.workflow.graph.FlowNode;
 import org.jenkinsci.plugins.workflow.graphanalysis.DepthFirstScanner;
-import org.jenkinsci.plugins.workflow.job.WorkflowJob;
 import org.jenkinsci.plugins.workflow.job.WorkflowRun;
-import hudson.model.FreeStyleProject;
 import hudson.model.Result;
 import hudson.model.Run;
 
@@ -32,11 +29,11 @@ import static io.jenkins.plugins.util.assertions.Assertions.*;
 class QualityGateITest extends AbstractCoverageITest {
     @Test
     void shouldNotHaveQualityGate() {
-        WorkflowJob job = createPipeline(Parser.JACOCO, JACOCO_ANALYSIS_MODEL_FILE);
+        var job = createPipeline(Parser.JACOCO, JACOCO_ANALYSIS_MODEL_FILE);
 
         Run<?, ?> build = buildWithResult(job, Result.SUCCESS);
 
-        CoverageBuildAction coverageResult = build.getAction(CoverageBuildAction.class);
+        var coverageResult = build.getAction(CoverageBuildAction.class);
         assertThat(coverageResult.getQualityGateResult()).hasOverallStatus(QualityGateStatus.INACTIVE);
         assertThat(coverageResult.getLog().getInfoMessages()).contains("No quality gates have been set - skipping");
     }
@@ -44,11 +41,11 @@ class QualityGateITest extends AbstractCoverageITest {
     @Test
     void shouldNotHaveValuesForQualityGate() {
         var qualityGates = List.of(new CoverageQualityGate(-100.0, Metric.LINE, Baseline.PROJECT_DELTA, QualityGateCriticality.UNSTABLE));
-        FreeStyleProject project = createFreestyleJob(Parser.JACOCO, r -> r.setQualityGates(qualityGates), JACOCO_ANALYSIS_MODEL_FILE);
+        var project = createFreestyleJob(Parser.JACOCO, r -> r.setQualityGates(qualityGates), JACOCO_ANALYSIS_MODEL_FILE);
 
         Run<?, ?> build = buildWithResult(project, Result.SUCCESS);
 
-        CoverageBuildAction coverageResult = build.getAction(CoverageBuildAction.class);
+        var coverageResult = build.getAction(CoverageBuildAction.class);
         assertThat(coverageResult.getQualityGateResult()).hasOverallStatus(QualityGateStatus.INACTIVE);
         assertThat(coverageResult.getLog().getInfoMessages()).contains("Evaluating quality gates",
                 "-> All quality gates have been passed",
@@ -59,11 +56,11 @@ class QualityGateITest extends AbstractCoverageITest {
     @Test
     void shouldPassQualityGate() {
         var qualityGates = List.of(new CoverageQualityGate(-100.0, Metric.LINE, Baseline.PROJECT, QualityGateCriticality.UNSTABLE));
-        FreeStyleProject project = createFreestyleJob(Parser.JACOCO, r -> r.setQualityGates(qualityGates), JACOCO_ANALYSIS_MODEL_FILE);
+        var project = createFreestyleJob(Parser.JACOCO, r -> r.setQualityGates(qualityGates), JACOCO_ANALYSIS_MODEL_FILE);
 
         Run<?, ?> build = buildWithResult(project, Result.SUCCESS);
 
-        CoverageBuildAction coverageResult = build.getAction(CoverageBuildAction.class);
+        var coverageResult = build.getAction(CoverageBuildAction.class);
         assertThat(coverageResult.getQualityGateResult()).hasOverallStatus(QualityGateStatus.PASSED);
         assertThat(coverageResult.getLog().getInfoMessages()).contains("Evaluating quality gates",
                 "-> All quality gates have been passed",
@@ -74,11 +71,11 @@ class QualityGateITest extends AbstractCoverageITest {
     @Test
     void shouldFailQualityGateWithUnstable() {
         var qualityGates = List.of(new CoverageQualityGate(100, Metric.LINE, Baseline.PROJECT, QualityGateCriticality.UNSTABLE));
-        FreeStyleProject project = createFreestyleJob(Parser.JACOCO, r -> r.setQualityGates(qualityGates), JACOCO_ANALYSIS_MODEL_FILE);
+        var project = createFreestyleJob(Parser.JACOCO, r -> r.setQualityGates(qualityGates), JACOCO_ANALYSIS_MODEL_FILE);
 
         Run<?, ?> build = buildWithResult(project, Result.UNSTABLE);
 
-        CoverageBuildAction coverageResult = build.getAction(CoverageBuildAction.class);
+        var coverageResult = build.getAction(CoverageBuildAction.class);
         assertThat(coverageResult.getQualityGateResult()).hasOverallStatus(QualityGateStatus.WARNING);
         assertThat(coverageResult.getLog().getInfoMessages()).contains("Evaluating quality gates",
                 "-> Some quality gates have been missed: overall result is UNSTABLE",
@@ -89,11 +86,11 @@ class QualityGateITest extends AbstractCoverageITest {
     @Test
     void shouldFailQualityGateWithFailure() {
         var qualityGates = List.of(new CoverageQualityGate(100, Metric.LINE, Baseline.PROJECT, QualityGateCriticality.FAILURE));
-        FreeStyleProject project = createFreestyleJob(Parser.JACOCO, r -> r.setQualityGates(qualityGates), JACOCO_ANALYSIS_MODEL_FILE);
+        var project = createFreestyleJob(Parser.JACOCO, r -> r.setQualityGates(qualityGates), JACOCO_ANALYSIS_MODEL_FILE);
 
         Run<?, ?> build = buildWithResult(project, Result.FAILURE);
 
-        CoverageBuildAction coverageResult = build.getAction(CoverageBuildAction.class);
+        var coverageResult = build.getAction(CoverageBuildAction.class);
         assertThat(coverageResult.getQualityGateResult()).hasOverallStatus(QualityGateStatus.FAILED);
         assertThat(coverageResult.getLog().getInfoMessages()).contains("Evaluating quality gates",
                 "-> Some quality gates have been missed: overall result is FAILURE",
@@ -103,7 +100,7 @@ class QualityGateITest extends AbstractCoverageITest {
 
     @Test
     void shouldUseQualityGateInPipeline() {
-        WorkflowJob project = createPipelineWithWorkspaceFiles(JACOCO_ANALYSIS_MODEL_FILE);
+        var project = createPipelineWithWorkspaceFiles(JACOCO_ANALYSIS_MODEL_FILE);
 
         setPipelineScript(project,
                 "recordCoverage("
@@ -112,9 +109,9 @@ class QualityGateITest extends AbstractCoverageITest {
                         + "     [threshold: 90.0, metric: 'LINE', baseline: 'PROJECT', criticality: 'UNSTABLE'], "
                         + "     [threshold: 90.0, metric: 'BRANCH', baseline: 'PROJECT', criticality: 'UNSTABLE']])\n");
 
-        WorkflowRun build = (WorkflowRun)buildWithResult(project, Result.UNSTABLE);
+        var build = (WorkflowRun) buildWithResult(project, Result.UNSTABLE);
 
-        CoverageBuildAction coverageResult = build.getAction(CoverageBuildAction.class);
+        var coverageResult = build.getAction(CoverageBuildAction.class);
         assertThat(coverageResult.getQualityGateResult()).hasOverallStatus(QualityGateStatus.WARNING);
 
         assertThat(coverageResult.getLog().getInfoMessages()).contains("Evaluating quality gates",
@@ -128,7 +125,7 @@ class QualityGateITest extends AbstractCoverageITest {
 
     @Test @Issue("JENKINS-72059")
     void shouldUseStageQualityGateInPipeline() {
-        WorkflowJob project = createPipelineWithWorkspaceFiles(JACOCO_ANALYSIS_MODEL_FILE);
+        var project = createPipelineWithWorkspaceFiles(JACOCO_ANALYSIS_MODEL_FILE);
 
         setPipelineScript(project,
                 "recordCoverage("
@@ -137,9 +134,9 @@ class QualityGateITest extends AbstractCoverageITest {
                         + "     [threshold: 90.0, metric: 'LINE', baseline: 'PROJECT', criticality: 'NOTE'], "
                         + "     [threshold: 90.0, metric: 'BRANCH', baseline: 'PROJECT', criticality: 'NOTE']])\n");
 
-        WorkflowRun build = (WorkflowRun)buildSuccessfully(project);
+        var build = (WorkflowRun) buildSuccessfully(project);
 
-        CoverageBuildAction coverageResult = build.getAction(CoverageBuildAction.class);
+        var coverageResult = build.getAction(CoverageBuildAction.class);
         assertThat(coverageResult.getQualityGateResult()).hasOverallStatus(QualityGateStatus.NOTE);
 
         assertThat(coverageResult.getLog().getInfoMessages()).contains("Evaluating quality gates",
@@ -152,11 +149,11 @@ class QualityGateITest extends AbstractCoverageITest {
     }
 
     private void assertThatFlowNodeHasWarningAction(final WorkflowRun build) {
-        FlowNode flowNode = new DepthFirstScanner().findFirstMatch(build.getExecution(),
+        var flowNode = new DepthFirstScanner().findFirstMatch(build.getExecution(),
                 node -> "recordCoverage".equals(Objects.requireNonNull(node).getDisplayFunctionName()));
         assertThat(flowNode).isNotNull();
 
-        WarningAction warningAction = flowNode.getPersistentAction(WarningAction.class);
+        var warningAction = flowNode.getPersistentAction(WarningAction.class);
         assertThat(warningAction).isNotNull();
         assertThat(warningAction.getResult()).isEqualTo(Result.UNSTABLE);
         assertThat(warningAction.getMessage()).isEqualTo(

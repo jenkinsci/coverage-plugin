@@ -1,8 +1,8 @@
 package io.jenkins.plugins.coverage.metrics.color;
 
-import java.awt.*;
-
 import org.junit.jupiter.api.Test;
+
+import java.awt.*;
 
 import io.jenkins.plugins.coverage.metrics.color.ColorProvider.DisplayColors;
 
@@ -18,7 +18,7 @@ class CoverageLevelTest {
 
     @Test
     void shouldHaveWorkingGetters() {
-        CoverageLevel coverageLevel = CoverageLevel.LVL_0;
+        var coverageLevel = CoverageLevel.LVL_0;
         assertThat(coverageLevel.getLevel()).isEqualTo(0.0);
         assertThat(coverageLevel.getColorizationId()).isEqualTo(ColorId.INSUFFICIENT);
     }

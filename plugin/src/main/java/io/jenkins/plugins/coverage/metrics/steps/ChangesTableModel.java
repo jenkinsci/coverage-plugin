@@ -1,13 +1,13 @@
 package io.jenkins.plugins.coverage.metrics.steps;
 
-import java.util.List;
-import java.util.Locale;
-import java.util.stream.Collectors;
-
 import edu.hm.hafner.coverage.Coverage;
 import edu.hm.hafner.coverage.FileNode;
 import edu.hm.hafner.coverage.Metric;
 import edu.hm.hafner.coverage.Node;
+
+import java.util.List;
+import java.util.Locale;
+import java.util.stream.Collectors;
 
 import hudson.Functions;
 
@@ -73,7 +73,7 @@ abstract class ChangesTableModel extends CoverageTableModel {
         }
 
         DetailedCell<?> createColoredModifiedLinesCoverageDeltaColumn(final Metric metric) {
-            Coverage modifiedLinesCoverage = getFile().getTypedValue(metric, Coverage.nullObject(metric));
+            var modifiedLinesCoverage = getFile().getTypedValue(metric, Coverage.nullObject(metric));
             if (modifiedLinesCoverage.isSet()) {
                 return createColoredCoverageDeltaColumn(metric,
                         modifiedLinesCoverage.subtract(originalFile.getTypedValue(metric, Coverage.nullObject(metric))));

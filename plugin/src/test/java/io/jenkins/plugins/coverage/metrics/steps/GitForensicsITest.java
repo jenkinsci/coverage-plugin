@@ -1,10 +1,5 @@
 package io.jenkins.plugins.coverage.metrics.steps;
 
-import java.io.IOException;
-import java.util.Collections;
-import java.util.List;
-import java.util.stream.Collectors;
-
 import org.apache.commons.lang3.StringUtils;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
@@ -19,10 +14,13 @@ import edu.hm.hafner.coverage.Difference;
 import edu.hm.hafner.coverage.FileNode;
 import edu.hm.hafner.coverage.Value;
 
+import java.io.IOException;
+import java.util.Collections;
+import java.util.List;
+import java.util.stream.Collectors;
+
 import org.jenkinsci.plugins.workflow.flow.FlowDefinition;
-import org.jenkinsci.plugins.workflow.job.WorkflowJob;
 import hudson.model.FreeStyleProject;
-import hudson.model.Node;
 import hudson.model.Result;
 import hudson.model.Run;
 import hudson.plugins.git.BranchSpec;
@@ -71,9 +69,9 @@ class GitForensicsITest extends AbstractCoverageITest {
             final int expectedNumberOfFilesToBeStored) {
         assumeThat(isWindows()).as("Running on Windows").isFalse();
 
-        Node agent = createDockerAgent(AGENT_CONTAINER);
-        String node = "node('" + DOCKER_AGENT_NAME + "')";
-        WorkflowJob project = createPipeline();
+        var agent = createDockerAgent(AGENT_CONTAINER);
+        var node = "node('" + DOCKER_AGENT_NAME + "')";
+        var project = createPipeline();
         copySingleFileToAgentWorkspace(agent, project, JACOCO_REFERENCE_FILE, JACOCO_REFERENCE_FILE);
         copySingleFileToAgentWorkspace(agent, project, JACOCO_FILE, JACOCO_FILE);
 
@@ -107,9 +105,9 @@ class GitForensicsITest extends AbstractCoverageITest {
     void shouldVerifyQualityGate(final Baseline baseline, final double threshold, final double value) {
         assumeThat(isWindows()).as("Running on Windows").isFalse();
 
-        Node agent = createDockerAgent(AGENT_CONTAINER);
-        String node = "node('" + DOCKER_AGENT_NAME + "')";
-        WorkflowJob project = createPipeline();
+        var agent = createDockerAgent(AGENT_CONTAINER);
+        var node = "node('" + DOCKER_AGENT_NAME + "')";
+        var project = createPipeline();
         copySingleFileToAgentWorkspace(agent, project, JACOCO_REFERENCE_FILE, JACOCO_REFERENCE_FILE);
         copySingleFileToAgentWorkspace(agent, project, JACOCO_FILE, JACOCO_FILE);
 
@@ -129,12 +127,10 @@ class GitForensicsITest extends AbstractCoverageITest {
         if (baseline == Baseline.PROJECT_DELTA
                 || baseline == Baseline.MODIFIED_FILES_DELTA
                 || baseline == Baseline.MODIFIED_LINES_DELTA) {
-            assertThat(getConsoleLog(build)).contains(String.format(
-                    "≪Unstable≫ - (Actual value: %+.2f%%, Quality gate: %.2f)", value, threshold));
+            assertThat(getConsoleLog(build)).contains("≪Unstable≫ - (Actual value: %+.2f%%, Quality gate: %.2f)".formatted(value, threshold));
         }
         else {
-            assertThat(getConsoleLog(build)).contains(String.format(
-                    "≪Unstable≫ - (Actual value: %.2f%%, Quality gate: %.2f)", value, threshold));
+            assertThat(getConsoleLog(build)).contains("≪Unstable≫ - (Actual value: %.2f%%, Quality gate: %.2f)".formatted(value, threshold));
         }
     }
 
@@ -142,8 +138,8 @@ class GitForensicsITest extends AbstractCoverageITest {
     void shouldComputeDeltaInFreestyleJobOnDockerAgent() throws IOException {
         assumeThat(isWindows()).as("Running on Windows").isFalse();
 
-        Node agent = createDockerAgent(AGENT_CONTAINER);
-        FreeStyleProject project = createFreestyleJob(Parser.JACOCO);
+        var agent = createDockerAgent(AGENT_CONTAINER);
+        var project = createFreestyleJob(Parser.JACOCO);
         project.setAssignedNode(agent);
 
         configureGit(project, COMMIT_REFERENCE);
@@ -173,7 +169,7 @@ class GitForensicsITest extends AbstractCoverageITest {
      *         The commit ID
      */
     private void verifyGitRepositoryForCommit(final Run<?, ?> build, final String commit) {
-        String consoleLog = getConsoleLog(build);
+        var consoleLog = getConsoleLog(build);
         assertThat(consoleLog)
                 .contains("Recording commits of 'git " + REPOSITORY)
                 .contains("Checking out Revision " + commit);
@@ -188,7 +184,7 @@ class GitForensicsITest extends AbstractCoverageITest {
      *         The reference build
      */
     private void verifyGitIntegration(final Run<?, ?> build, final Run<?, ?> referenceBuild) {
-        CoverageBuildAction action = build.getAction(CoverageBuildAction.class);
+        var action = build.getAction(CoverageBuildAction.class);
         assertThat(action).isNotNull();
         assertThat(action.getReferenceBuild())
                 .isPresent().hasValueSatisfying(reference ->
@@ -257,7 +253,7 @@ class GitForensicsITest extends AbstractCoverageITest {
     }
 
     private void verifyCodeDelta(final CoverageBuildAction action) {
-        edu.hm.hafner.coverage.Node root = action.getResult();
+        var root = action.getResult();
         assertThat(root).isNotNull();
 
         List<FileNode> modifiedFiles = root.getAllFileNodes().stream()
@@ -353,7 +349,7 @@ class GitForensicsITest extends AbstractCoverageITest {
     }
 
     private void configureGit(final FreeStyleProject project, final String commit) throws IOException {
-        GitSCM scm = new GitSCM(GitSCM.createRepoList(REPOSITORY, null),
+        var scm = new GitSCM(GitSCM.createRepoList(REPOSITORY, null),
                 Collections.singletonList(new BranchSpec(commit)), null, null,
                 Collections.singletonList(new RelativeTargetDirectory("code-coverage-api")));
         project.setScm(scm);

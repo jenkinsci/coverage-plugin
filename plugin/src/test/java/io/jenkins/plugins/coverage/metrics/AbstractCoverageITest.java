@@ -8,6 +8,7 @@ import org.jenkinsci.plugins.workflow.job.WorkflowJob;
 import hudson.model.FreeStyleProject;
 
 import io.jenkins.plugins.coverage.metrics.steps.CoverageRecorder;
+import io.jenkins.plugins.coverage.metrics.steps.CoverageTool;
 import io.jenkins.plugins.coverage.metrics.steps.CoverageTool.Parser;
 import io.jenkins.plugins.forensics.reference.SimpleReferenceRecorder;
 import io.jenkins.plugins.util.IntegrationTestWithJenkinsPerSuite;
@@ -24,7 +25,7 @@ public abstract class AbstractCoverageITest extends IntegrationTestWithJenkinsPe
 
     protected FreeStyleProject createFreestyleJob(final Parser parser,
             final Consumer<CoverageRecorder> configuration, final String... fileNames) {
-        FreeStyleProject project = createFreeStyleProjectWithWorkspaceFiles(fileNames);
+        var project = createFreeStyleProjectWithWorkspaceFiles(fileNames);
 
         project.getPublishersList().add(new SimpleReferenceRecorder());
         addCoverageRecorder(project, parser, "**/*xml", configuration);
@@ -39,9 +40,9 @@ public abstract class AbstractCoverageITest extends IntegrationTestWithJenkinsPe
 
     void addCoverageRecorder(final FreeStyleProject project,
             final Parser parser, final String pattern, final Consumer<CoverageRecorder> configuration) {
-        CoverageRecorder recorder = new CoverageRecorder();
+        var recorder = new CoverageRecorder();
 
-        var tool = new io.jenkins.plugins.coverage.metrics.steps.CoverageTool();
+        var tool = new CoverageTool();
         tool.setParser(parser);
         tool.setPattern(pattern);
         recorder.setTools(List.of(tool));
@@ -58,7 +59,7 @@ public abstract class AbstractCoverageITest extends IntegrationTestWithJenkinsPe
     }
 
     protected WorkflowJob createPipeline(final Parser parser, final String... fileNames) {
-        WorkflowJob job = createPipelineWithWorkspaceFiles(fileNames);
+        var job = createPipelineWithWorkspaceFiles(fileNames);
 
         setPipelineScript(job,
                 "recordCoverage tools: [[parser: '" + parser.name() + "', pattern: '**/*xml']]");
@@ -74,7 +75,7 @@ public abstract class AbstractCoverageITest extends IntegrationTestWithJenkinsPe
     }
 
     protected WorkflowJob createDeclarativePipeline(final Parser parser, final String... fileNames) {
-        WorkflowJob job = createPipelineWithWorkspaceFiles(fileNames);
+        var job = createPipelineWithWorkspaceFiles(fileNames);
 
         job.setDefinition(createPipelineScript("pipeline {\n"
                 + "    agent any\n"

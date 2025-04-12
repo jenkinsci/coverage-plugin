@@ -15,7 +15,7 @@ import io.jenkins.plugins.coverage.metrics.color.ColorProvider.DisplayColors;
  *
  * @author Florian Orendi
  */
-public class ColorProviderFactory {
+public final class ColorProviderFactory {
     private ColorProviderFactory() {
         // prevents initialization
     }

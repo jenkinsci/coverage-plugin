@@ -1,14 +1,14 @@
 package io.jenkins.plugins.coverage.metrics.restapi;
 
+import edu.hm.hafner.coverage.FileNode;
+import edu.hm.hafner.coverage.Node;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-
-import edu.hm.hafner.coverage.FileNode;
-import edu.hm.hafner.coverage.Node;
 
 import org.kohsuke.stapler.export.Exported;
 import org.kohsuke.stapler.export.ExportedBean;

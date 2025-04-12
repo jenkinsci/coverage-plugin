@@ -128,7 +128,7 @@ public class CoverageTool extends AbstractDescribableImpl<CoverageTool> implemen
 
     @Override
     public String toString() {
-        return String.format("%s (pattern: %s)", getParser(), getActualPattern());
+        return "%s (pattern: %s)".formatted(getParser(), getActualPattern());
     }
 
     @Override

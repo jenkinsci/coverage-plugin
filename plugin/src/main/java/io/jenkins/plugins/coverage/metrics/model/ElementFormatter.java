@@ -1,18 +1,18 @@
 package io.jenkins.plugins.coverage.metrics.model;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.Locale;
-import java.util.regex.Pattern;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
 import org.apache.commons.lang3.StringUtils;
 
 import edu.hm.hafner.coverage.Coverage;
 import edu.hm.hafner.coverage.Metric;
 import edu.hm.hafner.coverage.Percentage;
 import edu.hm.hafner.coverage.Value;
+
+import java.util.Arrays;
+import java.util.List;
+import java.util.Locale;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import hudson.Functions;
 import hudson.util.ListBoxModel;
@@ -136,7 +136,7 @@ public final class ElementFormatter {
     }
 
     private static String formatCoverage(final Coverage coverage, final String coveredText, final String missedText) {
-        return String.format("%s: %d - %s: %d", coveredText, coverage.getCovered(),
+        return "%s: %d - %s: %d".formatted(coveredText, coverage.getCovered(),
                 missedText, coverage.getMissed());
     }
 
@@ -164,8 +164,8 @@ public final class ElementFormatter {
      */
     public DisplayColors getDisplayColors(final Baseline baseline, final Value value) {
         var defaultColorProvider = ColorProviderFactory.createDefaultColorProvider();
-        if (value instanceof Coverage) {
-            return baseline.getDisplayColors(((Coverage) value).getCoveredPercentage().toDouble(),
+        if (value instanceof Coverage coverage) {
+            return baseline.getDisplayColors(coverage.getCoveredPercentage().toDouble(),
                     defaultColorProvider);
         }
         else {
@@ -223,7 +223,7 @@ public final class ElementFormatter {
      * @return the formatted percentage string
      */
     public String getBackgroundColorFillPercentage(final String percentage) {
-        String formattedPercentage = percentage.replace(",", ".");
+        var formattedPercentage = percentage.replace(",", ".");
         if (PERCENTAGE.matcher(formattedPercentage).matches()) {
             return formattedPercentage;
         }
@@ -401,11 +401,11 @@ public final class ElementFormatter {
      * @return the metrics in a {@link ListBoxModel}
      */
     public ListBoxModel getMetricItems() {
-        ListBoxModel options = new ListBoxModel();
+        var options = new ListBoxModel();
 
         Arrays.stream(Metric.values())
                 .filter(m -> m != Metric.CONTAINER)
-                .forEach(m-> options.add(m.getDisplayName(), m.name()));
+                .forEach(m -> options.add(m.getDisplayName(), m.name()));
 
         return options;
     }
@@ -416,7 +416,7 @@ public final class ElementFormatter {
      * @return the baselines in a {@link ListBoxModel}
      */
     public ListBoxModel getBaselineItems() {
-        ListBoxModel options = new ListBoxModel();
+        var options = new ListBoxModel();
         add(options, Baseline.PROJECT);
         add(options, Baseline.MODIFIED_LINES);
         add(options, Baseline.MODIFIED_FILES);

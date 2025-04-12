@@ -1,13 +1,13 @@
 package io.jenkins.plugins.coverage.metrics.restapi;
 
-import java.util.SortedSet;
-import java.util.TreeSet;
-
 import org.junit.jupiter.api.Test;
 
 import edu.hm.hafner.coverage.FileNode;
 import edu.hm.hafner.coverage.PackageNode;
 import edu.hm.hafner.util.LineRange;
+
+import java.util.SortedSet;
+import java.util.TreeSet;
 
 import io.jenkins.plugins.coverage.metrics.AbstractModifiedFilesCoverageTest;
 

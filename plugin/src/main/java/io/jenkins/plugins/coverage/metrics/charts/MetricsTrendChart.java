@@ -5,7 +5,6 @@ import edu.hm.hafner.echarts.BuildResult;
 import edu.hm.hafner.echarts.ChartModelConfiguration;
 import edu.hm.hafner.echarts.JacksonFacade;
 import edu.hm.hafner.echarts.line.LinesChartModel;
-import edu.hm.hafner.echarts.line.LinesDataSet;
 
 import java.util.Set;
 
@@ -36,9 +35,9 @@ public class MetricsTrendChart extends TrendChart {
     @Override
     public LinesChartModel create(final Iterable<BuildResult<CoverageStatistics>> results,
             final ChartModelConfiguration configuration) {
-        LinesDataSet dataSet = new CoverageSeriesBuilder().createDataSet(configuration, results);
+        var dataSet = new CoverageSeriesBuilder().createDataSet(configuration, results);
 
-        LinesChartModel model = new LinesChartModel(dataSet);
+        var model = new LinesChartModel(dataSet);
         if (dataSet.isNotEmpty()) {
             int colorIndex = 0;
             for (var tag : dataSet.getDataSetIds()) {

@@ -14,8 +14,6 @@ import edu.hm.hafner.coverage.Value;
 
 import java.util.List;
 
-import org.jenkinsci.plugins.workflow.job.WorkflowJob;
-import hudson.model.FreeStyleProject;
 import hudson.model.Result;
 import hudson.model.Run;
 import jenkins.model.ParameterizedJobMixIn.ParameterizedJob;
@@ -52,7 +50,7 @@ class CoveragePluginITest extends AbstractCoverageITest {
 
     @Test
     void shouldFailWithoutParserInFreestyleJob() {
-        FreeStyleProject project = createFreeStyleProject();
+        var project = createFreeStyleProject();
 
         project.getPublishersList().add(new CoverageRecorder());
 
@@ -61,7 +59,7 @@ class CoveragePluginITest extends AbstractCoverageITest {
 
     @Test
     void shouldFailWithoutParserInPipeline() {
-        WorkflowJob job = createPipeline();
+        var job = createPipeline();
 
         setPipelineScript(job, "recordCoverage()");
 
@@ -78,7 +76,7 @@ class CoveragePluginITest extends AbstractCoverageITest {
     @ParameterizedTest(name = "{index} => Freestyle job with parser {0}")
     @DisplayName("Report error but do not fail build in freestyle job when no input files are found")
     void shouldReportErrorWhenNoFilesHaveBeenFoundInFreestyleJob(final Parser parser) {
-        FreeStyleProject project = createFreestyleJob(parser);
+        var project = createFreestyleJob(parser);
 
         verifyLogMessageThatNoFilesFound(project);
     }
@@ -87,7 +85,7 @@ class CoveragePluginITest extends AbstractCoverageITest {
     @ParameterizedTest(name = "{index} => Pipeline with parser {0}")
     @DisplayName("Report error but do not fail build in pipeline when no input files are found")
     void shouldReportErrorWhenNoFilesHaveBeenFoundInPipeline(final Parser parser) {
-        WorkflowJob job = createPipeline(parser);
+        var job = createPipeline(parser);
 
         verifyLogMessageThatNoFilesFound(job);
     }
@@ -103,7 +101,7 @@ class CoveragePluginITest extends AbstractCoverageITest {
     @ParameterizedTest(name = "{index} => Freestyle job with parser {0}")
     @DisplayName("Report error and fail build in freestyle job when no input files are found")
     void shouldFailBuildWhenNoFilesHaveBeenFoundInFreestyleJob(final Parser parser) {
-        FreeStyleProject project = createFreestyleJob(parser, r -> r.setFailOnError(true));
+        var project = createFreestyleJob(parser, r -> r.setFailOnError(true));
 
         verifyFailureWhenNoFilesFound(project);
     }
@@ -112,7 +110,7 @@ class CoveragePluginITest extends AbstractCoverageITest {
     @ParameterizedTest(name = "{index} => Pipeline with parser {0}")
     @DisplayName("Report error and fail build in pipeline when no input files are found")
     void shouldFailBuildWhenNoFilesHaveBeenFoundInPipeline(final Parser parser) {
-        WorkflowJob job = createPipeline();
+        var job = createPipeline();
 
         setPipelineScript(job,
                 "recordCoverage tools: [[parser: '" + parser.name() + "', pattern: '**/*xml']], "
@@ -130,21 +128,21 @@ class CoveragePluginITest extends AbstractCoverageITest {
 
     @Test
     void shouldRecordOneJacocoResultInFreestyleJob() {
-        FreeStyleProject project = createFreestyleJob(Parser.JACOCO, JACOCO_ANALYSIS_MODEL_FILE);
+        var project = createFreestyleJob(Parser.JACOCO, JACOCO_ANALYSIS_MODEL_FILE);
 
         verifyOneJacocoResult(project);
     }
 
     @Test
     void shouldRecordOneJacocoResultInPipeline() {
-        WorkflowJob job = createPipeline(Parser.JACOCO, JACOCO_ANALYSIS_MODEL_FILE);
+        var job = createPipeline(Parser.JACOCO, JACOCO_ANALYSIS_MODEL_FILE);
 
         verifyOneJacocoResult(job);
     }
 
     @Test
     void shouldRecordOneJacocoResultInDeclarativePipeline() {
-        WorkflowJob job = createDeclarativePipeline(Parser.JACOCO, JACOCO_ANALYSIS_MODEL_FILE);
+        var job = createDeclarativePipeline(Parser.JACOCO, JACOCO_ANALYSIS_MODEL_FILE);
 
         verifyOneJacocoResult(job);
     }
@@ -211,14 +209,14 @@ class CoveragePluginITest extends AbstractCoverageITest {
 
     @Test
     void shouldRecordTwoJacocoResultsInFreestyleJob() {
-        FreeStyleProject project = createFreestyleJob(Parser.JACOCO,
+        var project = createFreestyleJob(Parser.JACOCO,
                 JACOCO_ANALYSIS_MODEL_FILE, JACOCO_CODING_STYLE_FILE);
         verifyTwoJacocoResults(project);
     }
 
     @Test
     void shouldRecordTwoJacocoResultsInPipeline() {
-        WorkflowJob job = createPipeline(Parser.JACOCO,
+        var job = createPipeline(Parser.JACOCO,
                 JACOCO_ANALYSIS_MODEL_FILE, JACOCO_CODING_STYLE_FILE);
 
         verifyTwoJacocoResults(job);
@@ -226,7 +224,7 @@ class CoveragePluginITest extends AbstractCoverageITest {
 
     @Test
     void shouldRecordTwoJacocoResultsInDeclarativePipeline() {
-        WorkflowJob job = createDeclarativePipeline(Parser.JACOCO,
+        var job = createDeclarativePipeline(Parser.JACOCO,
                 JACOCO_ANALYSIS_MODEL_FILE, JACOCO_CODING_STYLE_FILE);
 
         verifyTwoJacocoResults(job);
@@ -235,7 +233,7 @@ class CoveragePluginITest extends AbstractCoverageITest {
     private void verifyTwoJacocoResults(final ParameterizedJob<?, ?> project) {
         Run<?, ?> build = buildSuccessfully(project);
 
-        CoverageBuildAction coverageResult = build.getAction(CoverageBuildAction.class);
+        var coverageResult = build.getAction(CoverageBuildAction.class);
         assertThat(coverageResult.getAllValues(Baseline.PROJECT))
                 .contains(createLineCoverageBuilder()
                         .withCovered(JACOCO_ANALYSIS_MODEL_COVERED + JACOCO_CODING_STYLE_COVERED)
@@ -245,21 +243,21 @@ class CoveragePluginITest extends AbstractCoverageITest {
 
     @Test
     void shouldRecordOneCoberturaResultInFreestyleJob() {
-        FreeStyleProject project = createFreestyleJob(Parser.COBERTURA, COBERTURA_HIGHER_COVERAGE_FILE);
+        var project = createFreestyleJob(Parser.COBERTURA, COBERTURA_HIGHER_COVERAGE_FILE);
 
         verifyOneCoberturaResult(project);
     }
 
     @Test
     void shouldRecordOneCoberturaResultInPipeline() {
-        WorkflowJob job = createPipeline(Parser.COBERTURA, COBERTURA_HIGHER_COVERAGE_FILE);
+        var job = createPipeline(Parser.COBERTURA, COBERTURA_HIGHER_COVERAGE_FILE);
 
         verifyOneCoberturaResult(job);
     }
 
     @Test
     void shouldRecordOneCoberturaResultInDeclarativePipeline() {
-        WorkflowJob job = createDeclarativePipeline(Parser.COBERTURA, COBERTURA_HIGHER_COVERAGE_FILE);
+        var job = createDeclarativePipeline(Parser.COBERTURA, COBERTURA_HIGHER_COVERAGE_FILE);
 
         verifyOneCoberturaResult(job);
     }
@@ -281,10 +279,10 @@ class CoveragePluginITest extends AbstractCoverageITest {
 
     @Test
     void shouldRecordCoberturaAndJacocoResultsInFreestyleJob() {
-        FreeStyleProject project = createFreeStyleProjectWithWorkspaceFiles(JACOCO_ANALYSIS_MODEL_FILE,
+        var project = createFreeStyleProjectWithWorkspaceFiles(JACOCO_ANALYSIS_MODEL_FILE,
                 COBERTURA_HIGHER_COVERAGE_FILE);
 
-        CoverageRecorder recorder = new CoverageRecorder();
+        var recorder = new CoverageRecorder();
 
         var cobertura = new CoverageTool();
         cobertura.setParser(Parser.COBERTURA);
@@ -302,7 +300,7 @@ class CoveragePluginITest extends AbstractCoverageITest {
 
     @Test
     void shouldRecordCoberturaAndJacocoResultsInPipeline() {
-        WorkflowJob job = createPipelineWithWorkspaceFiles(JACOCO_ANALYSIS_MODEL_FILE, COBERTURA_HIGHER_COVERAGE_FILE);
+        var job = createPipelineWithWorkspaceFiles(JACOCO_ANALYSIS_MODEL_FILE, COBERTURA_HIGHER_COVERAGE_FILE);
 
         setPipelineScript(job,
                 "recordCoverage tools: ["
@@ -315,7 +313,7 @@ class CoveragePluginITest extends AbstractCoverageITest {
 
     @Test
     void shouldRecordCoberturaAndJacocoResultsInDeclarativePipeline() {
-        WorkflowJob job = createPipelineWithWorkspaceFiles(JACOCO_ANALYSIS_MODEL_FILE, COBERTURA_HIGHER_COVERAGE_FILE);
+        var job = createPipelineWithWorkspaceFiles(JACOCO_ANALYSIS_MODEL_FILE, COBERTURA_HIGHER_COVERAGE_FILE);
 
         job.setDefinition(createPipelineScript("pipeline {\n"
                 + "    agent any\n"
@@ -337,7 +335,7 @@ class CoveragePluginITest extends AbstractCoverageITest {
     private void verifyForOneCoberturaAndOneJacoco(final ParameterizedJob<?, ?> project) {
         Run<?, ?> build = buildSuccessfully(project);
 
-        CoverageBuildAction coverageResult = build.getAction(CoverageBuildAction.class);
+        var coverageResult = build.getAction(CoverageBuildAction.class);
         assertThat(coverageResult.getAllValues(Baseline.PROJECT))
                 .contains(createLineCoverageBuilder()
                         .withCovered(JACOCO_ANALYSIS_MODEL_COVERED + COBERTURA_COVERED_LINES)
@@ -398,7 +396,7 @@ class CoveragePluginITest extends AbstractCoverageITest {
 
     @Test
     void shouldRecordOneOpenCoverResultInFreestyleJob() {
-        FreeStyleProject project = createFreestyleJob(Parser.OPENCOVER, "opencover.xml");
+        var project = createFreestyleJob(Parser.OPENCOVER, "opencover.xml");
 
         Run<?, ?> build = buildSuccessfully(project);
 
@@ -406,7 +404,7 @@ class CoveragePluginITest extends AbstractCoverageITest {
     }
 
     private void verifyOpenCoverResults(final Run<?, ?> build) {
-        CoverageBuildAction coverageResult = build.getAction(CoverageBuildAction.class);
+        var coverageResult = build.getAction(CoverageBuildAction.class);
         assertThat(coverageResult.getAllValues(Baseline.PROJECT))
                 .filteredOn(Value::getMetric, Metric.LINE)
                 .first()
@@ -421,7 +419,7 @@ class CoveragePluginITest extends AbstractCoverageITest {
         assumeThatTestIsRunningOnUnix();
 
         var fileName = "opencover-with-bom.xml";
-        WorkflowJob job = createPipelineWithWorkspaceFiles(fileName);
+        var job = createPipelineWithWorkspaceFiles(fileName);
 
         setPipelineScript(job,
                 "recordCoverage tools: [[parser: 'OPENCOVER', pattern: '" + fileName + "']]");
@@ -433,11 +431,11 @@ class CoveragePluginITest extends AbstractCoverageITest {
 
     @Test
     void shouldRecordOneNUnitResultInFreestyleJob() {
-        FreeStyleProject project = createFreestyleJob(Parser.NUNIT, "nunit.xml");
+        var project = createFreestyleJob(Parser.NUNIT, "nunit.xml");
 
         Run<?, ?> build = buildSuccessfully(project);
 
-        CoverageBuildAction coverageResult = build.getAction(CoverageBuildAction.class);
+        var coverageResult = build.getAction(CoverageBuildAction.class);
         assertThat(coverageResult.getAllValues(Baseline.PROJECT))
                 .filteredOn(Value::getMetric, Metric.TESTS)
                 .first()
@@ -446,11 +444,11 @@ class CoveragePluginITest extends AbstractCoverageITest {
 
     @Test
     void shouldRecordOneXUnitResultInFreestyleJob() {
-        FreeStyleProject project = createFreestyleJob(Parser.XUNIT, "xunit.xml");
+        var project = createFreestyleJob(Parser.XUNIT, "xunit.xml");
 
         Run<?, ?> build = buildSuccessfully(project);
 
-        CoverageBuildAction coverageResult = build.getAction(CoverageBuildAction.class);
+        var coverageResult = build.getAction(CoverageBuildAction.class);
         assertThat(coverageResult.getAllValues(Baseline.PROJECT))
                 .filteredOn(Value::getMetric, Metric.TESTS)
                 .first()
@@ -459,7 +457,7 @@ class CoveragePluginITest extends AbstractCoverageITest {
 
     @Test
     void shouldRecordOnePitResultInFreestyleJob() {
-        FreeStyleProject project = createFreestyleJob(Parser.PIT, "mutations.xml");
+        var project = createFreestyleJob(Parser.PIT, "mutations.xml");
 
         verifyOnePitResult(project);
     }
@@ -467,7 +465,7 @@ class CoveragePluginITest extends AbstractCoverageITest {
     private void verifyOnePitResult(final ParameterizedJob<?, ?> project) {
         Run<?, ?> build = buildSuccessfully(project);
 
-        CoverageBuildAction coverageResult = build.getAction(CoverageBuildAction.class);
+        var coverageResult = build.getAction(CoverageBuildAction.class);
         assertThat(coverageResult.getAllValues(Baseline.PROJECT))
                 .filteredOn(Value::getMetric, Metric.MUTATION)
                 .first()
@@ -530,7 +528,7 @@ class CoveragePluginITest extends AbstractCoverageITest {
 
     @Test
     void shouldRecordResultsWithDifferentId() {
-        WorkflowJob job = createPipelineWithWorkspaceFiles(JACOCO_ANALYSIS_MODEL_FILE, COBERTURA_HIGHER_COVERAGE_FILE);
+        var job = createPipelineWithWorkspaceFiles(JACOCO_ANALYSIS_MODEL_FILE, COBERTURA_HIGHER_COVERAGE_FILE);
 
         setPipelineScript(job,
                 "recordCoverage "
@@ -565,7 +563,7 @@ class CoveragePluginITest extends AbstractCoverageITest {
 
     @Test @Issue("785")
     void shouldIgnoreErrors() {
-        WorkflowJob job = createPipeline();
+        var job = createPipeline();
         copyFileToWorkspace(job, "cobertura-duplicate-methods.xml", "cobertura.xml");
         job.setDefinition(createPipelineScript(
                 """
@@ -594,7 +592,7 @@ class CoveragePluginITest extends AbstractCoverageITest {
 
     @Test
     void shouldIgnoreEmptyListOfFiles() {
-        WorkflowJob job = createPipeline();
+        var job = createPipeline();
         job.setDefinition(createPipelineScript(
                 """
                 node {
@@ -613,7 +611,7 @@ class CoveragePluginITest extends AbstractCoverageITest {
 
     @Test
     void shouldParseFileWithJaCoCo() {
-        WorkflowJob job = createPipeline();
+        var job = createPipeline();
         copyFilesToWorkspace(job, "jacoco.xml");
         job.setDefinition(createPipelineScript(
                 """
@@ -643,7 +641,7 @@ class CoveragePluginITest extends AbstractCoverageITest {
 
     @Test
     void shouldParseFileWithClover() {
-        WorkflowJob job = createPipeline();
+        var job = createPipeline();
         copyFilesToWorkspace(job, "clover.xml");
         job.setDefinition(createPipelineScript(
                 """
@@ -672,7 +670,7 @@ class CoveragePluginITest extends AbstractCoverageITest {
 
     @Test
     void shouldParseFileWithGoCov() {
-        WorkflowJob job = createPipeline();
+        var job = createPipeline();
         copyFilesToWorkspace(job, "go-coverage.out");
         job.setDefinition(createPipelineScript(
                 """
@@ -722,21 +720,21 @@ class CoveragePluginITest extends AbstractCoverageITest {
 
     @Test
     void shouldRecordOneVectorCastResultInFreestyleJob() {
-        FreeStyleProject project = createFreestyleJob(Parser.VECTORCAST, VECTORCAST_HIGHER_COVERAGE_FILE);
+        var project = createFreestyleJob(Parser.VECTORCAST, VECTORCAST_HIGHER_COVERAGE_FILE);
 
         verifyOneVectorCastResult(project);
     }
 
     @Test
     void shouldRecordOneVectorCastResultInPipeline() {
-        WorkflowJob job = createPipeline(Parser.VECTORCAST, VECTORCAST_HIGHER_COVERAGE_FILE);
+        var job = createPipeline(Parser.VECTORCAST, VECTORCAST_HIGHER_COVERAGE_FILE);
 
         verifyOneVectorCastResult(job);
     }
 
     @Test
     void shouldRecordOneVectorCastResultInDeclarativePipeline() {
-        WorkflowJob job = createDeclarativePipeline(Parser.VECTORCAST, VECTORCAST_HIGHER_COVERAGE_FILE);
+        var job = createDeclarativePipeline(Parser.VECTORCAST, VECTORCAST_HIGHER_COVERAGE_FILE);
 
         verifyOneVectorCastResult(job);
     }
@@ -819,10 +817,10 @@ class CoveragePluginITest extends AbstractCoverageITest {
 
     @Test
     void shouldRecordVectorCastAndJacocoResultsInFreestyleJob() {
-        FreeStyleProject project = createFreeStyleProjectWithWorkspaceFiles(JACOCO_ANALYSIS_MODEL_FILE,
+        var project = createFreeStyleProjectWithWorkspaceFiles(JACOCO_ANALYSIS_MODEL_FILE,
                 VECTORCAST_HIGHER_COVERAGE_FILE);
 
-        CoverageRecorder recorder = new CoverageRecorder();
+        var recorder = new CoverageRecorder();
 
         var vectorcast = new CoverageTool();
         vectorcast.setParser(Parser.VECTORCAST);
@@ -840,7 +838,7 @@ class CoveragePluginITest extends AbstractCoverageITest {
 
     @Test
     void shouldRecordVectorCastAndJacocoResultsInPipeline() {
-        WorkflowJob job = createPipelineWithWorkspaceFiles(JACOCO_ANALYSIS_MODEL_FILE, VECTORCAST_HIGHER_COVERAGE_FILE);
+        var job = createPipelineWithWorkspaceFiles(JACOCO_ANALYSIS_MODEL_FILE, VECTORCAST_HIGHER_COVERAGE_FILE);
 
         setPipelineScript(job,
                 "recordCoverage tools: ["
@@ -853,7 +851,7 @@ class CoveragePluginITest extends AbstractCoverageITest {
 
     @Test
     void shouldRecordVectorCastAndJacocoResultsInDeclarativePipeline() {
-        WorkflowJob job = createPipelineWithWorkspaceFiles(JACOCO_ANALYSIS_MODEL_FILE, VECTORCAST_HIGHER_COVERAGE_FILE);
+        var job = createPipelineWithWorkspaceFiles(JACOCO_ANALYSIS_MODEL_FILE, VECTORCAST_HIGHER_COVERAGE_FILE);
 
         job.setDefinition(createPipelineScript(
                 "pipeline {\n"
@@ -876,7 +874,7 @@ class CoveragePluginITest extends AbstractCoverageITest {
     private void verifyForOneVectorCastAndOneJacoco(final ParameterizedJob<?, ?> project) {
         Run<?, ?> build = buildSuccessfully(project);
 
-        CoverageBuildAction coverageResult = build.getAction(CoverageBuildAction.class);
+        var coverageResult = build.getAction(CoverageBuildAction.class);
         assertThat(coverageResult.getAllValues(Baseline.PROJECT))
                 .contains(createLineCoverageBuilder()
                         .withCovered(JACOCO_ANALYSIS_MODEL_COVERED + VECTORCAST_COVERED_LINES)
@@ -936,7 +934,7 @@ class CoveragePluginITest extends AbstractCoverageITest {
 
     @Test
     void shouldRecordVerctorCastResultsWithDifferentId() {
-        WorkflowJob job = createPipelineWithWorkspaceFiles(JACOCO_ANALYSIS_MODEL_FILE, VECTORCAST_HIGHER_COVERAGE_FILE);
+        var job = createPipelineWithWorkspaceFiles(JACOCO_ANALYSIS_MODEL_FILE, VECTORCAST_HIGHER_COVERAGE_FILE);
 
         setPipelineScript(job,
                 "recordCoverage "
@@ -971,7 +969,7 @@ class CoveragePluginITest extends AbstractCoverageITest {
 
     @Test
     void shouldParseFileWithVectorCast() {
-        WorkflowJob job = createPipeline();
+        var job = createPipeline();
         copyFileToWorkspace(job, "vectorcast-statement-mcdc-fcc.xml", "xml_data/cobertura/coverage_results_test.xml");
         job.setDefinition(createPipelineScript(
                 """

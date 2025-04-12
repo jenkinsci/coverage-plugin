@@ -1,10 +1,10 @@
 package io.jenkins.plugins.coverage.metrics.steps;
 
-import java.util.function.Predicate;
-
 import org.apache.commons.lang3.StringUtils;
 
 import edu.hm.hafner.coverage.Metric;
+
+import java.util.function.Predicate;
 
 import org.jenkinsci.plugins.tokenmacro.DataBoundTokenMacro;
 import hudson.Extension;
@@ -103,4 +103,3 @@ public class CoverageTokenMacro extends DataBoundTokenMacro {
         }
     }
 }
-

@@ -1,20 +1,19 @@
 package io.jenkins.plugins.coverage.metrics.steps;
 
+import org.apache.commons.io.input.BOMInputStream;
+
+import edu.hm.hafner.coverage.CoverageParser.ProcessingMode;
+import edu.hm.hafner.coverage.ModuleNode;
+import edu.hm.hafner.util.FilteredLog;
+import edu.hm.hafner.util.PathUtil;
+import edu.hm.hafner.util.SecureXmlParserFactory.ParsingException;
+
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Serial;
 import java.nio.charset.Charset;
 import java.nio.file.Path;
 import java.util.Optional;
-
-import org.apache.commons.io.input.BOMInputStream;
-
-import edu.hm.hafner.coverage.CoverageParser;
-import edu.hm.hafner.coverage.CoverageParser.ProcessingMode;
-import edu.hm.hafner.coverage.ModuleNode;
-import edu.hm.hafner.util.FilteredLog;
-import edu.hm.hafner.util.PathUtil;
-import edu.hm.hafner.util.SecureXmlParserFactory.ParsingException;
 
 import io.jenkins.plugins.coverage.metrics.steps.CoverageTool.Parser;
 import io.jenkins.plugins.util.AgentFileVisitor;
@@ -59,10 +58,10 @@ public class CoverageReportScanner extends AgentFileVisitor<ModuleNode> {
 
     @Override
     protected Optional<ModuleNode> processFile(final Path file, final Charset charset, final FilteredLog log) {
-        CoverageParser coverageParser = parser.createParser(processingMode);
+        var coverageParser = parser.createParser(processingMode);
         try (var inputStream = BOMInputStream.builder().setFile(file.toFile()).setCharset(charset).get();
                 var reader = new InputStreamReader(inputStream, charset)) {
-            ModuleNode node = coverageParser.parse(reader, file.toString(), log);
+            var node = coverageParser.parse(reader, file.toString(), log);
             log.logInfo("Successfully parsed file '%s'", PATH_UTIL.getAbsolutePath(file));
             node.aggregateValues().forEach(v -> log.logInfo("%s", v));
             return Optional.of(node);

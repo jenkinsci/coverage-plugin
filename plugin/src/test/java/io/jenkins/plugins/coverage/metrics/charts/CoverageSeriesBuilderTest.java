@@ -12,7 +12,6 @@ import edu.hm.hafner.echarts.BuildResult;
 import edu.hm.hafner.echarts.ChartModelConfiguration;
 import edu.hm.hafner.echarts.ChartModelConfiguration.AxisType;
 import edu.hm.hafner.echarts.line.LinesChartModel;
-import edu.hm.hafner.echarts.line.LinesDataSet;
 import edu.hm.hafner.util.ResourceTest;
 import edu.hm.hafner.util.VisibleForTesting;
 
@@ -38,9 +37,9 @@ class CoverageSeriesBuilderTest extends ResourceTest {
 
     @Test
     void shouldHaveEmptyDataSetForEmptyIterator() {
-        CoverageSeriesBuilder builder = new CoverageSeriesBuilder();
+        var builder = new CoverageSeriesBuilder();
 
-        LinesDataSet model = builder.createDataSet(createConfiguration(), new ArrayList<>());
+        var model = builder.createDataSet(createConfiguration(), new ArrayList<>());
 
         assertThat(model.getDomainAxisSize()).isEqualTo(0);
         assertThat(model.getDataSetIds()).isEmpty();
@@ -48,13 +47,13 @@ class CoverageSeriesBuilderTest extends ResourceTest {
 
     @Test
     void shouldCreateChart() {
-        TrendChart trendChart = createTrend();
+        var trendChart = createTrend();
 
         BuildResult<CoverageStatistics> smallLineCoverage = createResult(1,
                 new CoverageBuilder().withMetric(Metric.LINE).withCovered(1).withMissed(1).build(),
                 new CoverageBuilder().withMetric(Metric.BRANCH).withCovered(3).withMissed(1).build());
 
-        LinesChartModel lineCoverage = trendChart.create(Collections.singletonList(smallLineCoverage),
+        var lineCoverage = trendChart.create(Collections.singletonList(smallLineCoverage),
                 createConfiguration());
         verifySeriesDetails(lineCoverage);
 
@@ -62,20 +61,20 @@ class CoverageSeriesBuilderTest extends ResourceTest {
                 new CoverageBuilder().withMetric(Metric.LINE).withCovered(3).withMissed(1).build(),
                 new CoverageBuilder().withMetric(Metric.BRANCH).withCovered(1).withMissed(1).build());
 
-        LinesChartModel branchCoverage = trendChart.create(Collections.singletonList(smallBranchCoverage),
+        var branchCoverage = trendChart.create(Collections.singletonList(smallBranchCoverage),
                 createConfiguration());
         verifySeriesDetails(branchCoverage);
     }
 
     @Test
     void shouldCreateStackedChartByDefault() {
-        TrendChart trendChart = createTrend();
+        var trendChart = createTrend();
 
         BuildResult<CoverageStatistics> smallLineCoverage = createResult(1,
                 new CoverageBuilder().withMetric(Metric.LINE).withCovered(1).withMissed(1).build(),
                 new CoverageBuilder().withMetric(Metric.BRANCH).withCovered(3).withMissed(1).build());
 
-        LinesChartModel lineCoverage = trendChart.create(Collections.singletonList(smallLineCoverage),
+        var lineCoverage = trendChart.create(Collections.singletonList(smallLineCoverage),
                 createConfiguration());
         assertThat(lineCoverage.getBuildNumbers()).containsExactly(1);
         assertThat(lineCoverage.getSeries()).hasSize(2).allSatisfy(
@@ -91,14 +90,14 @@ class CoverageSeriesBuilderTest extends ResourceTest {
 
     @ParameterizedTest @EnumSource(value = Metric.class, names = {"MCDC_PAIR", "FUNCTION_CALL"})
     void shouldCreateLineChartForVectorCoverage(final Metric vector) {
-        TrendChart trendChart = new CoverageTrendChart(Set.of(Metric.LINE, Metric.BRANCH, vector), true);
+        var trendChart = new CoverageTrendChart(Set.of(Metric.LINE, Metric.BRANCH, vector), true);
 
         BuildResult<CoverageStatistics> smallLineCoverage = createResult(1,
                 new CoverageBuilder().withMetric(Metric.LINE).withCovered(1).withMissed(1).build(),
                 new CoverageBuilder().withMetric(Metric.BRANCH).withCovered(2).withMissed(1).build(),
                 new CoverageBuilder().withMetric(vector).withCovered(1).withMissed(2).build());
 
-        LinesChartModel lineCoverage = trendChart.create(Collections.singletonList(smallLineCoverage),
+        var lineCoverage = trendChart.create(Collections.singletonList(smallLineCoverage),
                 createConfiguration());
         assertThat(lineCoverage.getBuildNumbers()).containsExactly(1);
         assertThat(lineCoverage.getSeries()).hasSize(3).allSatisfy(
@@ -113,7 +112,7 @@ class CoverageSeriesBuilderTest extends ResourceTest {
             final Coverage... coverages) {
         var statistics = new CoverageStatistics(
                 List.of(coverages), List.of(), List.of(), List.of(), List.of(), List.of());
-        Build build = new Build(buildNumber);
+        var build = new Build(buildNumber);
 
         return new BuildResult<>(build, statistics);
     }
@@ -127,13 +126,13 @@ class CoverageSeriesBuilderTest extends ResourceTest {
 
     @Test
     void shouldHaveTwoValuesForSingleBuild() {
-        CoverageSeriesBuilder builder = new CoverageSeriesBuilder();
+        var builder = new CoverageSeriesBuilder();
 
         BuildResult<CoverageStatistics> singleResult = createResult(1,
                 new CoverageBuilder().withMetric(Metric.LINE).withCovered(1).withMissed(1).build(),
                 new CoverageBuilder().withMetric(Metric.BRANCH).withCovered(3).withMissed(1).build());
 
-        LinesDataSet dataSet = builder.createDataSet(createConfiguration(), Collections.singletonList(singleResult));
+        var dataSet = builder.createDataSet(createConfiguration(), Collections.singletonList(singleResult));
 
         assertThat(dataSet.getDomainAxisSize()).isEqualTo(1);
         assertThat(dataSet.getDomainAxisLabels()).containsExactly("#1");
@@ -148,7 +147,7 @@ class CoverageSeriesBuilderTest extends ResourceTest {
 
     @Test
     void shouldHaveTwoValuesForTwoBuilds() {
-        CoverageSeriesBuilder builder = new CoverageSeriesBuilder();
+        var builder = new CoverageSeriesBuilder();
 
         BuildResult<CoverageStatistics> first = createResult(1,
                 new CoverageBuilder().withMetric(Metric.LINE).withCovered(1).withMissed(1).build(),
@@ -157,7 +156,7 @@ class CoverageSeriesBuilderTest extends ResourceTest {
                 new CoverageBuilder().withMetric(Metric.LINE).withCovered(1).withMissed(3).build(),
                 new CoverageBuilder().withMetric(Metric.BRANCH).withCovered(1).withMissed(3).build());
 
-        LinesDataSet dataSet = builder.createDataSet(createConfiguration(), List.of(first, second));
+        var dataSet = builder.createDataSet(createConfiguration(), List.of(first, second));
 
         assertThat(dataSet.getDomainAxisSize()).isEqualTo(2);
         assertThat(dataSet.getDomainAxisLabels()).containsExactly("#1", "#2");
@@ -171,7 +170,7 @@ class CoverageSeriesBuilderTest extends ResourceTest {
         assertThat(dataSet.getSeries(BRANCH_COVERAGE))
                 .containsExactly(75.0, 25.0);
 
-        TrendChart trendChart = createTrend();
+        var trendChart = createTrend();
         var model = trendChart.create(List.of(first, second), createConfiguration());
 
         assertThatJson(model).isEqualTo(toString("chart.json"));

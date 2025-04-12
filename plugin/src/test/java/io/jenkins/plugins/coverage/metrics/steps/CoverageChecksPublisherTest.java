@@ -49,20 +49,18 @@ class CoverageChecksPublisherTest extends AbstractCoverageTest {
         var checkDetails = publisher.extractChecksDetails();
 
         var expectedQualityGateSummary = toString("coverage-publisher-quality-gate.checks-expected-result");
-        assertThat(checkDetails.getOutput()).isPresent().get().satisfies(output -> {
-            assertThat(output.getSummary()).isPresent()
-                    .get()
-                    .asString()
-                    .containsIgnoringWhitespaces(expectedQualityGateSummary);
-        });
+        assertThat(checkDetails.getOutput()).isPresent().get().satisfies(output ->
+                assertThat(output.getSummary()).isPresent()
+                        .get()
+                        .asString()
+                        .containsIgnoringWhitespaces(expectedQualityGateSummary));
 
         var expectedOverview = toString("coverage-publisher-overview.checks-expected-result");
-        assertThat(checkDetails.getOutput()).isPresent().get().satisfies(output -> {
-            assertThat(output.getSummary()).isPresent()
-                    .get()
-                    .asString()
-                    .containsIgnoringWhitespaces(expectedOverview);
-        });
+        assertThat(checkDetails.getOutput()).isPresent().get().satisfies(output ->
+                assertThat(output.getSummary()).isPresent()
+                        .get()
+                        .asString()
+                        .containsIgnoringWhitespaces(expectedOverview));
     }
 
     @Test
@@ -118,9 +116,8 @@ class CoverageChecksPublisherTest extends AbstractCoverageTest {
 
     protected void assertThatTitleIs(final CoverageChecksPublisher publisher, final String expectedTitle) {
         var checkDetails = publisher.extractChecksDetails();
-        assertThat(checkDetails.getOutput()).isPresent().get().satisfies(output -> {
-            assertThat(output.getTitle()).isPresent().contains(expectedTitle);
-        });
+        assertThat(checkDetails.getOutput()).isPresent().get().satisfies(output ->
+                assertThat(output.getTitle()).isPresent().contains(expectedTitle));
     }
 
     @ParameterizedTest(name = "should create checks (scope = {0}, expected annotations = {1})")
@@ -128,7 +125,8 @@ class CoverageChecksPublisherTest extends AbstractCoverageTest {
     void shouldCreateChecksReportJaCoCo(final ChecksAnnotationScope scope, final int expectedAnnotations) {
         var result = readJacocoResult("jacoco-codingstyle.xml");
 
-        var publisher = new CoverageChecksPublisher(createCoverageBuildAction(result), result, REPORT_NAME, scope, createJenkins());
+        var publisher = new CoverageChecksPublisher(createCoverageBuildAction(result), result, REPORT_NAME, scope,
+                createJenkins());
 
         var checkDetails = publisher.extractChecksDetails();
 
@@ -151,20 +149,18 @@ class CoverageChecksPublisherTest extends AbstractCoverageTest {
         var checkDetails = publisher.extractChecksDetails();
 
         var expectedQualityGateSummary = toString("vectorcast-coverage-publisher-quality-gate.checks-expected-result");
-        assertThat(checkDetails.getOutput()).isPresent().get().satisfies(output -> {
-            assertThat(output.getSummary()).isPresent()
-                    .get()
-                    .asString()
-                    .containsIgnoringWhitespaces(expectedQualityGateSummary);
-        });
+        assertThat(checkDetails.getOutput()).isPresent().get().satisfies(output ->
+                assertThat(output.getSummary()).isPresent()
+                        .get()
+                        .asString()
+                        .containsIgnoringWhitespaces(expectedQualityGateSummary));
 
         var expectedOverview = toString("vectorcast-coverage-publisher-quality-gate-overview.checks-expected-result");
-        assertThat(checkDetails.getOutput()).isPresent().get().satisfies(output -> {
-            assertThat(output.getSummary()).isPresent()
-                    .get()
-                    .asString()
-                    .containsIgnoringWhitespaces(expectedOverview);
-        });
+        assertThat(checkDetails.getOutput()).isPresent().get().satisfies(output ->
+                assertThat(output.getSummary()).isPresent()
+                        .get()
+                        .asString()
+                        .containsIgnoringWhitespaces(expectedOverview));
     }
 
     @Test
@@ -197,7 +193,8 @@ class CoverageChecksPublisherTest extends AbstractCoverageTest {
 
     @ParameterizedTest(name = "should create checks (scope = {0}, expected annotations = {1})")
     @CsvSource({"SKIP, 0", "ALL_LINES, 59", "MODIFIED_LINES, 0"})
-    void shouldCreateChecksReportStatementMcdcFunctionCall(final ChecksAnnotationScope scope, final int expectedAnnotations) {
+    void shouldCreateChecksReportStatementMcdcFunctionCall(final ChecksAnnotationScope scope,
+            final int expectedAnnotations) {
         shouldCreateChecksReport(scope, expectedAnnotations,
                 "vectorcast-statement-mcdc-fcc.xml",
                 "vectorcast-coverage-publisher-s+mcdc+fcc-details.checks-expected-result",
@@ -208,7 +205,8 @@ class CoverageChecksPublisherTest extends AbstractCoverageTest {
             final String inFile, final String checkDetailsFile, final String checkOverviewFile) {
         var result = readVectorCastResult(inFile);
 
-        var publisher = new CoverageChecksPublisher(createCoverageBuildAction(result), result, REPORT_NAME, scope, createJenkins());
+        var publisher = new CoverageChecksPublisher(createCoverageBuildAction(result), result, REPORT_NAME, scope,
+                createJenkins());
 
         var checkDetails = publisher.extractChecksDetails();
 
@@ -262,7 +260,8 @@ class CoverageChecksPublisherTest extends AbstractCoverageTest {
                         assertThat(annotation.getTitle()).contains("Partially covered line");
                         assertThat(annotation.getAnnotationLevel()).isEqualTo(ChecksAnnotationLevel.WARNING);
                         assertThat(annotation.getPath()).contains("edu/hm/hafner/util/TreeStringBuilder.java");
-                        assertThat(annotation.getMessage()).contains("Line 113 is only partially covered, one branch is missing");
+                        assertThat(annotation.getMessage()).contains(
+                                "Line 113 is only partially covered, one branch is missing");
                         assertThat(annotation.getStartLine()).isPresent().contains(113);
                         assertThat(annotation.getEndLine()).isPresent().contains(113);
                     });

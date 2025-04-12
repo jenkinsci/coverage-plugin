@@ -94,7 +94,7 @@ public class ColorProvider {
      * @return the color as a hex string
      */
     public static String colorAsRGBAHex(final Color color, final int alpha) {
-        return String.format("#%02X%02X%02X%02X", color.getRed(), color.getGreen(), color.getBlue(), alpha);
+        return "#%02X%02X%02X%02X".formatted(color.getRed(), color.getGreen(), color.getBlue(), alpha);
     }
 
     /**
@@ -106,7 +106,7 @@ public class ColorProvider {
      * @return the color as a hex string
      */
     public static String colorAsRGBHex(final Color color) {
-        return String.format("#%02X%02X%02X", color.getRed(), color.getGreen(), color.getBlue());
+        return "#%02X%02X%02X".formatted(color.getRed(), color.getGreen(), color.getBlue());
     }
 
     /**
@@ -153,8 +153,8 @@ public class ColorProvider {
     public DisplayColors getBlendedDisplayColors(final double weightFirst, final double weightSecond,
             final ColorId first, final ColorId second) {
         if (containsColorId(first) && containsColorId(second)) {
-            DisplayColors firstColor = getDisplayColorsOf(first);
-            DisplayColors secondColor = getDisplayColorsOf(second);
+            var firstColor = getDisplayColorsOf(first);
+            var secondColor = getDisplayColorsOf(second);
             Color lineColor;
             if (weightFirst > weightSecond) {
                 lineColor = firstColor.lineColor;
@@ -226,7 +226,7 @@ public class ColorProvider {
             if (o == null || getClass() != o.getClass()) {
                 return false;
             }
-            DisplayColors that = (DisplayColors) o;
+            var that = (DisplayColors) o;
             return Objects.equals(lineColor, that.lineColor) && Objects.equals(fillColor, that.fillColor);
         }
 
@@ -237,7 +237,7 @@ public class ColorProvider {
 
         @Override
         public String toString() {
-            return String.format("%s - %s", lineColor, fillColor);
+            return "%s - %s".formatted(lineColor, fillColor);
         }
     }
 }

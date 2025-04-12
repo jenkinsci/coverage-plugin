@@ -13,7 +13,7 @@ import static org.assertj.core.api.Assertions.*;
 class CoverageColorJenkinsIdTest {
     @Test
     void shouldGetAllIds() {
-        assertThat(getAll().size()).isEqualTo(values().length);
+        assertThat(getAll()).hasSize(values().length);
     }
 
     @Test

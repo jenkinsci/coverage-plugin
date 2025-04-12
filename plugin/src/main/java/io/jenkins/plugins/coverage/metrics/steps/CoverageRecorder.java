@@ -378,7 +378,7 @@ public class CoverageRecorder extends Recorder {
     @Override
     public boolean perform(final AbstractBuild<?, ?> build, final Launcher launcher, final BuildListener listener)
             throws InterruptedException, IOException {
-        FilePath workspace = build.getWorkspace();
+        var workspace = build.getWorkspace();
         if (workspace == null) {
             throw new IOException("No workspace found for " + build);
         }
@@ -390,10 +390,10 @@ public class CoverageRecorder extends Recorder {
 
     void perform(final Run<?, ?> run, final FilePath workspace, final TaskListener taskListener,
             final ResultHandler resultHandler) throws InterruptedException {
-        Result overallResult = run.getResult();
-        LogHandler logHandler = new LogHandler(taskListener, "Coverage");
+        var overallResult = run.getResult();
+        var logHandler = new LogHandler(taskListener, "Coverage");
         if (enabledForFailure || overallResult == null || overallResult.isBetterOrEqualTo(Result.UNSTABLE)) {
-            FilteredLog log = new FilteredLog("Errors while recording code coverage:");
+            var log = new FilteredLog("Errors while recording code coverage:");
             log.logInfo("Recording coverage results");
 
             var validation = VALIDATION_UTILITIES.validateId(getId());
@@ -416,10 +416,10 @@ public class CoverageRecorder extends Recorder {
     private void perform(final Run<?, ?> run, final FilePath workspace, final TaskListener taskListener,
             final ResultHandler resultHandler, final FilteredLog log, final LogHandler logHandler) throws InterruptedException {
         var results = recordCoverageResults(run, workspace, resultHandler, log, logHandler);
-        Node aggregatedResult = aggregateResults(log, results);
+        var aggregatedResult = aggregateResults(log, results);
 
         if (!aggregatedResult.isEmpty()) {
-            CoverageReporter reporter = new CoverageReporter();
+            var reporter = new CoverageReporter();
 
             var sources = aggregatedResult.getSourceFolders();
             sources.addAll(getSourceDirectoriesPaths());
@@ -448,7 +448,7 @@ public class CoverageRecorder extends Recorder {
             log.logInfo("Making paths of " + pathMapping.size() + " source code files relative to workspace root...");
             var builder = new TreeStringBuilder();
             rootNode.getAllFileNodes().forEach(file -> {
-                String relativePath = file.getRelativePath();
+                var relativePath = file.getRelativePath();
                 if (pathMapping.containsKey(relativePath)) {
                     file.setRelativePath(builder.intern(pathMapping.get(relativePath)));
                 }
@@ -482,14 +482,14 @@ public class CoverageRecorder extends Recorder {
         Map<Parser, List<ModuleNode>> results = new EnumMap<>(Parser.class);
 
         for (CoverageTool tool : tools) {
-            Parser parser = tool.getParser();
+            var parser = tool.getParser();
             log.logInfo("Creating parser for %s", tool.getDisplayName());
             if (StringUtils.isBlank(tool.getPattern())) {
                 log.logInfo("Using default pattern '%s' since user defined pattern is not set",
                         parser.getDefaultPattern());
             }
 
-            String expandedPattern = expandPattern(run, tool.getActualPattern());
+            var expandedPattern = expandPattern(run, tool.getActualPattern());
             if (!expandedPattern.equals(tool.getActualPattern())) {
                 log.logInfo("Expanding pattern '%s' to '%s'", tool.getActualPattern(), expandedPattern);
             }
@@ -599,7 +599,7 @@ public class CoverageRecorder extends Recorder {
 
     private String expandPattern(final Run<?, ?> run, final String actualPattern) {
         try {
-            EnvironmentResolver environmentResolver = new EnvironmentResolver();
+            var environmentResolver = new EnvironmentResolver();
 
             return environmentResolver.expandEnvironmentVariables(
                     run.getEnvironment(TaskListener.NULL), actualPattern);
@@ -729,7 +729,7 @@ public class CoverageRecorder extends Recorder {
         ALL_LINES;
 
         static ListBoxModel fillItems() {
-            ListBoxModel items = new ListBoxModel();
+            var items = new ListBoxModel();
             items.add(Messages.ChecksAnnotationScope_Skip(), SKIP.name());
             items.add(Messages.ChecksAnnotationScope_ModifiedLines(), MODIFIED_LINES.name());
             items.add(Messages.ChecksAnnotationScope_AllLines(), ALL_LINES.name());

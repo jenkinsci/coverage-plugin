@@ -51,7 +51,7 @@ class ModifiedLinesBlock implements Comparable<ModifiedLinesBlock> {
         if (o == null || getClass() != o.getClass()) {
             return false;
         }
-        ModifiedLinesBlock that = (ModifiedLinesBlock) o;
+        var that = (ModifiedLinesBlock) o;
         return getStartLine() == that.getStartLine() && getEndLine() == that.getEndLine()
                 && getType() == that.getType();
     }

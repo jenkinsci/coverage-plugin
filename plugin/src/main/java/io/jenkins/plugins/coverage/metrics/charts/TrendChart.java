@@ -63,7 +63,7 @@ public abstract class TrendChart {
     void addSeriesIfAvailable(final LinesDataSet dataSet, final LinesChartModel model,
                    final String name, final String seriesId, final String color) {
         if (dataSet.containsSeries(seriesId) && isVisible(seriesId)) {
-            LineSeries branchSeries = new LineSeries(name,
+            var branchSeries = new LineSeries(name,
                     color, StackedMode.SEPARATE_LINES, filledMode, dataSet.getSeries(seriesId));
 
             model.addSeries(branchSeries);
@@ -74,7 +74,7 @@ public abstract class TrendChart {
                    final Metric metric, final String color) {
         var tagName = metric.toTagName();
         if (dataSet.containsSeries(tagName) && isVisible(tagName)) {
-            LineSeries branchSeries = new LineSeries(metric.getDisplayName(),
+            var branchSeries = new LineSeries(metric.getDisplayName(),
                     color, StackedMode.SEPARATE_LINES, filledMode, dataSet.getSeries(tagName));
 
             model.addSeries(branchSeries);

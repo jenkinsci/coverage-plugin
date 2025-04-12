@@ -39,7 +39,7 @@ class FileWithModifiedLines {
         if (o == null || getClass() != o.getClass()) {
             return false;
         }
-        FileWithModifiedLines file = (FileWithModifiedLines) o;
+        var file = (FileWithModifiedLines) o;
         return Objects.equals(this.getFullyQualifiedFileName(), file.getFullyQualifiedFileName())
                 && Objects.equals(this.getModifiedLinesBlocks(), file.getModifiedLinesBlocks());
     }

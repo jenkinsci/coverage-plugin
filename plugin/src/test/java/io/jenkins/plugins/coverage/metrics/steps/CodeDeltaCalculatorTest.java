@@ -1,6 +1,12 @@
 package io.jenkins.plugins.coverage.metrics.steps;
 
-import java.nio.file.Paths;
+import org.junit.jupiter.api.Test;
+
+import edu.hm.hafner.coverage.FileNode;
+import edu.hm.hafner.coverage.Node;
+import edu.hm.hafner.util.FilteredLog;
+
+import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -9,12 +15,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-
-import org.junit.jupiter.api.Test;
-
-import edu.hm.hafner.coverage.FileNode;
-import edu.hm.hafner.coverage.Node;
-import edu.hm.hafner.util.FilteredLog;
 
 import hudson.FilePath;
 import hudson.model.Run;
@@ -39,34 +39,34 @@ class CodeDeltaCalculatorTest {
     private static final String EMPTY_PATH = "";
 
     private static final String OLD_SCM_PATH_RENAME =
-            Paths.get("src", "main", "example", "Test.java").toString();
+            Path.of("src", "main", "example", "Test.java").toString();
     private static final String OLD_REPORT_PATH_RENAME =
-            Paths.get("example", "Test.java").toString();
+            Path.of("example", "Test.java").toString();
 
     private static final String REPORT_PATH_ADD_1 =
-            Paths.get("test", "Test.java").toString();
+            Path.of("test", "Test.java").toString();
     private static final String REPORT_PATH_ADD_2 =
-            Paths.get("package", "example", "test", "Test.java").toString();
+            Path.of("package", "example", "test", "Test.java").toString();
     private static final String REPORT_PATH_MODIFY =
-            Paths.get("example", "test", "Test.java").toString();
+            Path.of("example", "test", "Test.java").toString();
     private static final String REPORT_PATH_RENAME =
-            Paths.get("example", "Test_Renamed.java").toString();
+            Path.of("example", "Test_Renamed.java").toString();
 
     private static final String SCM_PATH_ADD_1 =
-            Paths.get("test", "Test.java").toString();
+            Path.of("test", "Test.java").toString();
     private static final String SCM_PATH_ADD_2 =
-            Paths.get("src", "package", "example", "test", "Test.java").toString();
+            Path.of("src", "package", "example", "test", "Test.java").toString();
     private static final String SCM_PATH_MODIFY =
-            Paths.get("src", "main", "java", "example", "test", "Test.java").toString();
+            Path.of("src", "main", "java", "example", "test", "Test.java").toString();
     private static final String SCM_PATH_DELETE =
-            Paths.get("src", "main", "example", "test", "Test.java").toString();
+            Path.of("src", "main", "example", "test", "Test.java").toString();
     private static final String SCM_PATH_RENAME =
-            Paths.get("src", "main", "example", "Test_Renamed.java").toString();
+            Path.of("src", "main", "example", "Test_Renamed.java").toString();
 
     @Test
     void shouldGetCoverageRelevantChanges() {
-        CodeDeltaCalculator codeDeltaCalculator = createCodeDeltaCalculator();
-        Delta delta = createDeltaWithStubbedFileChanges();
+        var codeDeltaCalculator = createCodeDeltaCalculator();
+        var delta = createDeltaWithStubbedFileChanges();
         Map<String, FileChanges> allChanges = delta.getFileChangesMap();
 
         assertThat(codeDeltaCalculator.getCoverageRelevantChanges(delta))
@@ -80,13 +80,13 @@ class CodeDeltaCalculatorTest {
 
     @Test
     void shouldMapScmChangesToReportPaths() throws IllegalStateException {
-        CodeDeltaCalculator codeDeltaCalculator = createCodeDeltaCalculator();
-        Delta delta = createDeltaWithStubbedFileChanges();
+        var codeDeltaCalculator = createCodeDeltaCalculator();
+        var delta = createDeltaWithStubbedFileChanges();
         Set<FileChanges> changes = codeDeltaCalculator.getCoverageRelevantChanges(delta);
         Map<String, FileChanges> changesMap = changes.stream()
                 .collect(Collectors.toMap(FileChanges::getFileName, Function.identity()));
-        Node tree = createStubbedCoverageTree();
-        FilteredLog log = createFilteredLog();
+        var tree = createStubbedCoverageTree();
+        var log = createFilteredLog();
 
         Map<String, FileChanges> should = new HashMap<>();
         should.put(REPORT_PATH_ADD_1, changesMap.get(SCM_PATH_ADD_1));
@@ -100,9 +100,9 @@ class CodeDeltaCalculatorTest {
 
     @Test
     void shouldCreateEmptyMappingWithoutChanges() throws IllegalStateException {
-        CodeDeltaCalculator codeDeltaCalculator = createCodeDeltaCalculator();
-        Node tree = createStubbedCoverageTree();
-        FilteredLog log = createFilteredLog();
+        var codeDeltaCalculator = createCodeDeltaCalculator();
+        var tree = createStubbedCoverageTree();
+        var log = createFilteredLog();
         Set<FileChanges> noChanges = new HashSet<>();
 
         assertThat(codeDeltaCalculator.mapScmChangesToReportPaths(noChanges, tree, log)).isEmpty();
@@ -110,10 +110,10 @@ class CodeDeltaCalculatorTest {
 
     @Test
     void shouldNotMapScmChangesWithAmbiguousPaths() throws IllegalStateException {
-        CodeDeltaCalculator codeDeltaCalculator = createCodeDeltaCalculator();
-        FilteredLog log = createFilteredLog();
+        var codeDeltaCalculator = createCodeDeltaCalculator();
+        var log = createFilteredLog();
 
-        String path = "example";
+        var path = "example";
         Set<FileChanges> changes = createAmbiguousFileChanges(path);
 
         Node tree = mock(Node.class);
@@ -129,10 +129,10 @@ class CodeDeltaCalculatorTest {
 
     @Test
     void shouldCreateOldPathMapping() throws IllegalStateException {
-        CodeDeltaCalculator codeDeltaCalculator = createCodeDeltaCalculator();
-        FilteredLog log = createFilteredLog();
-        Node tree = createStubbedCoverageTree();
-        Node referenceTree = createStubbedReferenceCoverageTree();
+        var codeDeltaCalculator = createCodeDeltaCalculator();
+        var log = createFilteredLog();
+        var tree = createStubbedCoverageTree();
+        var referenceTree = createStubbedReferenceCoverageTree();
         Map<String, FileChanges> changes = new HashMap<>();
         changes.put(REPORT_PATH_MODIFY, createFileChanges(SCM_PATH_MODIFY, SCM_PATH_MODIFY, FileEditType.MODIFY));
         changes.put(REPORT_PATH_RENAME, createFileChanges(SCM_PATH_RENAME, OLD_SCM_PATH_RENAME, FileEditType.RENAME));
@@ -147,11 +147,11 @@ class CodeDeltaCalculatorTest {
 
     @Test
     void shouldNotCreateOldPathMappingWithMissingReferenceNodes() throws IllegalStateException {
-        CodeDeltaCalculator codeDeltaCalculator = createCodeDeltaCalculator();
-        FilteredLog log = createFilteredLog();
+        var codeDeltaCalculator = createCodeDeltaCalculator();
+        var log = createFilteredLog();
 
-        Node tree = new FileNode("Test_Renamed.java", REPORT_PATH_RENAME);
-        Node referenceTree = new FileNode("Test.java", REPORT_PATH_MODIFY);
+        var tree = new FileNode("Test_Renamed.java", REPORT_PATH_RENAME);
+        var referenceTree = new FileNode("Test.java", REPORT_PATH_MODIFY);
         Map<String, FileChanges> changes = new HashMap<>();
         changes.put(REPORT_PATH_RENAME, createFileChanges(SCM_PATH_RENAME, OLD_SCM_PATH_RENAME, FileEditType.RENAME));
 
@@ -164,10 +164,10 @@ class CodeDeltaCalculatorTest {
     // checks the functionality to prevent exceptions in case of false calculated code deltas
     @Test
     void shouldNotCreateOldPathMappingWithCodeDeltaMismatches() {
-        CodeDeltaCalculator codeDeltaCalculator = createCodeDeltaCalculator();
-        FilteredLog log = createFilteredLog();
-        Node tree = createStubbedCoverageTree();
-        Node referenceTree = createStubbedReferenceCoverageTree();
+        var codeDeltaCalculator = createCodeDeltaCalculator();
+        var log = createFilteredLog();
+        var tree = createStubbedCoverageTree();
+        var referenceTree = createStubbedReferenceCoverageTree();
 
         // two changes with the same former path
         Map<String, FileChanges> changes = new HashMap<>();
@@ -178,8 +178,8 @@ class CodeDeltaCalculatorTest {
                 .isInstanceOf(IllegalStateException.class)
                 .hasMessageStartingWith(CODE_DELTA_TO_COVERAGE_DATA_MISMATCH_ERROR_TEMPLATE)
                 .hasMessageContainingAll(
-                        String.format("new: '%s' - former: '%s',", REPORT_PATH_RENAME, OLD_REPORT_PATH_RENAME),
-                        String.format("new: '%s' - former: '%s'", REPORT_PATH_MODIFY, OLD_REPORT_PATH_RENAME));
+                "new: '%s' - former: '%s',".formatted(REPORT_PATH_RENAME, OLD_REPORT_PATH_RENAME),
+                "new: '%s' - former: '%s'".formatted(REPORT_PATH_MODIFY, OLD_REPORT_PATH_RENAME));
     }
 
     /**
@@ -195,11 +195,11 @@ class CodeDeltaCalculatorTest {
     private Delta createDeltaWithStubbedFileChanges() {
         Delta delta = mock(Delta.class);
         Map<String, FileChanges> fileChanges = new HashMap<>();
-        FileChanges fileChangesAdd1 = createFileChanges(SCM_PATH_ADD_1, EMPTY_PATH, FileEditType.ADD);
-        FileChanges fileChangesAdd2 = createFileChanges(SCM_PATH_ADD_2, EMPTY_PATH, FileEditType.ADD);
-        FileChanges fileChangesModify = createFileChanges(SCM_PATH_MODIFY, SCM_PATH_MODIFY, FileEditType.MODIFY);
-        FileChanges fileChangesDelete = createFileChanges(EMPTY_PATH, SCM_PATH_DELETE, FileEditType.DELETE);
-        FileChanges fileChangesRename = createFileChanges(SCM_PATH_RENAME, OLD_SCM_PATH_RENAME, FileEditType.RENAME);
+        var fileChangesAdd1 = createFileChanges(SCM_PATH_ADD_1, EMPTY_PATH, FileEditType.ADD);
+        var fileChangesAdd2 = createFileChanges(SCM_PATH_ADD_2, EMPTY_PATH, FileEditType.ADD);
+        var fileChangesModify = createFileChanges(SCM_PATH_MODIFY, SCM_PATH_MODIFY, FileEditType.MODIFY);
+        var fileChangesDelete = createFileChanges(EMPTY_PATH, SCM_PATH_DELETE, FileEditType.DELETE);
+        var fileChangesRename = createFileChanges(SCM_PATH_RENAME, OLD_SCM_PATH_RENAME, FileEditType.RENAME);
         fileChanges.put(fileChangesAdd1.getFileName(), fileChangesAdd1);
         fileChanges.put(fileChangesAdd2.getFileName(), fileChangesAdd2);
         fileChanges.put(fileChangesModify.getFileName(), fileChangesModify);
@@ -219,9 +219,9 @@ class CodeDeltaCalculatorTest {
      */
     private Set<FileChanges> createAmbiguousFileChanges(final String path) {
         FileChanges change1 = mock(FileChanges.class);
-        when(change1.getFileName()).thenReturn(Paths.get("src", path).toString());
+        when(change1.getFileName()).thenReturn(Path.of("src", path).toString());
         FileChanges change2 = mock(FileChanges.class);
-        when(change2.getFileName()).thenReturn(Paths.get("main", path).toString());
+        when(change2.getFileName()).thenReturn(Path.of("main", path).toString());
         Set<FileChanges> changes = new HashSet<>();
         changes.add(change1);
         changes.add(change2);
