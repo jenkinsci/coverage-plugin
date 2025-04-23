@@ -64,17 +64,20 @@ import io.jenkins.plugins.util.RunResultHandler;
 import io.jenkins.plugins.util.ValidationUtilities;
 
 /**
- * A pipeline {@code Step} or Freestyle or Maven {@link Recorder} that reads and parses coverage results in a build and
+ * A pipeline {@code Step} or Freestyle or Maven {@link Recorder} that reads and
+ * parses coverage results in a build and
  * adds the results to the persisted build results.
  *
  * <p>
- * Stores the created issues in a {@link Node}. This result is then attached to the {@link Run build} by registering a
+ * Stores the created issues in a {@link Node}. This result is then attached to
+ * the {@link Run build} by registering a
  * {@link CoverageBuildAction}.
  * </p>
  *
  * @author Ullrich Hafner
  */
-@SuppressWarnings({"PMD.GodClass", "PMD.CouplingBetweenObjects", "checkstyle:ClassFanOutComplexity", "checkstyle:ClassDataAbstractionCoupling"})
+@SuppressWarnings({ "PMD.GodClass", "PMD.CouplingBetweenObjects", "checkstyle:ClassFanOutComplexity",
+        "checkstyle:ClassDataAbstractionCoupling" })
 public class CoverageRecorder extends Recorder {
     static final String CHECKS_DEFAULT_NAME = "Code Coverage";
 
@@ -100,7 +103,7 @@ public class CoverageRecorder extends Recorder {
     private SourceCodeRetention sourceCodeRetention = SourceCodeRetention.LAST_BUILD;
 
     /**
-     * Creates a new instance of {@link  CoverageRecorder}.
+     * Creates a new instance of {@link CoverageRecorder}.
      */
     @DataBoundConstructor
     public CoverageRecorder() {
@@ -113,7 +116,7 @@ public class CoverageRecorder extends Recorder {
      * Sets the coverage tools that will scan files and create coverage reports.
      *
      * @param tools
-     *         the coverage tools
+     *              the coverage tools
      */
     @DataBoundSetter
     public void setTools(final List<CoverageTool> tools) {
@@ -128,7 +131,7 @@ public class CoverageRecorder extends Recorder {
      * Defines the optional list of quality gates.
      *
      * @param qualityGates
-     *         the quality gates
+     *                     the quality gates
      */
     @SuppressWarnings("unused") // used by Stapler view data binding
     @DataBoundSetter
@@ -142,11 +145,12 @@ public class CoverageRecorder extends Recorder {
     }
 
     /**
-     * Overrides the default ID of the results. The ID is used as URL of the results and as identifier in UI elements.
+     * Overrides the default ID of the results. The ID is used as URL of the results
+     * and as identifier in UI elements.
      * If no ID is given, then the default ID "coverage".
      *
      * @param id
-     *         the ID of the results
+     *           the ID of the results
      *
      * @see ToolDescriptor#getId()
      */
@@ -162,7 +166,8 @@ public class CoverageRecorder extends Recorder {
     }
 
     /**
-     * Returns the actual ID of the results. If no user-defined ID is given, then the default ID {@link #DEFAULT_ID} is
+     * Returns the actual ID of the results. If no user-defined ID is given, then
+     * the default ID {@link #DEFAULT_ID} is
      * returned.
      *
      * @return the ID
@@ -173,11 +178,12 @@ public class CoverageRecorder extends Recorder {
     }
 
     /**
-     * Overrides the name of the results. The name is used for all labels in the UI. If no name is given, then the
+     * Overrides the name of the results. The name is used for all labels in the UI.
+     * If no name is given, then the
      * default name is used.
      *
      * @param name
-     *         the name of the results
+     *             the name of the results
      *
      * @see #getName()
      */
@@ -194,7 +200,8 @@ public class CoverageRecorder extends Recorder {
      * Sets whether publishing checks should be skipped or not.
      *
      * @param skipPublishingChecks
-     *         {@code true} if publishing checks should be skipped, {@code false} otherwise
+     *                             {@code true} if publishing checks should be
+     *                             skipped, {@code false} otherwise
      */
     @DataBoundSetter
     public void setSkipPublishingChecks(final boolean skipPublishingChecks) {
@@ -209,7 +216,7 @@ public class CoverageRecorder extends Recorder {
      * Changes the default name for the SCM checks report.
      *
      * @param checksName
-     *         the name that should be used for the SCM checks report
+     *                   the name that should be used for the SCM checks report
      */
     @DataBoundSetter
     public void setChecksName(final String checksName) {
@@ -225,7 +232,7 @@ public class CoverageRecorder extends Recorder {
      * Sets the scope of the annotations that should be published to SCM checks.
      *
      * @param checksAnnotationScope
-     *         the scope to use
+     *                              the scope to use
      */
     @DataBoundSetter
     public void setChecksAnnotationScope(final ChecksAnnotationScope checksAnnotationScope) {
@@ -237,10 +244,12 @@ public class CoverageRecorder extends Recorder {
     }
 
     /**
-     * Specify if traversal of symbolic links will be skipped during directory scanning for coverage reports.
+     * Specify if traversal of symbolic links will be skipped during directory
+     * scanning for coverage reports.
      *
      * @param skipSymbolicLinks
-     *         if symbolic links should be skipped during directory scanning
+     *                          if symbolic links should be skipped during directory
+     *                          scanning
      */
     @DataBoundSetter
     public void setSkipSymbolicLinks(final boolean skipSymbolicLinks) {
@@ -252,10 +261,12 @@ public class CoverageRecorder extends Recorder {
     }
 
     /**
-     * Specify if parsing errors should be ignored and logged instead of throwing an exception.
+     * Specify if parsing errors should be ignored and logged instead of throwing an
+     * exception.
      *
      * @param ignoreParsingErrors
-     *         if parsing errors should be ignored and logged instead of throwing an exception
+     *                            if parsing errors should be ignored and logged
+     *                            instead of throwing an exception
      */
     @DataBoundSetter
     public void setIgnoreParsingErrors(final boolean ignoreParsingErrors) {
@@ -267,11 +278,13 @@ public class CoverageRecorder extends Recorder {
     }
 
     /**
-     * Determines whether to fail the build on errors during the step of recording coverage reports.
+     * Determines whether to fail the build on errors during the step of recording
+     * coverage reports.
      *
      * @param failOnError
-     *         if {@code true} then the build will be failed on errors, {@code false} then errors are only reported in
-     *         the UI
+     *                    if {@code true} then the build will be failed on errors,
+     *                    {@code false} then errors are only reported in
+     *                    the UI
      */
     @DataBoundSetter
     @SuppressWarnings("unused") // Used by Stapler
@@ -287,8 +300,9 @@ public class CoverageRecorder extends Recorder {
      * Returns whether recording should be enabled for failed builds as well.
      *
      * @param enabledForFailure
-     *         {@code true} if recording should be enabled for failed builds as well, {@code false} if recording is
-     *         enabled for successful or unstable builds only
+     *                          {@code true} if recording should be enabled for
+     *                          failed builds as well, {@code false} if recording is
+     *                          enabled for successful or unstable builds only
      */
     @DataBoundSetter
     public void setEnabledForFailure(final boolean enabledForFailure) {
@@ -303,7 +317,7 @@ public class CoverageRecorder extends Recorder {
      * Sets the encoding to use to read source files.
      *
      * @param sourceCodeEncoding
-     *         the encoding, e.g. "ISO-8859-1"
+     *                           the encoding, e.g. "ISO-8859-1"
      */
     @DataBoundSetter
     public void setSourceCodeEncoding(final String sourceCodeEncoding) {
@@ -315,12 +329,14 @@ public class CoverageRecorder extends Recorder {
     }
 
     /**
-     * Sets the paths to the directories that contain the source code. If not relative and thus not part of the
-     * workspace, then these directories need to be added in Jenkins global configuration to prevent accessing of
+     * Sets the paths to the directories that contain the source code. If not
+     * relative and thus not part of the
+     * workspace, then these directories need to be added in Jenkins global
+     * configuration to prevent accessing of
      * forbidden resources.
      *
      * @param sourceCodeDirectories
-     *         directories containing the source code
+     *                              directories containing the source code
      */
     @DataBoundSetter
     public void setSourceDirectories(final List<SourceCodeDirectory> sourceCodeDirectories) {
@@ -343,7 +359,7 @@ public class CoverageRecorder extends Recorder {
      * Defines the retention strategy for source code files.
      *
      * @param sourceCodeRetention
-     *         the retention strategy for source code files
+     *                            the retention strategy for source code files
      */
     @DataBoundSetter
     public void setSourceCodeRetention(final SourceCodeRetention sourceCodeRetention) {
@@ -355,11 +371,12 @@ public class CoverageRecorder extends Recorder {
     }
 
     /**
-     * Sets the SCM that should be used to find the reference build for. The reference recorder will select the SCM
+     * Sets the SCM that should be used to find the reference build for. The
+     * reference recorder will select the SCM
      * based on a substring comparison, there is no need to specify the full name.
      *
      * @param scm
-     *         the ID of the SCM to use (a substring of the full ID)
+     *            the ID of the SCM to use (a substring of the full ID)
      */
     @DataBoundSetter
     public void setScm(final String scm) {
@@ -403,18 +420,17 @@ public class CoverageRecorder extends Recorder {
             if (tools.isEmpty()) {
                 failStage(resultHandler, logHandler, log,
                         "No tools defined that will record the coverage files");
-            }
-            else {
+            } else {
                 perform(run, workspace, taskListener, resultHandler, log, logHandler);
             }
-        }
-        else {
+        } else {
             logHandler.log("Skipping execution of coverage recorder since overall result is '%s'", overallResult);
         }
     }
 
     private void perform(final Run<?, ?> run, final FilePath workspace, final TaskListener taskListener,
-            final ResultHandler resultHandler, final FilteredLog log, final LogHandler logHandler) throws InterruptedException {
+            final ResultHandler resultHandler, final FilteredLog log, final LogHandler logHandler)
+            throws InterruptedException {
         var results = recordCoverageResults(run, workspace, resultHandler, log, logHandler);
         Node aggregatedResult = aggregateResults(log, results);
 
@@ -432,7 +448,8 @@ public class CoverageRecorder extends Recorder {
                     getSourceCodeEncoding(), getSourceCodeRetention(), resultHandler, log);
 
             if (!skipPublishingChecks) {
-                var checksPublisher = new CoverageChecksPublisher(action, aggregatedResult, getChecksName(), getChecksAnnotationScope());
+                var checksPublisher = new CoverageChecksPublisher(action, aggregatedResult, getChecksName(),
+                        getChecksAnnotationScope());
                 checksPublisher.publishCoverageReport(taskListener);
             }
         }
@@ -478,7 +495,8 @@ public class CoverageRecorder extends Recorder {
     }
 
     private Map<Parser, List<ModuleNode>> recordCoverageResults(final Run<?, ?> run, final FilePath workspace,
-            final ResultHandler resultHandler, final FilteredLog log, final LogHandler logHandler) throws InterruptedException {
+            final ResultHandler resultHandler, final FilteredLog log, final LogHandler logHandler)
+            throws InterruptedException {
         Map<Parser, List<ModuleNode>> results = new EnumMap<>(Parser.class);
 
         for (CoverageTool tool : tools) {
@@ -506,14 +524,12 @@ public class CoverageRecorder extends Recorder {
                         var errorMessage = "Failing build due to some errors during recording of the coverage";
                         log.logInfo(errorMessage);
                         resultHandler.publishResult(Result.FAILURE, errorMessage);
-                    }
-                    else {
+                    } else {
                         log.logInfo("Ignore errors and continue processing");
                     }
                 }
                 results.put(tool.getParser(), coverageResults);
-            }
-            catch (IOException exception) {
+            } catch (IOException exception) {
                 log.logException(exception, "Exception while parsing with tool " + tool);
             }
 
@@ -528,8 +544,7 @@ public class CoverageRecorder extends Recorder {
             log.logError("No coverage results were found! Configuration error?");
 
             return new ModuleNode("Empty");
-        }
-        else {
+        } else {
             var testCases = results.entrySet()
                     .stream()
                     .filter(entry -> entry.getKey().getParserType() == ParserType.TEST)
@@ -603,8 +618,7 @@ public class CoverageRecorder extends Recorder {
 
             return environmentResolver.expandEnvironmentVariables(
                     run.getEnvironment(TaskListener.NULL), actualPattern);
-        }
-        catch (IOException | InterruptedException ignore) {
+        } catch (IOException | InterruptedException ignore) {
             return actualPattern; // fallback, no expansion
         }
     }
@@ -679,9 +693,9 @@ public class CoverageRecorder extends Recorder {
          * Performs on-the-fly validation on the character encoding.
          *
          * @param project
-         *         the project that is configured
+         *                           the project that is configured
          * @param sourceCodeEncoding
-         *         the character encoding
+         *                           the character encoding
          *
          * @return the validation result
          */
@@ -700,9 +714,9 @@ public class CoverageRecorder extends Recorder {
          * Performs on-the-fly validation of the ID.
          *
          * @param project
-         *         the project that is configured
+         *                the project that is configured
          * @param id
-         *         the ID of the tool
+         *                the ID of the tool
          *
          * @return the validation result
          */
