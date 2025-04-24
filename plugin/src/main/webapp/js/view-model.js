@@ -169,7 +169,7 @@ const CoverageChartGenerator = function ($, proxy) { // NOPMD
         summaryChart.resize();
     }
 
-    function createFilesTreeMap(coverageTree, id, coverageMetric, isAscending) {
+    function createFilesTreeMap(coverageTree, id, coverageMetric, isAscending, isCoverage) {
         function computeColorOfNode(node, leaf, mapColor) {
             if (node.itemStyle && isLeaf(node, leaf)) {
                 const color = mapColor(getValueElement(node));
@@ -224,66 +224,19 @@ const CoverageChartGenerator = function ($, proxy) { // NOPMD
             return { min, max };
         }
 
-        function interpolateColor(lowCssColor, midCssColor, highCssColor, min, max, x) {
-            function interpolate(leftColor, rightColor, ratio) {
-                const r = Math.round(leftColor[0] + (rightColor[0] - leftColor[0]) * ratio);
-                const g = Math.round(leftColor[1] + (rightColor[1] - leftColor[1]) * ratio);
-                const b = Math.round(leftColor[2] + (rightColor[2] - leftColor[2]) * ratio);
+        if (!isCoverage) {
+            const colors = culori.interpolate([
+                culori.formatHex(resolveJenkinsColor(isAscending ? "--error-color" : "--success-color")),
+                culori.formatHex(resolveJenkinsColor("--yellow")),
+                culori.formatHex(resolveJenkinsColor(isAscending ? "--success-color" : "--error-color"))]);
 
-                return `rgb(${r}, ${g}, ${b})`;
-            }
-
-            function hexToRgb(hex) {
-                const bigint = parseInt(hex.slice(1), 16);
-                return [(bigint >> 16) & 255, (bigint >> 8) & 255, bigint & 255];
-            }
-
-            const lowHexColor = culori.formatHex(lowCssColor);
-            const lowRgbColor = hexToRgb(lowHexColor);
-            const midHexColor = culori.formatHex(midCssColor);
-            const midRgbColor = hexToRgb(midHexColor);
-            const highHexColor = culori.formatHex(highCssColor);
-            const highRgbColor = hexToRgb(highHexColor);
-
-            const middle = min + (max - min) / 2;
-
-            if (x <= min) {
-                return lowHexColor;
-            }
-            else if (x >= max) {
-                return highHexColor;
-            }
-            else if (x === middle) {
-                return midHexColor;
-            }
-            else if (x > min && x < middle) {
-                const ratio = (x - min) / (middle - min);
-                return interpolate(lowRgbColor, midRgbColor, ratio);
-            }
-            else if (x > middle && x < max) {
-                const ratio = (x - middle) / (max - middle);
-                return interpolate(midRgbColor, highRgbColor, ratio);
-            }
-        }
-
-        const metricsToColorize= ["project-cyclomatic-complexity", "project-tests"];
-        if (metricsToColorize.includes(coverageMetric)) {
             function colorizeNodes(leaf) {
                 const {min, max} = findMinMaxValues(coverageTree, leaf);
 
-                computeColorOfNode(coverageTree, leaf, function (value) {
-                    if (isAscending) {
-                    }
-                    else {
+                computeColorOfNode(coverageTree, leaf, function (x) {
+                    const ratio = (x - min) / (max - min);
 
-                    }
-                    const minColor = resolveJenkinsColor("--success-color");
-                    const maxColor = resolveJenkinsColor("--error-color");
-                    return interpolateColor(
-                            isAscending ? maxColor : minColor,
-                            resolveJenkinsColor("--warning-color"),
-                            isAscending ? minColor : maxColor,
-                            min, max, value);
+                    return culori.formatHex(colors(ratio));
                 });
             }
 
@@ -482,8 +435,9 @@ const CoverageChartGenerator = function ($, proxy) { // NOPMD
                 const id = $(this).attr('id');
                 const name = $(this).attr('data-item-name');
                 const isAscending = $(this).attr('data-item-order') === "LARGER_IS_BETTER";
+                const isCoverage = $(this).attr('data-item-coverage') === "true";
                 proxy.getCoverageTree(id, function (t) {
-                    createFilesTreeMap(t.responseObject(), id, name, isAscending);
+                    createFilesTreeMap(t.responseObject(), id, name, isAscending, isCoverage);
                 });
             });
         }
