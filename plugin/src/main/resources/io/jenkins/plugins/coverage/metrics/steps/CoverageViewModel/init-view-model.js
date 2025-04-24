@@ -26,6 +26,18 @@
         };
     }
 
+    function getJenkinsColors(colors) { // NOPMD
+        // TODO: also handle HSL colors and parse them to hex in order to use dark mode colors
+        const colorHexMapping = new Map;
+        colors.forEach(function (jenkinsId) {
+            const colorHex = getComputedStyle(document.body).getPropertyValue(jenkinsId);
+            if (colorHex.match(/^#[a-fA-F0-9]{6}$/) !== null) {
+                colorHexMapping.set(jenkinsId, colorHex);
+            }
+        })
+        return colorHexMapping;
+    }
+
     echartsJenkinsApi.configureChart('coverage-history', fillDialog, saveDialog);
     echartsJenkinsApi.configureChart('metrics-history', fillDialog, saveDialog);
 

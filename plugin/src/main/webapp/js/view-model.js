@@ -1,19 +1,11 @@
 /* global jQuery3, proxy, echartsJenkinsApi, bootstrap5 */
 
-getJenkinsColors = function (colors) { // NOPMD
-    // TODO: also handle HSL colors and parse them to hex in order to use dark mode colors
-    const colorHexMapping = new Map;
-    colors.forEach(function (jenkinsId) {
-        const colorHex = getComputedStyle(document.body).getPropertyValue(jenkinsId);
-        if (colorHex.match(/^#[a-fA-F0-9]{6}$/) !== null) {
-            colorHexMapping.set(jenkinsId, colorHex);
-        }
-    })
-    return colorHexMapping;
-};
-
 const CoverageChartGenerator = function ($, proxy) { // NOPMD
     let selectedTreeNode;
+
+    function resolveJenkinsColor(colorName) {
+        return echartsJenkinsApi.resolveJenkinsColor(colorName);
+    }
 
     function printPercentage(value, minimumFractionDigits = 2) {
         return Number(value / 100.0).toLocaleString(undefined, {style: 'percent', minimumFractionDigits: minimumFractionDigits});
@@ -26,11 +18,12 @@ const CoverageChartGenerator = function ($, proxy) { // NOPMD
             }
         });
     };
+
     function createOverview(overview, id) {
-        const missedColor = echartsJenkinsApi.resolveJenkinsColor("--red");
-        const missedText = echartsJenkinsApi.resolveJenkinsColor("--white");
-        const coveredColor = echartsJenkinsApi.resolveJenkinsColor("--green");
-        const coveredText = echartsJenkinsApi.resolveJenkinsColor("--white");
+        const missedColor = resolveJenkinsColor("--red");
+        const missedText = resolveJenkinsColor("--white");
+        const coveredColor = resolveJenkinsColor("--green");
+        const coveredText = resolveJenkinsColor("--white");
 
         const summaryChartDiv = $('#' + id);
         summaryChartDiv.height(overview.metrics.length * 31 + 150 + 'px');
@@ -176,7 +169,128 @@ const CoverageChartGenerator = function ($, proxy) { // NOPMD
         summaryChart.resize();
     }
 
-    function createFilesTreeMap(coverageTree, id, coverageMetric) {
+    function createFilesTreeMap(coverageTree, id, coverageMetric, isAscending) {
+        function computeColorOfNode(node, leaf, mapColor) {
+            if (node.itemStyle && isLeaf(node, leaf)) {
+                const color = mapColor(getValueElement(node));
+                node.itemStyle.color = color;
+                node.itemStyle.borderColor = color;
+            }
+
+            if (Array.isArray(node.children)) {
+                node.children.forEach(child => computeColorOfNode(child, leaf, mapColor));
+            }
+        }
+
+        function isLeaf(node, leaf) {
+            function hasValue() {
+                return Array.isArray(node.value) && node.value.length > 0;
+            }
+
+            return hasValue()
+                    && (leaf === (Array.isArray(node.children) && node.children.length === 0));
+        }
+
+        function getValueElement(node) {
+            const number = parseInt(node.value[0], 10);
+            if (isNaN(number)) {
+                return 0;
+            }
+            return number;
+        }
+
+        function findMinMaxValues(node, leaf) {
+            let min = Infinity;
+            let max = -Infinity;
+
+            function traverse(node, leaf) {
+                if (isLeaf(node, leaf)) {
+                    const value = getValueElement(node);
+                    if (value < min) {
+                        min = value;
+                    }
+                    if (value > max) {
+                        max = value;
+                    }
+                }
+
+                if (Array.isArray(node.children)) {
+                    node.children.forEach(child => traverse(child, leaf));
+                }
+            }
+
+            traverse(node, leaf);
+
+            return { min, max };
+        }
+
+        function interpolateColor(lowCssColor, midCssColor, highCssColor, min, max, x) {
+            function interpolate(leftColor, rightColor, ratio) {
+                const r = Math.round(leftColor[0] + (rightColor[0] - leftColor[0]) * ratio);
+                const g = Math.round(leftColor[1] + (rightColor[1] - leftColor[1]) * ratio);
+                const b = Math.round(leftColor[2] + (rightColor[2] - leftColor[2]) * ratio);
+
+                return `rgb(${r}, ${g}, ${b})`;
+            }
+
+            function hexToRgb(hex) {
+                const bigint = parseInt(hex.slice(1), 16);
+                return [(bigint >> 16) & 255, (bigint >> 8) & 255, bigint & 255];
+            }
+
+            const lowHexColor = culori.formatHex(lowCssColor);
+            const lowRgbColor = hexToRgb(lowHexColor);
+            const midHexColor = culori.formatHex(midCssColor);
+            const midRgbColor = hexToRgb(midHexColor);
+            const highHexColor = culori.formatHex(highCssColor);
+            const highRgbColor = hexToRgb(highHexColor);
+
+            const middle = min + (max - min) / 2;
+
+            if (x <= min) {
+                return lowHexColor;
+            }
+            else if (x >= max) {
+                return highHexColor;
+            }
+            else if (x === middle) {
+                return midHexColor;
+            }
+            else if (x > min && x < middle) {
+                const ratio = (x - min) / (middle - min);
+                return interpolate(lowRgbColor, midRgbColor, ratio);
+            }
+            else if (x > middle && x < max) {
+                const ratio = (x - middle) / (max - middle);
+                return interpolate(midRgbColor, highRgbColor, ratio);
+            }
+        }
+
+        const metricsToColorize= ["project-cyclomatic-complexity", "project-tests"];
+        if (metricsToColorize.includes(coverageMetric)) {
+            function colorizeNodes(leaf) {
+                const {min, max} = findMinMaxValues(coverageTree, leaf);
+
+                computeColorOfNode(coverageTree, leaf, function (value) {
+                    if (isAscending) {
+                    }
+                    else {
+
+                    }
+                    const minColor = resolveJenkinsColor("--success-color");
+                    const maxColor = resolveJenkinsColor("--error-color");
+                    return interpolateColor(
+                            isAscending ? maxColor : minColor,
+                            resolveJenkinsColor("--warning-color"),
+                            isAscending ? minColor : maxColor,
+                            min, max, value);
+                });
+            }
+
+            colorizeNodes(true);
+            colorizeNodes(false);
+        }
+
         const themedModel = echartsJenkinsApi.resolveJenkinsColors(JSON.stringify(coverageTree));
         function getLevelOption() {
             return [
@@ -367,8 +481,9 @@ const CoverageChartGenerator = function ($, proxy) { // NOPMD
             $('.tree-chart').each(function () {
                 const id = $(this).attr('id');
                 const name = $(this).attr('data-item-name');
+                const isAscending = $(this).attr('data-item-order') === "LARGER_IS_BETTER";
                 proxy.getCoverageTree(id, function (t) {
-                    createFilesTreeMap(t.responseObject(), id, name);
+                    createFilesTreeMap(t.responseObject(), id, name, isAscending);
                 });
             });
         }

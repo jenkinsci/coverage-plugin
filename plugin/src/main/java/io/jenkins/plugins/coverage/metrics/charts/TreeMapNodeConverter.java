@@ -64,13 +64,30 @@ public class TreeMapNodeConverter {
         }
     }
 
-    private Node mergePackages(final Node node) {
+    private Node mergePackages(final Node root) {
+        var node = skipEmptyModules(root);
         if (node instanceof ModuleNode) {
             var copy = (ModuleNode) node.copyTree();
+
             copy.splitPackages();
+
             return copy;
         }
+        return root;
+    }
+
+    private Node skipEmptyModules(final Node root) {
+        var node = root;
+        while (node.hasChildren()
+                && node.getChildren().size() == 1
+                && isTopLevel(node.getChildren().get(0))) {
+            node = node.getChildren().get(0);
+        }
         return node;
+    }
+
+    private boolean isTopLevel(final Node child) {
+        return child.getMetric() == Metric.MODULE || child.getMetric() == Metric.CONTAINER;
     }
 
     private Optional<LabeledTreeMapNode> toTreeMapNode(final Node node, final Metric metric,
