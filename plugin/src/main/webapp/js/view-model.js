@@ -427,9 +427,11 @@ const CoverageChartGenerator = function ($, proxy) { // NOPMD
             renderCoverageTrendChart();
             renderMetricsTrendChart();
 
-            proxy.getOverview(function (t) {
-                createOverview(t.responseObject(), 'coverage-overview');
-            });
+            if (document.querySelector('#coverage-overview')) {
+                proxy.getOverview(function (t) {
+                    createOverview(t.responseObject(), 'coverage-overview');
+                });
+            }
 
             $('.tree-chart').each(function () {
                 const id = $(this).attr('id');
