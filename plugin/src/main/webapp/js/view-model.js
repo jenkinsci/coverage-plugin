@@ -1,4 +1,4 @@
-/* global jQuery3, proxy, echartsJenkinsApi, bootstrap5 */
+/* global jQuery3, proxy, echartsJenkinsApi, bootstrap5, culori */
 
 const CoverageChartGenerator = function ($, proxy) { // NOPMD
     let selectedTreeNode;
@@ -169,29 +169,20 @@ const CoverageChartGenerator = function ($, proxy) { // NOPMD
         summaryChart.resize();
     }
 
-    function createFilesTreeMap(coverageTree, id, coverageMetric, isAscending, isCoverage) {
-        function computeColorOfNode(node, leaf, mapColor) {
-            if (node.itemStyle && isLeaf(node, leaf)) {
-                const color = mapColor(getValueElement(node));
-                node.itemStyle.color = color;
-                node.itemStyle.borderColor = color;
-            }
-
-            if (Array.isArray(node.children)) {
-                node.children.forEach(child => computeColorOfNode(child, leaf, mapColor));
-            }
-        }
-
-        function isLeaf(node, leaf) {
+    function colorizeTreeChartNodes(colors, coverageTree) {
+        function isLeafWithValue(node, leaf) {
             function hasValue() {
                 return Array.isArray(node.value) && node.value.length > 0;
             }
 
-            return hasValue()
-                    && (leaf === (Array.isArray(node.children) && node.children.length === 0));
+            function isLeaf() {
+                return Array.isArray(node.children) && node.children.length === 0;
+            }
+
+            return hasValue() && leaf === isLeaf();
         }
 
-        function getValueElement(node) {
+        function getValueToColorize(node) {
             const number = parseInt(node.value[0], 10);
             if (isNaN(number)) {
                 return 0;
@@ -204,8 +195,8 @@ const CoverageChartGenerator = function ($, proxy) { // NOPMD
             let max = -Infinity;
 
             function traverse(node, leaf) {
-                if (isLeaf(node, leaf)) {
-                    const value = getValueElement(node);
+                if (isLeafWithValue(node, leaf)) {
+                    const value = getValueToColorize(node);
                     if (value < min) {
                         min = value;
                     }
@@ -224,24 +215,39 @@ const CoverageChartGenerator = function ($, proxy) { // NOPMD
             return { min, max };
         }
 
+        function computeColorOfNode(node, leaf, min, max, colors) {
+            if (node.itemStyle && isLeafWithValue(node, leaf)) {
+                const value = getValueToColorize(node);
+                const ratio = (value - min) / (max - min);
+                const color = culori.formatHex(colors(ratio));
+
+                node.itemStyle.color = color;
+                node.itemStyle.borderColor = color;
+            }
+
+            if (Array.isArray(node.children)) {
+                node.children.forEach(child => computeColorOfNode(child, leaf, min, max, colors));
+            }
+        }
+
+        function colorizeNodes(coverageTree, colors, leaf) {
+            const {min, max} = findMinMaxValues(coverageTree, leaf);
+
+            computeColorOfNode(coverageTree, leaf, min, max, colors);
+        }
+
+        colorizeNodes(coverageTree, colors, true);
+        colorizeNodes(coverageTree, colors, false);
+    }
+
+    function createFilesTreeMap(coverageTree, id, coverageMetric, isAscending, isCoverage) {
         if (!isCoverage) {
             const colors = culori.interpolate([
                 culori.formatHex(resolveJenkinsColor(isAscending ? "--error-color" : "--success-color")),
                 culori.formatHex(resolveJenkinsColor("--yellow")),
                 culori.formatHex(resolveJenkinsColor(isAscending ? "--success-color" : "--error-color"))]);
 
-            function colorizeNodes(leaf) {
-                const {min, max} = findMinMaxValues(coverageTree, leaf);
-
-                computeColorOfNode(coverageTree, leaf, function (x) {
-                    const ratio = (x - min) / (max - min);
-
-                    return culori.formatHex(colors(ratio));
-                });
-            }
-
-            colorizeNodes(true);
-            colorizeNodes(false);
+            colorizeTreeChartNodes(colors, coverageTree);
         }
 
         const themedModel = echartsJenkinsApi.resolveJenkinsColors(JSON.stringify(coverageTree));
