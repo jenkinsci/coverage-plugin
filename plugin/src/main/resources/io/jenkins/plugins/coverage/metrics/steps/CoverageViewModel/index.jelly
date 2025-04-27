@@ -11,9 +11,6 @@
     <link rel="stylesheet" href="${resURL}/plugin/font-awesome-api/css/jenkins-style.css"/>
     <link rel="stylesheet" href="${resURL}/plugin/coverage/css/view-model.css"/>
 
-    <script type="text/javascript" src="${resURL}/plugin/echarts-api/js/culori.min.js"/>
-    <script type="text/javascript" src="${resURL}/plugin/coverage/js/view-model.js"/>
-
     <j:set var="formatter" value="${it.formatter}"/>
 
     <j:set var="hasModifiedLinesCoverage" value="${it.hasModifiedLinesCoverage()}"/>
@@ -176,6 +173,7 @@
   </c:chart-custom-setup>
 
   <st:bind var="proxy" value="${it}" />
-  <st:adjunct includes="io.jenkins.plugins.coverage.metrics.steps.CoverageViewModel.init-view-model"/>
+  <script type="text/javascript" src="${resURL}/plugin/echarts-api/js/culori.min.js"/>
+  <st:adjunct includes="io.jenkins.plugins.coverage.metrics.steps.CoverageViewModel.view-model"/>
 
 </j:jelly>
