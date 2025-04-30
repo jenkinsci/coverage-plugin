@@ -348,18 +348,16 @@ public class CoverageViewModel extends DefaultAsyncTableContentProvider implemen
         var renderer = createRenderer(tableId);
 
         var actualId = tableId.replace(INLINE_SUFFIX, StringUtils.EMPTY);
-        switch (actualId) {
-            case ABSOLUTE_COVERAGE_TABLE_ID:
-                return new CoverageTableModel(tableId, getNode(), renderer, colorProvider);
-            case MODIFIED_LINES_COVERAGE_TABLE_ID:
-                return new ModifiedLinesCoverageTableModel(tableId, getNode(), modifiedLinesCoverageTreeRoot, renderer,
-                        colorProvider);
-            case INDIRECT_COVERAGE_TABLE_ID:
-                return new IndirectCoverageChangesTable(tableId, getNode(), indirectCoverageChangesTreeRoot, renderer,
-                        colorProvider);
-            default:
-                throw new NoSuchElementException("No such table with id " + actualId);
-        }
+        return switch (actualId) {
+            case ABSOLUTE_COVERAGE_TABLE_ID -> new CoverageTableModel(tableId, getNode(), renderer, colorProvider);
+            case MODIFIED_LINES_COVERAGE_TABLE_ID ->
+                    new ModifiedLinesCoverageTableModel(tableId, getNode(), modifiedLinesCoverageTreeRoot, renderer,
+                            colorProvider);
+            case INDIRECT_COVERAGE_TABLE_ID ->
+                    new IndirectCoverageChangesTable(tableId, getNode(), indirectCoverageChangesTreeRoot, renderer,
+                            colorProvider);
+            default -> throw new NoSuchElementException("No such table with id " + actualId);
+        };
     }
 
     private RowRenderer createRenderer(final String tableId) {

@@ -11,8 +11,6 @@
     <link rel="stylesheet" href="${resURL}/plugin/font-awesome-api/css/jenkins-style.css"/>
     <link rel="stylesheet" href="${resURL}/plugin/coverage/css/view-model.css"/>
 
-    <script type="text/javascript" src="${resURL}/plugin/coverage/js/view-model.js"/>
-
     <j:set var="formatter" value="${it.formatter}"/>
 
     <j:set var="hasModifiedLinesCoverage" value="${it.hasModifiedLinesCoverage()}"/>
@@ -87,7 +85,11 @@
       <j:forEach var="metric" items="${it.treeMetrics}">
         <div role="tabpanel" id="${metric.toTagName()}" class="tab-pane fade" aria-labelledby="${metric.toTagName()}-tab">
           <bs:card title="${formatter.getDisplayName(metric)}" fontAwesomeIcon="folder-tree" class="flex-fill" bodyClass="d-flex flex-column">
-            <div id="project-${metric.toTagName()}" class="graph-cursor-pointer tree-chart" data-item-name="project-${metric.toTagName()}"/>
+            <div id="project-${metric.toTagName()}" class="graph-cursor-pointer tree-chart"
+                 data-item-name="project-${metric.toTagName()}"
+                 data-item-order="${metric.getTendency()}"
+                 data-item-coverage="${metric.coverage}"
+            />
           </bs:card>
         </div>
       </j:forEach>
@@ -171,6 +173,7 @@
   </c:chart-custom-setup>
 
   <st:bind var="proxy" value="${it}" />
-  <st:adjunct includes="io.jenkins.plugins.coverage.metrics.steps.CoverageViewModel.init-view-model"/>
+  <script type="text/javascript" src="${resURL}/plugin/echarts-api/js/culori.min.js"/>
+  <st:adjunct includes="io.jenkins.plugins.coverage.metrics.steps.CoverageViewModel.view-model"/>
 
 </j:jelly>
