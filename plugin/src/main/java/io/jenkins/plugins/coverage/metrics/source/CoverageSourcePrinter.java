@@ -7,6 +7,7 @@ import edu.hm.hafner.coverage.FileNode;
 import java.io.Serial;
 import java.io.Serializable;
 import java.util.Arrays;
+import java.util.Set;
 
 import io.jenkins.plugins.prism.Sanitizer;
 
@@ -21,6 +22,7 @@ class CoverageSourcePrinter implements Serializable {
     private static final long serialVersionUID = -6044649044983631852L;
 
     static final Sanitizer SANITIZER = new Sanitizer();
+    static final String MODIFIED = "modified";
     static final String UNDEFINED = "noCover";
     static final String NO_COVERAGE = "coverNone";
     static final String FULL_COVERAGE = "coverFull";
@@ -33,18 +35,21 @@ class CoverageSourcePrinter implements Serializable {
 
     private final int[] missedPerLine;
 
+    private final Set<Integer> modifiedLines;
+
     CoverageSourcePrinter(final FileNode file) {
         path = file.getRelativePath();
 
         linesToPaint = file.getLinesWithCoverage().stream().mapToInt(i -> i).toArray();
         coveredPerLine = file.getCoveredCounters();
         missedPerLine = file.getMissedCounters();
+        modifiedLines = file.getModifiedLines();
     }
 
     public String renderLine(final int line, final String sourceCode) {
         var isPainted = isPainted(line);
         return tr()
-                .withClass(isPainted ? getColorClass(line) : UNDEFINED)
+                .withClasses(isPainted ? getColorClass(line) : UNDEFINED, getModifiedClass(line))
                 .condAttr(isPainted, "data-html-tooltip", isPainted ? getTooltip(line) : StringUtils.EMPTY)
                 .with(
                         td().withClass("line")
@@ -65,6 +70,10 @@ class CoverageSourcePrinter implements Serializable {
 
     final int size() {
         return linesToPaint.length;
+    }
+
+    public String getModifiedClass(final int line) {
+        return isModified(line) ? MODIFIED : StringUtils.EMPTY;
     }
 
     public String getColorClass(final int line) {
@@ -114,6 +123,10 @@ class CoverageSourcePrinter implements Serializable {
 
     public boolean isPainted(final int line) {
         return findIndexOfLine(line) >= 0;
+    }
+
+    boolean isModified(final int line) {
+        return modifiedLines.contains(line);
     }
 
     int findIndexOfLine(final int line) {

@@ -55,7 +55,7 @@ public class VectorCastSourcePrinter extends CoverageSourcePrinter {
      */      
     private String getTr(final int line, final String sourceCode, final boolean isPainted, final String third, final String fouth) {
         var trData = tr()
-                .withClass(isPainted ? getColorClass(line) : UNDEFINED)
+                .withClasses(isPainted ? getColorClass(line) : UNDEFINED, getModifiedClass(line))
                 .condAttr(isPainted, "data-html-tooltip", isPainted ? getTooltip(line) : StringUtils.EMPTY);
 
         trData.with(

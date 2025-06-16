@@ -45,6 +45,43 @@ class CoverageSourcePrinterTest extends AbstractCoverageTest {
     }
 
     @Test
+    void shouldRenderLinesWithModifiedLines() throws Exception {
+        var tree = readResult("../steps/jacoco-codingstyle.xml", new JacocoParser());
+
+        var node = tree.findFile("TreeStringBuilder.java").get();
+        node.addModifiedLines(0, 113, 61, 18, 19);
+        var file = new CoverageSourcePrinter(node);
+
+        var line0 = file.renderLine(0,
+                "                    for (int line = 0; line < lines.size(); line++) {\n");
+        XmlAssert.assertThat(line0)
+                .nodesByXPath("/tr").exist().hasSize(1)
+                .singleElement()
+                .hasAttribute(CLASS, "noCover modified");
+
+        var line113 = file.renderLine(113,
+                "                    for (int line = 0; line < lines.size(); line++) {\n");
+        XmlAssert.assertThat(line113)
+                .nodesByXPath("/tr").exist().hasSize(1)
+                .singleElement()
+                .hasAttribute(CLASS, "coverPart modified");
+
+        var line61 = file.renderLine(61,
+                "                    for (int line = 0; line < lines.size(); line++) {\n");
+        XmlAssert.assertThat(line61)
+                .nodesByXPath("/tr").exist().hasSize(1)
+                .singleElement()
+                .hasAttribute(CLASS, "coverNone modified");
+
+        var line19 = file.renderLine(19,
+                "                    for (int line = 0; line < lines.size(); line++) {\n");
+        XmlAssert.assertThat(line19)
+                .nodesByXPath("/tr").exist().hasSize(1)
+                .singleElement()
+                .hasAttribute(CLASS, "coverFull modified");
+    }
+
+    @Test
     void shouldRenderNoBrnachCoverage() {
         var tree = readResult("../steps/jacoco-analysis-model.xml", new JacocoParser());
 
