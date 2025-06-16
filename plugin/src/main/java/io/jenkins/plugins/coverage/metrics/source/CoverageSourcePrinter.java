@@ -72,7 +72,7 @@ class CoverageSourcePrinter implements Serializable {
         return linesToPaint.length;
     }
 
-    public String getModifiedClass(final int line) {
+    String getModifiedClass(final int line) {
         return isModified(line) ? MODIFIED : StringUtils.EMPTY;
     }
 
@@ -125,7 +125,7 @@ class CoverageSourcePrinter implements Serializable {
         return findIndexOfLine(line) >= 0;
     }
 
-    boolean isModified(final int line) {
+    private boolean isModified(final int line) {
         return modifiedLines.contains(line);
     }
 
