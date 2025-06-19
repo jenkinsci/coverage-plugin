@@ -4,7 +4,6 @@
 [![Jenkins Plugin Installs](https://img.shields.io/jenkins/plugin/i/coverage.svg?color=red)](https://plugins.jenkins.io/coverage)
 [![Jenkins](https://ci.jenkins.io/job/Plugins/job/coverage-plugin/job/main/badge/icon?subject=Jenkins%20CI)](https://ci.jenkins.io/job/Plugins/job/coverage-plugin/job/main/)
 [![GitHub Actions](https://github.com/jenkinsci/coverage-plugin/workflows/GitHub%20CI/badge.svg)](https://github.com/jenkinsci/coverage-plugin/actions)
-[![Codecov](https://codecov.io/gh/jenkinsci/coverage-plugin/branch/main/graph/badge.svg)](https://codecov.io/gh/jenkinsci/coverage-plugin/branch/main)
 [![CodeQL](https://github.com/jenkinsci/coverage-plugin/workflows/CodeQL/badge.svg)](https://github.com/jenkinsci/coverage-plugin/actions/workflows/codeql.yml)
 
 The Jenkins Coverage Plug-in collects reports of code coverage or mutation coverage tools. 
