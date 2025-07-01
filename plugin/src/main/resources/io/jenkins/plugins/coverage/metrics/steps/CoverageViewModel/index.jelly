@@ -112,6 +112,10 @@
 
     </div>
 
+    <script type="text/javascript" src="${resURL}/plugin/echarts-api/js/culori.min.js"/>
+    <st:bind var="proxy" value="${it}" />
+    <st:adjunct includes="io.jenkins.plugins.coverage.metrics.steps.CoverageViewModel.view-model"/>
+
   </bs:page>
 
   <c:chart-custom-setup id="coverage-history">
@@ -171,9 +175,5 @@
       </label>
     </div>
   </c:chart-custom-setup>
-
-  <st:bind var="proxy" value="${it}" />
-  <script type="text/javascript" src="${resURL}/plugin/echarts-api/js/culori.min.js"/>
-  <st:adjunct includes="io.jenkins.plugins.coverage.metrics.steps.CoverageViewModel.view-model"/>
 
 </j:jelly>
