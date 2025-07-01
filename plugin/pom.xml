@@ -53,7 +53,7 @@
 
     <!-- Test Library Dependencies Versions -->
     <xmlunit.version>2.10.3</xmlunit.version>
-    <testcontainers.version>1.21.2</testcontainers.version>
+    <testcontainers.version>1.21.3</testcontainers.version>
   </properties>
 
   <dependencies>
