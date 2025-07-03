@@ -1,4 +1,4 @@
-package io.jenkins.plugins.coverage.metrics.steps; // NOPMD
+package io.jenkins.plugins.coverage.metrics.steps;
 
 import org.apache.commons.lang3.StringUtils;
 import org.junit.jupiter.api.Test;
@@ -54,7 +54,7 @@ class CoverageXmlStreamITest extends SerializableTest<Node> {
     protected Node createSerializable() {
         var fileName = "jacoco-codingstyle.xml";
         return new JacocoParser().parse(new InputStreamReader(asInputStream(fileName),
-                        StandardCharsets.UTF_8), fileName, new FilteredLog("Errors"));
+                StandardCharsets.UTF_8), fileName, new FilteredLog("Errors"));
     }
 
     @Test
@@ -297,6 +297,6 @@ class CoverageXmlStreamITest extends SerializableTest<Node> {
                 Value.valueOf("BRANCH: 2/2"),
                 Value.valueOf("MODULE: 1/1"),
                 Value.valueOf("LOC: 123")
-                );
+        );
     }
-} // NOPMD
+}

@@ -25,7 +25,6 @@ import io.jenkins.plugins.coverage.metrics.color.ColorProviderFactory;
  *
  * @author Florian Orendi
  */
-@SuppressWarnings({"PMD.GodClass", "PMD.CyclomaticComplexity"})
 public final class ElementFormatter {
     private static final Pattern PERCENTAGE = Pattern.compile("\\d+(\\.\\d+)?%");
 
@@ -332,7 +331,6 @@ public final class ElementFormatter {
      *
      * @return the display name
      */
-    @SuppressWarnings("PMD.CyclomaticComplexity")
     public String getDisplayName(final Metric metric) {
         return metric.getDisplayName();
     }
@@ -370,7 +368,6 @@ public final class ElementFormatter {
      *
      * @return the display name
      */
-    @SuppressWarnings("PMD.CyclomaticComplexity")
     public String getLabel(final Metric metric) {
         return metric.getLabel();
     }
