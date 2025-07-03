@@ -119,7 +119,6 @@ class CoverageXmlStream extends AbstractXmlStream<Node> {
      * values back from the stream, the string representation will be converted to an actual instance again.
      */
     static final class FractionConverter implements Converter {
-        @SuppressWarnings("PMD.NullAssignment")
         @Override
         public void marshal(final Object source, final HierarchicalStreamWriter writer,
                 final MarshallingContext context) {
@@ -175,7 +174,6 @@ class CoverageXmlStream extends AbstractXmlStream<Node> {
             this.unmarshaller = unmarshaller;
         }
 
-        @SuppressWarnings("PMD.NullAssignment")
         @Override
         public void marshal(final Object source, final HierarchicalStreamWriter writer,
                 final MarshallingContext context) {
@@ -204,7 +202,7 @@ class CoverageXmlStream extends AbstractXmlStream<Node> {
      */
     abstract static class TreeMapConverter<K extends Comparable<K>, V> implements Converter {
         @Override
-        @SuppressWarnings({"PMD.NullAssignment", "unchecked"})
+        @SuppressWarnings("unchecked")
         public void marshal(final Object source, final HierarchicalStreamWriter writer,
                 final MarshallingContext context) {
             writer.setValue(source instanceof NavigableMap ? marshal((NavigableMap<K, V>) source) : null);
@@ -277,7 +275,7 @@ class CoverageXmlStream extends AbstractXmlStream<Node> {
      * again.
      */
     static final class IntegerSetConverter implements Converter {
-        @SuppressWarnings({"PMD.NullAssignment", "unchecked"})
+        @SuppressWarnings("unchecked")
         @Override
         public void marshal(final Object source, final HierarchicalStreamWriter writer,
                 final MarshallingContext context) {

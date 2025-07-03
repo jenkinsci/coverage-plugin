@@ -64,7 +64,7 @@ import io.jenkins.plugins.util.QualityGateResult;
  * @author Ullrich Hafner
  * @author Florian Orendi
  */
-@SuppressWarnings({"PMD.GodClass", "PMD.ExcessivePublicCount", "PMD.CouplingBetweenObjects", "checkstyle:ClassDataAbstractionCoupling", "checkstyle:ClassFanOutComplexity"})
+@SuppressWarnings({"PMD.GodClass", "PMD.CouplingBetweenObjects", "checkstyle:ClassDataAbstractionCoupling", "checkstyle:ClassFanOutComplexity"})
 public class CoverageViewModel extends DefaultAsyncTableContentProvider implements ModelObject {
     private static final TreeMapNodeConverter TREE_MAP_NODE_CONVERTER = new TreeMapNodeConverter();
     private static final BuildResultNavigator NAVIGATOR = new BuildResultNavigator();
@@ -81,7 +81,6 @@ public class CoverageViewModel extends DefaultAsyncTableContentProvider implemen
     private static final Set<Metric> TREE_METRICS = Set.of(
             Metric.LINE, Metric.BRANCH, Metric.MUTATION, Metric.TEST_STRENGTH, Metric.CYCLOMATIC_COMPLEXITY, Metric.TESTS,
             Metric.MCDC_PAIR, Metric.FUNCTION_CALL, Metric.COGNITIVE_COMPLEXITY, Metric.NCSS, Metric.NPATH_COMPLEXITY);
-    private static final String UNDEFINED = "-";
     private final Run<?, ?> owner;
     private final String displayName;
     private final CoverageStatistics statistics;
@@ -324,7 +323,6 @@ public class CoverageViewModel extends DefaultAsyncTableContentProvider implemen
      * @return the coverage metric
      * @throws IllegalArgumentException if the coverage metric is unknown
      */
-    @SuppressWarnings({"PMD.CyclomaticComplexity", "PMD.NPathComplexity"})
     private Metric getCoverageMetricFromText(final String text) {
         for (Metric metric: Metric.values()) {
             if (text.contains(metric.toTagName())) {
