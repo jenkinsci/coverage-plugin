@@ -8,6 +8,7 @@ import edu.umd.cs.findbugs.annotations.NonNull;
 import java.util.List;
 import java.util.Optional;
 
+import io.jenkins.plugins.coverage.metrics.CoverageAppearanceGlobalConfiguration;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.DataBoundSetter;
 import org.kohsuke.stapler.verb.POST;
@@ -258,6 +259,11 @@ public class CoverageMetricColumn extends ListViewColumn {
         @Override
         public String getDisplayName() {
             return Messages.Coverage_Column();
+        }
+
+        @Override
+        public boolean shownByDefault() {
+            return CoverageAppearanceGlobalConfiguration.get().isEnableColumnByDefault();
         }
 
         /**
