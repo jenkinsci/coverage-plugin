@@ -16,8 +16,7 @@ import org.kohsuke.stapler.DataBoundSetter;
 @Extension
 @Symbol("coverage")
 public class CoverageAppearanceGlobalConfiguration extends GlobalConfiguration {
-
-    private boolean enableColumnByDefault;
+    private boolean enableColumnByDefault = true;
 
     /**
      * Get global configuration instance.
@@ -29,6 +28,9 @@ public class CoverageAppearanceGlobalConfiguration extends GlobalConfiguration {
         return ExtensionList.lookupSingleton(CoverageAppearanceGlobalConfiguration.class);
     }
 
+    /**
+     * Create global coverage appearance configuration.
+     */
     @DataBoundConstructor
     public CoverageAppearanceGlobalConfiguration() {
         load();
