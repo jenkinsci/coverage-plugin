@@ -198,13 +198,13 @@ class CoveragePluginITest extends AbstractCoverageITest {
         assertThat(r.getLoc()).isEqualTo(28);
         assertThat(r.getNcss()).isEqualTo(0);
         assertThatCell(r.getLineCoverage()).contains("title=\"Covered: 26 - Missed: 2\">92.86%");
-        assertThatCell(r.getLineCoverageDelta()).contains("n/a");
+        assertThatCell(r.getLineCoverageDelta()).contains("N/A");
         assertThatCell(r.getBranchCoverage()).contains("title=\"Covered: 4 - Missed: 0\">100.00%");
-        assertThatCell(r.getBranchCoverageDelta()).contains("n/a");
-        assertThatCell(r.getMutationCoverage()).contains("n/a");
-        assertThatCell(r.getMutationCoverageDelta()).contains("n/a");
-        assertThatCell(r.getTestStrength()).contains("n/a");
-        assertThatCell(r.getTestStrengthDelta()).contains("n/a");
+        assertThatCell(r.getBranchCoverageDelta()).contains("N/A");
+        assertThatCell(r.getMutationCoverage()).contains("N/A");
+        assertThatCell(r.getMutationCoverageDelta()).contains("N/A");
+        assertThatCell(r.getTestStrength()).contains("N/A");
+        assertThatCell(r.getTestStrengthDelta()).contains("N/A");
     }
 
     @Test
@@ -509,13 +509,13 @@ class CoveragePluginITest extends AbstractCoverageITest {
         assertThat(r.getLoc()).isEqualTo(87);
         assertThat(r.getCognitiveComplexity()).isEqualTo(0);
         assertThatCell(r.getLineCoverage()).contains("title=\"Covered: 85 - Missed: 2\">97.70%");
-        assertThatCell(r.getLineCoverageDelta()).contains("n/a");
+        assertThatCell(r.getLineCoverageDelta()).contains("N/A");
         assertThatCell(r.getMutationCoverage()).contains("Killed: 95 - Survived: 2\">97.94%");
-        assertThatCell(r.getMutationCoverageDelta()).contains("n/a");
+        assertThatCell(r.getMutationCoverageDelta()).contains("N/A");
         assertThatCell(r.getTestStrength()).contains("Killed: 95 - Survived: 0\">100.00%");
-        assertThatCell(r.getTestStrengthDelta()).contains("n/a");
-        assertThatCell(r.getBranchCoverage()).contains("n/a");
-        assertThatCell(r.getBranchCoverageDelta()).contains("n/a");
+        assertThatCell(r.getTestStrengthDelta()).contains("N/A");
+        assertThatCell(r.getBranchCoverage()).contains("N/A");
+        assertThatCell(r.getBranchCoverageDelta()).contains("N/A");
     }
 
     private AbstractStringAssert<?> assertThatCell(final DetailedCell<?> cell) {
@@ -705,17 +705,17 @@ class CoveragePluginITest extends AbstractCoverageITest {
         assertThat(r.getNcss()).isEqualTo(0);
         assertThatCell(r.getLineCoverage())
                 .contains("title=\"Covered: 17 - Missed: 0\">100.00%");
-        assertThatCell(r.getLineCoverageDelta()).contains("n/a");
+        assertThatCell(r.getLineCoverageDelta()).contains("N/A");
         assertThatCell(r.getBranchCoverage())
                 .contains("title=\"Covered: 9 - Missed: 2\">81.82%");
-        assertThatCell(r.getBranchCoverageDelta()).contains("n/a");
+        assertThatCell(r.getBranchCoverageDelta()).contains("N/A");
         assertThatCell(r.getMethodCoverage())
                 .contains("title=\"Covered: 3 - Missed: 0\">100.00%");
         assertThatCell(r.getMcdcPairCoverage())
                 .contains("title=\"Covered: 1 - Missed: 1\">50.00%");
         assertThatCell(r.getFunctionCallCoverage())
                 .contains("title=\"Covered: 4 - Missed: 0\">100.00%");
-        assertThatCell(r.getTestStrengthDelta()).contains("n/a");
+        assertThatCell(r.getTestStrengthDelta()).contains("N/A");
     }
 
     @Test
