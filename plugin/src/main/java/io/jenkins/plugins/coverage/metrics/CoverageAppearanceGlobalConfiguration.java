@@ -1,6 +1,7 @@
 package io.jenkins.plugins.coverage.metrics;
 
 import edu.umd.cs.findbugs.annotations.NonNull;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import hudson.Extension;
 import hudson.ExtensionList;
 import jenkins.appearance.AppearanceCategory;
@@ -31,8 +32,11 @@ public class CoverageAppearanceGlobalConfiguration extends GlobalConfiguration {
     /**
      * Create global coverage appearance configuration.
      */
+    @SuppressWarnings("PMD.ConstructorCallsOverridableMethod")
+    @SuppressFBWarnings(value = "MC_OVERRIDABLE_METHOD_CALL_IN_CONSTRUCTOR", justification = "GlobalConfiguration instructs subclasses to call load()")
     @DataBoundConstructor
     public CoverageAppearanceGlobalConfiguration() {
+        super();
         load();
     }
 
@@ -54,8 +58,9 @@ public class CoverageAppearanceGlobalConfiguration extends GlobalConfiguration {
      * Enable/disable metric column display by default.
      * @param enableColumnByDefault {@code true} to enable metric column by default.
      */
+    @SuppressWarnings("unused") // Called by jelly view
     @DataBoundSetter
-    public void setEnableColumnByDefault(boolean enableColumnByDefault) {
+    public void setEnableColumnByDefault(final boolean enableColumnByDefault) {
         this.enableColumnByDefault = enableColumnByDefault;
         save();
     }
