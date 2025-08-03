@@ -1,5 +1,6 @@
 <?jelly escape-by-default='true'?>
-<j:jelly xmlns:j="jelly:core" xmlns:bs="/bootstrap5" xmlns:dt="/data-tables" xmlns:st="jelly:stapler" xmlns:fa="/font-awesome" xmlns:f="/lib/form">
+<j:jelly xmlns:j="jelly:core" xmlns:dt="/data-tables" xmlns:st="jelly:stapler" xmlns:fa="/font-awesome"
+         xmlns:f="/lib/form" xmlns:l="/lib/layout">
 
   <st:documentation>
     Provides a table to render the file coverage nodes without the source code.
@@ -23,58 +24,65 @@
     <j:choose>
       <j:when test="${it.hasSourceCode()}">
         <div class="col-12 d-xxl-none">
-          <bs:card title="${title}" symbol="${symbol}" class="flex-fill h-100" >
-            <dt:table model="${it.getTableModel(id + '-table')}">
-              <j:if test="${showChangedToggle}">
-                <f:toggleSwitch id="changed-${id + '-table'}" title="${%changed.files}" />
-              </j:if>
-            </dt:table>
-          </bs:card>
+          <l:card title="${title}" >
+            <div class="flex-fill h-100">
+              <dt:table model="${it.getTableModel(id + '-table')}">
+                <j:if test="${showChangedToggle}">
+                  <f:toggleSwitch id="changed-${id + '-table'}" title="${%changed.files}" />
+                </j:if>
+              </dt:table>
+            </div>
+          </l:card>
         </div>
         <div class="col-xxl-6 d-none d-xxl-block">
-          <bs:card title="${title}" symbol="${symbol}" class="flex-fill h-100">
-            <dt:table model="${it.getTableModel(id + '-table-inline')}">
-              <j:if test="${showChangedToggle}">
-                <f:toggleSwitch id="changed-${id + '-table-inline'}" title="${%changed.files}" />
-              </j:if>
-            </dt:table>
-          </bs:card>
+          <l:card title="${title}">
+            <div class="flex-fill h-100">
+              <dt:table model="${it.getTableModel(id + '-table-inline')}">
+                <j:if test="${showChangedToggle}">
+                  <f:toggleSwitch id="changed-${id + '-table-inline'}" title="${%changed.files}" />
+                </j:if>
+              </dt:table>
+            </div>
+          </l:card>
         </div>
         <div class="col-xxl-6 d-none d-xxl-block">
-          <bs:card title="${%Source code view}" symbol="symbol-regular/file-code plugin-font-awesome-api"
-                   class="flex-fill h-100">
-            <div id="${id}-source-file-content">
-              <table id="${id}-source-file" class="source">
-              </table>
+          <l:card title="${%Source code view}">
+            <div class="flex-fill h-100">
+              <div id="${id}-source-file-content">
+                <table id="${id}-source-file" class="source">
+                </table>
+              </div>
+              <div id="${id}-no-selection">
+                <div class="text-center">
+                  <fa:svg-icon name="hand-point-left" class="no-selection-banner"/>
+                </div>
+                <div class="text-center">
+                  <h5 class="card-title">${%select.row}</h5>
+                </div>
+              </div>
+              <div id="${id}-no-source">
+                <div class="text-center">
+                  <fa:svg-icon name="ban" class="no-selection-banner"/>
+                </div>
+                <div class="text-center">
+                  <h5 class="card-title">${%no.sourcecode}</h5>
+                </div>
+              </div>
             </div>
-            <div id="${id}-no-selection">
-              <div class="text-center">
-                <fa:svg-icon name="hand-point-left" class="no-selection-banner"/>
-              </div>
-              <div class="text-center">
-                <h5 class="card-title">${%select.row}</h5>
-              </div>
-            </div>
-            <div id="${id}-no-source">
-              <div class="text-center">
-                <fa:svg-icon name="ban" class="no-selection-banner"/>
-              </div>
-              <div class="text-center">
-                <h5 class="card-title">${%no.sourcecode}</h5>
-              </div>
-            </div>
-          </bs:card>
+          </l:card>
         </div>
       </j:when>
       <j:otherwise>
         <div class="col-12">
-          <bs:card title="${title}" symbol="${symbol}" class="flex-fill h-100">
-            <dt:table model="${it.getTableModel(id + '-table')}">
-              <j:if test="${showChangedToggle}">
-                <f:toggleSwitch id="changed-${id + '-table'}" title="${%changed.files}"/>
-              </j:if>
-            </dt:table>
-          </bs:card>
+          <l:card title="${title}">
+            <div class="flex-fill h-100">
+              <dt:table model="${it.getTableModel(id + '-table')}">
+                <j:if test="${showChangedToggle}">
+                  <f:toggleSwitch id="changed-${id + '-table'}" title="${%changed.files}"/>
+                </j:if>
+              </dt:table>
+            </div>
+          </l:card>
         </div>
 
       </j:otherwise>
