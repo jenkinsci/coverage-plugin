@@ -3,9 +3,9 @@
 ||Module Coverage|Package Coverage|File Coverage|Class Coverage|Method Coverage|Line Coverage|Branch Coverage|Modified Condition and Decision Coverage|Function Call Coverage
 |:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:
 :feet: **Overall project**|100.00% (1/1)|100.00% (10/10)|75.00% (6/8)|75.00% (6/8)|70.00% (21/30)|79.93% (235/294)|66.18% (180/272)|40.68% (24/59)|78.48% (62/79)
-:chart_with_upwards_trend: **Overall project (difference to reference job)**|±0%|-50.00% :arrow_down:|n/a|n/a|n/a|+50.00% :arrow_up:|n/a|n/a|n/a
-:feet: **Modified files**|n/a|n/a|n/a|n/a|n/a|50.00% (1/2)|n/a|n/a|n/a
-:chart_with_upwards_trend: **Modified files (difference to reference job)**|n/a|n/a|n/a|n/a|n/a|+50.00% :arrow_up:|n/a|n/a|n/a
-:feet: **Modified code lines**|n/a|n/a|n/a|n/a|n/a|50.00% (1/2)|n/a|n/a|n/a
-:chart_with_upwards_trend: **Modified code lines (difference to modified files)**|n/a|n/a|n/a|n/a|n/a|+50.00% :arrow_up:|n/a|n/a|n/a
-:feet: **Indirect changes**|n/a|n/a|n/a|n/a|n/a|50.00% (1/2)|n/a|n/a|n/a
+:chart_with_upwards_trend: **Overall project (difference to reference job)**|±0%|-50.00% :arrow_down:|N/A|N/A|N/A|+50.00% :arrow_up:|N/A|N/A|N/A
+:feet: **Modified files**|N/A|N/A|N/A|N/A|N/A|50.00% (1/2)|N/A|N/A|N/A
+:chart_with_upwards_trend: **Modified files (difference to reference job)**|N/A|N/A|N/A|N/A|N/A|+50.00% :arrow_up:|N/A|N/A|N/A
+:feet: **Modified code lines**|N/A|N/A|N/A|N/A|N/A|50.00% (1/2)|N/A|N/A|N/A
+:chart_with_upwards_trend: **Modified code lines (difference to modified files)**|N/A|N/A|N/A|N/A|N/A|+50.00% :arrow_up:|N/A|N/A|N/A
+:feet: **Indirect changes**|N/A|N/A|N/A|N/A|N/A|50.00% (1/2)|N/A|N/A|N/A

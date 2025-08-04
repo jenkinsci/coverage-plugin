@@ -35,9 +35,9 @@ class CoverageViewModelTest extends AbstractCoverageTest {
         var model = createModelFromCodingStyleReport();
 
         String hash = String.valueOf("PathUtil.java".hashCode());
-        assertThat(model.getSourceCode(hash, ABSOLUTE_COVERAGE_TABLE_ID)).isEqualTo("n/a");
-        assertThat(model.getSourceCode(hash, MODIFIED_LINES_COVERAGE_TABLE_ID)).isEqualTo("n/a");
-        assertThat(model.getSourceCode(hash, INDIRECT_COVERAGE_TABLE_ID)).isEqualTo("n/a");
+        assertThat(model.getSourceCode(hash, ABSOLUTE_COVERAGE_TABLE_ID)).isEqualTo("N/A");
+        assertThat(model.getSourceCode(hash, MODIFIED_LINES_COVERAGE_TABLE_ID)).isEqualTo("N/A");
+        assertThat(model.getSourceCode(hash, INDIRECT_COVERAGE_TABLE_ID)).isEqualTo("N/A");
     }
 
     @Test
