@@ -1,6 +1,7 @@
 node
 node_modules
 target
+work
 *.iml
 .classpath
 .project
