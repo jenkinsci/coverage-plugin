@@ -1,9 +1,9 @@
 <?jelly escape-by-default='true'?>
-<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:bs="/bootstrap5" xmlns:cov="/coverage" xmlns:c="/charts">
+<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:bs="/bootstrap5" xmlns:cov="/coverage" xmlns:c="/charts" xmlns:l="/lib/layout">
 
   <st:header name="Content-Type" value="text/html;charset=UTF-8"/>
 
-  <bs:page it="${it}" class="fluid-container d-flex flex-column">
+  <bs:page it="${it}">
 
     <st:adjunct includes="io.jenkins.plugins.echarts"/>
     <st:adjunct includes="io.jenkins.plugins.data-tables-select"/>
@@ -57,16 +57,16 @@
 
       <div role="tabpanel" id="overview" class="tab-pane fade" aria-labelledby="overview-tab" >
         <j:if test="${hasCoverage}">
-          <div class="row py-3">
+          <div class="row">
             <div class="col-5">
-              <bs:card title="${%Total coverage overview}" fontAwesomeIcon="chart-bar">
+              <l:card title="${%Total coverage overview}">
                 <div id="coverage-overview" class="graph-cursor-pointer overview-chart h-100"/>
-              </bs:card>
+              </l:card>
             </div>
             <div class="col-7">
-              <bs:card title="${%Coverage trend}" fontAwesomeIcon="chart-line">
+              <l:card title="${%Coverage trend}">
                 <div id="coverage-trend" class="graph-cursor-pointer overview-chart h-100"/>
-              </bs:card>
+              </l:card>
             </div>
           </div>
         </j:if>
@@ -74,23 +74,23 @@
       <j:if test="${hasMetrics}">
         <div role="tabpanel" id="metrics" class="tab-pane fade" aria-labelledby="metrics-tab" >
           <div class="row">
-            <div class="col-12 py-3">
-              <bs:card title="${%Metrics trend}" fontAwesomeIcon="chart-line">
+            <div class="col-12">
+              <l:card title="${%Metrics trend}">
                 <div id="metrics-trend" class="graph-cursor-pointer overview-chart h-100"/>
-              </bs:card>
+              </l:card>
             </div>
           </div>
         </div>
       </j:if>
       <j:forEach var="metric" items="${it.treeMetrics}">
         <div role="tabpanel" id="${metric.toTagName()}" class="tab-pane fade" aria-labelledby="${metric.toTagName()}-tab">
-          <bs:card title="${formatter.getDisplayName(metric)}" fontAwesomeIcon="folder-tree" class="flex-fill" bodyClass="d-flex flex-column">
+          <l:card title="${formatter.getDisplayName(metric)}">
             <div id="project-${metric.toTagName()}" class="graph-cursor-pointer tree-chart"
                  data-item-name="project-${metric.toTagName()}"
                  data-item-order="${metric.getTendency()}"
                  data-item-coverage="${metric.coverage}"
             />
-          </bs:card>
+          </l:card>
         </div>
       </j:forEach>
 

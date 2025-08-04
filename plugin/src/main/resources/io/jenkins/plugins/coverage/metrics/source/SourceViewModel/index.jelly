@@ -1,5 +1,5 @@
 <?jelly escape-by-default='true'?>
-<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:bs="/bootstrap5">
+<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:bs="/bootstrap5" xmlns:l="/lib/layout">
 
   <st:header name="Content-Type" value="text/html;charset=UTF-8"/>
 
@@ -7,11 +7,11 @@
 
     <link rel="stylesheet" href="${resURL}/plugin/coverage/css/view-model.css"/>
 
-    <div class="row py-3 flex-nowrap">
+    <div class="row flex-nowrap">
 
       <div class="col">
-        <div id="file-table">
-          <bs:card title="${%Source code view}" fontAwesomeIcon="file-code" fontAwesomeStyle="regular" class="flex-fill">
+        <div id="file-table" class="flex-fill">
+          <l:card title="${%Source code view}">
             <j:choose>
               <j:when test="${it.sourceFileAvailable}">
                 <div style="overflow-x:scroll;">
@@ -33,13 +33,11 @@
               </j:otherwise>
             </j:choose>
 
-          </bs:card>
+          </l:card>
         </div>
       </div>
 
     </div>
-
-
 
   </bs:page>
 
