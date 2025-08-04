@@ -1,11 +1,12 @@
 package io.jenkins.plugins.coverage.metrics;
 
+import edu.hm.hafner.util.VisibleForTesting;
 import edu.umd.cs.findbugs.annotations.NonNull;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import hudson.Extension;
 import hudson.ExtensionList;
+import io.jenkins.plugins.util.GlobalConfigurationFacade;
+import io.jenkins.plugins.util.GlobalConfigurationItem;
 import jenkins.appearance.AppearanceCategory;
-import jenkins.model.GlobalConfiguration;
 import jenkins.model.GlobalConfigurationCategory;
 import org.jenkinsci.Symbol;
 import org.kohsuke.stapler.DataBoundConstructor;
@@ -16,7 +17,7 @@ import org.kohsuke.stapler.DataBoundSetter;
  */
 @Extension
 @Symbol("coverage")
-public class CoverageAppearanceGlobalConfiguration extends GlobalConfiguration {
+public class CoverageAppearanceGlobalConfiguration extends GlobalConfigurationItem {
     private boolean enableColumnByDefault = true;
 
     /**
@@ -32,11 +33,20 @@ public class CoverageAppearanceGlobalConfiguration extends GlobalConfiguration {
     /**
      * Create global coverage appearance configuration.
      */
-    @SuppressWarnings("PMD.ConstructorCallsOverridableMethod")
-    @SuppressFBWarnings(value = "MC_OVERRIDABLE_METHOD_CALL_IN_CONSTRUCTOR", justification = "GlobalConfiguration instructs subclasses to call load()")
+    @SuppressWarnings("unused")
     @DataBoundConstructor
     public CoverageAppearanceGlobalConfiguration() {
         super();
+        load();
+    }
+
+    /**
+     * Constructor for unit testing.
+     * @param facade global configuration facade
+     */
+    @VisibleForTesting
+    CoverageAppearanceGlobalConfiguration(final GlobalConfigurationFacade facade) {
+        super(facade);
         load();
     }
 
