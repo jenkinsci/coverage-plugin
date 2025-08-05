@@ -1,0 +1,8 @@
+<?jelly escape-by-default='true'?>
+<j:jelly xmlns:j="jelly:core" xmlns:f="/lib/form">
+    <f:section title="${%Coverage plugin appearance}">
+        <f:entry field="enableColumnByDefault" title="${%Display coverage column in 'All View' by default}">
+            <f:checkbox />
+        </f:entry>
+    </f:section>
+</j:jelly>
