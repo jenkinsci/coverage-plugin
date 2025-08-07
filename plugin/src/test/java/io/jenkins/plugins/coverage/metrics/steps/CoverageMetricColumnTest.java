@@ -17,8 +17,10 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
+import hudson.DescriptorExtensionList;
 import hudson.model.Job;
 import hudson.model.Run;
+import jenkins.model.GlobalConfiguration;
 import jenkins.model.Jenkins;
 
 import io.jenkins.plugins.coverage.metrics.AbstractCoverageTest;
@@ -27,6 +29,7 @@ import io.jenkins.plugins.coverage.metrics.color.ColorProviderFactory;
 import io.jenkins.plugins.coverage.metrics.color.CoverageChangeTendency;
 import io.jenkins.plugins.coverage.metrics.model.Baseline;
 import io.jenkins.plugins.coverage.metrics.steps.CoverageMetricColumn.CoverageMetricColumnDescriptor;
+import io.jenkins.plugins.util.GlobalConfigurationFacade;
 import io.jenkins.plugins.util.JenkinsFacade;
 import io.jenkins.plugins.util.QualityGateResult;
 
@@ -222,7 +225,11 @@ class CoverageMetricColumnTest extends AbstractCoverageTest {
     }
 
     private CoverageMetricColumn createColumn() {
-        var column = new CoverageMetricColumn();
+        var jenkins = mock(JenkinsFacade.class);
+        var descriptorList = DescriptorExtensionList.createDescriptorList((Jenkins) null, GlobalConfiguration.class);
+        descriptorList.add(new CoverageAppearanceConfiguration(mock(GlobalConfigurationFacade.class), jenkins));
+        when(jenkins.getDescriptorsFor(GlobalConfiguration.class)).thenReturn(descriptorList);
+        var column = new CoverageMetricColumn(jenkins);
         column.setColumnName(COLUMN_NAME);
         column.setBaseline(Baseline.PROJECT);
         column.setMetric(COVERAGE_METRIC);

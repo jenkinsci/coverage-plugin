@@ -1,0 +1,5 @@
+appearance:
+  coverage:
+    enableColumnByDefault: false
+    defaultMetric: BRANCH
+    defaultName: "Branch Coverage"

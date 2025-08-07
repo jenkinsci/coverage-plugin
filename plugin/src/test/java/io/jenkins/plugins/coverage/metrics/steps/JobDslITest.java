@@ -28,6 +28,19 @@ import static io.jenkins.plugins.coverage.metrics.Assertions.*;
  */
 class JobDslITest extends IntegrationTestWithJenkinsPerTest {
     /**
+     * Reads a YAML file with the coverage column configuration and verifies that the column has been configured.
+     */
+    @Test
+    void shouldImportCoverageAppearanceFromYaml() {
+        configureJenkins("column.yaml");
+
+        assertThat(CoverageAppearanceConfiguration.getInstance())
+                .isNotEnableColumnByDefault()
+                .hasDefaultMetric(Metric.BRANCH)
+                .hasDefaultName("Branch Coverage");
+    }
+
+    /**
      * Creates a freestyle job from a YAML file and verifies that issue recorder finds warnings.
      */
     @Test

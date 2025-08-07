@@ -6,9 +6,9 @@ import edu.hm.hafner.util.VisibleForTesting;
 import edu.umd.cs.findbugs.annotations.NonNull;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
-import io.jenkins.plugins.coverage.metrics.CoverageAppearanceGlobalConfiguration;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.DataBoundSetter;
 import org.kohsuke.stapler.verb.POST;
@@ -20,6 +20,7 @@ import hudson.model.Run;
 import hudson.util.ListBoxModel;
 import hudson.views.ListViewColumn;
 import hudson.views.ListViewColumnDescriptor;
+import jenkins.model.GlobalConfiguration;
 import jenkins.model.Jenkins;
 
 import io.jenkins.plugins.coverage.metrics.color.ColorProvider;
@@ -36,8 +37,8 @@ import io.jenkins.plugins.util.JenkinsFacade;
 public class CoverageMetricColumn extends ListViewColumn {
     private static final ElementFormatter FORMATTER = new ElementFormatter();
 
-    private String columnName = Messages.Coverage_Column();
-    private Metric metric = Metric.LINE;
+    private String columnName;
+    private Metric metric;
     private Baseline baseline = Baseline.PROJECT;
 
     /**
@@ -45,7 +46,15 @@ public class CoverageMetricColumn extends ListViewColumn {
      */
     @DataBoundConstructor
     public CoverageMetricColumn() {
+        this(new JenkinsFacade());
+    }
+
+    @VisibleForTesting
+    CoverageMetricColumn(final JenkinsFacade facade) {
         super();
+
+        columnName = getConfiguration(facade).getDefaultName();
+        metric = getConfiguration(facade).getDefaultMetric();
     }
 
     public ElementFormatter getFormatter() {
@@ -232,12 +241,19 @@ public class CoverageMetricColumn extends ListViewColumn {
         return lastCompletedBuild != null && !lastCompletedBuild.getActions(CoverageBuildAction.class).isEmpty();
     }
 
+    private static CoverageAppearanceConfiguration getConfiguration(final JenkinsFacade jenkins) {
+        var configurations = jenkins.getDescriptorsFor(GlobalConfiguration.class);
+        return Objects.requireNonNull(configurations.get(CoverageAppearanceConfiguration.class));
+    }
+
     /**
      * Descriptor of the column.
      */
     @Extension(optional = true)
     @Symbol("coverageTotalsColumn")
     public static class CoverageMetricColumnDescriptor extends ListViewColumnDescriptor {
+        private final JenkinsFacade jenkins;
+
         /**
          * Creates a new descriptor.
          */
@@ -253,8 +269,6 @@ public class CoverageMetricColumn extends ListViewColumn {
             this.jenkins = jenkins;
         }
 
-        private final JenkinsFacade jenkins;
-
         @NonNull
         @Override
         public String getDisplayName() {
@@ -263,7 +277,7 @@ public class CoverageMetricColumn extends ListViewColumn {
 
         @Override
         public boolean shownByDefault() {
-            return CoverageAppearanceGlobalConfiguration.get().isEnableColumnByDefault();
+            return getConfiguration(jenkins).isEnableColumnByDefault();
         }
 
         /**
