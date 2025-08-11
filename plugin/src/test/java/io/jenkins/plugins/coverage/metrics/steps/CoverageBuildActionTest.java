@@ -111,12 +111,16 @@ class CoverageBuildActionTest {
     void shouldReturnZeroForDeltaWithinBoundaries() {
         var action = createCoverageBuildActionWithDelta(createSingleton(Fraction.getFraction(9, 10_000)));
         assertThat(action.getTrend(Baseline.PROJECT, Metric.LINE)).isZero();
+
+        assertThat(action.hasDelta(Baseline.PROJECT)).isTrue();
     }
 
     @Test
     void shouldReturnZeroWhenDeltaIsNotPresentForGivenMetric() {
         var action = createCoverageBuildActionWithDelta(List.of());
         assertThat(action.getTrend(Baseline.PROJECT, Metric.LINE)).isZero();
+
+        assertThat(action.hasDelta(Baseline.PROJECT)).isFalse();
     }
 
     private List<Difference> createSingleton(final Fraction fraction) {
