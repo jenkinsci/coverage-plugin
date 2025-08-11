@@ -464,7 +464,11 @@ public final class CoverageBuildAction extends BuildAction<Node> implements Stap
      */
     @SuppressWarnings("unused") // Called by jelly view
     public boolean hasDelta(final Baseline baseline) {
-        return baseline == Baseline.PROJECT || baseline == Baseline.MODIFIED_LINES
+        if (differences.isEmpty()) {
+            return false;
+        }
+        return baseline == Baseline.PROJECT
+                || baseline == Baseline.MODIFIED_LINES
                 || baseline == Baseline.MODIFIED_FILES;
     }
 
@@ -594,7 +598,8 @@ public final class CoverageBuildAction extends BuildAction<Node> implements Stap
      * @param metric
      *         the metric to check
      *
-     * @return a positive value if the trend is positive, a negative value if the trend is negative, or {@code 0} if there is no significant change in the trend
+     * @return a positive value if the trend is positive, a negative value if the trend is negative, or {@code 0} if
+     *         there is no significant change in the trend
      */
     @SuppressWarnings("unused") // Called by jelly view
     public double getTrend(final Baseline baseline, final Metric metric) {
