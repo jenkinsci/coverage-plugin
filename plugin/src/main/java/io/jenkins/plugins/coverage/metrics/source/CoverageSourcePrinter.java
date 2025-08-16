@@ -1,6 +1,7 @@
 package io.jenkins.plugins.coverage.metrics.source;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.text.StringEscapeUtils;
 
 import edu.hm.hafner.coverage.FileNode;
 
@@ -28,9 +29,6 @@ class CoverageSourcePrinter implements Serializable {
     static final String FULL_COVERAGE = "coverFull";
     static final String PARTIAL_COVERAGE = "coverPart";
     static final String NBSP = "&nbsp;";
-    static final String LT = "&lt;";
-    static final String GT = "&gt;";
-    static final String AMP = "&amp;";
 
     private final String path;
     private final int[] linesToPaint;
@@ -65,11 +63,9 @@ class CoverageSourcePrinter implements Serializable {
     }
 
     protected String cleanupCode(final String content) {
-        return content.replace("\n", StringUtils.EMPTY)
+        var escaped = StringEscapeUtils.escapeHtml4(content);
+        return escaped.replace("\n", StringUtils.EMPTY)
                 .replace("\r", StringUtils.EMPTY)
-                .replace("&", AMP)
-                .replace("<", LT)
-                .replace(">", GT)
                 .replace(" ", NBSP)
                 .replace("\t", NBSP.repeat(8));
     }
