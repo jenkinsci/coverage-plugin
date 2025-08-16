@@ -4,8 +4,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.junit.jupiter.api.Test;
 import org.xmlunit.assertj.XmlAssert;
 
+import edu.hm.hafner.coverage.FileNode;
 import edu.hm.hafner.coverage.parser.JacocoParser;
-
 import io.jenkins.plugins.coverage.metrics.AbstractCoverageTest;
 
 import static org.assertj.core.api.Assertions.*;
@@ -133,5 +133,13 @@ class CoverageSourcePrinterTest extends AbstractCoverageTest {
                 .extractingText().containsExactly(StringUtils.EMPTY);
         XmlAssert.assertThat(skippedLine).nodesByXPath("/tr/td[3]")
                 .extractingText().containsExactly("package io.jenkins.plugins.coverage.metrics.source;");
+    }
+
+    @Test
+    void shouldRenderXmlSymbols() {
+        var printer = new CoverageSourcePrinter(new FileNode("Test", "Path"));
+
+        assertThat(printer.cleanupCode("#include <string>")).isEqualTo("#include&nbsp;&lt;string&gt;");
+        assertThat(printer.cleanupCode("int a; int *p = &a;")).isEqualTo("int&nbsp;a;&nbsp;int&nbsp;*p&nbsp;=&nbsp;&amp;a;");
     }
 }
