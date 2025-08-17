@@ -1,6 +1,7 @@
 package io.jenkins.plugins.coverage.metrics.source;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.text.StringEscapeUtils;
 
 import edu.hm.hafner.coverage.FileNode;
 
@@ -62,7 +63,8 @@ class CoverageSourcePrinter implements Serializable {
     }
 
     protected String cleanupCode(final String content) {
-        return content.replace("\n", StringUtils.EMPTY)
+        var escaped = StringEscapeUtils.escapeHtml4(content);
+        return escaped.replace("\n", StringUtils.EMPTY)
                 .replace("\r", StringUtils.EMPTY)
                 .replace(" ", NBSP)
                 .replace("\t", NBSP.repeat(8));
