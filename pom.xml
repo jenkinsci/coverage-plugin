@@ -17,7 +17,6 @@
 
   <modules>
     <module>plugin</module>
-    <module>ui-tests</module>
   </modules>
 
   <properties>
@@ -51,9 +50,10 @@
   </build>
   <profiles>
     <profile>
-      <id>quick-build</id>
+      <id>ci</id>
       <modules>
         <module>plugin</module>
+        <module>ui-tests</module>
       </modules>
     </profile>
   </profiles>
