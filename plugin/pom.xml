@@ -32,6 +32,8 @@
   </developers>
 
   <properties>
+    <maven.deploy.skip>true</maven.deploy.skip>
+
     <!-- Library Dependencies Versions -->
     <coverage-model.version>0.56.0</coverage-model.version>
     <jsoup.version>1.18.3</jsoup.version>
