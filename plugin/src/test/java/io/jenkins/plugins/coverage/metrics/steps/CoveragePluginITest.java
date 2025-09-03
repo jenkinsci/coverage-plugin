@@ -603,9 +603,9 @@ class CoveragePluginITest extends AbstractCoverageITest {
         Run<?, ?> run = buildWithResult(job, Result.SUCCESS);
 
         assertThat(getConsoleLog(run))
-                .contains("Using default pattern '**/jacoco.xml' since user defined pattern is not set",
-                        "[-ERROR-] No files found for pattern '**/jacoco.xml'. Configuration error?")
-                .containsPattern("Searching for all files in '.*' that match the pattern '\\*\\*/jacoco.xml'")
+                .contains("Using default pattern '**/jacoco.xml,**/jacocoTestReport.xml' since user defined pattern is not set",
+                        "[-ERROR-] No files found for pattern '**/jacoco.xml,**/jacocoTestReport.xml'. Configuration error?")
+                .containsPattern("Searching for all files in '.*' that match the pattern '\\*\\*/jacoco.xml,\\*\\*/jacocoTestReport.xml'")
                 .doesNotContain("Expanding pattern");
     }
 
@@ -623,7 +623,7 @@ class CoveragePluginITest extends AbstractCoverageITest {
         Run<?, ?> run = buildWithResult(job, Result.SUCCESS);
 
         assertThat(getConsoleLog(run))
-                .contains("Using default pattern '**/jacoco.xml' since user defined pattern is not set",
+                .contains("Using default pattern '**/jacoco.xml,**/jacocoTestReport.xml' since user defined pattern is not set",
                         "-> found 1 file",
                         "MODULE: 100.00% (1/1)",
                         "PACKAGE: 100.00% (1/1)",
@@ -634,7 +634,7 @@ class CoveragePluginITest extends AbstractCoverageITest {
                         "LINE: 91.02% (294/323)",
                         "BRANCH: 93.97% (109/116)",
                         "COMPLEXITY: 160")
-                .containsPattern("Searching for all files in '.*' that match the pattern '\\*\\*/jacoco.xml'")
+                .containsPattern("Searching for all files in '.*' that match the pattern '\\*\\*/jacoco.xml,\\*\\*/jacocoTestReport.xml'")
                 .containsPattern("Successfully parsed file .*/jacoco.xml")
                 .doesNotContain("Expanding pattern");
     }
