@@ -8,7 +8,7 @@
   <j:choose>
     <j:when test="${coverageValue.isPresent()}">
 
-      <td class="jenkins-table__cell--tight">
+      <td style="padding-left: calc(var(--table-padding) * 0.4); padding-right: calc(var(--table-padding) * 0.4); text-align: right">
 
         <j:set var="displayColors" value="${it.getDisplayColors(job, coverageValue)}"/>
         <j:set var="backgroundColor" value="${displayColors.getFillColorAsRGBAHex(80)}"/>
@@ -31,7 +31,7 @@
       </td>
     </j:when>
     <j:otherwise>
-      <td class="jenkins-table__cell--tight">
+      <td style="padding-left: calc(var(--table-padding) * 0.4); padding-right: calc(var(--table-padding) * 0.4); text-align: right">
         ${coverageText}
       </td>
     </j:otherwise>
