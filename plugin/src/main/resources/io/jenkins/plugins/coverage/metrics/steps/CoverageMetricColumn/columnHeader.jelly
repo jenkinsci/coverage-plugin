@@ -1,4 +1,4 @@
 <?jelly escape-by-default='true'?>
 <j:jelly xmlns:j="jelly:core">
-    <th class="jenkins-table__cell--tight" align="right">${it.columnName}</th>
+    <th style="padding-left: calc(var(--table-padding) * 0.4); padding-right: calc(var(--table-padding) * 0.4); text-align: right">${it.columnName}</th>
 </j:jelly>
