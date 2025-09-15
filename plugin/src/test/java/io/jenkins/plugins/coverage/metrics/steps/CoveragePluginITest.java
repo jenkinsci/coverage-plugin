@@ -603,8 +603,8 @@ class CoveragePluginITest extends AbstractCoverageITest {
         Run<?, ?> run = buildWithResult(job, Result.SUCCESS);
 
         assertThat(getConsoleLog(run))
-                .containsPattern("Using default pattern '\\*\\*/jacoco.xml,.*' since user defined pattern is not set",
-                        "[-ERROR-] No files found for pattern '\\*\\*/jacoco.xml,.*'. Configuration error?")
+                .containsPattern("Using default pattern '\\*\\*/jacoco.xml,.*' since user defined pattern is not set")
+                .containsPattern("\\[-ERROR-\\] No files found for pattern '\\*\\*/jacoco.xml,.*'. Configuration error\\?")
                 .containsPattern("Searching for all files in '.*' that match the pattern '\\*\\*/jacoco.xml,.*'")
                 .doesNotContain("Expanding pattern");
     }
@@ -623,7 +623,8 @@ class CoveragePluginITest extends AbstractCoverageITest {
         Run<?, ?> run = buildWithResult(job, Result.SUCCESS);
 
         assertThat(getConsoleLog(run))
-                .containsPattern("Using default pattern '\\*\\*/jacoco.xml,.*' since user defined pattern is not set",
+                .containsPattern("Using default pattern '\\*\\*/jacoco.xml,.*' since user defined pattern is not set")
+                .contains(
                         "-> found 1 file",
                         "MODULE: 100.00% (1/1)",
                         "PACKAGE: 100.00% (1/1)",
@@ -633,7 +634,8 @@ class CoveragePluginITest extends AbstractCoverageITest {
                         "INSTRUCTION: 93.33% (1260/1350)",
                         "LINE: 91.02% (294/323)",
                         "BRANCH: 93.97% (109/116)",
-                        "COMPLEXITY: 160")
+                        "COMPLEXITY: 160"
+                )
                 .containsPattern("Searching for all files in '.*' that match the pattern '\\*\\*/jacoco.xml,.*'")
                 .containsPattern("Successfully parsed file .*/jacoco.xml")
                 .doesNotContain("Expanding pattern");
