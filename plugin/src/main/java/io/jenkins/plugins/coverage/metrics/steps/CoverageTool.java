@@ -225,7 +225,7 @@ public class CoverageTool extends AbstractDescribableImpl<CoverageTool> implemen
                 "**/*coverage*.out,**/*coverage*.txt,**/cover.out",
                 "symbol-footsteps-outline plugin-ionicons-api"),
         JACOCO(Messages._Parser_JaCoCo(), ParserType.COVERAGE,
-                "**/jacoco.xml",
+                "**/jacoco.xml,**/jacocoTestReport.xml",
                 "symbol-footsteps-outline plugin-ionicons-api"),
         JUNIT(Messages._Parser_Junit(), ParserType.TEST,
                 "**/TEST-*.xml",
