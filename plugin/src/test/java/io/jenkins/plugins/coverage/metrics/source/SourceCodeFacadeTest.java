@@ -8,7 +8,6 @@ import edu.hm.hafner.coverage.FileNode;
 import edu.hm.hafner.util.ResourceTest;
 
 import java.io.IOException;
-import java.nio.file.Files;
 import java.util.Arrays;
 import java.util.List;
 
@@ -84,6 +83,6 @@ class SourceCodeFacadeTest extends ResourceTest {
      *         if reading failed
      */
     private String readHtml(final String name) throws IOException {
-        return new String(Files.readAllBytes(getResourceAsFile(name)));
+        return toString(name);
     }
 }
