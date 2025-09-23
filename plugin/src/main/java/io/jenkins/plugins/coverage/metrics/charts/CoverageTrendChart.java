@@ -49,7 +49,8 @@ public class CoverageTrendChart extends TrendChart {
         if (dataSet.isNotEmpty()) {
             int colorIndex = 0;
             for (Metric metric : List.of(Metric.MODULE, Metric.PACKAGE, Metric.FILE, Metric.CLASS, Metric.METHOD)) {
-                addSeriesIfAvailable(dataSet, model, metric, JenkinsPalette.chartColor(colorIndex++).normal());
+                addSeriesIfAvailable(dataSet, model, metric, JenkinsPalette.chartColor(colorIndex).normal());
+                colorIndex++;
             }
 
             addSeriesIfAvailable(dataSet, model, Metric.LINE, JenkinsPalette.GREEN.normal());

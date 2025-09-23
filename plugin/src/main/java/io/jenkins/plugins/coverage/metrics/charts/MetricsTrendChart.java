@@ -43,7 +43,8 @@ public class MetricsTrendChart extends TrendChart {
             for (var tag : dataSet.getDataSetIds()) {
                 Metric metric = Metric.fromTag(tag);
                 addSeriesIfAvailable(dataSet, model, metric.getDisplayName(),
-                        tag, JenkinsPalette.chartColor(colorIndex++).normal());
+                        tag, JenkinsPalette.chartColor(colorIndex).normal());
+                colorIndex++;
             }
 
             model.useContinuousRangeAxis();
