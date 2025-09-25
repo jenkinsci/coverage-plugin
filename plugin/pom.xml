@@ -36,10 +36,6 @@
 
     <!-- Library Dependencies Versions -->
     <coverage-model.version>0.56.0</coverage-model.version>
-    <jsoup.version>1.18.3</jsoup.version>
-
-    <!-- Jenkins Plug-in Dependencies Versions -->
-    <git-forensics.version>3.1.0</git-forensics.version>
 
     <!-- Test Library Dependencies Versions -->
     <xmlunit.version>2.10.4</xmlunit.version>
@@ -89,8 +85,6 @@
     <dependency>
       <groupId>org.jenkins-ci.plugins</groupId>
       <artifactId>jsoup</artifactId>
-      <!-- To remove when on bom-->
-      <version>1.21.1-52.v96e4041b_60fd</version>
     </dependency>
 
     <dependency>
@@ -147,7 +141,6 @@
     <dependency>
       <groupId>io.jenkins.plugins</groupId>
       <artifactId>plugin-util-api</artifactId>
-      <version>6.1167.v022176c7e0ca_</version>
     </dependency>
     <dependency>
       <groupId>io.jenkins.plugins</groupId>
@@ -162,7 +155,6 @@
     <dependency>
       <groupId>io.jenkins.plugins</groupId>
       <artifactId>plugin-util-api</artifactId>
-      <version>6.1167.v022176c7e0ca_</version>
       <classifier>tests</classifier>
       <scope>test</scope>
     </dependency>
@@ -257,7 +249,6 @@
     <dependency>
       <groupId>org.jenkins-ci.plugins</groupId>
       <artifactId>timestamper</artifactId>
-      <version>1.28</version>
       <scope>test</scope>
     </dependency>
 
