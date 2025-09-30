@@ -5,7 +5,7 @@
   <parent>
     <groupId>org.jvnet.hudson.plugins</groupId>
     <artifactId>analysis-pom</artifactId>
-    <version>11.2794.veb_b_8d02f3648</version>
+    <version>11.2812.vde3e22ec61c7</version>
     <relativePath/>
   </parent>
 
