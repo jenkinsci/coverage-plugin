@@ -38,7 +38,7 @@
     <coverage-model.version>0.57.0</coverage-model.version>
 
     <!-- Test Library Dependencies Versions -->
-    <xmlunit.version>2.10.4</xmlunit.version>
+    <xmlunit.version>2.11.0</xmlunit.version>
     <testcontainers.version>1.21.3</testcontainers.version>
   </properties>
 
