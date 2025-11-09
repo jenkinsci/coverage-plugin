@@ -1,6 +1,7 @@
 package io.jenkins.plugins.coverage.metrics.source;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -64,7 +65,8 @@ public class SourceCodeFacade {
         try {
             var inputZipFile = new FilePath(createFileInBuildFolder(buildResults, id, path));
             inputZipFile.unzip(unzippedSourcesDir);
-            String actualPaintedSourceFileName = StringUtils.removeEnd(sanitizeFilename(path), ZIP_FILE_EXTENSION);
+            final String str = sanitizeFilename(path);
+            String actualPaintedSourceFileName = Strings.CS.removeEnd(str, ZIP_FILE_EXTENSION);
             var sourceFile = tempDir.resolve(actualPaintedSourceFileName).toFile();
 
             return new TextFile(sourceFile).read();

@@ -57,8 +57,10 @@ public class CoverageStep extends Step implements Serializable {
     private static final long serialVersionUID = 34386077204781270L;
     private static final ValidationUtilities VALIDATION_UTILITIES = new ValidationUtilities();
 
-    private List<CoverageTool> tools = new ArrayList<>();
-    private List<CoverageQualityGate> qualityGates = new ArrayList<>();
+    @SuppressWarnings("PMD.LooseCoupling")
+    private ArrayList<CoverageTool> tools = new ArrayList<>();
+    @SuppressWarnings("PMD.LooseCoupling")
+    private ArrayList<CoverageQualityGate> qualityGates = new ArrayList<>();
     private String id = StringUtils.EMPTY;
     private String name = StringUtils.EMPTY;
     private boolean skipPublishingChecks = false;
@@ -70,7 +72,8 @@ public class CoverageStep extends Step implements Serializable {
     private boolean skipSymbolicLinks = false;
     private String scm = StringUtils.EMPTY;
     private String sourceCodeEncoding = StringUtils.EMPTY;
-    private Set<SourceCodeDirectory> sourceDirectories = new HashSet<>();
+    @SuppressWarnings("PMD.LooseCoupling")
+    private HashSet<SourceCodeDirectory> sourceDirectories = new HashSet<>();
     private SourceCodeRetention sourceCodeRetention = SourceCodeRetention.LAST_BUILD;
 
     /**
@@ -96,7 +99,7 @@ public class CoverageStep extends Step implements Serializable {
      */
     @DataBoundSetter
     public void setTools(final List<CoverageTool> tools) {
-        this.tools = List.copyOf(tools);
+        this.tools = new ArrayList<>(tools);
     }
 
     public List<CoverageTool> getTools() {
@@ -112,7 +115,7 @@ public class CoverageStep extends Step implements Serializable {
     @SuppressWarnings("unused") // used by Stapler view data binding
     @DataBoundSetter
     public void setQualityGates(final List<CoverageQualityGate> qualityGates) {
-        this.qualityGates = List.copyOf(qualityGates);
+        this.qualityGates = new ArrayList<>(qualityGates);
     }
 
     public List<CoverageQualityGate> getQualityGates() {
@@ -290,7 +293,7 @@ public class CoverageStep extends Step implements Serializable {
      */
     @DataBoundSetter
     public void setSourceDirectories(final List<SourceCodeDirectory> sourceCodeDirectories) {
-        sourceDirectories = Set.copyOf(sourceCodeDirectories);
+        sourceDirectories = new HashSet<>(sourceCodeDirectories);
     }
 
     public Set<SourceCodeDirectory> getSourceDirectories() {

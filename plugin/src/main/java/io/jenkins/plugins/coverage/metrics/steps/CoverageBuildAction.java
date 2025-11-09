@@ -71,34 +71,41 @@ public final class CoverageBuildAction extends BuildAction<Node> implements Stap
     private final FilteredLog log;
 
     /** The aggregated values of the result for the root of the tree. */
-    private final List<? extends Value> projectValues;
+    @SuppressWarnings("PMD.LooseCoupling")
+    private final ArrayList<? extends Value> projectValues;
 
     /** The delta of this build's coverages with respect to the reference build. */
     @SuppressWarnings("MismatchedQueryAndUpdateOfCollection")
     @SuppressFBWarnings(value = "NP_NONNULL_FIELD_NOT_INITIALIZED_IN_CONSTRUCTOR", justification = "Not used anymore")
     private transient NavigableMap<Metric, Difference> difference;
-    private /* almost final */ List<Difference> differences; // since 2.0.0
+    @SuppressWarnings("PMD.LooseCoupling")
+    private /* almost final */ ArrayList<Difference> differences; // since 2.0.0
 
     /** The coverages filtered by modified lines of the associated change request. */
-    private final List<? extends Value> modifiedLinesCoverage;
+    @SuppressWarnings("PMD.LooseCoupling")
+    private final ArrayList<? extends Value> modifiedLinesCoverage;
 
     /** The coverage delta of the associated change request with respect to the reference build. */
     @SuppressWarnings("MismatchedQueryAndUpdateOfCollection")
     @SuppressFBWarnings(value = "NP_NONNULL_FIELD_NOT_INITIALIZED_IN_CONSTRUCTOR", justification = "Not used anymore")
     private transient NavigableMap<Metric, Difference> modifiedLinesCoverageDifference;
-    private /* almost final */ List<Difference> modifiedLinesDifferences; // since 2.0.0
+    @SuppressWarnings("PMD.LooseCoupling")
+    private /* almost final */ ArrayList<Difference> modifiedLinesDifferences; // since 2.0.0
 
     /** The coverage of the modified lines. */
-    private final List<? extends Value> modifiedFilesCoverage;
+    @SuppressWarnings("PMD.LooseCoupling")
+    private final ArrayList<? extends Value> modifiedFilesCoverage;
 
     /** The coverage delta of the modified lines. */
     @SuppressWarnings("MismatchedQueryAndUpdateOfCollection")
     @SuppressFBWarnings(value = "NP_NONNULL_FIELD_NOT_INITIALIZED_IN_CONSTRUCTOR", justification = "Not used anymore")
     private transient NavigableMap<Metric, Difference> modifiedFilesCoverageDifference;
-    private /* almost final */ List<Difference> modifiedFilesDifferences; // since 2.0.0
+    @SuppressWarnings("PMD.LooseCoupling")
+    private /* almost final */ ArrayList<Difference> modifiedFilesDifferences; // since 2.0.0
 
     /** The indirect coverage changes of the associated change request with respect to the reference build. */
-    private final List<? extends Value> indirectCoverageChanges;
+    @SuppressWarnings("PMD.LooseCoupling")
+    private final ArrayList<? extends Value> indirectCoverageChanges;
 
     static {
         CoverageXmlStream.registerConverters(XSTREAM2);
@@ -208,7 +215,7 @@ public final class CoverageBuildAction extends BuildAction<Node> implements Stap
         this.icon = icon;
         this.log = log;
 
-        projectValues = result.aggregateValues();
+        projectValues = copy(result.aggregateValues());
         this.qualityGateResult = qualityGateResult;
         this.referenceBuildId = referenceBuildId;
 
@@ -224,7 +231,7 @@ public final class CoverageBuildAction extends BuildAction<Node> implements Stap
         }
     }
 
-    private <T> List<T> copy(final List<? extends T> list) {
+    private <T> ArrayList<T> copy(final List<? extends T> list) {
         return new ArrayList<>(list); // do not use immutable collections to simplify serialization
     }
 
@@ -243,13 +250,13 @@ public final class CoverageBuildAction extends BuildAction<Node> implements Stap
             modifiedFilesCoverageDifference = new TreeMap<>();
         }
         if (differences == null) { // before 2.0
-            differences = difference.values().stream().toList();
+            differences = new ArrayList<>(difference.values());
         }
         if (modifiedFilesDifferences == null) { // before 2.0
-            modifiedFilesDifferences = modifiedFilesCoverageDifference.values().stream().toList();
+            modifiedFilesDifferences = new ArrayList<>(modifiedFilesCoverageDifference.values());
         }
         if (modifiedLinesDifferences == null) { // before 2.0
-            modifiedLinesDifferences = modifiedLinesCoverageDifference.values().stream().toList();
+            modifiedLinesDifferences = new ArrayList<>(modifiedLinesCoverageDifference.values());
         }
 
         return this;

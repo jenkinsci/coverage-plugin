@@ -82,7 +82,7 @@ class CodeDeltaCalculator {
     public Optional<Delta> calculateCodeDeltaToReference(final Run<?, ?> referenceBuild, final FilteredLog log) {
         return DeltaCalculatorFactory
                 .findDeltaCalculator(scm, build, workspace, listener, log)
-                .calculateDelta(build, referenceBuild, scm, log);
+                .calculateDelta(build, referenceBuild, log);
     }
 
     /**
