@@ -231,6 +231,7 @@ public final class CoverageBuildAction extends BuildAction<Node> implements Stap
         }
     }
 
+    @SuppressWarnings("PMD.LooseCoupling")
     private <T> ArrayList<T> copy(final List<? extends T> list) {
         return new ArrayList<>(list); // do not use immutable collections to simplify serialization
     }
