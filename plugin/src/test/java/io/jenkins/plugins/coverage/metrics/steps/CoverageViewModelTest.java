@@ -41,7 +41,6 @@ class CoverageViewModelTest extends AbstractCoverageTest {
     }
 
     @Test
-    @SuppressWarnings("PMD.ConfusingArgumentToVarargsMethod")
     void shouldReportOverview() {
         var model = createModelFromCodingStyleReport();
 
