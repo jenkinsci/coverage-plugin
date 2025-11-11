@@ -1,10 +1,9 @@
 package io.jenkins.plugins.coverage.util;
 
-import java.util.Objects;
-
 import org.openqa.selenium.By;
 import org.openqa.selenium.NoSuchElementException;
-import org.openqa.selenium.WebElement;
+
+import java.util.Objects;
 
 import org.jenkinsci.test.acceptance.po.PageObject;
 
@@ -13,7 +12,7 @@ import org.jenkinsci.test.acceptance.po.PageObject;
  */
 @SuppressWarnings("hideutilityclassconstructor")
 // TODO: Move this code to ATH so we can reuse it from other plugins
-public class ChartUtil {
+public final class ChartUtil {
     private static final int MAX_ATTEMPTS = 5;
 
     /**
@@ -28,7 +27,7 @@ public class ChartUtil {
      */
     public static String getChartDataById(final PageObject pageObject, final String elementId) {
         if (isChartDisplayedByElementId(pageObject, elementId)) {
-            return Objects.toString(getEchartsOptionsOf(pageObject, String.format("document.getElementById(\"%s\")", elementId)));
+            return Objects.toString(getEchartsOptionsOf(pageObject, "document.getElementById(\"%s\")".formatted(elementId)));
         }
         return null; // FIXME?
     }
@@ -53,7 +52,7 @@ public class ChartUtil {
             final String toolAttribute) {
         if (isChartDisplayedByDivToolAttribute(pageObject, toolAttribute)) {
             for (int i = 0; i < MAX_ATTEMPTS; i++) {
-                Object result = getEchartsOptionsOf(pageObject, String.format("document.querySelector(\"div [tool='%s']\")", toolAttribute));
+                Object result = getEchartsOptionsOf(pageObject, "document.querySelector(\"div [tool='%s']\")".formatted(toolAttribute));
 
                 if (result != null) {
                     return result.toString();
@@ -76,7 +75,7 @@ public class ChartUtil {
      */
     public static boolean isChartDisplayedByElementId(final PageObject pageObject, final String elementId) {
         try {
-            WebElement chart = pageObject.find(By.id(elementId));
+            var chart = pageObject.find(By.id(elementId));
             return chart != null && chart.isDisplayed();
         }
         catch (NoSuchElementException exception) {
@@ -96,7 +95,7 @@ public class ChartUtil {
      */
     public static boolean isChartDisplayedByDivToolAttribute(final PageObject pageObject, final String toolAttribute) {
         try {
-            WebElement chart = pageObject.find(By.cssSelector("div[tool='" + toolAttribute + "']"));
+            var chart = pageObject.find(By.cssSelector("div[tool='" + toolAttribute + "']"));
             return chart != null && chart.isDisplayed();
         }
         catch (NoSuchElementException exception) {

@@ -5,10 +5,12 @@ import edu.hm.hafner.util.PathUtil;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.Serial;
 import java.nio.file.InvalidPathException;
 import java.util.AbstractMap.SimpleEntry;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
@@ -75,12 +77,16 @@ public class PathResolver {
      */
     @SuppressWarnings("PMD.LooseCoupling")
     static class AgentPathResolver extends MasterToSlaveFileCallable<RemoteResultWrapper<HashMap<String, String>>> {
+        @Serial
         private static final long serialVersionUID = 3966282357309568323L;
         private static final PathUtil PATH_UTIL = new PathUtil();
 
-        private final Set<String> relativePaths;
-        private final Set<String> permittedSourceDirectories;
-        private final Set<String> requestedSourceDirectories;
+        @SuppressWarnings("PMD.LooseCoupling")
+        private final HashSet<String> relativePaths;
+        @SuppressWarnings("PMD.LooseCoupling")
+        private final HashSet<String> permittedSourceDirectories;
+        @SuppressWarnings("PMD.LooseCoupling")
+        private final HashSet<String> requestedSourceDirectories;
 
         /**
          * Creates a new instance of {@link AgentPathResolver}.
@@ -97,9 +103,9 @@ public class PathResolver {
                 final Set<String> requestedSourceDirectories) {
             super();
 
-            this.relativePaths = relativePaths;
-            this.permittedSourceDirectories = permittedSourceDirectories;
-            this.requestedSourceDirectories = requestedSourceDirectories;
+            this.relativePaths = new HashSet<>(relativePaths);
+            this.permittedSourceDirectories = new HashSet<>(permittedSourceDirectories);
+            this.requestedSourceDirectories = new HashSet<>(requestedSourceDirectories);
         }
 
         @Override

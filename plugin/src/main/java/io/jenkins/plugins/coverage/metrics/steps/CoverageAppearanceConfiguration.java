@@ -49,6 +49,7 @@ public class CoverageAppearanceConfiguration extends GlobalConfigurationItem {
      * XML file.
      */
     @DataBoundConstructor
+    @SuppressWarnings("this-escape") // JenkinsFacade requires this
     public CoverageAppearanceConfiguration() {
         super();
 

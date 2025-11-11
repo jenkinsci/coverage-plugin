@@ -40,10 +40,12 @@ public class CoverageQualityGate extends QualityGate {
      *         the metric to compare
      */
     @DataBoundConstructor
+    @SuppressWarnings("this-escape")
     public CoverageQualityGate(final Metric metric) {
         this(metric, 0.0);
     }
 
+    @SuppressWarnings("this-escape")
     CoverageQualityGate(final Metric metric, final double threshold) {
         super();
 

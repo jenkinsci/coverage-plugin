@@ -1,6 +1,7 @@
 package io.jenkins.plugins.coverage.metrics.steps;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
 import org.apache.commons.lang3.math.Fraction;
 
 import com.thoughtworks.xstream.converters.Converter;
@@ -50,7 +51,9 @@ class CoverageXmlStream extends AbstractXmlStream<Node> {
     private static final Collector<CharSequence, ?, String> ARRAY_JOINER = Collectors.joining(", ", "[", "]");
 
     private static String[] toArray(final String value) {
-        String cleanInput = StringUtils.removeEnd(StringUtils.removeStart(StringUtils.deleteWhitespace(value), "["), "]");
+        String cleanInput = Strings.CS.removeEnd(
+                Strings.CS.removeStart(
+                        StringUtils.deleteWhitespace(value), "["), "]");
 
         return StringUtils.split(cleanInput, ",");
     }
@@ -131,6 +134,7 @@ class CoverageXmlStream extends AbstractXmlStream<Node> {
         }
 
         @Override
+        @SuppressWarnings("rawtypes")
         public boolean canConvert(final Class type) {
             return type == Fraction.class;
         }
@@ -151,7 +155,8 @@ class CoverageXmlStream extends AbstractXmlStream<Node> {
             var metric = Metric.valueOf(key);
             var deserialized = Fraction.getFraction(value);
             if (metric.isCoverage()) {
-                deserialized = deserialized.multiplyBy(Fraction.getFraction(100)); // previously stored not as percentage
+                deserialized = deserialized.multiplyBy(
+                        Fraction.getFraction(100)); // previously stored not as percentage
             }
             return entry(metric, new Difference(metric, deserialized));
         }
@@ -161,14 +166,16 @@ class CoverageXmlStream extends AbstractXmlStream<Node> {
      * {@link Converter} for {@link Coverage} instances so that only the values will be serialized. After reading the
      * values back from the stream, the string representation will be converted to an actual instance again.
      *
-     * @param <T> type of the objects that will be marshalled and unmarshalled
+     * @param <T>
+     *         type of the objects that will be marshalled and unmarshalled
      */
     public static class SimpleConverter<T> implements Converter {
         private final Class<T> type;
         private final Function<T, String> marshaller;
         private final Function<String, Object> unmarshaller;
 
-        protected SimpleConverter(final Class<T> type, final Function<T, String> marshaller, final Function<String, Object> unmarshaller) {
+        protected SimpleConverter(final Class<T> type, final Function<T, String> marshaller,
+                final Function<String, Object> unmarshaller) {
             this.type = type;
             this.marshaller = marshaller;
             this.unmarshaller = unmarshaller;
@@ -186,6 +193,7 @@ class CoverageXmlStream extends AbstractXmlStream<Node> {
         }
 
         @Override
+        @SuppressWarnings("rawtypes")
         public final boolean canConvert(final Class clazz) {
             return type.isAssignableFrom(clazz);
         }
@@ -216,6 +224,7 @@ class CoverageXmlStream extends AbstractXmlStream<Node> {
         }
 
         @Override
+        @SuppressWarnings("rawtypes")
         public boolean canConvert(final Class type) {
             return type == TreeMap.class;
         }
@@ -229,7 +238,7 @@ class CoverageXmlStream extends AbstractXmlStream<Node> {
             NavigableMap<K, V> map = new TreeMap<>();
 
             for (String marshalledValue : toArray(value)) {
-                if (StringUtils.contains(marshalledValue, ":")) {
+                if (Strings.CS.contains(marshalledValue, ":")) {
                     try {
                         Entry<K, V> entry = createMapping(
                                 StringUtils.substringBefore(marshalledValue, ':'),
@@ -270,9 +279,8 @@ class CoverageXmlStream extends AbstractXmlStream<Node> {
     }
 
     /**
-     * {@link Converter} for a {@link TreeSet} of integers that serializes just the values. After
-     * reading the values back from the stream, the string representation will be converted to an actual instance
-     * again.
+     * {@link Converter} for a {@link TreeSet} of integers that serializes just the values. After reading the values
+     * back from the stream, the string representation will be converted to an actual instance again.
      */
     static final class IntegerSetConverter implements Converter {
         @SuppressWarnings("unchecked")
@@ -287,7 +295,8 @@ class CoverageXmlStream extends AbstractXmlStream<Node> {
         }
 
         @Override
-        public NavigableSet<Integer> unmarshal(final HierarchicalStreamReader reader, final UnmarshallingContext context) {
+        public NavigableSet<Integer> unmarshal(final HierarchicalStreamReader reader,
+                final UnmarshallingContext context) {
             return unmarshal(reader.getValue());
         }
 
@@ -296,6 +305,7 @@ class CoverageXmlStream extends AbstractXmlStream<Node> {
         }
 
         @Override
+        @SuppressWarnings("rawtypes")
         public boolean canConvert(final Class type) {
             return type == TreeSet.class;
         }

@@ -22,8 +22,8 @@ import org.kohsuke.stapler.QueryParameter;
 import org.kohsuke.stapler.verb.POST;
 import org.jvnet.localizer.Localizable;
 import hudson.Extension;
-import hudson.model.AbstractDescribableImpl;
 import hudson.model.BuildableItem;
+import hudson.model.Describable;
 import hudson.model.Descriptor;
 import hudson.model.Item;
 import hudson.util.FormValidation;
@@ -41,7 +41,7 @@ import io.jenkins.plugins.util.ValidationUtilities;
  * @author Ullrich Hafner
  */
 @SuppressWarnings("PMD.DataClass")
-public class CoverageTool extends AbstractDescribableImpl<CoverageTool> implements Serializable {
+public class CoverageTool implements Describable<CoverageTool>, Serializable {
     @Serial
     private static final long serialVersionUID = -8612521458890553037L;
     private static final ValidationUtilities VALIDATION_UTILITIES = new ValidationUtilities();

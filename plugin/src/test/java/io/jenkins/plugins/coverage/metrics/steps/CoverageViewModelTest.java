@@ -41,14 +41,13 @@ class CoverageViewModelTest extends AbstractCoverageTest {
     }
 
     @Test
-    @SuppressWarnings("PMD.ConfusingArgumentToVarargsMethod")
     void shouldReportOverview() {
         var model = createModelFromCodingStyleReport();
 
         var overview = model.getOverview();
 
-        var expectedMetrics = new String[]{"Package", "File", "Class", "Method", "Line", "Branch", "Instruction"};
-        assertThat(overview.getMetrics()).containsExactly(expectedMetrics);
+        var expectedMetrics = List.of("Package", "File", "Class", "Method", "Line", "Branch", "Instruction");
+        assertThat(overview.getMetrics()).containsExactlyElementsOf(expectedMetrics);
 
         var expectedCovered = List.of(4, 7, 15, 97, 294, 109, 1260);
         assertThat(overview.getCovered()).containsExactlyElementsOf(expectedCovered);
@@ -58,7 +57,7 @@ class CoverageViewModelTest extends AbstractCoverageTest {
         assertThat(overview.getMissed()).containsExactlyElementsOf(expectedMissed);
         ensureValidPercentages(overview.getMissedPercentages());
 
-        assertThatJson(overview).node("metrics").isArray().containsExactly(expectedMetrics);
+        assertThatJson(overview).node("metrics").isArray().containsExactlyElementsOf(expectedMetrics);
         assertThatJson(overview).node("covered").isArray().containsExactlyElementsOf(expectedCovered);
         assertThatJson(overview).node("missed").isArray().containsExactlyElementsOf(expectedMissed);
 

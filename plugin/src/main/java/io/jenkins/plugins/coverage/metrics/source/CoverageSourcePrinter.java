@@ -8,7 +8,7 @@ import edu.hm.hafner.coverage.FileNode;
 import java.io.Serial;
 import java.io.Serializable;
 import java.util.Arrays;
-import java.util.Set;
+import java.util.TreeSet;
 
 import io.jenkins.plugins.prism.Sanitizer;
 
@@ -36,7 +36,8 @@ class CoverageSourcePrinter implements Serializable {
 
     private final int[] missedPerLine;
 
-    private final Set<Integer> modifiedLines;
+    @SuppressWarnings("PMD.LooseCoupling")
+    private final TreeSet<Integer> modifiedLines;
 
     CoverageSourcePrinter(final FileNode file) {
         path = file.getRelativePath();
@@ -44,7 +45,7 @@ class CoverageSourcePrinter implements Serializable {
         linesToPaint = file.getLinesWithCoverage().stream().mapToInt(i -> i).toArray();
         coveredPerLine = file.getCoveredCounters();
         missedPerLine = file.getMissedCounters();
-        modifiedLines = file.getModifiedLines();
+        modifiedLines = new TreeSet<>(file.getModifiedLines());
     }
 
     public String renderLine(final int line, final String sourceCode) {

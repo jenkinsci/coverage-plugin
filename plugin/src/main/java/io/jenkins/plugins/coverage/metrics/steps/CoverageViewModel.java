@@ -1,6 +1,7 @@
 package io.jenkins.plugins.coverage.metrics.steps;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -437,7 +438,7 @@ public class CoverageViewModel extends DefaultAsyncTableContentProvider implemen
             content = SOURCE_CODE_FACADE.read(rootDir, getId(), sourceNode.getRelativePath());
         }
         if (!content.isEmpty()) {
-            String cleanTableId = StringUtils.removeEnd(tableId, INLINE_SUFFIX);
+            String cleanTableId = Strings.CS.removeEnd(tableId, INLINE_SUFFIX);
             if (MODIFIED_LINES_COVERAGE_TABLE_ID.equals(cleanTableId)) {
                 return SOURCE_CODE_FACADE.calculateModifiedLinesCoverageSourceCode(content, sourceNode);
             }

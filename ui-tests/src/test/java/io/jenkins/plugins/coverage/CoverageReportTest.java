@@ -1,14 +1,12 @@
 package io.jenkins.plugins.coverage;
 
-import java.util.List;
-
 import org.junit.Test;
 
-import org.jenkinsci.test.acceptance.po.Build;
+import java.util.List;
+
 import org.jenkinsci.test.acceptance.po.FreeStyleJob;
 
 import io.jenkins.plugins.coverage.FileCoverageTable.Header;
-import io.jenkins.plugins.coverage.publisher.Adapter;
 import io.jenkins.plugins.coverage.publisher.CoveragePublisher;
 
 import static net.javacrumbs.jsonunit.assertj.JsonAssertions.*;
@@ -23,11 +21,11 @@ public class CoverageReportTest extends UiTest {
      * Test for CoverageReport of job with no reports does not exist. Verifies CoverageReport can't be opened.
      */
     @Test
-    public void testCoverageReportNotAvailableForJobWithNoReports() {
-        FreeStyleJob job = jenkins.getJobs().create(FreeStyleJob.class);
+    public void shouldCoverageReportNotAvailableForJobWithNoReports() {
+        var job = jenkins.getJobs().create(FreeStyleJob.class);
         job.save();
-        Build build = buildSuccessfully(job);
-        CoverageReport report = new CoverageReport(build);
+        var build = buildSuccessfully(job);
+        var report = new CoverageReport(build);
         report.open();
         assertThat(driver.getCurrentUrl()).isNotEqualTo(report.url.toString());
     }
@@ -37,10 +35,10 @@ public class CoverageReportTest extends UiTest {
      * and CoverageOverview) as well as {@link FileCoverageTable}.
      */
     @Test
-    public void testCoverageReportAfterSomeBuildsWithReports() {
-        FreeStyleJob job = jenkins.getJobs().create(FreeStyleJob.class);
-        CoveragePublisher coveragePublisher = job.addPublisher(CoveragePublisher.class);
-        Adapter jacocoAdapter = coveragePublisher.createAdapterPageArea("Jacoco");
+    public void shouldCoverageReportAfterSomeBuildsWithReports() {
+        var job = jenkins.getJobs().create(FreeStyleJob.class);
+        var coveragePublisher = job.addPublisher(CoveragePublisher.class);
+        var jacocoAdapter = coveragePublisher.createAdapterPageArea("Jacoco");
         copyResourceFilesToWorkspace(job, RESOURCES_FOLDER);
         jacocoAdapter.setReportFilePath(JACOCO_ANALYSIS_MODEL_XML);
         job.save();
@@ -49,22 +47,22 @@ public class CoverageReportTest extends UiTest {
         job.configure();
         jacocoAdapter.setReportFilePath(JACOCO_CODINGSTYLE_XML);
         job.save();
-        Build secondBuild = buildSuccessfully(job);
+        var secondBuild = buildSuccessfully(job);
 
-        CoverageReport report = new CoverageReport(secondBuild);
+        var report = new CoverageReport(secondBuild);
         report.open();
 
-        FileCoverageTable coverageTable = report.getCoverageTable();
+        var coverageTable = report.getCoverageTable();
         verifyFileCoverageTableContent(coverageTable,
-                new String[] {"edu.hm.hafner.util", "edu.hm.hafner.util", "edu.hm.hafner.util"},
-                new String[] {"Ensure.java", "FilteredLog.java", "Generated.java"},
-                new String[] {"80.00%", "100.00%", "n/a"},
-                new String[] {"86.96%", "100.00%", "n/a"});
+                new String[]{"edu.hm.hafner.util", "edu.hm.hafner.util", "edu.hm.hafner.util"},
+                new String[]{"Ensure.java", "FilteredLog.java", "Generated.java"},
+                new String[]{"80.00%", "100.00%", "n/a"},
+                new String[]{"86.96%", "100.00%", "n/a"});
 
-        String coverageTree = report.getCoverageTree();
+        var coverageTree = report.getCoverageTree();
         verifyCoverageTreeAfterSomeBuildsWithReports(coverageTree);
 
-        String coverageOverview = report.getCoverageOverview();
+        var coverageOverview = report.getCoverageOverview();
         verifyCoverageOverviewAfterSomeBuildsWithReports(coverageOverview);
     }
 
@@ -73,19 +71,19 @@ public class CoverageReportTest extends UiTest {
      * CoverageOverview) as well as {@link FileCoverageTable} are being displayed and verifies some of its data.
      */
     @Test
-    public void testCoverageReportAfterOneBuildWithReport() {
-        Build secondBuild = buildSuccessfully(getJobWithReportInConfiguration());
+    public void shouldCoverageReportAfterOneBuildWithReport() {
+        var secondBuild = buildSuccessfully(getJobWithReportInConfiguration());
 
-        CoverageReport report = new CoverageReport(secondBuild);
+        var report = new CoverageReport(secondBuild);
         report.open();
 
-        FileCoverageTable coverageTable = report.getCoverageTable();
+        var coverageTable = report.getCoverageTable();
         verifyFileCoverageTableNumberOfMaxEntries(coverageTable, 307);
 
-        String coverageTree = report.getCoverageTree();
+        var coverageTree = report.getCoverageTree();
         verifyCoverageTreeAfterOneBuildWithReport(coverageTree);
 
-        String coverageOverview = report.getCoverageOverview();
+        var coverageOverview = report.getCoverageOverview();
         verifyCoverageOverviewAfterOneBuildWithReport(coverageOverview);
     }
 
@@ -94,30 +92,30 @@ public class CoverageReportTest extends UiTest {
      * pages works correctly, by checking some of its {@link FileCoverageTableRow}s on different pages.
      */
     @Test
-    public void testCoverageTableWithMultiplePages() {
-        Build secondBuild = buildSuccessfully(getJobWithReportInConfiguration());
+    public void shouldCoverageTableWithMultiplePages() {
+        var secondBuild = buildSuccessfully(getJobWithReportInConfiguration());
 
-        CoverageReport report = new CoverageReport(secondBuild);
+        var report = new CoverageReport(secondBuild);
         report.open();
 
-        FileCoverageTable table = report.openFileCoverageTable();
+        var table = report.openFileCoverageTable();
         verifyFileCoverageTableContent(table,
-                new String[] {"edu.hm.hafner.analysis", "edu.hm.hafner.analysis", "edu.hm.hafner.analysis"},
-                new String[] {"AbstractPackageDetector.java", "CSharpNamespaceDetector.java", "Categories.java"},
-                new String[] {"88.24%", "100.00%", "100.00%"},
-                new String[] {"50.00%", "n/a", "100.00%"});
+                new String[]{"edu.hm.hafner.analysis", "edu.hm.hafner.analysis", "edu.hm.hafner.analysis"},
+                new String[]{"AbstractPackageDetector.java", "CSharpNamespaceDetector.java", "Categories.java"},
+                new String[]{"88.24%", "100.00%", "100.00%"},
+                new String[]{"50.00%", "n/a", "100.00%"});
         table.openTablePage(2);
         verifyFileCoverageTableContent(table,
-                new String[] {"edu.hm.hafner.analysis", "edu.hm.hafner.analysis", "edu.hm.hafner.analysis"},
-                new String[] {"IssueBuilder.java", "IssueDifference.java", "IssueParser.java"},
-                new String[] {"100.00%", "100.00%", "83.33%"},
-                new String[] {"100.00%", "92.86%", "n/a"});
+                new String[]{"edu.hm.hafner.analysis", "edu.hm.hafner.analysis", "edu.hm.hafner.analysis"},
+                new String[]{"IssueBuilder.java", "IssueDifference.java", "IssueParser.java"},
+                new String[]{"100.00%", "100.00%", "83.33%"},
+                new String[]{"100.00%", "92.86%", "n/a"});
         table.openTablePage(3);
         verifyFileCoverageTableContent(table,
-                new String[] {"edu.hm.hafner.analysis", "edu.hm.hafner.analysis", "edu.hm.hafner.analysis"},
-                new String[] {"PackageDetectors.java", "PackageNameResolver.java", "ParsingCanceledException.java"},
-                new String[] {"92.31%", "100.00%", "0.00%"},
-                new String[] {"100.00%", "83.33%", "n/a"});
+                new String[]{"edu.hm.hafner.analysis", "edu.hm.hafner.analysis", "edu.hm.hafner.analysis"},
+                new String[]{"PackageDetectors.java", "PackageNameResolver.java", "ParsingCanceledException.java"},
+                new String[]{"92.31%", "100.00%", "0.00%"},
+                new String[]{"100.00%", "83.33%", "n/a"});
     }
 
     /**
@@ -134,7 +132,7 @@ public class CoverageReportTest extends UiTest {
      * @param shouldBranchCoverages
      *         string array of expected values in branch coverage column
      */
-    @SuppressWarnings("PMD.UseVarargs")
+    @SuppressWarnings({"PMD.UseVarargs", "AvoidObjectArrays"})
     public static void verifyFileCoverageTableContent(final FileCoverageTable fileCoverageTable,
             final String[] shouldPackage, final String[] shouldFiles,
             final String[] shouldLineCoverages, final String[] shouldBranchCoverages) {
@@ -149,7 +147,7 @@ public class CoverageReportTest extends UiTest {
                         Header.LOC.getTitle());
 
         for (int i = 0; i < shouldFiles.length; i++) {
-            FileCoverageTableRow row = rows.get(i);
+            var row = rows.get(i);
             assertThat(row.getPackage()).isEqualTo(shouldPackage[i]);
             assertThat(row.getFile()).isEqualTo(shouldFiles[i]);
             assertThat(row.getLineCoverage()).isEqualTo(shouldLineCoverages[i]);
@@ -295,4 +293,3 @@ public class CoverageReportTest extends UiTest {
                 .contains("[62, 60]");
     }
 }
-
