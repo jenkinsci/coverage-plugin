@@ -58,18 +58,6 @@
       ]
     },
     {
-      "name": "API Problems",
-      "id": "api",
-      "icon": "no_entry_sign",
-      "tools": [
-        {
-          "id": "revapi",
-          "sourcePath": "src/main/java",
-          "pattern": "**/target/revapi-result.json"
-        }
-      ]
-    },
-    {
       "name": "Vulnerabilities",
       "id": "vulnerabilities",
       "icon": "shield",
