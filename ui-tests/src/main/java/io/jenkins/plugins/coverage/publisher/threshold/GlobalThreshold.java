@@ -75,4 +75,3 @@ public class GlobalThreshold extends AbstractThreshold {
         }
     }
 }
-

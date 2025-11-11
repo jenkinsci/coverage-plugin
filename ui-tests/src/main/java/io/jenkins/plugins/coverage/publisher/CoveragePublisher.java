@@ -1,5 +1,7 @@
 package io.jenkins.plugins.coverage.publisher;
 
+import com.google.errorprone.annotations.CanIgnoreReturnValue;
+
 import org.jenkinsci.test.acceptance.po.AbstractStep;
 import org.jenkinsci.test.acceptance.po.Control;
 import org.jenkinsci.test.acceptance.po.Describable;
@@ -15,7 +17,7 @@ import io.jenkins.plugins.coverage.publisher.threshold.GlobalThreshold.GlobalThr
  * Coverage Publisher which can be added in the configuration of a FreeStyle Project.
  */
 @Describable("Publish Coverage Report")
-public class CoveragePublisher extends AbstractStep implements PostBuildStep {
+public final class CoveragePublisher extends AbstractStep implements PostBuildStep {
     private final Control adapter = control("hetero-list-add[adapters]");
     private final Control advancedOptions = control("advanced-button");
     private final Control applyThresholdRecursively = control("applyThresholdRecursively");
@@ -55,6 +57,7 @@ public class CoveragePublisher extends AbstractStep implements PostBuildStep {
      *
      * @return this publisher
      */
+    @CanIgnoreReturnValue
     public CoveragePublisher setSourceCodeEncoding(final String sourceCodeEncoding) {
         ensureAdvancedOptionsIsActivated();
 
@@ -72,11 +75,12 @@ public class CoveragePublisher extends AbstractStep implements PostBuildStep {
      *
      * @return this publisher
      */
+    @CanIgnoreReturnValue
     public CoveragePublisher addSourceDirectory(final String sourceDirectory) {
         ensureAdvancedOptionsIsActivated();
 
-        String path = createPageArea("sourceDirectories", sourceDirectories::click);
-        SourceCodeDirectoryPanel panel = new SourceCodeDirectoryPanel(this, path);
+        var path = createPageArea("sourceDirectories", sourceDirectories::click);
+        var panel = new SourceCodeDirectoryPanel(this, path);
         panel.setPath(sourceDirectory);
 
         return this;
@@ -179,7 +183,7 @@ public class CoveragePublisher extends AbstractStep implements PostBuildStep {
      * @return added {@link Adapter}
      */
     public Adapter createAdapterPageArea(final String adapterName) {
-        String path = createPageArea("adapters", () -> this.adapter.selectDropdownMenu(adapterName));
+        var path = createPageArea("adapters", () -> this.adapter.selectDropdownMenu(adapterName));
         return new Adapter(this, path);
     }
 
@@ -190,7 +194,7 @@ public class CoveragePublisher extends AbstractStep implements PostBuildStep {
      */
     public GlobalThreshold createGlobalThresholdsPageArea() {
         ensureAdvancedOptionsIsActivated();
-        String path = createPageArea("globalthresholds", this.globalThreshold::click);
+        var path = createPageArea("globalthresholds", this.globalThreshold::click);
         return new GlobalThreshold(this, path);
     }
 
@@ -212,8 +216,8 @@ public class CoveragePublisher extends AbstractStep implements PostBuildStep {
             final double unhealthyThreshold,
             final double unstableThreshold, final boolean failOnUnhealthy) {
         ensureAdvancedOptionsIsActivated();
-        String path = createPageArea("globalThresholds", this.globalThreshold::click);
-        GlobalThreshold threshold = new GlobalThreshold(this, path);
+        var path = createPageArea("globalThresholds", this.globalThreshold::click);
+        var threshold = new GlobalThreshold(this, path);
         threshold.setThresholdTarget(thresholdTarget);
         threshold.setUnhealthyThreshold(unhealthyThreshold);
         threshold.setUnstableThreshold(unstableThreshold);
@@ -268,17 +272,12 @@ public class CoveragePublisher extends AbstractStep implements PostBuildStep {
     private static class SourceCodeDirectoryPanel extends PageAreaImpl {
         private final Control path = control("path");
 
-        SourceCodeDirectoryPanel(final PageArea area, final String path) {
+        private SourceCodeDirectoryPanel(final PageArea area, final String path) {
             super(area, path);
         }
 
-        public void setPath(final String path) {
+        private void setPath(final String path) {
             this.path.set(path);
         }
     }
 }
-
-
-
-
-

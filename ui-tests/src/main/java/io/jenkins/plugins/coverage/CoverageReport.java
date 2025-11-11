@@ -1,12 +1,12 @@
 package io.jenkins.plugins.coverage;
 
-import java.util.NoSuchElementException;
-
 import org.apache.commons.lang3.StringUtils;
 import org.hamcrest.CoreMatchers;
 import org.hamcrest.MatcherAssert;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebElement;
+
+import java.util.NoSuchElementException;
 
 import org.jenkinsci.test.acceptance.po.Build;
 import org.jenkinsci.test.acceptance.po.PageObject;
@@ -129,7 +129,7 @@ public class CoverageReport extends PageObject {
      * @return the active tab
      */
     public Tab getActiveTab() {
-        WebElement activeTab = find(By.xpath("//a[@role='tab' and contains(@class, 'active')]"));
+        var activeTab = find(By.xpath("//a[@role='tab' and contains(@class, 'active')]"));
         return Tab.valueWithHref(extractRelativeUrl(activeTab.getAttribute("href")));
     }
 
@@ -145,7 +145,7 @@ public class CoverageReport extends PageObject {
      */
     private void openTab(final String reportToggleId, final String tabNavId, final Tab tab) {
         toggleReportView(reportToggleId);
-        WebElement tabElement = getElement(By.id(tabNavId)).findElement(tab.getXpath());
+        var tabElement = getElement(By.id(tabNavId)).findElement(tab.getXpath());
         tabElement.click();
     }
 
@@ -156,7 +156,7 @@ public class CoverageReport extends PageObject {
      *         The ID of the toggle button to be used
      */
     private void toggleReportView(final String id) {
-        WebElement viewToggleElement = getElement(By.id(id));
+        var viewToggleElement = getElement(By.id(id));
         viewToggleElement.click();
     }
 

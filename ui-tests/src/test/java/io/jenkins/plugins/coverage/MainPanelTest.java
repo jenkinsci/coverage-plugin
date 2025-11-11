@@ -2,8 +2,6 @@ package io.jenkins.plugins.coverage;
 
 import org.junit.Test;
 
-import org.jenkinsci.test.acceptance.po.FreeStyleJob;
-
 import io.jenkins.plugins.coverage.util.TrendChartTestUtil;
 
 import static org.assertj.core.api.Assertions.*;
@@ -18,10 +16,10 @@ public class MainPanelTest extends UiTest {
      * Verifies TrendChart in MainPanel is displayed and has correct values.
      */
     @Test
-    public void testTrendChartAfterSomeBuildsWithReports() {
-        FreeStyleJob job = getJobWithFirstBuildAndDifferentReports(InCaseCoverageDecreasedConfiguration.DONT_FAIL);
+    public void shouldTrendChartAfterSomeBuildsWithReports() {
+        var job = getJobWithFirstBuildAndDifferentReports(InCaseCoverageDecreasedConfiguration.DONT_FAIL);
         buildSuccessfully(job);
-        MainPanel mainPanel = new MainPanel(job);
+        var mainPanel = new MainPanel(job);
         verifyTrendChartWithTwoReports(mainPanel, 1, 2);
     }
 
@@ -31,9 +29,9 @@ public class MainPanelTest extends UiTest {
      * builds with reports.
      */
     @Test
-    public void testTrendChartShouldNotBeDisplayed() {
-        FreeStyleJob job = getJobWithReportInConfiguration();
-        MainPanel mainPanel = new MainPanel(job);
+    public void shouldTrendChartShouldNotBeDisplayed() {
+        var job = getJobWithReportInConfiguration();
+        var mainPanel = new MainPanel(job);
         mainPanel.open();
         assertThat(mainPanel.isChartDisplayed()).isFalse();
     }
@@ -52,8 +50,7 @@ public class MainPanelTest extends UiTest {
             final int lastBuildInChartNumber) {
         mainPanel.open();
         assertThat(mainPanel.isChartDisplayed()).isTrue();
-        String trendChart = mainPanel.getCoverageTrendChart();
+        var trendChart = mainPanel.getCoverageTrendChart();
         TrendChartTestUtil.verifyTrendChart(trendChart, firstBuildInChartNumber, lastBuildInChartNumber);
     }
 }
-

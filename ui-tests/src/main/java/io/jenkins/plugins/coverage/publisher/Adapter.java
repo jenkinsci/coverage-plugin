@@ -10,7 +10,7 @@ import io.jenkins.plugins.coverage.publisher.threshold.AdapterThreshold.AdapterT
 /**
  * Adapter which can be added in the configuration of the {@link CoveragePublisher} of a FreeStyle Project.
  */
-public class Adapter extends PageAreaImpl {
+public final class Adapter extends PageAreaImpl {
     private final Control reportFilePath = control("path");
     private final Control threshold = control("repeatable-add");
     private final Control mergeToOneReport = control("mergeToOneReport");
@@ -57,7 +57,7 @@ public class Adapter extends PageAreaImpl {
      */
     public AdapterThreshold createThresholdsPageArea() {
         ensureAdvancedOptionsIsActivated();
-        String path = createPageArea("thresholds", this.threshold::click);
+        var path = createPageArea("thresholds", this.threshold::click);
         return new AdapterThreshold(this, path);
     }
 
@@ -72,8 +72,8 @@ public class Adapter extends PageAreaImpl {
     public AdapterThreshold createThresholdsPageArea(final AdapterThresholdTarget thresholdTarget, final double unhealthyThreshold,
             final double unstableThreshold, final boolean failUnhealthy) {
         ensureAdvancedOptionsIsActivated();
-        String path = createPageArea("thresholds", this.threshold::click);
-        AdapterThreshold adapterThreshold = new AdapterThreshold(this, path);
+        var path = createPageArea("thresholds", this.threshold::click);
+        var adapterThreshold = new AdapterThreshold(this, path);
         adapterThreshold.setThresholdTarget(thresholdTarget);
         adapterThreshold.setUnhealthyThreshold(unhealthyThreshold);
         adapterThreshold.setUnstableThreshold(unstableThreshold);

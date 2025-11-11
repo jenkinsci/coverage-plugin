@@ -5,7 +5,6 @@ import org.junit.Test;
 
 import org.jenkinsci.test.acceptance.junit.WithPlugins;
 import org.jenkinsci.test.acceptance.po.Build;
-import org.jenkinsci.test.acceptance.po.FreeStyleJob;
 
 import io.jenkins.plugins.coverage.publisher.CoveragePublisher.SourceFileResolver;
 
@@ -21,7 +20,7 @@ public class CoveragePublisherTest extends UiTest {
      */
     @Test
     public void shouldFailOnNoReport() {
-        FreeStyleJob job = getJobWithoutAnyReports(InCaseNoReportsConfiguration.FAIL);
+        var job = getJobWithoutAnyReports(InCaseNoReportsConfiguration.FAIL);
         buildWithErrors(job);
     }
 
@@ -30,7 +29,7 @@ public class CoveragePublisherTest extends UiTest {
      */
     @Test
     public void shouldFailOnDecreasedCoverage() {
-        FreeStyleJob job = getJobWithFirstBuildAndDifferentReports(InCaseCoverageDecreasedConfiguration.FAIL);
+        var job = getJobWithFirstBuildAndDifferentReports(InCaseCoverageDecreasedConfiguration.FAIL);
         buildWithErrors(job);
     }
 
@@ -40,7 +39,7 @@ public class CoveragePublisherTest extends UiTest {
     @Test
     @Ignore("This bug needs to be fixed")
     public void shouldAdapterThresholdsAndFailOnUnhealthySetter() {
-        FreeStyleJob job = getJobWithAdapterThresholdAndFailOnUnhealthySetter(97, 99, true, ThresholdLevel.ADAPTER);
+        var job = getJobWithAdapterThresholdAndFailOnUnhealthySetter(97, 99, true, ThresholdLevel.ADAPTER);
         buildWithErrors(job);
     }
 
@@ -49,7 +48,7 @@ public class CoveragePublisherTest extends UiTest {
      */
     @Test
     public void shouldGlobalThresholdsAndFailSetter() {
-        FreeStyleJob job = getJobWithAdapterThresholdAndFailOnUnhealthySetter(97, 99, true, ThresholdLevel.GLOBAL);
+        var job = getJobWithAdapterThresholdAndFailOnUnhealthySetter(97, 99, true, ThresholdLevel.GLOBAL);
         buildUnstable(job);
     }
 
@@ -59,8 +58,8 @@ public class CoveragePublisherTest extends UiTest {
     @Test
     @WithPlugins("git")
     public void shouldSourceFileStoringLevelAllBuilds() {
-        FreeStyleJob job = getJobWithReportAndSourceCode(SourceFileResolver.STORE_ALL_BUILD);
-        Build build = buildSuccessfully(job);
+        var job = getJobWithReportAndSourceCode(SourceFileResolver.STORE_ALL_BUILD);
+        var build = buildSuccessfully(job);
         buildSuccessfully(job);
         buildSuccessfully(job);
         buildSuccessfully(job);
@@ -75,10 +74,10 @@ public class CoveragePublisherTest extends UiTest {
     @Test
     @WithPlugins("git")
     public void shouldSourceFileStoringLevelLastBuild() {
-        FreeStyleJob job = getJobWithReportAndSourceCode(SourceFileResolver.STORE_LAST_BUILD);
-        Build firstBuild = buildSuccessfully(job);
-        Build secondBuild = buildSuccessfully(job);
-        Build thirdBuild = buildSuccessfully(job);
+        var job = getJobWithReportAndSourceCode(SourceFileResolver.STORE_LAST_BUILD);
+        var firstBuild = buildSuccessfully(job);
+        var secondBuild = buildSuccessfully(job);
+        var thirdBuild = buildSuccessfully(job);
 
         verifyClickableFileSelection(firstBuild, false);
         verifyClickableFileSelection(secondBuild, false);
@@ -91,8 +90,8 @@ public class CoveragePublisherTest extends UiTest {
     @Test
     @WithPlugins("git")
     public void shouldSourceFileStoringLevelNever() {
-        FreeStyleJob job = getJobWithReportAndSourceCode(SourceFileResolver.NEVER_STORE);
-        Build firstBuild = buildSuccessfully(job);
+        var job = getJobWithReportAndSourceCode(SourceFileResolver.NEVER_STORE);
+        var firstBuild = buildSuccessfully(job);
 
         verifyClickableFileSelection(firstBuild, false);
     }
@@ -106,10 +105,10 @@ public class CoveragePublisherTest extends UiTest {
      *         {@code true} if the source code is available and should be displayed
      */
     private void verifyClickableFileSelection(final Build build, final boolean sourceCodeAvailable) {
-        CoverageReport report = new CoverageReport(build);
+        var report = new CoverageReport(build);
         report.open();
-        FileCoverageTable fileCoverageTable = report.openFileCoverageTable();
-        FileCoverageTableRow row = fileCoverageTable.getRow(0);
+        var fileCoverageTable = report.openFileCoverageTable();
+        var row = fileCoverageTable.getRow(0);
         row.openSourceCode();
         assertThat(report.isExpectedSourceFileContentDisplayed(sourceCodeAvailable)).isEqualTo(sourceCodeAvailable);
     }
