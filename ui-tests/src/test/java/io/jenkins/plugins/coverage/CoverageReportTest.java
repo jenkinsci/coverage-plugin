@@ -1,8 +1,8 @@
 package io.jenkins.plugins.coverage;
 
-import java.util.List;
-
 import org.junit.Test;
+
+import java.util.List;
 
 import org.jenkinsci.test.acceptance.po.Build;
 import org.jenkinsci.test.acceptance.po.FreeStyleJob;
@@ -23,7 +23,7 @@ public class CoverageReportTest extends UiTest {
      * Test for CoverageReport of job with no reports does not exist. Verifies CoverageReport can't be opened.
      */
     @Test
-    public void testCoverageReportNotAvailableForJobWithNoReports() {
+    public void shouldCoverageReportNotAvailableForJobWithNoReports() {
         FreeStyleJob job = jenkins.getJobs().create(FreeStyleJob.class);
         job.save();
         Build build = buildSuccessfully(job);
@@ -37,7 +37,7 @@ public class CoverageReportTest extends UiTest {
      * and CoverageOverview) as well as {@link FileCoverageTable}.
      */
     @Test
-    public void testCoverageReportAfterSomeBuildsWithReports() {
+    public void shouldCoverageReportAfterSomeBuildsWithReports() {
         FreeStyleJob job = jenkins.getJobs().create(FreeStyleJob.class);
         CoveragePublisher coveragePublisher = job.addPublisher(CoveragePublisher.class);
         Adapter jacocoAdapter = coveragePublisher.createAdapterPageArea("Jacoco");
@@ -73,7 +73,7 @@ public class CoverageReportTest extends UiTest {
      * CoverageOverview) as well as {@link FileCoverageTable} are being displayed and verifies some of its data.
      */
     @Test
-    public void testCoverageReportAfterOneBuildWithReport() {
+    public void shouldCoverageReportAfterOneBuildWithReport() {
         Build secondBuild = buildSuccessfully(getJobWithReportInConfiguration());
 
         CoverageReport report = new CoverageReport(secondBuild);
@@ -94,7 +94,7 @@ public class CoverageReportTest extends UiTest {
      * pages works correctly, by checking some of its {@link FileCoverageTableRow}s on different pages.
      */
     @Test
-    public void testCoverageTableWithMultiplePages() {
+    public void shouldCoverageTableWithMultiplePages() {
         Build secondBuild = buildSuccessfully(getJobWithReportInConfiguration());
 
         CoverageReport report = new CoverageReport(secondBuild);

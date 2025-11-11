@@ -17,29 +17,29 @@ import static org.assertj.core.api.AssertionsForClassTypes.*;
  */
 public class CoveragePublisherTest extends UiTest {
     /**
-     * Verifies that job with no report fails when setFailNoReports(true).
+     * Verifies that a job with no report fails when setFailNoReports(true).
      */
     @Test
-    public void testFailOnNoReport() {
+    public void shouldFailOnNoReport() {
         FreeStyleJob job = getJobWithoutAnyReports(InCaseNoReportsConfiguration.FAIL);
         buildWithErrors(job);
     }
 
     /**
-     * Verifies that job with decreased coverage fails when setFailBuildIfCoverageDecreasedInChangeRequest(true).
+     * Verifies that a job with decreased coverage fails when setFailBuildIfCoverageDecreasedInChangeRequest(true).
      */
     @Test
-    public void testFailOnDecreasedCoverage() {
+    public void shouldFailOnDecreasedCoverage() {
         FreeStyleJob job = getJobWithFirstBuildAndDifferentReports(InCaseCoverageDecreasedConfiguration.FAIL);
         buildWithErrors(job);
     }
 
     /**
-     * Test if build fails if setFailUnhealthy is true and thresholds set.
+     * Test if a build fails if setFailUnhealthy is true and thresholds set.
      */
     @Test
     @Ignore("This bug needs to be fixed")
-    public void testAdapterThresholdsAndFailOnUnhealthySetter() {
+    public void shouldAdapterThresholdsAndFailOnUnhealthySetter() {
         FreeStyleJob job = getJobWithAdapterThresholdAndFailOnUnhealthySetter(97, 99, true, ThresholdLevel.ADAPTER);
         buildWithErrors(job);
     }
@@ -48,17 +48,17 @@ public class CoveragePublisherTest extends UiTest {
      * Test if global thresholds are set.
      */
     @Test
-    public void testGlobalThresholdsAndFailSetter() {
+    public void shouldGlobalThresholdsAndFailSetter() {
         FreeStyleJob job = getJobWithAdapterThresholdAndFailOnUnhealthySetter(97, 99, true, ThresholdLevel.GLOBAL);
         buildUnstable(job);
     }
 
     /**
-     * Tests if source file storing level and display is correct.
+     * Tests if the source file storing level and display is correct.
      */
     @Test
     @WithPlugins("git")
-    public void testSourceFileStoringLevelAllBuilds() {
+    public void shouldSourceFileStoringLevelAllBuilds() {
         FreeStyleJob job = getJobWithReportAndSourceCode(SourceFileResolver.STORE_ALL_BUILD);
         Build build = buildSuccessfully(job);
         buildSuccessfully(job);
@@ -74,7 +74,7 @@ public class CoveragePublisherTest extends UiTest {
      */
     @Test
     @WithPlugins("git")
-    public void testSourceFileStoringLevelLastBuild() {
+    public void shouldSourceFileStoringLevelLastBuild() {
         FreeStyleJob job = getJobWithReportAndSourceCode(SourceFileResolver.STORE_LAST_BUILD);
         Build firstBuild = buildSuccessfully(job);
         Build secondBuild = buildSuccessfully(job);
@@ -90,7 +90,7 @@ public class CoveragePublisherTest extends UiTest {
      */
     @Test
     @WithPlugins("git")
-    public void testSourceFileStoringLevelNever() {
+    public void shouldSourceFileStoringLevelNever() {
         FreeStyleJob job = getJobWithReportAndSourceCode(SourceFileResolver.NEVER_STORE);
         Build firstBuild = buildSuccessfully(job);
 
