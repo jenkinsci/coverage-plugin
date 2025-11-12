@@ -133,8 +133,7 @@ public final class CoverageSummary extends PageObject {
      */
     public static boolean isSummaryDisplayed(final WebDriver pageObject, final String elementId) {
         try {
-            var summary = pageObject.findElement(By.id(elementId));
-            return summary != null && summary.isDisplayed();
+            return pageObject.findElement(By.id(elementId)).isDisplayed();
         }
         catch (NoSuchElementException exception) {
             return false;
