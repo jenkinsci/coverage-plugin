@@ -5,7 +5,6 @@ import org.junit.Test;
 
 import org.jenkinsci.test.acceptance.junit.WithPlugins;
 import org.jenkinsci.test.acceptance.po.Build;
-import org.jenkinsci.test.acceptance.po.FreeStyleJob;
 
 import io.jenkins.plugins.coverage.publisher.CoveragePublisher.SourceFileResolver;
 
@@ -17,30 +16,30 @@ import static org.assertj.core.api.AssertionsForClassTypes.*;
  */
 public class CoveragePublisherTest extends UiTest {
     /**
-     * Verifies that job with no report fails when setFailNoReports(true).
+     * Verifies that a job with no report fails when setFailNoReports(true).
      */
     @Test
-    public void testFailOnNoReport() {
-        FreeStyleJob job = getJobWithoutAnyReports(InCaseNoReportsConfiguration.FAIL);
+    public void shouldFailOnNoReport() {
+        var job = getJobWithoutAnyReports(InCaseNoReportsConfiguration.FAIL);
         buildWithErrors(job);
     }
 
     /**
-     * Verifies that job with decreased coverage fails when setFailBuildIfCoverageDecreasedInChangeRequest(true).
+     * Verifies that a job with decreased coverage fails when setFailBuildIfCoverageDecreasedInChangeRequest(true).
      */
     @Test
-    public void testFailOnDecreasedCoverage() {
-        FreeStyleJob job = getJobWithFirstBuildAndDifferentReports(InCaseCoverageDecreasedConfiguration.FAIL);
+    public void shouldFailOnDecreasedCoverage() {
+        var job = getJobWithFirstBuildAndDifferentReports(InCaseCoverageDecreasedConfiguration.FAIL);
         buildWithErrors(job);
     }
 
     /**
-     * Test if build fails if setFailUnhealthy is true and thresholds set.
+     * Test if a build fails if setFailUnhealthy is true and thresholds set.
      */
     @Test
     @Ignore("This bug needs to be fixed")
-    public void testAdapterThresholdsAndFailOnUnhealthySetter() {
-        FreeStyleJob job = getJobWithAdapterThresholdAndFailOnUnhealthySetter(97, 99, true, ThresholdLevel.ADAPTER);
+    public void shouldAdapterThresholdsAndFailOnUnhealthySetter() {
+        var job = getJobWithAdapterThresholdAndFailOnUnhealthySetter(97, 99, true, ThresholdLevel.ADAPTER);
         buildWithErrors(job);
     }
 
@@ -48,19 +47,19 @@ public class CoveragePublisherTest extends UiTest {
      * Test if global thresholds are set.
      */
     @Test
-    public void testGlobalThresholdsAndFailSetter() {
-        FreeStyleJob job = getJobWithAdapterThresholdAndFailOnUnhealthySetter(97, 99, true, ThresholdLevel.GLOBAL);
+    public void shouldGlobalThresholdsAndFailSetter() {
+        var job = getJobWithAdapterThresholdAndFailOnUnhealthySetter(97, 99, true, ThresholdLevel.GLOBAL);
         buildUnstable(job);
     }
 
     /**
-     * Tests if source file storing level and display is correct.
+     * Tests if the source file storing level and display is correct.
      */
     @Test
     @WithPlugins("git")
-    public void testSourceFileStoringLevelAllBuilds() {
-        FreeStyleJob job = getJobWithReportAndSourceCode(SourceFileResolver.STORE_ALL_BUILD);
-        Build build = buildSuccessfully(job);
+    public void shouldSourceFileStoringLevelAllBuilds() {
+        var job = getJobWithReportAndSourceCode(SourceFileResolver.STORE_ALL_BUILD);
+        var build = buildSuccessfully(job);
         buildSuccessfully(job);
         buildSuccessfully(job);
         buildSuccessfully(job);
@@ -74,11 +73,11 @@ public class CoveragePublisherTest extends UiTest {
      */
     @Test
     @WithPlugins("git")
-    public void testSourceFileStoringLevelLastBuild() {
-        FreeStyleJob job = getJobWithReportAndSourceCode(SourceFileResolver.STORE_LAST_BUILD);
-        Build firstBuild = buildSuccessfully(job);
-        Build secondBuild = buildSuccessfully(job);
-        Build thirdBuild = buildSuccessfully(job);
+    public void shouldSourceFileStoringLevelLastBuild() {
+        var job = getJobWithReportAndSourceCode(SourceFileResolver.STORE_LAST_BUILD);
+        var firstBuild = buildSuccessfully(job);
+        var secondBuild = buildSuccessfully(job);
+        var thirdBuild = buildSuccessfully(job);
 
         verifyClickableFileSelection(firstBuild, false);
         verifyClickableFileSelection(secondBuild, false);
@@ -90,9 +89,9 @@ public class CoveragePublisherTest extends UiTest {
      */
     @Test
     @WithPlugins("git")
-    public void testSourceFileStoringLevelNever() {
-        FreeStyleJob job = getJobWithReportAndSourceCode(SourceFileResolver.NEVER_STORE);
-        Build firstBuild = buildSuccessfully(job);
+    public void shouldSourceFileStoringLevelNever() {
+        var job = getJobWithReportAndSourceCode(SourceFileResolver.NEVER_STORE);
+        var firstBuild = buildSuccessfully(job);
 
         verifyClickableFileSelection(firstBuild, false);
     }
@@ -106,10 +105,10 @@ public class CoveragePublisherTest extends UiTest {
      *         {@code true} if the source code is available and should be displayed
      */
     private void verifyClickableFileSelection(final Build build, final boolean sourceCodeAvailable) {
-        CoverageReport report = new CoverageReport(build);
+        var report = new CoverageReport(build);
         report.open();
-        FileCoverageTable fileCoverageTable = report.openFileCoverageTable();
-        FileCoverageTableRow row = fileCoverageTable.getRow(0);
+        var fileCoverageTable = report.openFileCoverageTable();
+        var row = fileCoverageTable.getRow(0);
         row.openSourceCode();
         assertThat(report.isExpectedSourceFileContentDisplayed(sourceCodeAvailable)).isEqualTo(sourceCodeAvailable);
     }

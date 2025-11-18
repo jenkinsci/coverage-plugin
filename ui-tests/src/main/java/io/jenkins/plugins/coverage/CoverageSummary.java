@@ -1,14 +1,14 @@
 package io.jenkins.plugins.coverage;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 import org.openqa.selenium.By;
 import org.openqa.selenium.NoSuchElementException;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import org.jenkinsci.test.acceptance.po.Build;
 import org.jenkinsci.test.acceptance.po.PageObject;
@@ -16,7 +16,7 @@ import org.jenkinsci.test.acceptance.po.PageObject;
 /**
  * {@link PageObject} representing the coverage summary on the build page of a job.
  */
-public class CoverageSummary extends PageObject {
+public final class CoverageSummary extends PageObject {
     private final WebElement coverageReportLink;
     private final WebElement referenceBuild;
     private final List<WebElement> coverage;
@@ -31,7 +31,6 @@ public class CoverageSummary extends PageObject {
      * @param id
      *         the type of the result page (e.g. simian, checkstyle, cpd, etc.)
      */
-    @SuppressWarnings("PMD.ConstructorCallsOverridableMethod")
     public CoverageSummary(final Build parent, final String id) {
         super(parent, parent.url(id));
 
@@ -64,8 +63,8 @@ public class CoverageSummary extends PageObject {
     public Map<String, Double> getCoverage() {
         Map<String, Double> coverageMapping = new HashMap<>();
         for (WebElement result : this.coverage) {
-            String message = result.getText();
-            String type = message.substring(0, message.indexOf(':')).trim();
+            var message = result.getText();
+            var type = message.substring(0, message.indexOf(':')).trim();
             double value = Double.parseDouble(message.substring(message.indexOf(':') + 1, message.indexOf('%')).trim());
             coverageMapping.put(type, value);
         }
@@ -80,7 +79,7 @@ public class CoverageSummary extends PageObject {
     public List<Double> getCoverageChanges() {
         List<Double> changes = new ArrayList<>();
         for (WebElement result : this.coverageChanges) {
-            String message = result.getText();
+            var message = result.getText();
             double value = Double.parseDouble(message.substring(1, message.indexOf('%')).trim());
             changes.add(value);
         }
@@ -111,13 +110,13 @@ public class CoverageSummary extends PageObject {
      * @return {@link CoverageReport} of reference build
      */
     public CoverageReport openReferenceBuild() {
-        WebElement a = this.referenceBuild.findElement(By.tagName("a"));
+        var a = this.referenceBuild.findElement(By.tagName("a"));
         return openPage(a, CoverageReport.class);
     }
 
     private <T extends PageObject> T openPage(final WebElement link, final Class<T> type) {
-        String href = link.getAttribute("href");
-        T result = newInstance(type, url(href));
+        var href = link.getAttribute("href");
+        var result = newInstance(type, url(href));
         link.click();
         return result;
     }
@@ -134,8 +133,7 @@ public class CoverageSummary extends PageObject {
      */
     public static boolean isSummaryDisplayed(final WebDriver pageObject, final String elementId) {
         try {
-            WebElement summary = pageObject.findElement(By.id(elementId));
-            return summary != null && summary.isDisplayed();
+            return pageObject.findElement(By.id(elementId)).isDisplayed();
         }
         catch (NoSuchElementException exception) {
             return false;

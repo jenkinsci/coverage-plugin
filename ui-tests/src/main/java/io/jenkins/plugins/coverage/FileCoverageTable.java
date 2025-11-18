@@ -1,14 +1,14 @@
 package io.jenkins.plugins.coverage;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.stream.Collectors;
-
 import org.apache.commons.lang3.StringUtils;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebElement;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Area that represents the file coverage table in a {@link CoverageReport} page.
@@ -116,7 +116,7 @@ public class FileCoverageTable {
      *         the number representing the page to open
      */
     public void openTablePage(final int pageNumber) {
-        WebElement webElement = coverageReport.find(
+        var webElement = coverageReport.find(
                 By.xpath("//a[@class='page-link' and @data-dt-idx='" + (pageNumber - 1) + "']"));
         webElement.click();
 
@@ -132,7 +132,7 @@ public class FileCoverageTable {
      * @return value of total entries
      */
     public int getTotals() {
-        String textOfTableInfo = this.tableInfo.getText();
+        var textOfTableInfo = this.tableInfo.getText();
         String total = StringUtils.substringAfter(textOfTableInfo, "of ");
         return Integer.parseInt(StringUtils.substringBefore(total, " "));
     }

@@ -9,7 +9,7 @@ import static net.javacrumbs.jsonunit.assertj.JsonAssertions.*;
  * Due to Coverage TrendChart is displayed twice, in ({@link CoverageReport} and {@link MainPanel}, this helper class
  * provides static verifying methods that can be used in all tests for a specific TrendChart.
  */
-public class TrendChartTestUtil {
+public final class TrendChartTestUtil {
     private static final int FIRST_LINE_COVERAGE = 96;
     private static final int FIRST_BRANCH_COVERAGE = 89;
     private static final int SECOND_LINE_COVERAGE = 91;

@@ -13,6 +13,7 @@ abstract class AbstractThreshold extends PageAreaImpl {
     private final Control unstableThreshold = control("unstableThreshold");
     private final Control failUnhealthy = control("failUnhealthy");
     private final Control deleteButton = control("repeatable-delete");
+
     /**
      * Constructor of an AbstractThreshold.
      *
@@ -21,7 +22,6 @@ abstract class AbstractThreshold extends PageAreaImpl {
      * @param path
      *         to threshold
      */
-
     protected AbstractThreshold(final PageArea parent, final String path) {
         super(parent, path);
     }

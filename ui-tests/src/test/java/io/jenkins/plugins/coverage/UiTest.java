@@ -6,7 +6,6 @@ import org.jenkinsci.test.acceptance.po.Build;
 import org.jenkinsci.test.acceptance.po.FreeStyleJob;
 import org.jenkinsci.test.acceptance.po.Job;
 
-import io.jenkins.plugins.coverage.publisher.Adapter;
 import io.jenkins.plugins.coverage.publisher.CoveragePublisher;
 import io.jenkins.plugins.coverage.publisher.CoveragePublisher.SourceFileResolver;
 import io.jenkins.plugins.coverage.publisher.threshold.AdapterThreshold.AdapterThresholdTarget;
@@ -58,15 +57,15 @@ class UiTest extends AbstractJUnitTest {
      * @return job with source code and correct jacoco file
      */
     FreeStyleJob getJobWithReportAndSourceCode(final SourceFileResolver sourceFileResolver) {
-        FreeStyleJob job = jenkins.getJobs().create(FreeStyleJob.class);
+        var job = jenkins.getJobs().create(FreeStyleJob.class);
         copyResourceFilesToWorkspace(job, RESOURCES_FOLDER);
 
-        CoveragePublisher coveragePublisher = job.addPublisher(CoveragePublisher.class);
+        var coveragePublisher = job.addPublisher(CoveragePublisher.class);
         coveragePublisher.setSourceCodeEncoding("UTF-8")
                 .addSourceDirectory("checkout/src/main/java")
                 .setSourceFileResolver(sourceFileResolver);
 
-        Adapter jacocoAdapter = coveragePublisher.createAdapterPageArea("Jacoco");
+        var jacocoAdapter = coveragePublisher.createAdapterPageArea("Jacoco");
         jacocoAdapter.setReportFilePath(JACOCO_FROM_COMMIT_XML);
 
         job.useScm(GitScm.class)
@@ -94,9 +93,9 @@ class UiTest extends AbstractJUnitTest {
      */
     FreeStyleJob getJobWithAdapterThresholdAndFailOnUnhealthySetter(final int unhealthyThreshold, final int unstableThreshold,
             final boolean failUnhealthy, final ThresholdLevel thresholdLevel) {
-        FreeStyleJob job = jenkins.getJobs().create(FreeStyleJob.class);
-        CoveragePublisher coveragePublisher = job.addPublisher(CoveragePublisher.class);
-        Adapter jacocoAdapter = coveragePublisher.createAdapterPageArea("Jacoco");
+        var job = jenkins.getJobs().create(FreeStyleJob.class);
+        var coveragePublisher = job.addPublisher(CoveragePublisher.class);
+        var jacocoAdapter = coveragePublisher.createAdapterPageArea("Jacoco");
         copyResourceFilesToWorkspace(job, RESOURCES_FOLDER);
         jacocoAdapter.setReportFilePath(JACOCO_ANALYSIS_MODEL_XML);
         if (thresholdLevel == ThresholdLevel.ADAPTER) {
@@ -139,8 +138,8 @@ class UiTest extends AbstractJUnitTest {
      * @return job with chosen configuration
      */
     private FreeStyleJob createJobWithConfiguration(final JobConfiguration jobConfiguration) {
-        FreeStyleJob job = jenkins.getJobs().create(FreeStyleJob.class);
-        CoveragePublisher coveragePublisher = job.addPublisher(CoveragePublisher.class);
+        var job = jenkins.getJobs().create(FreeStyleJob.class);
+        var coveragePublisher = job.addPublisher(CoveragePublisher.class);
 
         if (jobConfiguration == JobConfiguration.NO_REPORTS_SHOULD_FAIL
                 || jobConfiguration == JobConfiguration.NO_REPORTS) {
@@ -152,7 +151,7 @@ class UiTest extends AbstractJUnitTest {
             return job;
         }
 
-        Adapter jacocoAdapter = coveragePublisher.createAdapterPageArea("Jacoco");
+        var jacocoAdapter = coveragePublisher.createAdapterPageArea("Jacoco");
         copyResourceFilesToWorkspace(job, RESOURCES_FOLDER);
         jacocoAdapter.setReportFilePath(JACOCO_ANALYSIS_MODEL_XML);
         job.save();

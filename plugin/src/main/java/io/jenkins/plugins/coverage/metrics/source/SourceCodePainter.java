@@ -11,10 +11,12 @@ import edu.umd.cs.findbugs.annotations.NonNull;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
+import java.io.Serial;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -118,9 +120,11 @@ public class SourceCodePainter {
      * single archive to simplify copying to the controller.
      */
     static class AgentCoveragePainter extends MasterToSlaveFileCallable<FilteredLog> {
+        @Serial
         private static final long serialVersionUID = 3966282357309568323L;
 
-        private final List<? extends CoverageSourcePrinter> paintedFiles;
+        @SuppressWarnings("PMD.LooseCoupling")
+        private final ArrayList<? extends CoverageSourcePrinter> paintedFiles;
         private final String sourceCodeEncoding;
         private final String directory;
 
@@ -138,7 +142,7 @@ public class SourceCodePainter {
                 final String directory) {
             super();
 
-            this.paintedFiles = files;
+            this.paintedFiles = new ArrayList<>(files);
             this.sourceCodeEncoding = sourceCodeEncoding;
             this.directory = directory;
         }

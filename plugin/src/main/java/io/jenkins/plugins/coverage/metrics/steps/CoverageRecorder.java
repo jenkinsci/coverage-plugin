@@ -629,6 +629,7 @@ public class CoverageRecorder extends Recorder {
         }
 
         @Override
+        @SuppressWarnings("rawtypes")
         public boolean isApplicable(final Class<? extends AbstractProject> jobType) {
             return true;
         }

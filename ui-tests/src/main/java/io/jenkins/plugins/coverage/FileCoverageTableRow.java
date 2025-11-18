@@ -1,9 +1,9 @@
 package io.jenkins.plugins.coverage;
 
-import java.util.List;
-
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebElement;
+
+import java.util.List;
 
 /**
  * Representation of a table row in {@link FileCoverageTable}.

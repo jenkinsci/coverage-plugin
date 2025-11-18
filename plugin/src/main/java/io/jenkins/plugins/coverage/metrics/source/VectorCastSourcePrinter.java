@@ -220,7 +220,7 @@ public class VectorCastSourcePrinter extends CoverageSourcePrinter {
             trString = tr().withClass(UNDEFINED).with(
                 td().withClass("line").with(text("Line ")),
                 td().withClass("line").with(text("St/Br")),
-                td().withClass("line").with(text(NBSP))
+                td().withClass("line").with(rawHtml(NBSP))
             ).render();
         }
 

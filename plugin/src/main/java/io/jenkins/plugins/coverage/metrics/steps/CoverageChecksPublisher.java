@@ -160,8 +160,9 @@ class CoverageChecksPublisher {
             createTotalLinesSummary(modifiedFiles, summary);
             createLineCoverageSummary(modifiedFiles, summary);
             createBranchCoverageSummary(filteredRoot, modifiedFiles, summary);
-            createMutationCoverageSummary(filteredRoot, modifiedFiles, summary);
-
+            if (filteredRoot.containsMetric(Metric.MUTATION)) {
+                createMutationCoverageSummary(modifiedFiles, summary);
+            }
             return summary.toString();
         }
         return StringUtils.EMPTY;
@@ -213,32 +214,29 @@ class CoverageChecksPublisher {
         }
     }
 
-    private void createMutationCoverageSummary(final Node filteredRoot, final List<FileNode> modifiedFiles,
-            final StringBuilder summary) {
-        if (filteredRoot.containsMetric(Metric.MUTATION)) {
-            var survived = modifiedFiles.stream()
-                    .map(FileNode::getSurvivedMutationsPerLine)
-                    .map(Map::entrySet)
-                    .flatMap(Collection::stream)
-                    .map(Entry::getValue)
-                    .count();
-            var mutations = countLines(modifiedFiles, FileNode::getMutations);
-            if (survived == 0) {
-                if (mutations == 1) {
-                    summary.append("- 1 mutation has been killed");
-                }
-                else {
-                    summary.append("- all %d mutations have been killed".formatted(mutations));
-                }
-            }
-            else if (survived == 1) {
-                summary.append("- 1 mutation survived (of %d)".formatted(mutations));
+    private void createMutationCoverageSummary(final List<FileNode> modifiedFiles, final StringBuilder summary) {
+        var survived = modifiedFiles.stream()
+                .map(FileNode::getSurvivedMutationsPerLine)
+                .map(Map::entrySet)
+                .flatMap(Collection::stream)
+                .map(Entry::getValue)
+                .count();
+        var mutations = countLines(modifiedFiles, FileNode::getMutations);
+        if (survived == 0) {
+            if (mutations == 1) {
+                summary.append("- 1 mutation has been killed");
             }
             else {
-                summary.append("- %d mutations survived (of %d)".formatted(survived, mutations));
+                summary.append("- all %d mutations have been killed".formatted(mutations));
             }
-            summary.append(NEW_LINE);
         }
+        else if (survived == 1) {
+            summary.append("- 1 mutation survived (of %d)".formatted(mutations));
+        }
+        else {
+            summary.append("- %d mutations survived (of %d)".formatted(survived, mutations));
+        }
+        summary.append(NEW_LINE);
     }
 
     private List<ChecksAnnotation> getAnnotations() {
