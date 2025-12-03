@@ -4,6 +4,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.Fraction;
 import org.junit.jupiter.api.Test;
 import org.junitpioneer.jupiter.DefaultLocale;
+import org.junitpioneer.jupiter.Issue;
 
 import edu.hm.hafner.coverage.Coverage.CoverageBuilder;
 import edu.hm.hafner.coverage.Difference;
@@ -21,6 +22,7 @@ import hudson.model.FreeStyleBuild;
 
 import io.jenkins.plugins.coverage.metrics.model.Baseline;
 import io.jenkins.plugins.util.QualityGateResult;
+import io.jenkins.plugins.util.QualityGateStatus;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -32,6 +34,16 @@ import static org.mockito.Mockito.*;
  */
 @DefaultLocale("en")
 class CoverageBuildActionTest {
+    @Test
+    @Issue("SECURITY-3611")
+    void shouldValidateInAction() {
+        String evilId = "javascript:alert(1)";
+        assertThatIllegalArgumentException().isThrownBy(() ->
+                        new CoverageBuildAction(mock(FreeStyleBuild.class), evilId, "name", "icon",
+                                new ModuleNode("root"), new QualityGateResult(QualityGateStatus.ERROR), new FilteredLog()))
+                .withMessageContaining("An ID must match the regexp pattern");
+    }
+
     @Test
     void shouldNotLoadResultIfCoverageValuesArePersistedInAction() {
         var module = new ModuleNode("module");

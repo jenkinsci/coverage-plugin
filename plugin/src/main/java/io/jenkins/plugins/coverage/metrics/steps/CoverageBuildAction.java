@@ -40,6 +40,7 @@ import io.jenkins.plugins.util.BuildAction;
 import io.jenkins.plugins.util.JenkinsFacade;
 import io.jenkins.plugins.util.JobAction;
 import io.jenkins.plugins.util.QualityGateResult;
+import io.jenkins.plugins.util.ValidationUtilities;
 
 import static hudson.model.Run.*;
 
@@ -59,6 +60,7 @@ public final class CoverageBuildAction extends BuildAction<Node> implements Stap
     private static final String NO_REFERENCE_BUILD = "-";
     private static final List<Difference> NO_VALUES = List.of();
     private static final int MAX_METRICS_COUNT_IN_SUMMARY = 5;
+    private static final ValidationUtilities VALIDATION_UTILITIES = new ValidationUtilities();
 
     private final String id;
     private final String name;
@@ -210,6 +212,8 @@ public final class CoverageBuildAction extends BuildAction<Node> implements Stap
             final boolean canSerialize) {
         super(owner, result, false);
 
+        VALIDATION_UTILITIES.ensureValidId(id);
+
         this.id = id;
         this.name = name;
         this.icon = icon;
@@ -240,6 +244,8 @@ public final class CoverageBuildAction extends BuildAction<Node> implements Stap
     @Override
     protected Object readResolve() {
         super.readResolve();
+
+        VALIDATION_UTILITIES.ensureValidId(id);
 
         if (difference == null) {
             difference = new TreeMap<>();
