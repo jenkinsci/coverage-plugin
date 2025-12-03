@@ -403,6 +403,32 @@ class CoveragePluginITest extends AbstractCoverageITest {
         verifyOpenCoverResults(build);
     }
 
+    @Test
+    void shouldRecordOneLCOVResultInPipeline() {
+        var job = createPipeline();
+        copyFilesToWorkspace(job, "lcov.info");
+        job.setDefinition(createPipelineScript(
+                """
+                node {
+                    recordCoverage tools: [[parser: 'LCOV', pattern: 'lcov.info']]
+                }
+                """));
+
+        Run<?, ?> run = buildWithResult(job, Result.SUCCESS);
+
+        assertThat(getConsoleLog(run))
+                .contains("that match the pattern 'lcov.info'",
+                        "-> found 1 file",
+                        "PACKAGE: 100.00% (1/1)",
+                        "FILE: 66.67% (2/3)",
+                        "LINE: 66.67% (4/6)",
+                        "INSTRUCTION: 50.00% (3/6)",
+                        "LOC: 6")
+                .containsPattern("Searching for all files in '.*' that match the pattern 'lcov.info'")
+                .containsPattern("Successfully parsed file .*/lcov.info")
+                .doesNotContain("Expanding pattern");
+    }
+
     private void verifyOpenCoverResults(final Run<?, ?> build) {
         var coverageResult = build.getAction(CoverageBuildAction.class);
         assertThat(coverageResult.getAllValues(Baseline.PROJECT))
