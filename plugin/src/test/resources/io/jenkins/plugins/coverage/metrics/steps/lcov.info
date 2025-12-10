@@ -1,0 +1,15 @@
+TN:
+SF:src/main.ts
+DA:10,12
+DA:20,0
+DA:30,1
+BRDA:20,1,0,0
+BRDA:20,1,1,1
+end_of_record
+SF:src/utils/helper.ts
+DA:5,0
+DA:6,0
+end_of_record
+SF:lib/module.c
+DA:1,2
+end_of_record
