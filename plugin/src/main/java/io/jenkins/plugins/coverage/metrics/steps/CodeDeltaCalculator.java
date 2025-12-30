@@ -95,9 +95,9 @@ class CodeDeltaCalculator {
      */
     public Set<FileChanges> getCoverageRelevantChanges(final Delta delta) {
         return delta.getFileChangesMap().values().stream()
-                .filter(fileChange -> fileChange.getFileEditType().equals(FileEditType.MODIFY)
-                        || fileChange.getFileEditType().equals(FileEditType.ADD)
-                        || fileChange.getFileEditType().equals(FileEditType.RENAME))
+                .filter(fileChange -> fileChange.getFileEditType() == FileEditType.MODIFY
+                        || fileChange.getFileEditType() == FileEditType.ADD
+                        || fileChange.getFileEditType() == FileEditType.RENAME)
                 .collect(Collectors.toSet());
     }
 
@@ -156,7 +156,7 @@ class CodeDeltaCalculator {
         Set<String> oldReportPaths = new HashSet<>(referenceRoot.getFiles());
         // mapping between reference and current file paths which initially contains the SCM paths with renamings
         Map<String, String> oldPathMapping = changes.entrySet().stream()
-                .filter(entry -> FileEditType.RENAME.equals(entry.getValue().getFileEditType()))
+                .filter(entry -> FileEditType.RENAME == entry.getValue().getFileEditType())
                 .collect(Collectors.toMap(Entry::getKey, entry -> entry.getValue().getOldFileName()));
         // the SCM paths and the coverage report paths from the reference
         Map<String, String> oldScmToOldReportPathMapping
@@ -246,7 +246,8 @@ class CodeDeltaCalculator {
                 .map(Entry::getKey)
                 .collect(Collectors.toSet());
         if (!pathsWithEmptyReferences.isEmpty()) {
-            pathsWithEmptyReferences.forEach(oldPathMapping::remove); // remove entries which represent missing reference files
+            pathsWithEmptyReferences.forEach(
+                    oldPathMapping::remove); // remove entries which represent missing reference files
             var skippedFiles = pathsWithEmptyReferences.stream()
                     .limit(20) // prevent log overflows
                     .collect(Collectors.joining("," + System.lineSeparator()));
@@ -282,7 +283,8 @@ class CodeDeltaCalculator {
                     .limit(20) // prevent log overflows
                     .map(entry -> "new: '%s' - former: '%s'".formatted(entry.getKey(), entry.getValue()))
                     .collect(Collectors.joining("," + System.lineSeparator()));
-            var errorMessage = CODE_DELTA_TO_COVERAGE_DATA_MISMATCH_ERROR_TEMPLATE + System.lineSeparator() + mismatches;
+            var errorMessage =
+                    CODE_DELTA_TO_COVERAGE_DATA_MISMATCH_ERROR_TEMPLATE + System.lineSeparator() + mismatches;
             throw new IllegalStateException(errorMessage);
         }
         log.logInfo("Successfully verified that the coverage data matches with the code delta");
