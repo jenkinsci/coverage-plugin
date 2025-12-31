@@ -250,7 +250,10 @@ public class CoverageTool implements Describable<CoverageTool>, Serializable {
                 "symbol-footsteps-outline plugin-ionicons-api"),
         XUNIT(Messages._Parser_Xunit(), ParserType.TEST,
                 "**/xunit.xml,**/TestResult.xml",
-                "symbol-solid/list-check plugin-font-awesome-api");
+                "symbol-solid/list-check plugin-font-awesome-api"),
+        TRACE32(Messages._Parser_TRACE32(), ParserType.COVERAGE,
+                "**/index.xml",
+                "symbol-footsteps-outline plugin-ionicons-api");
 
         private final Localizable displayName;
         private final ParserType parserType;
