@@ -73,7 +73,7 @@ public class CoverageReport extends PageObject {
      * Ensures the tab is 'File Overview'/FileCoverageTable is active.
      */
     private void ensureCoverageTableTabIsActive() {
-        if (!getActiveTab().equals(Tab.FILE_OVERVIEW)) {
+        if (getActiveTab() != Tab.FILE_OVERVIEW) {
             openTabCoverageTable();
         }
     }
@@ -82,7 +82,7 @@ public class CoverageReport extends PageObject {
      * Ensures the tab is 'Package Overview'/CoverageTree is active.
      */
     private void ensureCoverageTreeTabIsActive() {
-        if (!getActiveTab().equals(Tab.PACKAGE_OVERVIEW)) {
+        if (getActiveTab() != Tab.PACKAGE_OVERVIEW) {
             openTabCoverageTree();
         }
     }
