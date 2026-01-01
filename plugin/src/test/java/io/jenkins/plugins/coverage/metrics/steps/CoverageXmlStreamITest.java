@@ -18,6 +18,7 @@ import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Locale;
 import java.util.NavigableMap;
 import java.util.NavigableSet;
 import java.util.TreeMap;
@@ -65,13 +66,15 @@ class CoverageXmlStreamITest extends SerializableTest<Node> {
         var xmlFile = new XmlFile(stream, file.toFile());
         var restored = xmlFile.read();
 
-        Assertions.assertThat(restored).isInstanceOfSatisfying(CoverageBuildAction.class,
+        assertThat(restored).isInstanceOfSatisfying(CoverageBuildAction.class,
                 a -> Assertions.assertThat(a.getAllValues(Baseline.PROJECT))
-                        .map(Object::toString).containsExactlyInAnyOrder("MODULE: 100.00% (1/1)",
-                                "PACKAGE: 75.00% (3/4)", "FILE: 100.00% (32/32)", "CLASS: 94.23% (49/52)",
-                                "METHOD: 95.79% (569/594)", "LINE: 96.35% (2164/2246)", "BRANCH: 92.92% (932/1003)",
-                                "INSTRUCTION: 96.44% (10534/10923)", "TESTS: 305", "CYCLOMATIC_COMPLEXITY: 1105",
-                                "LOC: 2246"));
+                        .map(v -> v.getDetails(Locale.ENGLISH))
+                        .containsExactlyInAnyOrder("Module Coverage: 100.00% (1/1)",
+                                "Package Coverage: 75.00% (3/4)", "File Coverage: 100.00% (32/32)",
+                                "Class Coverage: 94.23% (49/52)", "Method Coverage: 95.79% (569/594)",
+                                "Line Coverage: 96.35% (2164/2246)", "Branch Coverage: 92.92% (932/1003)",
+                                "Instruction Coverage: 96.44% (10534/10923)",
+                                "Number of Tests: 305", "Lines of Code: 2246", "Cyclomatic Complexity: 1105"));
     }
 
     @Test

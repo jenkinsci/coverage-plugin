@@ -13,6 +13,7 @@ import java.io.InputStreamReader;
 import java.io.Serial;
 import java.nio.charset.Charset;
 import java.nio.file.Path;
+import java.util.Locale;
 import java.util.Optional;
 
 import io.jenkins.plugins.coverage.metrics.steps.CoverageTool.Parser;
@@ -63,7 +64,7 @@ public class CoverageReportScanner extends AgentFileVisitor<ModuleNode> {
                 var reader = new InputStreamReader(inputStream, charset)) {
             var node = coverageParser.parse(reader, file.toString(), log);
             log.logInfo("Successfully parsed file '%s'", PATH_UTIL.getAbsolutePath(file));
-            node.aggregateValues().forEach(v -> log.logInfo("%s", v));
+            node.aggregateValues().forEach(v -> log.logInfo("%s", v.getDetails(Locale.ENGLISH)));
             return Optional.of(node);
         }
         catch (IOException | ParsingException exception) {
