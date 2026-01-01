@@ -241,14 +241,14 @@ class GitForensicsITest extends AbstractCoverageITest {
 
     private void verifyIndirectCoverageChanges(final CoverageBuildAction action) {
         assertThat(action.getAllValues(Baseline.INDIRECT))
-                .filteredOn(coverage -> coverage.getMetric().equals(LINE))
+                .filteredOn(coverage -> coverage.getMetric() == LINE)
                 .first()
                 .isInstanceOfSatisfying(Coverage.class, coverage -> {
                     assertThat(coverage.getCovered()).isEqualTo(4);
                     assertThat(coverage.getMissed()).isEqualTo(0);
                 });
         assertThat(action.getAllValues(Baseline.INDIRECT))
-                .filteredOn(coverage -> coverage.getMetric().equals(BRANCH))
+                .filteredOn(coverage -> coverage.getMetric() == BRANCH)
                 .isEmpty();
     }
 

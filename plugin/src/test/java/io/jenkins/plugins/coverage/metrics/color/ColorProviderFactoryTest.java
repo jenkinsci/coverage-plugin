@@ -33,8 +33,8 @@ class ColorProviderFactoryTest {
 
         for (CoverageColorPalette color : CoverageColorPalette.values()) {
             assertThat(colorProvider.containsColorId(color.getColorId())).isTrue();
-            if (!color.getColorId().equals(ColorId.BLACK) && !color.getColorId()
-                    .equals(ColorId.WHITE)) { // skip set default color
+            if (color.getColorId() != ColorId.BLACK
+                    && color.getColorId() != ColorId.WHITE) { // skip set default color
                 assertThat(colorProvider.getDisplayColorsOf(color.getColorId()))
                         .satisfies(displayColor -> assertThat(displayColor.getFillColor()).isEqualTo(TEST_COLOR));
             }
