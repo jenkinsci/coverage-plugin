@@ -409,21 +409,22 @@ class CoveragePluginITest extends AbstractCoverageITest {
         copyFilesToWorkspace(job, "lcov.info");
         job.setDefinition(createPipelineScript(
                 """
-                node {
-                    recordCoverage tools: [[parser: 'LCOV', pattern: 'lcov.info']]
-                }
-                """));
+                        node {
+                            recordCoverage tools: [[parser: 'LCOV', pattern: 'lcov.info']]
+                        }
+                        """));
 
         Run<?, ?> run = buildWithResult(job, Result.SUCCESS);
 
         assertThat(getConsoleLog(run))
                 .contains("that match the pattern 'lcov.info'",
                         "-> found 1 file",
-                        "PACKAGE: 100.00% (1/1)",
-                        "FILE: 66.67% (2/3)",
-                        "LINE: 66.67% (4/6)",
-                        "INSTRUCTION: 50.00% (3/6)",
-                        "LOC: 6")
+                        "[Coverage] Module Coverage: 100.00% (2/2)",
+                        "[Coverage] Package Coverage: 100.00% (1/1)",
+                        "[Coverage] File Coverage: 66.67% (2/3)",
+                        "[Coverage] Line Coverage: 66.67% (4/6)",
+                        "[Coverage] Instruction Coverage: 50.00% (3/6)",
+                        "[Coverage] Lines of Code: 6")
                 .containsPattern("Searching for all files in '.*' that match the pattern 'lcov.info'")
                 .containsPattern("Successfully parsed file .*/lcov.info")
                 .doesNotContain("Expanding pattern");
@@ -440,7 +441,8 @@ class CoveragePluginITest extends AbstractCoverageITest {
                 });
     }
 
-    @Test @Issue("JENKINS-72595")
+    @Test
+    @Issue("JENKINS-72595")
     void shouldGracefullyHandleBomEncodedFiles() {
         assumeThatTestIsRunningOnUnix();
 
@@ -587,16 +589,17 @@ class CoveragePluginITest extends AbstractCoverageITest {
         // TODO: verify that two different trend charts are returned!
     }
 
-    @Test @Issue("785")
+    @Test
+    @Issue("785")
     void shouldIgnoreErrors() {
         var job = createPipeline();
         copyFileToWorkspace(job, "cobertura-duplicate-methods.xml", "cobertura.xml");
         job.setDefinition(createPipelineScript(
                 """
-                node {
-                    recordCoverage tools: [[parser: 'COBERTURA']]
-                }
-                """));
+                        node {
+                            recordCoverage tools: [[parser: 'COBERTURA']]
+                        }
+                        """));
 
         Run<?, ?> failure = buildWithResult(job, Result.FAILURE);
 
@@ -605,10 +608,10 @@ class CoveragePluginITest extends AbstractCoverageITest {
 
         job.setDefinition(createPipelineScript(
                 """
-                node {
-                    recordCoverage tools: [[parser: 'COBERTURA']], ignoreParsingErrors: true
-                }
-                """));
+                        node {
+                            recordCoverage tools: [[parser: 'COBERTURA']], ignoreParsingErrors: true
+                        }
+                        """));
 
         Run<?, ?> success = buildWithResult(job, Result.SUCCESS);
 
@@ -621,16 +624,17 @@ class CoveragePluginITest extends AbstractCoverageITest {
         var job = createPipeline();
         job.setDefinition(createPipelineScript(
                 """
-                node {
-                    recordCoverage tools: [[parser: 'JACOCO']]
-                }
-                """));
+                        node {
+                            recordCoverage tools: [[parser: 'JACOCO']]
+                        }
+                        """));
 
         Run<?, ?> run = buildWithResult(job, Result.SUCCESS);
 
         assertThat(getConsoleLog(run))
                 .containsPattern("Using default pattern '\\*\\*/jacoco.xml,.*' since user defined pattern is not set")
-                .containsPattern("\\[-ERROR-\\] No files found for pattern '\\*\\*/jacoco.xml,.*'. Configuration error\\?")
+                .containsPattern(
+                        "\\[-ERROR-\\] No files found for pattern '\\*\\*/jacoco.xml,.*'. Configuration error\\?")
                 .containsPattern("Searching for all files in '.*' that match the pattern '\\*\\*/jacoco.xml,.*'")
                 .doesNotContain("Expanding pattern");
     }
@@ -641,10 +645,10 @@ class CoveragePluginITest extends AbstractCoverageITest {
         copyFilesToWorkspace(job, "jacoco.xml");
         job.setDefinition(createPipelineScript(
                 """
-                node {
-                    recordCoverage tools: [[parser: 'JACOCO']]
-                }
-                """));
+                        node {
+                            recordCoverage tools: [[parser: 'JACOCO']]
+                        }
+                        """));
 
         Run<?, ?> run = buildWithResult(job, Result.SUCCESS);
 
@@ -652,15 +656,16 @@ class CoveragePluginITest extends AbstractCoverageITest {
                 .containsPattern("Using default pattern '\\*\\*/jacoco.xml,.*' since user defined pattern is not set")
                 .contains(
                         "-> found 1 file",
-                        "MODULE: 100.00% (1/1)",
-                        "PACKAGE: 100.00% (1/1)",
-                        "FILE: 87.50% (7/8)",
-                        "CLASS: 93.75% (15/16)",
-                        "METHOD: 95.10% (97/102)",
-                        "INSTRUCTION: 93.33% (1260/1350)",
-                        "LINE: 91.02% (294/323)",
-                        "BRANCH: 93.97% (109/116)",
-                        "COMPLEXITY: 160"
+                        "Module Coverage: 100.00% (1/1)",
+                        "Package Coverage: 100.00% (1/1)",
+                        "File Coverage: 87.50% (7/8)",
+                        "Class Coverage: 93.75% (15/16)",
+                        "Method Coverage: 95.10% (97/102)",
+                        "Line Coverage: 91.02% (294/323)",
+                        "Branch Coverage: 93.97% (109/116)",
+                        "Instruction Coverage: 93.33% (1260/1350)",
+                        "Lines of Code: 323",
+                        "Cyclomatic Complexity: 160"
                 )
                 .containsPattern("Searching for all files in '.*' that match the pattern '\\*\\*/jacoco.xml,.*'")
                 .containsPattern("Successfully parsed file .*/jacoco.xml")
@@ -673,25 +678,27 @@ class CoveragePluginITest extends AbstractCoverageITest {
         copyFilesToWorkspace(job, "clover.xml");
         job.setDefinition(createPipelineScript(
                 """
-                node {
-                    recordCoverage tools: [[parser: 'CLOVER']]
-                }
-                """));
+                        node {
+                            recordCoverage tools: [[parser: 'CLOVER']]
+                        }
+                        """));
 
         Run<?, ?> run = buildWithResult(job, Result.SUCCESS);
 
         assertThat(getConsoleLog(run))
-                .contains("Using default pattern '**/*clover*.xml,**/*Clover*.xml' since user defined pattern is not set",
+                .contains(
+                        "Using default pattern '**/*clover*.xml,**/*Clover*.xml' since user defined pattern is not set",
                         "-> found 1 file",
-                        "MODULE: 100.00% (1/1)",
-                        "PACKAGE: 100.00% (3/3)",
-                        "FILE: 100.00% (6/6)",
-                        "METHOD: 73.38% (736/1003)",
-                        "INSTRUCTION: 87.56% (169/193)",
-                        "LINE: 86.67% (143/165)",
-                        "BRANCH: 73.96% (1068/1444)",
-                        "LOC: 165")
-                .containsPattern("Searching for all files in '.*' that match the pattern '.*clover\\*.xml,.*Clover\\*.xml'")
+                        "Module Coverage: 100.00% (1/1)",
+                        "Package Coverage: 100.00% (3/3)",
+                        "File Coverage: 100.00% (6/6)",
+                        "Method Coverage: 73.38% (736/1003)",
+                        "Line Coverage: 86.67% (143/165)",
+                        "Branch Coverage: 73.96% (1068/1444)",
+                        "Instruction Coverage: 87.56% (169/193)",
+                        "Lines of Code: 165")
+                .containsPattern(
+                        "Searching for all files in '.*' that match the pattern '.*clover\\*.xml,.*Clover\\*.xml'")
                 .containsPattern("Successfully parsed file .*/clover.xml")
                 .doesNotContain("Expanding pattern");
     }
@@ -702,22 +709,22 @@ class CoveragePluginITest extends AbstractCoverageITest {
         copyFilesToWorkspace(job, "go-coverage.out");
         job.setDefinition(createPipelineScript(
                 """
-                node {
-                    recordCoverage tools: [[parser: 'GO_COV', pattern: 'go-coverage.out']]
-                }
-                """));
+                        node {
+                            recordCoverage tools: [[parser: 'GO_COV', pattern: 'go-coverage.out']]
+                        }
+                        """));
 
         Run<?, ?> run = buildWithResult(job, Result.SUCCESS);
 
         assertThat(getConsoleLog(run))
                 .contains("that match the pattern 'go-coverage.out'",
                         "-> found 1 file",
-                        "MODULE: 100.00% (2/2)",
-                        "PACKAGE: 75.00% (3/4)",
-                        "FILE: 75.00% (3/4)",
-                        "LINE: 69.70% (23/33)",
-                        "INSTRUCTION: 63.64% (14/22)",
-                        "LOC: 33")
+                        "Module Coverage: 100.00% (2/2)",
+                        "Package Coverage: 75.00% (3/4)",
+                        "File Coverage: 75.00% (3/4)",
+                        "Line Coverage: 69.70% (23/33)",
+                        "Instruction Coverage: 63.64% (14/22)",
+                        "Lines of Code: 33")
                 .containsPattern("Searching for all files in '.*' that match the pattern 'go-coverage.out'")
                 .containsPattern("Successfully parsed file .*/go-coverage.out")
                 .doesNotContain("Expanding pattern");
@@ -883,18 +890,19 @@ class CoveragePluginITest extends AbstractCoverageITest {
 
         job.setDefinition(createPipelineScript(
                 "pipeline {\n"
-                + "    agent any\n"
-                + "    stages {\n"
-                + "        stage('Test') {\n"
-                + "            steps {\n"
-                + "                 recordCoverage(tools: [\n"
-                + "                     [parser: 'VECTORCAST', pattern: '" + VECTORCAST_HIGHER_COVERAGE_FILE + "'],\n"
-                + "                     [parser: 'JACOCO', pattern: '" + JACOCO_ANALYSIS_MODEL_FILE + "']\n"
-                + "                 ])\n"
-                + "            }\n"
-                + "        }\n"
-                + "    }\n"
-                + "}"));
+                        + "    agent any\n"
+                        + "    stages {\n"
+                        + "        stage('Test') {\n"
+                        + "            steps {\n"
+                        + "                 recordCoverage(tools: [\n"
+                        + "                     [parser: 'VECTORCAST', pattern: '" + VECTORCAST_HIGHER_COVERAGE_FILE
+                        + "'],\n"
+                        + "                     [parser: 'JACOCO', pattern: '" + JACOCO_ANALYSIS_MODEL_FILE + "']\n"
+                        + "                 ])\n"
+                        + "            }\n"
+                        + "        }\n"
+                        + "    }\n"
+                        + "}"));
 
         verifyForOneVectorCastAndOneJacoco(job);
     }
@@ -1001,28 +1009,30 @@ class CoveragePluginITest extends AbstractCoverageITest {
         copyFileToWorkspace(job, "vectorcast-statement-mcdc-fcc.xml", "xml_data/cobertura/coverage_results_test.xml");
         job.setDefinition(createPipelineScript(
                 """
-                node {
-                    recordCoverage tools: [[parser: 'VECTORCAST']]
-                }
-                """));
+                        node {
+                            recordCoverage tools: [[parser: 'VECTORCAST']]
+                        }
+                        """));
 
         Run<?, ?> run = buildWithResult(job, Result.SUCCESS);
 
         assertThat(getConsoleLog(run))
-                .contains("Using default pattern 'xml_data/cobertura/coverage_results*.xml' since user defined pattern is not set",
+                .contains(
+                        "Using default pattern 'xml_data/cobertura/coverage_results*.xml' since user defined pattern is not set",
                         "-> found 1 file",
-                        "MODULE: 100.00% (1/1)",
-                        "PACKAGE: 100.00% (5/5)",
-                        "FILE: 75.00% (6/8)",
-                        "CLASS: 75.00% (6/8)",
-                        "METHOD: 70.00% (21/30)",
-                        "LINE: 79.93% (235/294)",
-                        "BRANCH: 66.18% (180/272)",
-                        "MCDC_PAIR: 40.68% (24/59)",
-                        "FUNCTION_CALL: 78.48% (62/79)",
-                        "CYCLOMATIC_COMPLEXITY: 100",
-                        "LOC: 294")
-                .containsPattern("Searching for all files in '.*' that match the pattern 'xml_data/cobertura/coverage_results\\*.xml'")
+                        "[Coverage] Module Coverage: 100.00% (1/1)",
+                        "[Coverage] Package Coverage: 100.00% (5/5)",
+                        "[Coverage] File Coverage: 75.00% (6/8)",
+                        "[Coverage] Class Coverage: 75.00% (6/8)",
+                        "[Coverage] Method Coverage: 70.00% (21/30)",
+                        "[Coverage] Line Coverage: 79.93% (235/294)",
+                        "[Coverage] Branch Coverage: 66.18% (180/272)",
+                        "[Coverage] Modified Condition and Decision Coverage: 40.68% (24/59)",
+                        "[Coverage] Function Call Coverage: 78.48% (62/79)",
+                        "[Coverage] Lines of Code: 294",
+                        "[Coverage] Cyclomatic Complexity: 100")
+                .containsPattern(
+                        "Searching for all files in '.*' that match the pattern 'xml_data/cobertura/coverage_results\\*.xml'")
                 .containsPattern("Successfully parsed file '.*/xml_data/cobertura/coverage_results_test.xml")
                 .doesNotContain("Expanding pattern");
     }
