@@ -35,7 +35,7 @@
     <maven.deploy.skip>false</maven.deploy.skip>
 
     <!-- Library Dependencies Versions -->
-    <coverage-model.version>0.66.0</coverage-model.version>
+    <coverage-model.version>0.66.0-rc1266.b_e6b_17a_f3c2c</coverage-model.version>
 
     <!-- Test Library Dependencies Versions -->
     <xmlunit.version>2.11.0</xmlunit.version>
