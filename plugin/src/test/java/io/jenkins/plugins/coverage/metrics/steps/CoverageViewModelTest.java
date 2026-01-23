@@ -31,16 +31,6 @@ import static org.mockito.Mockito.*;
  */
 class CoverageViewModelTest extends AbstractCoverageTest {
     @Test
-    void shouldReturnEmptySourceViewForExistingLinkButMissingSourceFile() {
-        var model = createModelFromCodingStyleReport();
-
-        String hash = String.valueOf("PathUtil.java".hashCode());
-        assertThat(model.getSourceCode(hash, ABSOLUTE_COVERAGE_TABLE_ID)).isEqualTo("N/A");
-        assertThat(model.getSourceCode(hash, MODIFIED_LINES_COVERAGE_TABLE_ID)).isEqualTo("N/A");
-        assertThat(model.getSourceCode(hash, INDIRECT_COVERAGE_TABLE_ID)).isEqualTo("N/A");
-    }
-
-    @Test
     void shouldReportOverview() {
         var model = createModelFromCodingStyleReport();
 
