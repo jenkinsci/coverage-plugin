@@ -29,7 +29,6 @@ import static org.mockito.Mockito.*;
  * @author Akash Manna
  */
 class CoverageViewModelITest extends AbstractCoverageITest {
-    
     @Test
     void shouldReturnEmptySourceViewForExistingLinkButMissingSourceFile() {
         var model = createModelFromCodingStyleReport();
@@ -46,13 +45,17 @@ class CoverageViewModelITest extends AbstractCoverageITest {
 
     private Node readJacocoResult(final String fileName) {
         FilteredLog log = new FilteredLog("Errors");
-        InputStream stream = CoverageViewModelITest.class.getResourceAsStream(fileName);
-        if (stream == null) {
-            throw new AssertionError("Test resource not found: " + fileName);
+        try (InputStream stream = CoverageViewModelITest.class.getResourceAsStream(fileName)) {
+            if (stream == null) {
+                throw new AssertionError("Test resource not found: " + fileName);
+            }
+            var node = new JacocoParser().parse(new InputStreamReader(stream, StandardCharsets.UTF_8), fileName, log);
+            node.splitPackages();
+            return node;
         }
-        var node = new JacocoParser().parse(new InputStreamReader(stream, StandardCharsets.UTF_8), fileName, log);
-        node.splitPackages();
-        return node;
+        catch (Exception e) {
+            throw new AssertionError("Failed to read test resource: " + fileName, e);
+        }
     }
 
     private CoverageViewModel createModel(final Node node) {
