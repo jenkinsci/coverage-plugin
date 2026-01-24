@@ -7,6 +7,7 @@ import edu.hm.hafner.coverage.Node;
 import edu.hm.hafner.coverage.parser.JacocoParser;
 import edu.hm.hafner.util.FilteredLog;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
@@ -53,7 +54,7 @@ class CoverageViewModelITest extends AbstractCoverageITest {
             node.splitPackages();
             return node;
         }
-        catch (Exception e) {
+        catch (IOException e) {
             throw new AssertionError("Failed to read test resource: " + fileName, e);
         }
     }
