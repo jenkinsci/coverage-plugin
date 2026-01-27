@@ -36,14 +36,11 @@ import org.kohsuke.stapler.StaplerRequest2;
 import org.kohsuke.stapler.StaplerResponse2;
 import org.kohsuke.stapler.bind.JavaScriptMethod;
 import hudson.model.Api;
-import hudson.model.Job;
 import hudson.model.ModelObject;
 import hudson.model.Run;
 
 import io.jenkins.plugins.bootstrap5.MessagesViewModel;
-import io.jenkins.plugins.prism.PermissionDeniedViewModel;
-import io.jenkins.plugins.prism.PrismConfiguration;
-import io.jenkins.plugins.util.JenkinsFacade;
+import io.jenkins.plugins.prism.SourceCodeViewModel;
 import io.jenkins.plugins.coverage.metrics.charts.TreeMapNodeConverter;
 import io.jenkins.plugins.coverage.metrics.color.ColorProvider;
 import io.jenkins.plugins.coverage.metrics.color.ColorProviderFactory;
@@ -405,7 +402,7 @@ public class CoverageViewModel extends DefaultAsyncTableContentProvider implemen
      */
     @JavaScriptMethod
     public String getSourceCode(final String fileHash, final String tableId) {
-        if (!hasPermissionToViewSourceCode()) {
+        if (!SourceCodeViewModel.hasPermissionToViewSourceCode(getOwner())) {
             return Messages.Coverage_Permission_Denied();
         }
         Optional<Node> targetResult
@@ -528,7 +525,7 @@ public class CoverageViewModel extends DefaultAsyncTableContentProvider implemen
                 if (targetResult.isPresent() && targetResult.get() instanceof FileNode) {
                     var fileNode = (FileNode) targetResult.get();
                     var view = new SourceViewModel(getOwner(), getId(), fileNode);
-                    return protectedSourceCodeView(view, fileNode.getName());
+                    return SourceCodeViewModel.protectedSourceCodeView(view, getOwner(), fileNode.getName());
                 }
             }
             catch (NumberFormatException exception) {
@@ -536,34 +533,6 @@ public class CoverageViewModel extends DefaultAsyncTableContentProvider implemen
             }
         }
         return null; // fallback on broken URLs
-    }
-
-    /**
-     * Checks if the current user has permission to view source code.
-     * Uses the same permission logic as prism-api: checks Job.WORKSPACE permission
-     * OR if source code protection is disabled via PrismConfiguration.
-     *
-     * @return {@code true} if the user has permission, {@code false} otherwise
-     */
-    private boolean hasPermissionToViewSourceCode() {
-        return new JenkinsFacade().hasPermission(Job.WORKSPACE, getOwner().getParent())
-                || !PrismConfiguration.getInstance().isProtectSourceCodeByPermission();
-    }
-
-    /**
-     * Protects a source code view by checking permissions.
-     * This follows the pattern suggested by the maintainer: create the view, then protect it.
-     * Returns either the original view or a PermissionDeniedViewModel.
-     *
-     * @param view the source code view to protect
-     * @param fileName the name of the file being viewed
-     * @return the protected view (either original view or PermissionDeniedViewModel)
-     */
-    private ModelObject protectedSourceCodeView(final ModelObject view, final String fileName) {
-        if (hasPermissionToViewSourceCode()) {
-            return view;
-        }
-        return new PermissionDeniedViewModel(getOwner(), fileName);
     }
 
     /**
