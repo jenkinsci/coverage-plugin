@@ -1,6 +1,7 @@
 package io.jenkins.plugins.coverage.metrics.steps;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
 import java.util.stream.Stream;
@@ -95,7 +96,7 @@ class CoverageQualityGateEvaluator extends QualityGateEvaluator<CoverageQualityG
             return allValues.stream().reduce(Value::max);
         }
         else if (aggregation == MetricAggregation.AVERAGE) {
-            return computeAverage(allValues.stream());
+            return computeAverage(allValues);
         }
 
         return Optional.empty();
@@ -123,11 +124,12 @@ class CoverageQualityGateEvaluator extends QualityGateEvaluator<CoverageQualityG
             return Stream.concat(nodeValue, childValues);
         }
 
-        return childValues.findAny().isPresent() ? childValues : nodeValue;
+        var childValuesList = childValues.toList();
+        return childValuesList.isEmpty() ? nodeValue : childValuesList.stream();
     }
 
     /**
-     * Computes the average of a stream of values. For integer metrics like complexity, this computes the arithmetic
+     * Computes the average of a list of values. For integer metrics like complexity, this computes the arithmetic
      * mean. For coverage metrics, this computes the average percentage.
      *
      * @param values
@@ -135,20 +137,19 @@ class CoverageQualityGateEvaluator extends QualityGateEvaluator<CoverageQualityG
      *
      * @return the average value, or empty if no values
      */
-    private Optional<Value> computeAverage(final Stream<Value> values) {
-        var list = values.toList();
-        if (list.isEmpty()) {
+    private Optional<Value> computeAverage(final List<Value> values) {
+        if (values.isEmpty()) {
             return Optional.empty();
         }
 
-        var sum = list.stream().reduce(Value::add);
+        var sum = values.stream().reduce(Value::add);
         if (sum.isEmpty()) {
             return Optional.empty();
         }
 
-        var metric = list.get(0).getMetric();
+        var metric = values.get(0).getMetric();
         var totalValue = sum.get();
 
-        return Optional.of(new Value(metric, totalValue.asDouble() / list.size()));
+        return Optional.of(new Value(metric, totalValue.asDouble() / values.size()));
     }
 }
