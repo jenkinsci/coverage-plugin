@@ -40,6 +40,7 @@ import hudson.model.ModelObject;
 import hudson.model.Run;
 
 import io.jenkins.plugins.bootstrap5.MessagesViewModel;
+import io.jenkins.plugins.prism.SourceCodeViewModel;
 import io.jenkins.plugins.coverage.metrics.charts.TreeMapNodeConverter;
 import io.jenkins.plugins.coverage.metrics.color.ColorProvider;
 import io.jenkins.plugins.coverage.metrics.color.ColorProviderFactory;
@@ -401,6 +402,9 @@ public class CoverageViewModel extends DefaultAsyncTableContentProvider implemen
      */
     @JavaScriptMethod
     public String getSourceCode(final String fileHash, final String tableId) {
+        if (!SourceCodeViewModel.hasPermissionToViewSourceCode(getOwner())) {
+            return Messages.Coverage_Permission_Denied();
+        }
         Optional<Node> targetResult
                 = getNode().findByHashCode(Metric.FILE, Integer.parseInt(fileHash));
         if (targetResult.isPresent()) {
@@ -519,7 +523,9 @@ public class CoverageViewModel extends DefaultAsyncTableContentProvider implemen
                 Optional<Node> targetResult
                         = getNode().findByHashCode(Metric.FILE, Integer.parseInt(link));
                 if (targetResult.isPresent() && targetResult.get() instanceof FileNode) {
-                    return new SourceViewModel(getOwner(), getId(), (FileNode) targetResult.get());
+                    var fileNode = (FileNode) targetResult.get();
+                    var view = new SourceViewModel(getOwner(), getId(), fileNode);
+                    return SourceCodeViewModel.protectedSourceCodeView(view, getOwner(), fileNode.getName());
                 }
             }
             catch (NumberFormatException exception) {
