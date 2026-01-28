@@ -5,9 +5,11 @@ import java.util.Locale;
 import java.util.Optional;
 import java.util.stream.Stream;
 
+import edu.hm.hafner.coverage.Metric;
 import edu.hm.hafner.coverage.Node;
 import edu.hm.hafner.coverage.Value;
 
+import io.jenkins.plugins.coverage.metrics.model.Baseline;
 import io.jenkins.plugins.coverage.metrics.model.CoverageStatistics;
 import io.jenkins.plugins.coverage.metrics.model.ElementFormatter;
 import io.jenkins.plugins.coverage.metrics.model.MetricAggregation;
@@ -77,9 +79,9 @@ class CoverageQualityGateEvaluator extends QualityGateEvaluator<CoverageQualityG
      *
      * @return the computed value, or empty if not computable
      */
-    private Optional<Value> computeAggregatedValue(final Node node, final edu.hm.hafner.coverage.Metric metric,
-            final MetricAggregation aggregation, final io.jenkins.plugins.coverage.metrics.model.Baseline baseline) {
-        if (baseline != io.jenkins.plugins.coverage.metrics.model.Baseline.PROJECT) {
+    private Optional<Value> computeAggregatedValue(final Node node, final Metric metric,
+            final MetricAggregation aggregation, final Baseline baseline) {
+        if (baseline != Baseline.PROJECT) {
             return statistics.getValue(baseline, metric);
         }
 
@@ -110,14 +112,14 @@ class CoverageQualityGateEvaluator extends QualityGateEvaluator<CoverageQualityG
      *
      * @return a stream of all leaf values
      */
-    private Stream<Value> collectLeafValues(final Node node, final edu.hm.hafner.coverage.Metric metric) {
+    private Stream<Value> collectLeafValues(final Node node, final Metric metric) {
         Stream<Value> nodeValue = node.getValue(metric).stream();
 
         Stream<Value> childValues = node.getChildren().stream()
                 .flatMap(child -> collectLeafValues(child, metric));
 
-        if (node.getMetric() == edu.hm.hafner.coverage.Metric.METHOD
-                || node.getMetric() == edu.hm.hafner.coverage.Metric.CLASS) {
+        if (node.getMetric() == Metric.METHOD
+                || node.getMetric() == Metric.CLASS) {
             return Stream.concat(nodeValue, childValues);
         }
 
