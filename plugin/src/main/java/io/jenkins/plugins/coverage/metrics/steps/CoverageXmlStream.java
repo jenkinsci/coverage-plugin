@@ -109,12 +109,28 @@ class CoverageXmlStream extends AbstractXmlStream<Node> {
 
         xStream.registerConverter(new FractionConverter());
         xStream.registerConverter(new SimpleConverter<>(Value.class, Value::serialize, Value::valueOf));
-        xStream.registerConverter(new SimpleConverter<>(Metric.class, Metric::name, Metric::valueOf));
+        xStream.registerConverter(new SimpleConverter<>(Metric.class, Metric::name, CoverageXmlStream::metricValueOf));
     }
 
     @Override
     protected Node createDefaultValue() {
         return new ModuleNode("Empty");
+    }
+
+    /**
+     * Converts a string to a {@link Metric} value. Handles legacy metric names like COMPLEXITY_MAXIMUM by mapping
+     * them to the new metric names.
+     *
+     * @param metricName
+     *         the name of the metric
+     *
+     * @return the metric value
+     */
+    private static Metric metricValueOf(final String metricName) {
+        if ("COMPLEXITY_MAXIMUM".equals(metricName)) {
+            return Metric.CYCLOMATIC_COMPLEXITY;
+        }
+        return Metric.valueOf(metricName);
     }
 
     /**

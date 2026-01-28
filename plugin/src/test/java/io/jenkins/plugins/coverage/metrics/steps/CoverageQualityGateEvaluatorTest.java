@@ -311,6 +311,22 @@ class CoverageQualityGateEvaluatorTest extends AbstractCoverageTest {
         assertThatStatusWillBeOverwritten(evaluator);
     }
 
+    @Test
+    void shouldSupportMaximumAggregation() {
+        Collection<CoverageQualityGate> qualityGates = new ArrayList<>();
+
+        var gate = new CoverageQualityGate(10.0, Metric.CYCLOMATIC_COMPLEXITY, Baseline.PROJECT, QualityGateCriticality.UNSTABLE);
+        gate.setAggregation(io.jenkins.plugins.coverage.metrics.model.MetricAggregation.MAXIMUM);
+        qualityGates.add(gate);
+
+        var evaluator = new CoverageQualityGateEvaluator(qualityGates, createStatistics());
+
+        var log = new FilteredLog("Errors");
+        var result = evaluator.evaluate(new NullResultHandler(), log);
+
+        assertThat(result).hasOverallStatus(QualityGateStatus.WARNING).isNotSuccessful();
+    }
+
     private static void assertThatStatusWillBeOverwritten(final CoverageQualityGateEvaluator evaluator) {
         var log = new FilteredLog("Errors");
         var result = evaluator.evaluate(new NullResultHandler(), log);
