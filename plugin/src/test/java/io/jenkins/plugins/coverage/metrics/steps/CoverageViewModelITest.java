@@ -46,11 +46,12 @@ class CoverageViewModelITest extends AbstractCoverageITest {
 
     private Node readJacocoResult(final String fileName) {
         FilteredLog log = new FilteredLog("Errors");
-        try (InputStream stream = CoverageViewModelITest.class.getResourceAsStream(fileName)) {
-            if (stream == null) {
+        try (InputStream stream = CoverageViewModelITest.class.getResourceAsStream(fileName);
+             InputStreamReader reader = stream == null ? null : new InputStreamReader(stream, StandardCharsets.UTF_8)) {
+            if (reader == null) {
                 throw new AssertionError("Test resource not found: " + fileName);
             }
-            var node = new JacocoParser().parse(new InputStreamReader(stream, StandardCharsets.UTF_8), fileName, log);
+            var node = new JacocoParser().parse(reader, fileName, log);
             node.splitPackages();
             return node;
         }
