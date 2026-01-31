@@ -25,6 +25,7 @@ import io.jenkins.plugins.util.QualityGate;
  *
  * @author Johannes Walter
  */
+@SuppressWarnings("PMD.DataClass") 
 public class CoverageQualityGate extends QualityGate {
     @Serial
     private static final long serialVersionUID = -397278599489426668L;

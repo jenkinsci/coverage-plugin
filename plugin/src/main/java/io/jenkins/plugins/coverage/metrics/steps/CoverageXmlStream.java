@@ -48,6 +48,7 @@ import io.jenkins.plugins.util.QualityGateResult.QualityGateResultItem;
  */
 @SuppressWarnings("PMD.CouplingBetweenObjects")
 class CoverageXmlStream extends AbstractXmlStream<Node> {
+    private static final String LEGACY_COMPLEXITY_MAXIMUM = "COMPLEXITY_MAXIMUM";
     private static final Collector<CharSequence, ?, String> ARRAY_JOINER = Collectors.joining(", ", "[", "]");
 
     private static String[] toArray(final String value) {
@@ -127,7 +128,7 @@ class CoverageXmlStream extends AbstractXmlStream<Node> {
      * @return the metric value
      */
     private static Metric metricValueOf(final String metricName) {
-        if ("COMPLEXITY_MAXIMUM".equals(metricName)) {
+        if (LEGACY_COMPLEXITY_MAXIMUM.equals(metricName)) {
             return Metric.CYCLOMATIC_COMPLEXITY;
         }
         return Metric.valueOf(metricName);
