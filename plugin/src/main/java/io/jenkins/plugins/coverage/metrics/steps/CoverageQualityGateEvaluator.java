@@ -9,6 +9,7 @@ import java.util.stream.Stream;
 import edu.hm.hafner.coverage.Metric;
 import edu.hm.hafner.coverage.Node;
 import edu.hm.hafner.coverage.Value;
+import edu.umd.cs.findbugs.annotations.CheckForNull;
 
 import io.jenkins.plugins.coverage.metrics.model.Baseline;
 import io.jenkins.plugins.coverage.metrics.model.CoverageStatistics;
@@ -26,6 +27,7 @@ import io.jenkins.plugins.util.QualityGateStatus;
 class CoverageQualityGateEvaluator extends QualityGateEvaluator<CoverageQualityGate> {
     private static final ElementFormatter FORMATTER = new ElementFormatter();
     private final CoverageStatistics statistics;
+    @CheckForNull
     private final Node rootNode;
 
     CoverageQualityGateEvaluator(final Collection<? extends CoverageQualityGate> qualityGates,
@@ -34,7 +36,7 @@ class CoverageQualityGateEvaluator extends QualityGateEvaluator<CoverageQualityG
     }
 
     CoverageQualityGateEvaluator(final Collection<? extends CoverageQualityGate> qualityGates,
-            final CoverageStatistics statistics, final Node rootNode) {
+            final CoverageStatistics statistics, @CheckForNull final Node rootNode) {
         super(qualityGates);
 
         this.statistics = statistics;
