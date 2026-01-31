@@ -30,14 +30,11 @@ public enum MetricAggregation {
     }
 
     /**
-     * Returns the default aggregation mode for the specified metric.
-     *
-     * @param metric
-     *         the metric to get the default aggregation for
+     * Returns the default aggregation mode.
      *
      * @return the default aggregation mode
      */
-    public static MetricAggregation getDefault(final Metric metric) {
+    public static MetricAggregation getDefault() {
         return TOTAL;
     }
 }
