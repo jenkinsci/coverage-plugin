@@ -503,6 +503,8 @@ class CoverageQualityGateEvaluatorTest extends AbstractCoverageTest {
     /**
      * Creates a node tree with cyclomatic complexity values for testing.
      * Structure: Module -> Class -> Methods with complexity values: 5, 10, 15, 20
+     *
+     * @return a node tree with complexity values
      */
     private static Node createNodeTreeWithComplexity() {
         var root = new ModuleNode("TestProject");
@@ -531,6 +533,8 @@ class CoverageQualityGateEvaluatorTest extends AbstractCoverageTest {
     /**
      * Creates a node tree with LOC values for testing.
      * Structure: Module -> Class -> Methods with LOC values: 30, 40, 50, 60
+     *
+     * @return a node tree with LOC values
      */
     private static Node createNodeTreeWithLOC() {
         var root = new ModuleNode("TestProject");
@@ -559,6 +563,8 @@ class CoverageQualityGateEvaluatorTest extends AbstractCoverageTest {
     /**
      * Creates a node tree with coverage values for testing.
      * Structure: Module -> Class -> Methods with line coverage
+     *
+     * @return a node tree with coverage values
      */
     private static Node createNodeTreeWithCoverage() {
         var root = new ModuleNode("TestProject");
