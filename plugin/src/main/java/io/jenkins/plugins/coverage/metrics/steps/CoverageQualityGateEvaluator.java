@@ -82,7 +82,7 @@ class CoverageQualityGateEvaluator extends QualityGateEvaluator<CoverageQualityG
      *
      * @return the computed value, or empty if not computable
      */
-    private Optional<Value> computeAggregatedValue(final Node node, final Metric metric,
+    private Optional<Value> computeAggregatedValue(@CheckForNull final Node node, final Metric metric,
             final MetricAggregation aggregation, final Baseline baseline) {
         if (baseline != Baseline.PROJECT) {
             return statistics.getValue(baseline, metric);
