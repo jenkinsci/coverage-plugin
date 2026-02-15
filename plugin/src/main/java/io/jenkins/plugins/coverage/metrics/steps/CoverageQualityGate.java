@@ -95,9 +95,7 @@ public class CoverageQualityGate extends QualityGate {
      */
     @DataBoundSetter
     public final void setAggregation(final MetricAggregation aggregation) {
-        if (MetricAggregation.isSupported(metric)) {
-            this.aggregation = aggregation;
-        }
+        this.aggregation = aggregation;
     }
 
     /**

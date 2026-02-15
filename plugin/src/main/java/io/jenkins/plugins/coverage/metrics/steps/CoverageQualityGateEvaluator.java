@@ -50,7 +50,7 @@ class CoverageQualityGateEvaluator extends QualityGateEvaluator<CoverageQualityG
         var aggregation = qualityGate.getAggregation();
 
         Optional<Value> possibleValue;
-        if (MetricAggregation.isSupported(metric) && aggregation != MetricAggregation.TOTAL && rootNode != null) {
+        if (MetricAggregation.isSupported(metric) && aggregation != MetricAggregation.TOTAL) {
             possibleValue = computeAggregatedValue(rootNode, metric, aggregation, baseline);
         }
         else {
@@ -85,6 +85,10 @@ class CoverageQualityGateEvaluator extends QualityGateEvaluator<CoverageQualityG
     private Optional<Value> computeAggregatedValue(final Node node, final Metric metric,
             final MetricAggregation aggregation, final Baseline baseline) {
         if (baseline != Baseline.PROJECT) {
+            return statistics.getValue(baseline, metric);
+        }
+
+        if (node == null) {
             return statistics.getValue(baseline, metric);
         }
 
