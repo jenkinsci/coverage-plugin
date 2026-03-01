@@ -68,7 +68,7 @@ public class CoverageReporter {
             final FilteredLog log) throws InterruptedException {
         var statistics = new CoverageStatistics(rootNode.aggregateValues(),
                 List.of(), List.<Difference>of(), List.of(), EMPTY_VALUES, List.of());
-        var evaluator = new CoverageQualityGateEvaluator(qualityGates, statistics);
+        var evaluator = new CoverageQualityGateEvaluator(qualityGates, statistics, rootNode);
         var qualityGateStatus = evaluator.evaluate(notifier, log);
 
         paintSourceFiles(build, workspace, sourceCodeEncoding, sourceCodeRetention, id, rootNode,
@@ -122,7 +122,7 @@ public class CoverageReporter {
 
         var statistics = new CoverageStatistics(overallValues, overallDelta,
                 modifiedLinesValues, modifiedLinesDelta, modifiedFilesValues, modifiedFilesDelta);
-        var evaluator = new CoverageQualityGateEvaluator(qualityGates, statistics);
+        var evaluator = new CoverageQualityGateEvaluator(qualityGates, statistics, rootNode);
         var qualityGateResult = evaluator.evaluate(notifier, log);
 
         var filesToStore = computePaintedFiles(rootNode, sourceCodeRetention, log, modifiedLinesCoverageRoot);
