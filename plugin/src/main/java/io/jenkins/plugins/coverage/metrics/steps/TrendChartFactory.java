@@ -1,8 +1,8 @@
 package io.jenkins.plugins.coverage.metrics.steps;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.node.ObjectNode;
+import tools.jackson.core.JacksonException;
 
 import edu.hm.hafner.coverage.Metric;
 import edu.hm.hafner.coverage.Value;
@@ -80,7 +80,7 @@ class TrendChartFactory {
                         .collect(Collectors.toSet());
             }
         }
-        catch (JsonProcessingException | ClassCastException | IllegalArgumentException ignored) {
+        catch (JacksonException | ClassCastException | IllegalArgumentException ignored) {
             // ignore and return default values
         }
 
