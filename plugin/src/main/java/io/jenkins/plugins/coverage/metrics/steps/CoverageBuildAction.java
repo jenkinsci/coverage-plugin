@@ -652,8 +652,7 @@ public final class CoverageBuildAction extends BuildAction<Node> implements Stap
                         Metric.MCDC_PAIR, Metric.FUNCTION_CALL,
                         // TRACE32 metrics
                         Metric.STATEMENT, Metric.STMT_CC, Metric.STMT_DC,
-                        Metric.CONDITION, Metric.DECISION, Metric.FUNCTION,
-                        Metric.OBJECT_CODE, Metric.BYTES
+                        Metric.CONDITION, Metric.BYTES
                 ));
     }
 

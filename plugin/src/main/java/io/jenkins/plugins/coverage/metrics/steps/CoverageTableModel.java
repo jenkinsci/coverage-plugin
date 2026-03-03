@@ -134,9 +134,6 @@ class CoverageTableModel extends TableModel {
         configureValueColumn("stmtDcCoverage", Metric.STMT_DC, Metric.STMT_DC.getDisplayName(), SKIP_DELTA, columns);
         configureValueColumn("stmtCcCoverage", Metric.STMT_CC, Metric.STMT_CC.getDisplayName(), SKIP_DELTA, columns);
         configureValueColumn("conditionCoverage", Metric.CONDITION, Metric.CONDITION.getDisplayName(), SKIP_DELTA, columns);
-        configureValueColumn("decisionCoverage", Metric.DECISION, Metric.DECISION.getDisplayName(), SKIP_DELTA, columns);
-        configureValueColumn("functionCoverage", Metric.FUNCTION, Metric.FUNCTION.getDisplayName(), SKIP_DELTA, columns);
-        configureValueColumn("objectCodeCoverage", Metric.OBJECT_CODE, Metric.OBJECT_CODE.getDisplayName(), SKIP_DELTA, columns);
         configureValueColumn("bytesCoverage", Metric.BYTES, Metric.BYTES.getDisplayName(), SKIP_DELTA, columns);
 
         var entries = new EnumMap<>(Map.of(
@@ -291,18 +288,6 @@ class CoverageTableModel extends TableModel {
 
         public DetailedCell<?> getConditionCoverage() {
             return createColoredCoverageColumn(getCoverageOfNode(Metric.CONDITION));
-        }
-
-        public DetailedCell<?> getDecisionCoverage() {
-            return createColoredCoverageColumn(getCoverageOfNode(Metric.DECISION));
-        }
-
-        public DetailedCell<?> getFunctionCoverage() {
-            return createColoredCoverageColumn(getCoverageOfNode(Metric.FUNCTION));
-        }
-
-        public DetailedCell<?> getObjectCodeCoverage() {
-            return createColoredCoverageColumn(getCoverageOfNode(Metric.OBJECT_CODE));
         }
 
         public DetailedCell<?> getBytesCoverage() {
