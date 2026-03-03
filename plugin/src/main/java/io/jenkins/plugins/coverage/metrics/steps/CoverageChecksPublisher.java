@@ -542,9 +542,8 @@ class CoverageChecksPublisher {
             return new TreeSet<>(
                     Set.of(Metric.LINE, Metric.LOC, Metric.BRANCH, Metric.CYCLOMATIC_COMPLEXITY,
                             Metric.MUTATION, Metric.TEST_STRENGTH, Metric.TESTS,
-                            Metric.MCDC_PAIR, Metric.FUNCTION_CALL, Metric.STATEMENT,
-                            Metric.STMT_DC, Metric.STMT_CC, Metric.CONDITION, Metric.DECISION,
-                            Metric.FUNCTION, Metric.OBJECT_CODE, Metric.BYTES));
+                            Metric.STATEMENT, Metric.MCDC_PAIR, Metric.FUNCTION_CALL,
+                            Metric.STMT_DC, Metric.STMT_CC, Metric.CONDITION, Metric.BYTES));
         }
     }
 
