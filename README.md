@@ -14,6 +14,7 @@ It has support for the following report formats:
 - [JaCoCo](https://www.jacoco.org/) code coverage results
 - [OpenCover](https://github.com/OpenCover/opencover) code coverage results
 - [VectorCAST](https://www.vector.com/int/en/products/products-a-z/software/vectorcast) code coverage results including MC/DC, Function, Function Call coverages
+- [TRACE32](https://www.lauterbach.com) code coverage results
 - [PIT](https://pitest.org/) mutation coverage results
 - [JUnit](https://junit.org/junit5/) test results
 - [NUnit](https://nunit.org) test results
@@ -113,6 +114,7 @@ The Coverage Plug-in supports the following report formats:
 - [Cobertura](https://cobertura.github.io/cobertura/): Code Coverage
 - [OpenCover](https://github.com/OpenCover/opencover): Code Coverage
 - [VectorCAST](https://www.vector.com/int/en/products/products-a-z/software/vectorcast) Code Coverage including MC/DC, Function, Function Call coverages
+- [TRACE32](https://www.lauterbach.com) Code Coverage
 - [PIT](https://pitest.org/): Mutation Coverage
 - [JUnit](https://ant.apache.org/manual/Tasks/junitreport.html): Test Results
 - [NUnit](https://nunit.org/): Test Results
