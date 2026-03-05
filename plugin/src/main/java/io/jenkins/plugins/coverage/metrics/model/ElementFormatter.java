@@ -426,4 +426,17 @@ public final class ElementFormatter {
     private void add(final ListBoxModel options, final Baseline baseline) {
         options.add(getDisplayName(baseline), baseline.name());
     }
+
+    /**
+     * Returns all available aggregation modes as a {@link ListBoxModel}.
+     *
+     * @return the aggregation modes in a {@link ListBoxModel}
+     */
+    public ListBoxModel getAggregationItems() {
+        var options = new ListBoxModel();
+        for (MetricAggregation aggregation : MetricAggregation.values()) {
+            options.add(aggregation.name(), aggregation.name());
+        }
+        return options;
+    }
 }
