@@ -129,6 +129,13 @@ class CoverageTableModel extends TableModel {
         configureValueColumn("testStrength", Metric.TEST_STRENGTH, Messages.Column_TestStrength(),
                 Messages.Column_DeltaTestStrength("Δ"), columns);
 
+        /* TRACE32 metrics */
+        configureValueColumn("statementCoverage", Metric.STATEMENT, Metric.STATEMENT.getDisplayName(), SKIP_DELTA, columns);
+        configureValueColumn("stmtDcCoverage", Metric.STMT_DC, Metric.STMT_DC.getDisplayName(), SKIP_DELTA, columns);
+        configureValueColumn("stmtCcCoverage", Metric.STMT_CC, Metric.STMT_CC.getDisplayName(), SKIP_DELTA, columns);
+        configureValueColumn("conditionCoverage", Metric.CONDITION, Metric.CONDITION.getDisplayName(), SKIP_DELTA, columns);
+        configureValueColumn("bytesCoverage", Metric.BYTES, Metric.BYTES.getDisplayName(), SKIP_DELTA, columns);
+
         var entries = new EnumMap<>(Map.of(
                 Metric.LOC, 200,
                 Metric.TESTS, 500,
@@ -265,6 +272,26 @@ class CoverageTableModel extends TableModel {
 
         public DetailedCell<?> getTestStrength() {
             return createColoredCoverageColumn(getCoverageOfNode(Metric.TEST_STRENGTH));
+        }
+
+        public DetailedCell<?> getStatementCoverage() {
+            return createColoredCoverageColumn(getCoverageOfNode(Metric.STATEMENT));
+        }
+
+        public DetailedCell<?> getStmtDcCoverage() {
+            return createColoredCoverageColumn(getCoverageOfNode(Metric.STMT_DC));
+        }
+
+        public DetailedCell<?> getStmtCcCoverage() {
+            return createColoredCoverageColumn(getCoverageOfNode(Metric.STMT_CC));
+        }
+
+        public DetailedCell<?> getConditionCoverage() {
+            return createColoredCoverageColumn(getCoverageOfNode(Metric.CONDITION));
+        }
+
+        public DetailedCell<?> getBytesCoverage() {
+            return createColoredCoverageColumn(getCoverageOfNode(Metric.BYTES));
         }
 
         Coverage getCoverageOfNode(final Metric metric) {
