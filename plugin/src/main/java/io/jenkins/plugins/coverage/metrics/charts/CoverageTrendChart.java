@@ -64,7 +64,6 @@ public class CoverageTrendChart extends TrendChart {
             addSeriesIfAvailable(dataSet, model, Metric.FUNCTION_CALL, JenkinsPalette.RED.dark());
 
             /* TRACE32 metrics */
-            addSeriesIfAvailable(dataSet, model, Metric.STATEMENT, JenkinsPalette.RED.light());
             addSeriesIfAvailable(dataSet, model, Metric.STMT_DC, JenkinsPalette.RED.light());
             addSeriesIfAvailable(dataSet, model, Metric.STMT_CC, JenkinsPalette.RED.light());
             addSeriesIfAvailable(dataSet, model, Metric.CONDITION, JenkinsPalette.RED.normal());
