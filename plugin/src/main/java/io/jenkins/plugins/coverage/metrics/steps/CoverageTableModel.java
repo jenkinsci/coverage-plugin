@@ -117,6 +117,8 @@ class CoverageTableModel extends TableModel {
                 Messages.Column_DeltaLineCoverage("Δ"), columns);
         configureValueColumn("branchCoverage", Metric.BRANCH, Messages.Column_BranchCoverage(),
                 Messages.Column_DeltaBranchCoverage("Δ"), columns);
+        configureValueColumn("instructionCoverage", Metric.INSTRUCTION, Messages.Column_InstructionCoverage(),
+                Messages.Column_DeltaInstructionCoverage("Δ"), columns);
 
         /* VectorCAST metrics */
         configureValueColumn("mcdcPairCoverage", Metric.MCDC_PAIR, Messages.Column_MCDCPairs(),
@@ -130,7 +132,6 @@ class CoverageTableModel extends TableModel {
                 Messages.Column_DeltaTestStrength("Δ"), columns);
 
         /* TRACE32 metrics */
-        configureValueColumn("statementCoverage", Metric.STATEMENT, Metric.STATEMENT.getDisplayName(), SKIP_DELTA, columns);
         configureValueColumn("stmtDcCoverage", Metric.STMT_DC, Metric.STMT_DC.getDisplayName(), SKIP_DELTA, columns);
         configureValueColumn("stmtCcCoverage", Metric.STMT_CC, Metric.STMT_CC.getDisplayName(), SKIP_DELTA, columns);
         configureValueColumn("conditionCoverage", Metric.CONDITION, Metric.CONDITION.getDisplayName(), SKIP_DELTA, columns);
@@ -254,6 +255,10 @@ class CoverageTableModel extends TableModel {
             return createColoredCoverageColumn(getCoverageOfNode(Metric.BRANCH));
         }
 
+        public DetailedCell<?> getInstructionCoverage() {
+            return createColoredCoverageColumn(getCoverageOfNode(Metric.INSTRUCTION));
+        }
+
         public DetailedCell<?> getMethodCoverage() {
             return createColoredCoverageColumn(getCoverageOfNode(Metric.METHOD));
         }
@@ -272,10 +277,6 @@ class CoverageTableModel extends TableModel {
 
         public DetailedCell<?> getTestStrength() {
             return createColoredCoverageColumn(getCoverageOfNode(Metric.TEST_STRENGTH));
-        }
-
-        public DetailedCell<?> getStatementCoverage() {
-            return createColoredCoverageColumn(getCoverageOfNode(Metric.STATEMENT));
         }
 
         public DetailedCell<?> getStmtDcCoverage() {
@@ -304,6 +305,10 @@ class CoverageTableModel extends TableModel {
 
         public DetailedCell<?> getBranchCoverageDelta() {
             return createColoredFileCoverageDeltaColumn(Metric.BRANCH);
+        }
+
+        public DetailedCell<?> getInstructionCoverageDelta() {
+            return createColoredFileCoverageDeltaColumn(Metric.INSTRUCTION);
         }
 
         public DetailedCell<?> getMutationCoverageDelta() {
