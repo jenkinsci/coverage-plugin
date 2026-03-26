@@ -181,6 +181,7 @@ class CoveragePluginITest extends AbstractCoverageITest {
                         "Package",
                         "Line",
                         "Branch",
+                        "Instruction",
                         "LOC",
                         "Complexity");
         assertThat(tableModel.getRows())
