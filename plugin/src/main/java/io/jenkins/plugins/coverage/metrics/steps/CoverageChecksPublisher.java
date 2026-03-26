@@ -541,7 +541,7 @@ class CoverageChecksPublisher {
         NavigableSet<Metric> getOverviewMetrics() {
             return new TreeSet<>(
                     Set.of(Metric.LINE, Metric.LOC, Metric.BRANCH, Metric.INSTRUCTION,
-                            Metric.CYCLOMATIC_COMPLEXITY,Metric.MUTATION, Metric.TEST_STRENGTH,
+                            Metric.CYCLOMATIC_COMPLEXITY, Metric.MUTATION, Metric.TEST_STRENGTH,
                             Metric.TESTS, Metric.MCDC_PAIR, Metric.FUNCTION_CALL,
                             Metric.STMT_DC, Metric.STMT_CC, Metric.CONDITION, Metric.BYTES));
         }
