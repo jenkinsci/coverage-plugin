@@ -13,6 +13,10 @@
     <f:select/>
   </f:entry>
 
+  <f:entry title="${%title.aggregation}" field="aggregation">
+    <f:select/>
+  </f:entry>
+
   <f:entry title="${%title.warning}" field="criticality">
     <f:select/>
   </f:entry>

@@ -14,6 +14,7 @@ import jenkins.model.Jenkins;
 
 import io.jenkins.plugins.coverage.metrics.model.Baseline;
 import io.jenkins.plugins.coverage.metrics.model.ElementFormatter;
+import io.jenkins.plugins.coverage.metrics.model.MetricAggregation;
 import io.jenkins.plugins.util.JenkinsFacade;
 import io.jenkins.plugins.util.QualityGate;
 
@@ -24,6 +25,7 @@ import io.jenkins.plugins.util.QualityGate;
  *
  * @author Johannes Walter
  */
+@SuppressWarnings("PMD.DataClass") 
 public class CoverageQualityGate extends QualityGate {
     @Serial
     private static final long serialVersionUID = -397278599489426668L;
@@ -32,6 +34,7 @@ public class CoverageQualityGate extends QualityGate {
 
     private final Metric metric;
     private Baseline baseline = Baseline.PROJECT;
+    private MetricAggregation aggregation = MetricAggregation.TOTAL;
 
     /**
      * Creates a new instance of {@link CoverageQualityGate}.
@@ -62,6 +65,16 @@ public class CoverageQualityGate extends QualityGate {
         setCriticality(criticality);
     }
 
+    CoverageQualityGate(final double threshold, final Metric metric,
+            final Baseline baseline, final QualityGateCriticality criticality,
+            final MetricAggregation aggregation) {
+        this(metric, threshold);
+
+        setBaseline(baseline);
+        setCriticality(criticality);
+        setAggregation(aggregation);
+    }
+
     /**
      * Sets the baseline that will be used for the quality gate evaluation.
      *
@@ -74,12 +87,28 @@ public class CoverageQualityGate extends QualityGate {
     }
 
     /**
+     * Sets the aggregation mode for software metrics (total, maximum, or average). This is only applicable for
+     * software metrics like cyclomatic complexity. For coverage metrics, this setting is ignored.
+     *
+     * @param aggregation
+     *         the aggregation mode to use
+     */
+    @DataBoundSetter
+    public final void setAggregation(final MetricAggregation aggregation) {
+        this.aggregation = aggregation;
+    }
+
+    /**
      * Returns a human-readable name of the quality gate.
      *
      * @return a human-readable name
      */
     @Override
     public String getName() {
+        if (MetricAggregation.isSupported(metric) && aggregation != MetricAggregation.TOTAL) {
+            return "%s - %s (%s)".formatted(FORMATTER.getDisplayName(getBaseline()),
+                    FORMATTER.getDisplayName(getMetric()), aggregation);
+        }
         return "%s - %s".formatted(FORMATTER.getDisplayName(getBaseline()),
                 FORMATTER.getDisplayName(getMetric()));
     }
@@ -90,6 +119,10 @@ public class CoverageQualityGate extends QualityGate {
 
     public Baseline getBaseline() {
         return baseline;
+    }
+
+    public MetricAggregation getAggregation() {
+        return aggregation;
     }
 
     /**
@@ -138,6 +171,20 @@ public class CoverageQualityGate extends QualityGate {
         public ListBoxModel doFillBaselineItems() {
             if (jenkins.hasPermission(Jenkins.READ)) {
                 return FORMATTER.getBaselineItems();
+            }
+            return new ListBoxModel();
+        }
+
+        /**
+         * Returns a model with all {@link MetricAggregation aggregation modes}.
+         *
+         * @return a model with all {@link MetricAggregation aggregation modes}.
+         */
+        @POST
+        @SuppressWarnings("unused") // used by Stapler view data binding
+        public ListBoxModel doFillAggregationItems() {
+            if (jenkins.hasPermission(Jenkins.READ)) {
+                return FORMATTER.getAggregationItems();
             }
             return new ListBoxModel();
         }
