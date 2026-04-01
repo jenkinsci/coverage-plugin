@@ -4,9 +4,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Strings;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.ObjectMapper;
 
 import edu.hm.hafner.coverage.Coverage;
 import edu.hm.hafner.coverage.FileNode;
@@ -35,6 +34,7 @@ import java.util.stream.Stream;
 import org.kohsuke.stapler.StaplerRequest2;
 import org.kohsuke.stapler.StaplerResponse2;
 import org.kohsuke.stapler.bind.JavaScriptMethod;
+import tools.jackson.core.JacksonException;
 import hudson.model.Api;
 import hudson.model.ModelObject;
 import hudson.model.Run;
@@ -240,7 +240,7 @@ public class CoverageViewModel extends DefaultAsyncTableContentProvider implemen
             Map<String, String> colorMapping = mapper.readValue(json, new ColorMappingType());
             return ColorProviderFactory.createColorProvider(colorMapping);
         }
-        catch (JsonProcessingException e) {
+        catch (JacksonException e) {
             return ColorProviderFactory.createDefaultColorProvider();
         }
     }
