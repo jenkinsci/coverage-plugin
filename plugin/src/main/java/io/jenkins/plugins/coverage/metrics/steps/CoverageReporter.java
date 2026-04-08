@@ -214,6 +214,8 @@ public class CoverageReporter {
             Optional<CoverageBuildAction> possibleResult = getAction(id, reference.get());
             if (possibleResult.isEmpty()) {
                 log.logInfo("-> Reference build has no action for ID '%s'", id);
+                possibleResult = findActionInBuildHistory(id, referenceBuild.getPreviousBuild());
+                possibleResult.ifPresent(action -> log.logInfo("-> Reference build information adjusted"));
             }
             return possibleResult;
         }
@@ -229,6 +231,22 @@ public class CoverageReporter {
                 return Optional.of(action);
             }
         }
+        return Optional.empty();
+    }
+
+    static Optional<CoverageBuildAction> findActionInBuildHistory(final String id, final Run<?, ?> build) {
+        Run<?, ?> current = build;
+
+        while (current != null) {
+            List<CoverageBuildAction> actions = current.getActions(CoverageBuildAction.class);
+            for (CoverageBuildAction action : actions) {
+                if (action.getUrlName().equals(id)) {
+                    return Optional.of(action);
+                }
+            }
+            current = current.getPreviousBuild();
+        }
+
         return Optional.empty();
     }
 }
