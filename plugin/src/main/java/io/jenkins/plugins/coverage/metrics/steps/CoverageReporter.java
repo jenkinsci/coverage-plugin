@@ -214,7 +214,8 @@ public class CoverageReporter {
             Optional<CoverageBuildAction> possibleResult = getAction(id, reference.get());
             if (possibleResult.isEmpty()) {
                 log.logInfo("-> Reference build has no action for ID '%s'", id);
-                possibleResult = findActionInBuildHistory(id, referenceBuild.getPreviousBuild());
+                possibleResult = Optional.ofNullable(referenceBuild.getPreviousBuild())
+                        .flatMap(previousBuild -> findActionInBuildHistory(id, previousBuild));
                 possibleResult.ifPresent(action -> log.logInfo("-> Reference build information adjusted"));
             }
             return possibleResult;
