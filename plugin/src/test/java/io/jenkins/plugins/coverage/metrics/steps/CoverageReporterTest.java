@@ -46,13 +46,12 @@ class CoverageReporterTest {
         assertThat(action).isEmpty();
     }
 
-    @SuppressWarnings({"rawtypes", "unchecked"})
     private Run<?, ?> createBuildWithAction(final String id, final Run<?, ?> previousBuild) {
-        Run build = mock(Run.class);
+        Run<?, ?> build = mock(Run.class);
         CoverageBuildAction action = mock(CoverageBuildAction.class);
         when(action.getUrlName()).thenReturn(id);
         when(build.getActions(CoverageBuildAction.class)).thenReturn(List.of(action));
-        when(build.getPreviousBuild()).thenReturn((Run) previousBuild);
+        when(build.getPreviousBuild()).thenAnswer(invocation -> previousBuild);
         return build;
     }
 }
