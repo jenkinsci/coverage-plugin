@@ -84,11 +84,11 @@ final class MutationSourcePrinter extends CoverageSourcePrinter {
                 .collect(Collectors.toList());
     }
 
-    public int getSurvived(final int line) {
+    int getSurvived(final int line) {
         return getCounter(line, survivedPerLine);
     }
 
-    public int getKilled(final int line) {
+    int getKilled(final int line) {
         return getCounter(line, killedPerLine);
     }
 

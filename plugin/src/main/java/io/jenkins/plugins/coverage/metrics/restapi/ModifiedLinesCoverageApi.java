@@ -25,7 +25,7 @@ class ModifiedLinesCoverageApi {
     }
 
     @Exported(inline = true, name = "files")
-    public List<FileWithModifiedLines> getFilesWithModifiedLines() {
+    List<FileWithModifiedLines> getFilesWithModifiedLines() {
         return filesWithModifiedLines;
     }
 
