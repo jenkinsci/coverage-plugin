@@ -16,7 +16,7 @@
   <name>UI Tests of Code Coverage Plugin</name>
 
   <properties>
-    <jenkins.version>2.556</jenkins.version>
+    <jenkins.version>2.558</jenkins.version>
     <hpi-plugin.version>3.1820.ve687007a_69e5</hpi-plugin.version>
     <json-smart.version>2.3</json-smart.version>
     <json-unit-assertj.version>5.1.1</json-unit-assertj.version>
@@ -48,7 +48,7 @@
     <dependency>
       <groupId>org.jenkins-ci</groupId>
       <artifactId>acceptance-test-harness</artifactId>
-      <version>6509.v07d7a_3818f74</version>
+      <version>6623.v46eb_51303186</version>
     </dependency>
     <dependency>
       <groupId>com.fasterxml.jackson.core</groupId>
@@ -171,7 +171,7 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-surefire-plugin</artifactId>
-        <version>3.5.4</version>
+        <version>3.5.5</version>
         <configuration>
           <skip>true</skip>
           <reuseForks>false</reuseForks>
@@ -259,7 +259,7 @@
           <plugin>
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-surefire-plugin</artifactId>
-            <version>3.5.4</version>
+            <version>3.5.5</version>
             <configuration>
               <reuseForks>false</reuseForks>
               <trimStackTrace>false</trimStackTrace>
