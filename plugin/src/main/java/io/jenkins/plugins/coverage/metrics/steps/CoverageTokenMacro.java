@@ -7,7 +7,7 @@ import edu.hm.hafner.coverage.Metric;
 import java.util.function.Predicate;
 
 import org.jenkinsci.plugins.tokenmacro.DataBoundTokenMacro;
-import hudson.Extension;
+import org.jenkinsci.plugins.variant.OptionalExtension;
 import hudson.FilePath;
 import hudson.model.AbstractBuild;
 import hudson.model.Run;
@@ -17,11 +17,11 @@ import io.jenkins.plugins.coverage.metrics.model.Baseline;
 import io.jenkins.plugins.coverage.metrics.model.ElementFormatter;
 
 /**
- * Provides a token that evaluates to the number of issues.
+ * Provides a token that evaluates the number of issues.
  *
  * @author Ullrich Hafner
  */
-@Extension(optional = true)
+@OptionalExtension(requireClasses = DataBoundTokenMacro.class)
 public class CoverageTokenMacro extends DataBoundTokenMacro {
     private static final ElementFormatter FORMATTER = new ElementFormatter();
     static final String COVERAGE = "COVERAGE";

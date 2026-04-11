@@ -32,7 +32,7 @@ abstract class AbstractThreshold extends PageAreaImpl {
      * @param threshold
      *         for unhealthy
      */
-    public void setUnhealthyThreshold(final double threshold) {
+    void setUnhealthyThreshold(final double threshold) {
         ensureAdvancedOptionsIsActivated();
         unhealthyThreshold.set(threshold);
     }
@@ -43,7 +43,7 @@ abstract class AbstractThreshold extends PageAreaImpl {
      * @param threshold
      *         for unstable
      */
-    public void setUnstableThreshold(final double threshold) {
+    void setUnstableThreshold(final double threshold) {
         ensureAdvancedOptionsIsActivated();
         unstableThreshold.set(threshold);
     }
@@ -54,7 +54,7 @@ abstract class AbstractThreshold extends PageAreaImpl {
      * @param failOnUnhealthy
      *         boolean for failing on unhealthy
      */
-    public void setFailUnhealthy(final boolean failOnUnhealthy) {
+    void setFailUnhealthy(final boolean failOnUnhealthy) {
         ensureAdvancedOptionsIsActivated();
         failUnhealthy.check(failOnUnhealthy);
     }
@@ -62,7 +62,7 @@ abstract class AbstractThreshold extends PageAreaImpl {
     /**
      * Deletes a threshold.
      */
-    public void delete() {
+    void delete() {
         ensureAdvancedOptionsIsActivated();
         deleteButton.click();
     }
@@ -70,7 +70,7 @@ abstract class AbstractThreshold extends PageAreaImpl {
     /**
      * Ensures advanced options are activated so that Thresholds can be set.
      */
-    public abstract void ensureAdvancedOptionsIsActivated();
+    abstract void ensureAdvancedOptionsIsActivated();
 
     Control getThresholdTarget() {
         return thresholdTarget;
