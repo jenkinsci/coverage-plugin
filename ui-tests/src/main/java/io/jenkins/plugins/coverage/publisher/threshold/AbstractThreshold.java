@@ -7,7 +7,7 @@ import org.jenkinsci.test.acceptance.po.PageAreaImpl;
 /**
  * Used for thresholds and global thresholds.
  */
-abstract class AbstractThreshold extends PageAreaImpl {
+public abstract class AbstractThreshold extends PageAreaImpl {
     private final Control thresholdTarget = control("thresholdTarget");
     private final Control unhealthyThreshold = control("unhealthyThreshold");
     private final Control unstableThreshold = control("unstableThreshold");
@@ -32,7 +32,7 @@ abstract class AbstractThreshold extends PageAreaImpl {
      * @param threshold
      *         for unhealthy
      */
-    void setUnhealthyThreshold(final double threshold) {
+    public void setUnhealthyThreshold(final double threshold) {
         ensureAdvancedOptionsIsActivated();
         unhealthyThreshold.set(threshold);
     }
@@ -43,7 +43,7 @@ abstract class AbstractThreshold extends PageAreaImpl {
      * @param threshold
      *         for unstable
      */
-    void setUnstableThreshold(final double threshold) {
+    public void setUnstableThreshold(final double threshold) {
         ensureAdvancedOptionsIsActivated();
         unstableThreshold.set(threshold);
     }
@@ -54,7 +54,7 @@ abstract class AbstractThreshold extends PageAreaImpl {
      * @param failOnUnhealthy
      *         boolean for failing on unhealthy
      */
-    void setFailUnhealthy(final boolean failOnUnhealthy) {
+    public void setFailUnhealthy(final boolean failOnUnhealthy) {
         ensureAdvancedOptionsIsActivated();
         failUnhealthy.check(failOnUnhealthy);
     }
@@ -62,7 +62,7 @@ abstract class AbstractThreshold extends PageAreaImpl {
     /**
      * Deletes a threshold.
      */
-    void delete() {
+    public void delete() {
         ensureAdvancedOptionsIsActivated();
         deleteButton.click();
     }
