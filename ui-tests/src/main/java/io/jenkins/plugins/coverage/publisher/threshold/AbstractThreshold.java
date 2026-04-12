@@ -22,6 +22,7 @@ public abstract class AbstractThreshold extends PageAreaImpl {
      * @param path
      *         to threshold
      */
+    @SuppressWarnings("this-escape")
     protected AbstractThreshold(final PageArea parent, final String path) {
         super(parent, path);
     }
