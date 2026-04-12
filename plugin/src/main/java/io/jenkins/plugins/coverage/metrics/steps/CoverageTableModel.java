@@ -222,48 +222,48 @@ class CoverageTableModel extends TableModel {
             colorProvider = colors;
         }
 
-        public String getFileHash() {
+        String getFileHash() {
             return String.valueOf(file.getRelativePath().hashCode());
         }
 
         @SuppressWarnings("PMD.BooleanGetMethodName")
-        public boolean getModified() {
+        boolean getModified() {
             return file.hasModifiedLines();
         }
 
-        public DetailedCell<?> getFileName() {
+        DetailedCell<?> getFileName() {
             return new DetailedCell<>(renderer.renderFileName(file.getName(), file.getRelativePath()), file.getName());
         }
 
-        public String getPackageName() {
+        String getPackageName() {
             return file.getParentName();
         }
 
-        public DetailedCell<?> getLineCoverage() {
+        DetailedCell<?> getLineCoverage() {
             return createColoredCoverageColumn(getCoverageOfNode(Metric.LINE));
         }
 
-        public DetailedCell<?> getBranchCoverage() {
+        DetailedCell<?> getBranchCoverage() {
             return createColoredCoverageColumn(getCoverageOfNode(Metric.BRANCH));
         }
 
-        public DetailedCell<?> getMethodCoverage() {
+        DetailedCell<?> getMethodCoverage() {
             return createColoredCoverageColumn(getCoverageOfNode(Metric.METHOD));
         }
 
-        public DetailedCell<?> getMcdcPairCoverage() {
+        DetailedCell<?> getMcdcPairCoverage() {
             return createColoredCoverageColumn(getCoverageOfNode(Metric.MCDC_PAIR));
         }
 
-        public DetailedCell<?> getFunctionCallCoverage() {
+        DetailedCell<?> getFunctionCallCoverage() {
             return createColoredCoverageColumn(getCoverageOfNode(Metric.FUNCTION_CALL));
         }
 
-        public DetailedCell<?> getMutationCoverage() {
+        DetailedCell<?> getMutationCoverage() {
             return createColoredCoverageColumn(getCoverageOfNode(Metric.MUTATION));
         }
 
-        public DetailedCell<?> getTestStrength() {
+        DetailedCell<?> getTestStrength() {
             return createColoredCoverageColumn(getCoverageOfNode(Metric.TEST_STRENGTH));
         }
 
@@ -271,43 +271,43 @@ class CoverageTableModel extends TableModel {
             return file.getTypedValue(metric, Coverage.nullObject(metric));
         }
 
-        public DetailedCell<?> getLineCoverageDelta() {
+        DetailedCell<?> getLineCoverageDelta() {
             return createColoredFileCoverageDeltaColumn(Metric.LINE);
         }
 
-        public DetailedCell<?> getBranchCoverageDelta() {
+        DetailedCell<?> getBranchCoverageDelta() {
             return createColoredFileCoverageDeltaColumn(Metric.BRANCH);
         }
 
-        public DetailedCell<?> getMutationCoverageDelta() {
+        DetailedCell<?> getMutationCoverageDelta() {
             return createColoredFileCoverageDeltaColumn(Metric.MUTATION);
         }
 
-        public DetailedCell<?> getTestStrengthDelta() {
+        DetailedCell<?> getTestStrengthDelta() {
             return createColoredFileCoverageDeltaColumn(Metric.TEST_STRENGTH);
         }
 
-        public int getLoc() {
+        int getLoc() {
             return file.getTypedValue(Metric.LOC, ZERO_LOC).asInteger();
         }
 
-        public int getTests() {
+        int getTests() {
             return  file.getTypedValue(Metric.TESTS, ZERO_TESTS).asInteger();
         }
 
-        public int getCyclomaticComplexity() {
+        int getCyclomaticComplexity() {
             return file.getTypedValue(Metric.CYCLOMATIC_COMPLEXITY, ZERO_CYCLOMATIC_COMPLEXITY).asInteger();
         }
 
-        public int getCognitiveComplexity() {
+        int getCognitiveComplexity() {
             return file.getTypedValue(Metric.COGNITIVE_COMPLEXITY, ZERO_COGNITIVE_COMPLEXITY).asInteger();
         }
 
-        public int getNpathComplexity() {
+        int getNpathComplexity() {
             return file.getTypedValue(Metric.NPATH_COMPLEXITY, ZERO_NPATH_COMPLEXITY).asInteger();
         }
 
-        public int getNcss() {
+        int getNcss() {
             return file.getTypedValue(Metric.NCSS, ZERO_NCSS).asInteger();
         }
 
