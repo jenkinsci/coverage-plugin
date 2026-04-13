@@ -2,7 +2,6 @@ package io.jenkins.plugins.coverage.metrics.steps;
 
 import tools.jackson.databind.ObjectMapper;
 import tools.jackson.databind.node.ObjectNode;
-import tools.jackson.core.JacksonException;
 
 import edu.hm.hafner.coverage.Metric;
 import edu.hm.hafner.coverage.Value;
@@ -80,7 +79,7 @@ class TrendChartFactory {
                         .collect(Collectors.toSet());
             }
         }
-        catch (JacksonException | ClassCastException | IllegalArgumentException ignored) {
+        catch (ClassCastException | IllegalArgumentException ignored) {
             // ignore and return default values
         }
 
