@@ -8,6 +8,7 @@ import edu.hm.hafner.coverage.FileNode;
 import java.io.Serial;
 import java.io.Serializable;
 import java.util.Arrays;
+import java.util.NavigableSet;
 import java.util.TreeSet;
 
 import io.jenkins.plugins.prism.Sanitizer;
@@ -36,8 +37,8 @@ class CoverageSourcePrinter implements Serializable {
 
     private final int[] missedPerLine;
 
-    @SuppressWarnings("PMD.LooseCoupling")
-    private final TreeSet<Integer> modifiedLines;
+    @SuppressWarnings("serial")
+    private final NavigableSet<Integer> modifiedLines;
 
     CoverageSourcePrinter(final FileNode file) {
         path = file.getRelativePath();
