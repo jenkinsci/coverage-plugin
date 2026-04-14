@@ -123,8 +123,8 @@ public class SourceCodePainter {
         @Serial
         private static final long serialVersionUID = 3966282357309568323L;
 
-        @SuppressWarnings("PMD.LooseCoupling")
-        private final ArrayList<? extends CoverageSourcePrinter> paintedFiles;
+        @SuppressWarnings("serial")
+        private final List<? extends CoverageSourcePrinter> paintedFiles;
         private final String sourceCodeEncoding;
         private final String directory;
 

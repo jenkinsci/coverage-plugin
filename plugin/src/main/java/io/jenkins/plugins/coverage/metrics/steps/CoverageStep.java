@@ -57,10 +57,10 @@ public class CoverageStep extends Step implements Serializable {
     private static final long serialVersionUID = 34386077204781270L;
     private static final ValidationUtilities VALIDATION_UTILITIES = new ValidationUtilities();
 
-    @SuppressWarnings("PMD.LooseCoupling")
-    private ArrayList<CoverageTool> tools = new ArrayList<>();
-    @SuppressWarnings("PMD.LooseCoupling")
-    private ArrayList<CoverageQualityGate> qualityGates = new ArrayList<>();
+    @SuppressWarnings("serial")
+    private List<CoverageTool> tools = new ArrayList<>();
+    @SuppressWarnings("serial")
+    private List<CoverageQualityGate> qualityGates = new ArrayList<>();
     private String id = StringUtils.EMPTY;
     private String name = StringUtils.EMPTY;
     private boolean skipPublishingChecks = false;
@@ -72,8 +72,8 @@ public class CoverageStep extends Step implements Serializable {
     private boolean skipSymbolicLinks = false;
     private String scm = StringUtils.EMPTY;
     private String sourceCodeEncoding = StringUtils.EMPTY;
-    @SuppressWarnings("PMD.LooseCoupling")
-    private HashSet<SourceCodeDirectory> sourceDirectories = new HashSet<>();
+    @SuppressWarnings("serial")
+    private Set<SourceCodeDirectory> sourceDirectories = new HashSet<>();
     private SourceCodeRetention sourceCodeRetention = SourceCodeRetention.LAST_BUILD;
 
     /**
