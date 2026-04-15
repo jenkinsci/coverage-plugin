@@ -34,6 +34,7 @@ import java.util.stream.Stream;
 import org.kohsuke.stapler.StaplerRequest2;
 import org.kohsuke.stapler.StaplerResponse2;
 import org.kohsuke.stapler.bind.JavaScriptMethod;
+import tools.jackson.core.JacksonException;
 import hudson.model.Api;
 import hudson.model.ModelObject;
 import hudson.model.Run;
@@ -234,9 +235,14 @@ public class CoverageViewModel extends DefaultAsyncTableContentProvider implemen
      * @return the created color provider
      */
     private ColorProvider createColorProvider(final String json) {
-        var mapper = new ObjectMapper();
-        Map<String, String> colorMapping = mapper.readValue(json, new ColorMappingType());
-        return ColorProviderFactory.createColorProvider(colorMapping);
+        try {
+            var mapper = new ObjectMapper();
+            Map<String, String> colorMapping = mapper.readValue(json, new ColorMappingType());
+            return ColorProviderFactory.createColorProvider(colorMapping);
+        }
+        catch (JacksonException e) {
+            return ColorProviderFactory.createDefaultColorProvider();
+        }
     }
 
     @JavaScriptMethod
