@@ -1,19 +1,17 @@
 package io.jenkins.plugins.coverage.metrics.steps;
 
-import tools.jackson.databind.ObjectMapper;
-import tools.jackson.databind.node.ObjectNode;
-import tools.jackson.core.JacksonException;
-
 import edu.hm.hafner.coverage.Metric;
 import edu.hm.hafner.coverage.Value;
 import edu.hm.hafner.echarts.ChartModelConfiguration;
-import edu.hm.hafner.echarts.JacksonFacade;
 import edu.hm.hafner.echarts.line.LinesChartModel;
 
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.node.ObjectNode;
 
 import io.jenkins.plugins.coverage.metrics.charts.CoverageTrendChart;
 import io.jenkins.plugins.coverage.metrics.charts.MetricsTrendChart;
@@ -27,7 +25,6 @@ import io.jenkins.plugins.echarts.GenericBuildActionIterator.BuildActionIterable
  * @author Ullrich Hafner
  */
 class TrendChartFactory {
-    private static final JacksonFacade JACKSON = new JacksonFacade();
     static final Set<Metric> DEFAULT_TREND_METRICS = Set.of(
             Metric.LINE, Metric.BRANCH,
             Metric.MUTATION, Metric.TEST_STRENGTH,
@@ -62,7 +59,22 @@ class TrendChartFactory {
     }
 
     private boolean useLines(final String configuration) {
-        return JACKSON.getBoolean(configuration, "useLines", false);
+        return getBoolean(configuration, "useLines", false);
+    }
+
+    private boolean getBoolean(final String json, final String property, final boolean defaultValue) {
+        try {
+            var node = new ObjectMapper().readValue(json, ObjectNode.class);
+            var typeNode = node.get(property);
+            if (typeNode != null) {
+                return typeNode.asBoolean(defaultValue);
+            }
+        }
+        catch (JacksonException exception) {
+            // ignore
+        }
+
+        return defaultValue;
     }
 
     Set<Metric> getVisibleMetrics(final String configuration) {

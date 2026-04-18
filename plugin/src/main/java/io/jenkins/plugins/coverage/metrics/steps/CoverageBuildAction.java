@@ -6,7 +6,6 @@ import edu.hm.hafner.coverage.Difference;
 import edu.hm.hafner.coverage.Metric;
 import edu.hm.hafner.coverage.Node;
 import edu.hm.hafner.coverage.Value;
-import edu.hm.hafner.echarts.JacksonFacade;
 import edu.hm.hafner.util.FilteredLog;
 import edu.hm.hafner.util.VisibleForTesting;
 import edu.umd.cs.findbugs.annotations.NonNull;
@@ -24,6 +23,7 @@ import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import tools.jackson.databind.ObjectMapper;
 
 import org.kohsuke.stapler.StaplerProxy;
 import hudson.Functions;
@@ -697,11 +697,11 @@ public final class CoverageBuildAction extends BuildAction<Node> implements Stap
     }
 
     private String createCoverageModel(final String configuration) {
-        return new JacksonFacade().toJson(new TrendChartFactory().createChartModel(configuration, this));
+        return new ObjectMapper().writeValueAsString(new TrendChartFactory().createChartModel(configuration, this));
     }
 
     private String createMetricsModel(final String configuration) {
-        return new JacksonFacade().toJson(new TrendChartFactory().createMetricsModel(configuration, this));
+        return new ObjectMapper().writeValueAsString(new TrendChartFactory().createMetricsModel(configuration, this));
     }
 
     @NonNull
