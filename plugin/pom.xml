@@ -121,6 +121,7 @@
     <dependency>
       <groupId>io.jenkins.plugins</groupId>
       <artifactId>echarts-api</artifactId>
+      <version>6.0.0-1279.v4e95ca_f54783</version>
     </dependency>
     <dependency>
       <groupId>io.jenkins.plugins</groupId>
@@ -133,6 +134,7 @@
     <dependency>
       <groupId>io.jenkins.plugins</groupId>
       <artifactId>data-tables-api</artifactId>
+      <version>2.3.7-1556.vb_8e745408397</version>
     </dependency>
     <dependency>
       <groupId>io.jenkins.plugins</groupId>
@@ -141,7 +143,7 @@
     <dependency>
       <groupId>io.jenkins.plugins</groupId>
       <artifactId>plugin-util-api</artifactId>
-      <version>7.1320.v684dd26fca_19</version>
+      <version>7.1330.v47b_46ee2047a_</version>
     </dependency>
     <dependency>
       <groupId>io.jenkins.plugins</groupId>
