@@ -197,6 +197,7 @@ class CoverageTableModel extends TableModel {
     /**
      * UI row model for the coverage details table.
      */
+    @SuppressWarnings("PMD.PublicMemberInNonPublicType")
     static class CoverageRow {
         private static final String COVERAGE_COLUMN_OUTER = "coverage-cell-outer float-end";
         private static final String COVERAGE_COLUMN_INNER = "coverage-jenkins-cell-inner";
@@ -222,92 +223,92 @@ class CoverageTableModel extends TableModel {
             colorProvider = colors;
         }
 
-        String getFileHash() {
+        public String getFileHash() {
             return String.valueOf(file.getRelativePath().hashCode());
         }
 
         @SuppressWarnings("PMD.BooleanGetMethodName")
-        boolean getModified() {
+        public boolean getModified() {
             return file.hasModifiedLines();
         }
 
-        DetailedCell<?> getFileName() {
+        public DetailedCell<?> getFileName() {
             return new DetailedCell<>(renderer.renderFileName(file.getName(), file.getRelativePath()), file.getName());
         }
 
-        String getPackageName() {
+        public String getPackageName() {
             return file.getParentName();
         }
 
-        DetailedCell<?> getLineCoverage() {
+        public DetailedCell<?> getLineCoverage() {
             return createColoredCoverageColumn(getCoverageOfNode(Metric.LINE));
         }
 
-        DetailedCell<?> getBranchCoverage() {
+        public DetailedCell<?> getBranchCoverage() {
             return createColoredCoverageColumn(getCoverageOfNode(Metric.BRANCH));
         }
 
-        DetailedCell<?> getMethodCoverage() {
+        public DetailedCell<?> getMethodCoverage() {
             return createColoredCoverageColumn(getCoverageOfNode(Metric.METHOD));
         }
 
-        DetailedCell<?> getMcdcPairCoverage() {
+        public DetailedCell<?> getMcdcPairCoverage() {
             return createColoredCoverageColumn(getCoverageOfNode(Metric.MCDC_PAIR));
         }
 
-        DetailedCell<?> getFunctionCallCoverage() {
+        public DetailedCell<?> getFunctionCallCoverage() {
             return createColoredCoverageColumn(getCoverageOfNode(Metric.FUNCTION_CALL));
         }
 
-        DetailedCell<?> getMutationCoverage() {
+        public DetailedCell<?> getMutationCoverage() {
             return createColoredCoverageColumn(getCoverageOfNode(Metric.MUTATION));
         }
 
-        DetailedCell<?> getTestStrength() {
+        public DetailedCell<?> getTestStrength() {
             return createColoredCoverageColumn(getCoverageOfNode(Metric.TEST_STRENGTH));
         }
 
-        Coverage getCoverageOfNode(final Metric metric) {
+        public Coverage getCoverageOfNode(final Metric metric) {
             return file.getTypedValue(metric, Coverage.nullObject(metric));
         }
 
-        DetailedCell<?> getLineCoverageDelta() {
+        public DetailedCell<?> getLineCoverageDelta() {
             return createColoredFileCoverageDeltaColumn(Metric.LINE);
         }
 
-        DetailedCell<?> getBranchCoverageDelta() {
+        public DetailedCell<?> getBranchCoverageDelta() {
             return createColoredFileCoverageDeltaColumn(Metric.BRANCH);
         }
 
-        DetailedCell<?> getMutationCoverageDelta() {
+        public DetailedCell<?> getMutationCoverageDelta() {
             return createColoredFileCoverageDeltaColumn(Metric.MUTATION);
         }
 
-        DetailedCell<?> getTestStrengthDelta() {
+        public DetailedCell<?> getTestStrengthDelta() {
             return createColoredFileCoverageDeltaColumn(Metric.TEST_STRENGTH);
         }
 
-        int getLoc() {
+        public int getLoc() {
             return file.getTypedValue(Metric.LOC, ZERO_LOC).asInteger();
         }
 
-        int getTests() {
+        public int getTests() {
             return  file.getTypedValue(Metric.TESTS, ZERO_TESTS).asInteger();
         }
 
-        int getCyclomaticComplexity() {
+        public int getCyclomaticComplexity() {
             return file.getTypedValue(Metric.CYCLOMATIC_COMPLEXITY, ZERO_CYCLOMATIC_COMPLEXITY).asInteger();
         }
 
-        int getCognitiveComplexity() {
+        public int getCognitiveComplexity() {
             return file.getTypedValue(Metric.COGNITIVE_COMPLEXITY, ZERO_COGNITIVE_COMPLEXITY).asInteger();
         }
 
-        int getNpathComplexity() {
+        public int getNpathComplexity() {
             return file.getTypedValue(Metric.NPATH_COMPLEXITY, ZERO_NPATH_COMPLEXITY).asInteger();
         }
 
-        int getNcss() {
+        public int getNcss() {
             return file.getTypedValue(Metric.NCSS, ZERO_NCSS).asInteger();
         }
 

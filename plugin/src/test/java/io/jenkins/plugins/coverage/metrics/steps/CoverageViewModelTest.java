@@ -57,6 +57,8 @@ class CoverageViewModelTest extends AbstractCoverageTest {
                                 .contains("title=\"edu/hm/hafner/util/",
                                         "data-bs-toggle=\"tooltip\" data-bs-placement=\"top\""))
         );
+
+        assertThat(model.getTableRows(ABSOLUTE_COVERAGE_TABLE_ID)).startsWith("[{\"branchCoverage\":{\"display\":\"<div ");
     }
 
     private static void ensureValidPercentages(final List<Double> percentages) {
