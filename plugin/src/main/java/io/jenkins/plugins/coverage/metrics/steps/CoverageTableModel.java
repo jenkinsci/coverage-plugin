@@ -117,8 +117,6 @@ class CoverageTableModel extends TableModel {
                 Messages.Column_DeltaLineCoverage("Δ"), columns);
         configureValueColumn("branchCoverage", Metric.BRANCH, Messages.Column_BranchCoverage(),
                 Messages.Column_DeltaBranchCoverage("Δ"), columns);
-        configureValueColumn("instructionCoverage", Metric.INSTRUCTION, Messages.Column_InstructionCoverage(),
-                Messages.Column_DeltaInstructionCoverage("Δ"), columns);
 
         /* VectorCAST metrics */
         configureValueColumn("mcdcPairCoverage", Metric.MCDC_PAIR, Messages.Column_MCDCPairs(),
