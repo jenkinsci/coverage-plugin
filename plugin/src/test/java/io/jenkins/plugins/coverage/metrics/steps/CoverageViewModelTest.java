@@ -2,6 +2,8 @@ package io.jenkins.plugins.coverage.metrics.steps;
 
 import org.apache.commons.lang3.StringUtils;
 import org.junit.jupiter.api.Test;
+import org.junitpioneer.jupiter.DefaultLocale;
+import org.junitpioneer.jupiter.Issue;
 
 import edu.hm.hafner.coverage.FileNode;
 import edu.hm.hafner.coverage.ModuleNode;
@@ -59,6 +61,17 @@ class CoverageViewModelTest extends AbstractCoverageTest {
         );
 
         assertThat(model.getTableRows(ABSOLUTE_COVERAGE_TABLE_ID)).startsWith("[{\"branchCoverage\":{\"display\":\"<div ");
+    }
+
+    @Test @DefaultLocale("fr") @Issue("https://github.com/jenkinsci/coverage-plugin/issues/733")
+    void shouldUseEnglishLocalWhenRenderingNumbers() {
+        var model = createModelFromCodingStyleReport();
+
+        assertThat(model.getTableModel(ABSOLUTE_COVERAGE_TABLE_ID).getRows()).anySatisfy(
+                row -> assertThat(row).isInstanceOfSatisfying(CoverageRow.class,
+                        coverageRow -> assertThat(coverageRow.getLineCoverage().getDisplay())
+                                .contains("linear-gradient(90deg, #FFCC0050 80.000000%, transparent 80.000000%"))
+        );
     }
 
     private static void ensureValidPercentages(final List<Double> percentages) {
