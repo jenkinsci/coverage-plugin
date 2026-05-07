@@ -16,8 +16,9 @@
   <name>UI Tests of Code Coverage Plugin</name>
 
   <properties>
-    <jenkins.version>2.558</jenkins.version>
-    <hpi-plugin.version>3.1820.ve687007a_69e5</hpi-plugin.version>
+    <jenkins.version>2.563</jenkins.version>
+    <hpi-plugin.version>3.1829.v1595655f4b_49</hpi-plugin.version>
+    <jenkins.version>2.563</jenkins.version>
     <json-smart.version>2.3</json-smart.version>
     <json-unit-assertj.version>5.1.1</json-unit-assertj.version>
     <module.name>${project.groupId}.code.coverage.api.ui.tests</module.name>
@@ -37,7 +38,7 @@
         <!-- ClassNotFoundException if omitted -->
         <groupId>io.netty</groupId>
         <artifactId>netty-bom</artifactId>
-        <version>4.2.12.Final</version>
+        <version>4.2.13.Final</version>
         <type>pom</type>
         <scope>import</scope>
       </dependency>
@@ -48,7 +49,7 @@
     <dependency>
       <groupId>org.jenkins-ci</groupId>
       <artifactId>acceptance-test-harness</artifactId>
-      <version>6623.v46eb_51303186</version>
+      <version>6624.v8e7b_38196e2c</version>
     </dependency>
     <dependency>
       <groupId>com.fasterxml.jackson.core</groupId>
