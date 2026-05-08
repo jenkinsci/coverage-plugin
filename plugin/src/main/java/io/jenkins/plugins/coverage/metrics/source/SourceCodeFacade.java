@@ -130,17 +130,22 @@ public class SourceCodeFacade {
      */
     void copySourcesToBuildFolder(final Run<?, ?> build, final FilePath workspace, final FilteredLog log)
             throws InterruptedException {
+        var workspaceZip = workspace.child(COVERAGE_SOURCES_ZIP);
+        FilePath buildZip = null;
         try {
             var buildFolder = new FilePath(build.getRootDir()).child(COVERAGE_SOURCES_DIRECTORY);
-            var buildZip = buildFolder.child(COVERAGE_SOURCES_ZIP);
-            workspace.child(COVERAGE_SOURCES_ZIP).copyTo(buildZip);
+            buildZip = buildFolder.child(COVERAGE_SOURCES_ZIP);
+            workspaceZip.copyTo(buildZip);
             log.logInfo("-> extracting...");
             buildZip.unzip(buildFolder);
-            buildZip.delete();
             log.logInfo("-> done");
         }
         catch (IOException exception) {
             log.logException(exception, "Can't copy zipped sources from agent to controller");
+        }
+        finally {
+            deleteQuietly(buildZip, "controller temporary zip", log);
+            deleteQuietly(workspaceZip, "agent workspace zip", log);
         }
     }
 
@@ -320,5 +325,34 @@ public class SourceCodeFacade {
             linesMapping.put(String.valueOf(highestLine + 1), true);
         }
         return linesMapping;
+    }
+
+    /**
+     * Deletes a file without throwing exceptions. If the file is null or the deletion fails,
+     * the error is logged using the provided description.
+     *
+     * @param file
+     *         the file to delete, or {@code null}
+     * @param description
+     *         a description of the file being deleted (for logging purposes)
+     * @param log
+     *         the log to record any deletion errors
+     *
+     * @throws InterruptedException
+     *         if the deletion is interrupted
+     */
+    private void deleteQuietly(final FilePath file, final String description, final FilteredLog log)
+            throws InterruptedException {
+        if (file == null) {
+            return;
+        }
+        try {
+            if (file.exists()) {
+                file.delete();
+            }
+        }
+        catch (IOException exception) {
+            log.logException(exception, "Can't delete %s: '%s'", description, file);
+        }
     }
 }
