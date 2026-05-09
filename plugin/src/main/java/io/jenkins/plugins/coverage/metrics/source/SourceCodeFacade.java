@@ -144,8 +144,8 @@ public class SourceCodeFacade {
             log.logException(exception, "Can't copy zipped sources from agent to controller");
         }
         finally {
-            deleteQuietly(buildZip, "controller temporary zip", log);
-            deleteQuietly(workspaceZip, "agent workspace zip", log);
+            buildZip.delete();
+            workspaceZip.delete();
         }
     }
 
@@ -325,34 +325,5 @@ public class SourceCodeFacade {
             linesMapping.put(String.valueOf(highestLine + 1), true);
         }
         return linesMapping;
-    }
-
-    /**
-     * Deletes a file without throwing exceptions. If the file is null or the deletion fails,
-     * the error is logged using the provided description.
-     *
-     * @param file
-     *         the file to delete, or {@code null}
-     * @param description
-     *         a description of the file being deleted (for logging purposes)
-     * @param log
-     *         the log to record any deletion errors
-     *
-     * @throws InterruptedException
-     *         if the deletion is interrupted
-     */
-    private void deleteQuietly(final FilePath file, final String description, final FilteredLog log)
-            throws InterruptedException {
-        if (file == null) {
-            return;
-        }
-        try {
-            if (file.exists()) {
-                file.delete();
-            }
-        }
-        catch (IOException exception) {
-            log.logException(exception, "Can't delete %s: '%s'", description, file);
-        }
     }
 }
