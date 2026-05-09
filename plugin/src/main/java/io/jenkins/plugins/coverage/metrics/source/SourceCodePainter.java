@@ -175,6 +175,8 @@ public class SourceCodePainter {
                 log.logInfo("-> zipping sources from folder '%s' as '%s'", outputFolder, zipFile);
 
                 deleteFolder(temporaryFolder.toFile(), log);
+                outputFolder.deleteRecursive();
+                log.logInfo("-> deleted temporary source folder '%s'", outputFolder);
             }
             catch (IOException exception) {
                 log.logException(exception,
