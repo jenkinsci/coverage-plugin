@@ -144,8 +144,8 @@ public class SourceCodeFacade {
             log.logException(exception, "Can't copy zipped sources from agent to controller");
         }
         finally {
-            deleteQuietly(buildZip, log);
-            deleteQuietly(workspaceZip, log);
+            tryDeleteFile(buildZip, log);
+            tryDeleteFile(workspaceZip, log);
         }
     }
 
@@ -338,7 +338,7 @@ public class SourceCodeFacade {
      * @throws InterruptedException
      *         if the user terminated the job
      */
-    private void deleteQuietly(final FilePath file, final FilteredLog log)
+    private void tryDeleteFile(final FilePath file, final FilteredLog log)
             throws InterruptedException {
         try {
             if (file == null || !file.exists()) {
