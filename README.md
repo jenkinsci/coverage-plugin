@@ -15,7 +15,7 @@ It has support for the following report formats:
 - [OpenCover](https://github.com/OpenCover/opencover) code coverage results
 - [VectorCAST](https://www.vector.com/int/en/products/products-a-z/software/vectorcast) code coverage results including MC/DC, Function, Function Call coverages
 - [PIT](https://pitest.org/) mutation coverage results
-- [JUnit](https://junit.org/junit5/) test results
+- [JUnit](https://junit.org) test results
 - [NUnit](https://nunit.org) test results
 - [XUnit](https://xunit.net) test results
 - [PMD software metrics](https://github.com/uhafner/codingstyle-pom/blob/main/pom.xml#L945-L960) via a patched version of [PMD](https://pmd.github.io/)

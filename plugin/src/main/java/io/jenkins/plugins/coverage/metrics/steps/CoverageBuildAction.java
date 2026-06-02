@@ -6,7 +6,6 @@ import edu.hm.hafner.coverage.Difference;
 import edu.hm.hafner.coverage.Metric;
 import edu.hm.hafner.coverage.Node;
 import edu.hm.hafner.coverage.Value;
-import edu.hm.hafner.echarts.JacksonFacade;
 import edu.hm.hafner.util.FilteredLog;
 import edu.hm.hafner.util.VisibleForTesting;
 import edu.umd.cs.findbugs.annotations.NonNull;
@@ -24,6 +23,7 @@ import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import tools.jackson.databind.ObjectMapper;
 
 import org.kohsuke.stapler.StaplerProxy;
 import hudson.Functions;
@@ -73,41 +73,41 @@ public final class CoverageBuildAction extends BuildAction<Node> implements Stap
     private final FilteredLog log;
 
     /** The aggregated values of the result for the root of the tree. */
-    @SuppressWarnings("PMD.LooseCoupling")
-    private final ArrayList<? extends Value> projectValues;
+    @SuppressWarnings("serial")
+    private final List<? extends Value> projectValues;
 
     /** The delta of this build's coverages with respect to the reference build. */
     @SuppressWarnings("MismatchedQueryAndUpdateOfCollection")
     @SuppressFBWarnings(value = "NP_NONNULL_FIELD_NOT_INITIALIZED_IN_CONSTRUCTOR", justification = "Not used anymore")
     private transient NavigableMap<Metric, Difference> difference;
-    @SuppressWarnings("PMD.LooseCoupling")
-    private /* almost final */ ArrayList<Difference> differences; // since 2.0.0
+    @SuppressWarnings("serial")
+    private /* almost final */ List<Difference> differences; // since 2.0.0
 
     /** The coverages filtered by modified lines of the associated change request. */
-    @SuppressWarnings("PMD.LooseCoupling")
-    private final ArrayList<? extends Value> modifiedLinesCoverage;
+    @SuppressWarnings("serial")
+    private final List<? extends Value> modifiedLinesCoverage;
 
     /** The coverage delta of the associated change request with respect to the reference build. */
     @SuppressWarnings("MismatchedQueryAndUpdateOfCollection")
     @SuppressFBWarnings(value = "NP_NONNULL_FIELD_NOT_INITIALIZED_IN_CONSTRUCTOR", justification = "Not used anymore")
     private transient NavigableMap<Metric, Difference> modifiedLinesCoverageDifference;
-    @SuppressWarnings("PMD.LooseCoupling")
-    private /* almost final */ ArrayList<Difference> modifiedLinesDifferences; // since 2.0.0
+    @SuppressWarnings("serial")
+    private /* almost final */ List<Difference> modifiedLinesDifferences; // since 2.0.0
 
     /** The coverage of the modified lines. */
-    @SuppressWarnings("PMD.LooseCoupling")
-    private final ArrayList<? extends Value> modifiedFilesCoverage;
+    @SuppressWarnings("serial")
+    private final List<? extends Value> modifiedFilesCoverage;
 
     /** The coverage delta of the modified lines. */
     @SuppressWarnings("MismatchedQueryAndUpdateOfCollection")
     @SuppressFBWarnings(value = "NP_NONNULL_FIELD_NOT_INITIALIZED_IN_CONSTRUCTOR", justification = "Not used anymore")
     private transient NavigableMap<Metric, Difference> modifiedFilesCoverageDifference;
-    @SuppressWarnings("PMD.LooseCoupling")
-    private /* almost final */ ArrayList<Difference> modifiedFilesDifferences; // since 2.0.0
+    @SuppressWarnings("serial")
+    private /* almost final */ List<Difference> modifiedFilesDifferences; // since 2.0.0
 
     /** The indirect coverage changes of the associated change request with respect to the reference build. */
-    @SuppressWarnings("PMD.LooseCoupling")
-    private final ArrayList<? extends Value> indirectCoverageChanges;
+    @SuppressWarnings("serial")
+    private final List<? extends Value> indirectCoverageChanges;
 
     static {
         CoverageXmlStream.registerConverters(XSTREAM2);
@@ -235,8 +235,7 @@ public final class CoverageBuildAction extends BuildAction<Node> implements Stap
         }
     }
 
-    @SuppressWarnings("PMD.LooseCoupling")
-    private <T> ArrayList<T> copy(final List<? extends T> list) {
+    private <T> List<T> copy(final List<? extends T> list) {
         return new ArrayList<>(list); // do not use immutable collections to simplify serialization
     }
 
@@ -698,11 +697,11 @@ public final class CoverageBuildAction extends BuildAction<Node> implements Stap
     }
 
     private String createCoverageModel(final String configuration) {
-        return new JacksonFacade().toJson(new TrendChartFactory().createChartModel(configuration, this));
+        return new ObjectMapper().writeValueAsString(new TrendChartFactory().createChartModel(configuration, this));
     }
 
     private String createMetricsModel(final String configuration) {
-        return new JacksonFacade().toJson(new TrendChartFactory().createMetricsModel(configuration, this));
+        return new ObjectMapper().writeValueAsString(new TrendChartFactory().createMetricsModel(configuration, this));
     }
 
     @NonNull

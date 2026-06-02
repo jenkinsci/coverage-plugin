@@ -249,8 +249,7 @@ public class CoverageMetricColumn extends ListViewColumn {
     /**
      * Descriptor of the column.
      */
-    @Extension(optional = true)
-    @Symbol("coverageTotalsColumn")
+    @Extension @Symbol("coverageTotalsColumn")
     public static class CoverageMetricColumnDescriptor extends ListViewColumnDescriptor {
         private final JenkinsFacade jenkins;
 

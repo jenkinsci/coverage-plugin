@@ -8,6 +8,7 @@ import edu.hm.hafner.coverage.FileNode;
 import java.io.Serial;
 import java.io.Serializable;
 import java.util.Arrays;
+import java.util.NavigableSet;
 import java.util.TreeSet;
 
 import io.jenkins.plugins.prism.Sanitizer;
@@ -36,8 +37,8 @@ class CoverageSourcePrinter implements Serializable {
 
     private final int[] missedPerLine;
 
-    @SuppressWarnings("PMD.LooseCoupling")
-    private final TreeSet<Integer> modifiedLines;
+    @SuppressWarnings("serial")
+    private final NavigableSet<Integer> modifiedLines;
 
     CoverageSourcePrinter(final FileNode file) {
         path = file.getRelativePath();
@@ -48,7 +49,7 @@ class CoverageSourcePrinter implements Serializable {
         modifiedLines = new TreeSet<>(file.getModifiedLines());
     }
 
-    public String renderLine(final int line, final String sourceCode) {
+    String renderLine(final int line, final String sourceCode) {
         var isPainted = isPainted(line);
         return tr()
                 .withClasses(isPainted ? getColorClass(line) : UNDEFINED, getModifiedClass(line))
@@ -79,7 +80,7 @@ class CoverageSourcePrinter implements Serializable {
         return isModified(line) ? MODIFIED : StringUtils.EMPTY;
     }
 
-    public String getColorClass(final int line) {
+    String getColorClass(final int line) {
         if (getCovered(line) == 0) {
             return NO_COVERAGE;
         }
@@ -91,7 +92,7 @@ class CoverageSourcePrinter implements Serializable {
         }
     }
 
-    public String getTooltip(final int line) {
+    String getTooltip(final int line) {
         var covered = getCovered(line);
         var missed = getMissed(line);
         if (covered + missed > 1) {
@@ -111,7 +112,7 @@ class CoverageSourcePrinter implements Serializable {
         }
     }
 
-    public String getSummaryColumn(final int line) {
+    String getSummaryColumn(final int line) {
         var covered = getCovered(line);
         var missed = getMissed(line);
         if (covered + missed > 1) {
@@ -120,11 +121,11 @@ class CoverageSourcePrinter implements Serializable {
         return String.valueOf(covered);
     }
 
-    public final String getPath() {
+    final String getPath() {
         return path;
     }
 
-    public boolean isPainted(final int line) {
+    boolean isPainted(final int line) {
         return findIndexOfLine(line) >= 0;
     }
 
@@ -136,11 +137,11 @@ class CoverageSourcePrinter implements Serializable {
         return Arrays.binarySearch(linesToPaint, line);
     }
 
-    public int getCovered(final int line) {
+    int getCovered(final int line) {
         return getCounter(line, coveredPerLine);
     }
 
-    public int getMissed(final int line) {
+    int getMissed(final int line) {
         return getCounter(line, missedPerLine);
     }
 
@@ -152,7 +153,7 @@ class CoverageSourcePrinter implements Serializable {
         return 0;
     }
 
-    public String getColumnHeader() {
+    String getColumnHeader() {
         return StringUtils.EMPTY;
     }
 }

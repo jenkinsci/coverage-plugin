@@ -22,12 +22,12 @@ class FileWithModifiedLines {
     }
 
     @Exported(inline = true)
-    public String getFullyQualifiedFileName() {
+    String getFullyQualifiedFileName() {
         return fullyQualifiedFileName;
     }
 
     @Exported(inline = true)
-    public SortedSet<ModifiedLinesBlock> getModifiedLinesBlocks() {
+    SortedSet<ModifiedLinesBlock> getModifiedLinesBlocks() {
         return modifiedLinesBlocks;
     }
 

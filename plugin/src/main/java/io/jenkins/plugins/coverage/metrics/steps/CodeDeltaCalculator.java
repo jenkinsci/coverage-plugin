@@ -79,7 +79,7 @@ class CodeDeltaCalculator {
      *
      * @return the {@link Delta code delta} as Optional if existent, else an empty Optional
      */
-    public Optional<Delta> calculateCodeDeltaToReference(final Run<?, ?> referenceBuild, final FilteredLog log) {
+    Optional<Delta> calculateCodeDeltaToReference(final Run<?, ?> referenceBuild, final FilteredLog log) {
         return DeltaCalculatorFactory
                 .findDeltaCalculator(scm, build, workspace, listener, log)
                 .calculateDelta(build, referenceBuild, log);
@@ -93,7 +93,7 @@ class CodeDeltaCalculator {
      *
      * @return the relevant code changes
      */
-    public Set<FileChanges> getCoverageRelevantChanges(final Delta delta) {
+    Set<FileChanges> getCoverageRelevantChanges(final Delta delta) {
         return delta.getFileChangesMap().values().stream()
                 .filter(fileChange -> fileChange.getFileEditType() == FileEditType.MODIFY
                         || fileChange.getFileEditType() == FileEditType.ADD
@@ -116,7 +116,7 @@ class CodeDeltaCalculator {
      * @throws IllegalStateException
      *         when creating the mapping failed due to ambiguous paths
      */
-    public Map<String, FileChanges> mapScmChangesToReportPaths(
+    Map<String, FileChanges> mapScmChangesToReportPaths(
             final Set<FileChanges> changes, final Node root, final FilteredLog log) throws IllegalStateException {
         Set<String> reportPaths = new HashSet<>(root.getFiles());
         Set<String> scmPaths = changes.stream().map(FileChanges::getFileName).collect(Collectors.toSet());
@@ -150,7 +150,7 @@ class CodeDeltaCalculator {
      * @throws IllegalStateException
      *         if the SCM path mapping is ambiguous
      */
-    public Map<String, String> createOldPathMapping(final Node root, final Node referenceRoot,
+    Map<String, String> createOldPathMapping(final Node root, final Node referenceRoot,
             final Map<String, FileChanges> changes, final FilteredLog log)
             throws IllegalStateException {
         Set<String> oldReportPaths = new HashSet<>(referenceRoot.getFiles());
