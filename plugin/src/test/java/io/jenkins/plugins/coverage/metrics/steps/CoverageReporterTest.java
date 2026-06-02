@@ -16,10 +16,7 @@ import hudson.model.Run;
 import io.jenkins.plugins.forensics.reference.ReferenceFinder;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.eq;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.mockConstruction;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 /**
  * Tests the class {@link CoverageReporter}.
