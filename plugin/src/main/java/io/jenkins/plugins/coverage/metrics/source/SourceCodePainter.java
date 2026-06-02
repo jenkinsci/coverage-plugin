@@ -127,8 +127,8 @@ public class SourceCodePainter {
         @Serial
         private static final long serialVersionUID = 3966282357309568323L;
 
-        @SuppressWarnings("PMD.LooseCoupling")
-        private final ArrayList<? extends CoverageSourcePrinter> paintedFiles;
+        @SuppressWarnings("serial")
+        private final List<? extends CoverageSourcePrinter> paintedFiles;
         private final String sourceCodeEncoding;
         private final String directory;
 
@@ -179,6 +179,8 @@ public class SourceCodePainter {
                 log.logInfo("-> zipping sources from folder '%s' as '%s'", outputFolder, zipFile);
 
                 deleteFolder(temporaryFolder.toFile(), log);
+                outputFolder.deleteRecursive();
+                log.logInfo("-> deleted temporary source folder '%s'", outputFolder);
             }
             catch (IOException exception) {
                 log.logException(exception,

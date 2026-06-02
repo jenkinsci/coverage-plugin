@@ -24,17 +24,17 @@ class ModifiedLinesBlock implements Comparable<ModifiedLinesBlock> {
     }
 
     @Exported
-    public int getStartLine() {
+    int getStartLine() {
         return startLine;
     }
 
     @Exported
-    public int getEndLine() {
+    int getEndLine() {
         return endLine;
     }
 
     @Exported
-    public LineCoverageType getType() {
+    LineCoverageType getType() {
         return type;
     }
 

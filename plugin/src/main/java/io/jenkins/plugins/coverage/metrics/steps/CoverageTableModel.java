@@ -197,6 +197,7 @@ class CoverageTableModel extends TableModel {
     /**
      * UI row model for the coverage details table.
      */
+    @SuppressWarnings("PMD.PublicMemberInNonPublicType")
     static class CoverageRow {
         private static final String COVERAGE_COLUMN_OUTER = "coverage-cell-outer float-end";
         private static final String COVERAGE_COLUMN_INNER = "coverage-jenkins-cell-inner";
@@ -267,7 +268,7 @@ class CoverageTableModel extends TableModel {
             return createColoredCoverageColumn(getCoverageOfNode(Metric.TEST_STRENGTH));
         }
 
-        Coverage getCoverageOfNode(final Metric metric) {
+        public Coverage getCoverageOfNode(final Metric metric) {
             return file.getTypedValue(metric, Coverage.nullObject(metric));
         }
 
@@ -292,7 +293,7 @@ class CoverageTableModel extends TableModel {
         }
 
         public int getTests() {
-            return  file.getTypedValue(Metric.TESTS, ZERO_TESTS).asInteger();
+            return file.getTypedValue(Metric.TESTS, ZERO_TESTS).asInteger();
         }
 
         public int getCyclomaticComplexity() {
@@ -323,16 +324,16 @@ class CoverageTableModel extends TableModel {
             if (coverage.isSet()) {
                 double percentage = coverage.asRounded();
                 DisplayColors colors = CoverageLevel.getDisplayColorsOfCoverageLevel(percentage, colorProvider);
+                var style = String.format(Locale.ENGLISH,
+                        "background-image: linear-gradient(90deg, %s %f%%, transparent %f%%);",
+                        colors.getFillColorAsRGBAHex(TABLE_COVERAGE_COLOR_ALPHA), percentage, percentage);
                 var cell = div()
                         .withClasses(COVERAGE_COLUMN_OUTER).with(
-                        div().withClasses(COVERAGE_COLUMN_INNER)
-                                .withStyle("background-image: linear-gradient(90deg, %s %f%%, transparent %f%%);".formatted(
-                                        colors.getFillColorAsRGBAHex(TABLE_COVERAGE_COLOR_ALPHA),
-                                        percentage, percentage))
-                                .attr("data-bs-toggle", "tooltip")
-                                .attr("data-bs-placement", "top")
-                                .withTitle(FORMATTER.formatAdditionalInformation(coverage))
-                                .withText(FORMATTER.formatPercentage(coverage, browserLocale)))
+                                div().withClasses(COVERAGE_COLUMN_INNER).withStyle(style)
+                                        .attr("data-bs-toggle", "tooltip")
+                                        .attr("data-bs-placement", "top")
+                                        .withTitle(FORMATTER.formatAdditionalInformation(coverage))
+                                        .withText(FORMATTER.formatPercentage(coverage, browserLocale)))
                         .render();
                 return new DetailedCell<>(cell, percentage);
             }
@@ -353,10 +354,10 @@ class CoverageTableModel extends TableModel {
             double percentage = delta.asRounded();
             DisplayColors colors = CoverageChangeTendency.getDisplayColorsForTendency(percentage, colorProvider);
             var cell = div().withClasses(COVERAGE_COLUMN_OUTER).with(
-                    div().withClasses(COVERAGE_COLUMN_INNER)
-                            .withStyle("background-color:%s;".formatted(colors.getFillColorAsRGBAHex(
-                                    TABLE_COVERAGE_COLOR_ALPHA)))
-                            .withText(FORMATTER.formatDelta(metric, delta, browserLocale)))
+                            div().withClasses(COVERAGE_COLUMN_INNER)
+                                    .withStyle("background-color:%s;".formatted(colors.getFillColorAsRGBAHex(
+                                            TABLE_COVERAGE_COLOR_ALPHA)))
+                                    .withText(FORMATTER.formatDelta(metric, delta, browserLocale)))
                     .render();
             return new DetailedCell<>(cell, percentage);
         }
