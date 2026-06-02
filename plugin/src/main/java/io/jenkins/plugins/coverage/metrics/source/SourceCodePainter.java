@@ -8,6 +8,7 @@ import edu.hm.hafner.coverage.Node;
 import edu.hm.hafner.util.FilteredLog;
 import edu.umd.cs.findbugs.annotations.NonNull;
 
+import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
@@ -235,7 +236,7 @@ public class SourceCodePainter {
         }
 
         private List<String> readSourceLines(final Path sourcePath, final Charset charset) throws IOException {
-            try (var reader = new java.io.BufferedReader(new InputStreamReader(Files.newInputStream(sourcePath),
+            try (var reader = new BufferedReader(new InputStreamReader(Files.newInputStream(sourcePath),
                     charset.newDecoder().onMalformedInput(CodingErrorAction.REPLACE)
                             .onUnmappableCharacter(CodingErrorAction.REPLACE)))) {
                 return reader.lines().collect(Collectors.toList());
