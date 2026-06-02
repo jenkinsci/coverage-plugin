@@ -121,7 +121,6 @@ class CoverageReporterTest {
         return build;
     }
 
-    @SuppressWarnings("unchecked")
     private Optional<CoverageBuildAction> invokeGetReferenceBuildAction(
             final Run<?, ?> build,
             final String id,
