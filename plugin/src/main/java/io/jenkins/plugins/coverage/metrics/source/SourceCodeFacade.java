@@ -130,11 +130,11 @@ public class SourceCodeFacade {
      */
     void copySourcesToBuildFolder(final Run<?, ?> build, final FilePath workspace, final FilteredLog log)
             throws InterruptedException {
+        var buildFolder = new FilePath(build.getRootDir()).child(COVERAGE_SOURCES_DIRECTORY);
+        FilePath buildZip = buildFolder.child(COVERAGE_SOURCES_ZIP);
         var workspaceZip = workspace.child(COVERAGE_SOURCES_ZIP);
-        FilePath buildZip = null;
+
         try {
-            var buildFolder = new FilePath(build.getRootDir()).child(COVERAGE_SOURCES_DIRECTORY);
-            buildZip = buildFolder.child(COVERAGE_SOURCES_ZIP);
             workspaceZip.copyTo(buildZip);
             log.logInfo("-> extracting...");
             buildZip.unzip(buildFolder);
@@ -144,8 +144,31 @@ public class SourceCodeFacade {
             log.logException(exception, "Can't copy zipped sources from agent to controller");
         }
         finally {
-            tryDeleteFile(buildZip, log);
-            tryDeleteFile(workspaceZip, log);
+            delete(buildZip, log);
+            delete(workspaceZip, log);
+        }
+    }
+
+    /**
+     * Deletes a file without throwing an IOException if the delete fails.
+     *
+     * @param file
+     *         the file to delete
+     * @param log
+     *         the log
+     *
+     * @throws InterruptedException
+     *         if the user terminated the job
+     */
+    private void delete(final FilePath file, final FilteredLog log)
+            throws InterruptedException {
+        try {
+            if (file.exists()) {
+                file.delete();
+            }
+        }
+        catch (IOException exception) {
+            log.logException(exception, "Can't delete temporary file: '%s'", file);
         }
     }
 
@@ -325,29 +348,5 @@ public class SourceCodeFacade {
             linesMapping.put(String.valueOf(highestLine + 1), true);
         }
         return linesMapping;
-    }
-
-    /**
-     * Deletes a file without throwing an IOException if the delete fails.
-     *
-     * @param file
-     *         the file to delete
-     * @param log
-     *         the log
-     *
-     * @throws InterruptedException
-     *         if the user terminated the job
-     */
-    private void tryDeleteFile(final FilePath file, final FilteredLog log)
-            throws InterruptedException {
-        try {
-            if (file == null || !file.exists()) {
-                return;
-            }
-            file.delete();
-        }
-        catch (IOException exception) {
-            log.logException(exception, "Can't delete file: '%s'", file);
-        }
     }
 }
