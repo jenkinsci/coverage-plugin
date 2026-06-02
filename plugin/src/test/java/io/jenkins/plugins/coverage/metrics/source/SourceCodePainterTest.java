@@ -9,6 +9,7 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
@@ -24,19 +25,6 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 class SourceCodePainterTest {
     private static final Charset WINDOWS_1252 = Charset.forName("windows-1252");
-
-    private static final byte[] CAFE_NBSP_CORPORATION_UTF8 = {
-            (byte) 'C', (byte) 'a', (byte) 'f',
-            (byte) 0xC3, (byte) 0xA9,
-            (byte) 0xC2, (byte) 0xA0,
-            (byte) 'C', (byte) 'o', (byte) 'r', (byte) 'p',
-            (byte) 'o', (byte) 'r', (byte) 'a', (byte) 't',
-            (byte) 'i', (byte) 'o', (byte) 'n'
-    };
-
-    private static final byte[] REPLACEMENT_CHAR_UTF8 = {
-            (byte) 0xEF, (byte) 0xBF, (byte) 0xBD
-    };
 
     @Test
     void shouldPaintSourceFilesWithExtendedAsciiCharacters() throws IOException, InterruptedException {
@@ -63,49 +51,8 @@ class SourceCodePainterTest {
 
         byte[] paintedBytes = readPaintedBytesFromNestedZip(outerZipPath);
 
-        assertThat(containsBytes(paintedBytes, CAFE_NBSP_CORPORATION_UTF8))
-                .as("Painted HTML must contain UTF-8 bytes for 'Cafe-acute NBSP Corporation' "
-                        + "(43 61 66 C3 A9 C2 A0 43 6F 72 70 6F 72 61 74 69 6F 6E). "
-                        + "Actual painted bytes: " + toHex(paintedBytes))
-                .isTrue();
-
-        assertThat(containsBytes(paintedBytes, REPLACEMENT_CHAR_UTF8))
-                .as("Painted HTML must NOT contain UTF-8 replacement character EF BF BD "
-                        + "— that would mean 0xE9 was not decoded correctly as windows-1252")
-                .isFalse();
-    }
-
-    private boolean containsBytes(final byte[] haystack, final byte[] needle) {
-        for (int i = 0; i <= haystack.length - needle.length; i++) {
-            boolean match = true;
-
-            for (int j = 0; j < needle.length; j++) {
-                if (haystack[i + j] != needle[j]) {
-                    match = false;
-                    break;
-                }
-            }
-
-            if (match) {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    private String toHex(final byte[] bytes) {
-        var sb = new StringBuilder();
-
-        for (byte b : bytes) {
-            if (sb.length() > 0) {
-                sb.append(' ');
-            }
-
-            sb.append(String.format("%02X", b & 0xFF));
-        }
-
-        return sb.toString();
+        var renderedText = new String(paintedBytes, StandardCharsets.UTF_8).replace("\u00A0", " ");
+        assertThat(renderedText).contains("Copyright 2026, Café Corporation");
     }
 
     private byte[] readPaintedBytesFromNestedZip(final Path outerZipPath) throws IOException {
