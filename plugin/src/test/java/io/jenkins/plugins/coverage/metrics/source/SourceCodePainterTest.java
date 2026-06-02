@@ -15,7 +15,7 @@ import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
-import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * Verifies that source painting handles files with extended ASCII characters.
@@ -26,16 +26,16 @@ class SourceCodePainterTest {
     private static final Charset WINDOWS_1252 = Charset.forName("windows-1252");
 
     private static final byte[] CAFE_NBSP_CORPORATION_UTF8 = {
-        (byte) 'C', (byte) 'a', (byte) 'f',
-        (byte) 0xC3, (byte) 0xA9,           
-        (byte) 0xC2, (byte) 0xA0,           
-        (byte) 'C', (byte) 'o', (byte) 'r', (byte) 'p',
-        (byte) 'o', (byte) 'r', (byte) 'a', (byte) 't', (byte) 'i',
-        (byte) 'o', (byte) 'n'
+            (byte) 'C', (byte) 'a', (byte) 'f',
+            (byte) 0xC3, (byte) 0xA9,
+            (byte) 0xC2, (byte) 0xA0,
+            (byte) 'C', (byte) 'o', (byte) 'r', (byte) 'p',
+            (byte) 'o', (byte) 'r', (byte) 'a', (byte) 't',
+            (byte) 'i', (byte) 'o', (byte) 'n'
     };
 
     private static final byte[] REPLACEMENT_CHAR_UTF8 = {
-        (byte) 0xEF, (byte) 0xBF, (byte) 0xBD
+            (byte) 0xEF, (byte) 0xBF, (byte) 0xBD
     };
 
     @Test
@@ -76,55 +76,74 @@ class SourceCodePainterTest {
     }
 
     private boolean containsBytes(final byte[] haystack, final byte[] needle) {
-        outer:
         for (int i = 0; i <= haystack.length - needle.length; i++) {
+            boolean match = true;
+
             for (int j = 0; j < needle.length; j++) {
                 if (haystack[i + j] != needle[j]) {
-                    continue outer;
+                    match = false;
+                    break;
                 }
             }
-            return true;
+
+            if (match) {
+                return true;
+            }
         }
+
         return false;
     }
 
     private String toHex(final byte[] bytes) {
         var sb = new StringBuilder();
+
         for (byte b : bytes) {
             if (sb.length() > 0) {
                 sb.append(' ');
             }
+
             sb.append(String.format("%02X", b & 0xFF));
         }
+
         return sb.toString();
     }
 
     private byte[] readPaintedBytesFromNestedZip(final Path outerZipPath) throws IOException {
         try (var outerZip = new ZipInputStream(Files.newInputStream(outerZipPath))) {
-            ZipEntry outerEntry;
-            while ((outerEntry = outerZip.getNextEntry()) != null) {
+            ZipEntry outerEntry = outerZip.getNextEntry();
+
+            while (outerEntry != null) {
                 if (outerEntry.getName().endsWith(SourceCodeFacade.ZIP_FILE_EXTENSION)) {
                     byte[] innerZipBytes = outerZip.readAllBytes();
                     byte[] content = extractBytesFromZip(innerZipBytes);
+
                     if (content.length > 0) {
                         return content;
                     }
                 }
+
+                outerEntry = outerZip.getNextEntry();
             }
         }
+
         return new byte[0];
     }
 
     private byte[] extractBytesFromZip(final byte[] zipBytes) throws IOException {
         var out = new ByteArrayOutputStream();
+
         try (var innerZip = new ZipInputStream(new ByteArrayInputStream(zipBytes))) {
-            ZipEntry entry;
-            while ((entry = innerZip.getNextEntry()) != null) {
+            ZipEntry entry = innerZip.getNextEntry();
+
+            while (entry != null) {
                 if (!entry.isDirectory()) {
                     out.write(innerZip.readAllBytes());
                 }
+
+                entry = innerZip.getNextEntry();
             }
         }
+
         return out.toByteArray();
     }
 }
