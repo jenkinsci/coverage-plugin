@@ -8,11 +8,15 @@ import edu.hm.hafner.coverage.Node;
 import edu.hm.hafner.util.FilteredLog;
 import edu.umd.cs.findbugs.annotations.NonNull;
 
+import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
 import java.io.Serial;
+import java.io.InputStreamReader;
+import java.nio.charset.CodingErrorAction;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
@@ -213,8 +217,8 @@ public class SourceCodePainter {
             try {
                 Path paintedFilesFolder = Files.createTempDirectory(temporaryFolder, directory);
                 var fullSourcePath = paintedFilesFolder.resolve(sanitizedFileName);
-                try (BufferedWriter output = Files.newBufferedWriter(fullSourcePath)) {
-                    List<String> lines = Files.readAllLines(Path.of(resolvedPath.getRemote()), charset);
+                try (BufferedWriter output = Files.newBufferedWriter(fullSourcePath, StandardCharsets.UTF_8)) {
+                    List<String> lines = readSourceLines(Path.of(resolvedPath.getRemote()), charset);
 
                     // added a header to display what is being shown in each column
                     output.write(paint.getColumnHeader());
@@ -230,6 +234,14 @@ public class SourceCodePainter {
                 log.logException(exception, "Can't write coverage paint of '%s' to zipped source file '%s'",
                         relativePathIdentifier, zipOutputPath);
                 return 0;
+            }
+        }
+
+        private List<String> readSourceLines(final Path sourcePath, final Charset charset) throws IOException {
+            try (var reader = new BufferedReader(new InputStreamReader(Files.newInputStream(sourcePath),
+                    charset.newDecoder().onMalformedInput(CodingErrorAction.REPLACE)
+                            .onUnmappableCharacter(CodingErrorAction.REPLACE)))) {
+                return reader.lines().collect(Collectors.toList());
             }
         }
 
