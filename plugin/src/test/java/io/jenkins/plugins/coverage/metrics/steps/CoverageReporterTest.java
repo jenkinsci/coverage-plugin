@@ -21,12 +21,9 @@ import static org.mockito.Mockito.*;
  */
 class CoverageReporterTest {
     private CoverageReporter createReporterWithReferenceFinder(final ReferenceFinder referenceFinder) {
-        return new CoverageReporter() {
-            @Override
-            ReferenceFinder createReferenceFinder() {
-                return referenceFinder;
-            }
-        };
+        var coverageReporter = spy(CoverageReporter.class);
+        when(coverageReporter.createReferenceFinder()).thenReturn(referenceFinder);
+        return coverageReporter;
     }
 
     @Test
@@ -83,7 +80,7 @@ class CoverageReporterTest {
     void shouldFindActionInCurrentBuild() {
         Run<?, ?> build = createBuildWithAction("coverage");
 
-        var action = CoverageReporter.findActionInBuildHistory("coverage", build);
+        var action = spy(CoverageReporter.class).findActionInBuildHistory("coverage", build);
 
         assertThat(action).isPresent();
     }
@@ -94,7 +91,7 @@ class CoverageReporterTest {
         Run<?, ?> middleBuild = createBuildWithActionAndPreviousBuild("other-id", oldestBuild);
         Run<?, ?> latestBuild = createBuildWithActionAndPreviousBuild("another-id", middleBuild);
 
-        var action = CoverageReporter.findActionInBuildHistory("coverage", latestBuild);
+        var action = spy(CoverageReporter.class).findActionInBuildHistory("coverage", latestBuild);
 
         assertThat(action).isPresent();
         assertThat(action.get().getUrlName()).isEqualTo("coverage");
@@ -105,7 +102,7 @@ class CoverageReporterTest {
         Run<?, ?> oldestBuild = createBuildWithAction("first");
         Run<?, ?> latestBuild = createBuildWithActionAndPreviousBuild("second", oldestBuild);
 
-        var action = CoverageReporter.findActionInBuildHistory("coverage", latestBuild);
+        var action = spy(CoverageReporter.class).findActionInBuildHistory("coverage", latestBuild);
 
         assertThat(action).isEmpty();
     }

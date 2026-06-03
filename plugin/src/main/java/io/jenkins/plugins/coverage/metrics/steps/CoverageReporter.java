@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
+import edu.hm.hafner.util.VisibleForTesting;
 import hudson.FilePath;
 import hudson.model.Run;
 import hudson.model.TaskListener;
@@ -227,10 +228,11 @@ public class CoverageReporter {
     }
 
     /**
-     * Creates a new {@link ReferenceFinder} instance. Override in tests to inject a mock.
+     * Creates a new {@link ReferenceFinder} instance. Override in tests to inject a stub.
      *
      * @return a new {@link ReferenceFinder}
      */
+    @VisibleForTesting
     ReferenceFinder createReferenceFinder() {
         return new ReferenceFinder();
     }
@@ -245,15 +247,12 @@ public class CoverageReporter {
         return Optional.empty();
     }
 
-    static Optional<CoverageBuildAction> findActionInBuildHistory(final String id, final Run<?, ?> build) {
-        Run<?, ?> current = build;
-
-        while (current != null) {
-            Optional<CoverageBuildAction> found = new CoverageReporter().getAction(id, current);
+    Optional<CoverageBuildAction> findActionInBuildHistory(final String id, final Run<?, ?> build) {
+        for (Run<?, ?> current = build; current != null; current = current.getPreviousBuild()) {
+            Optional<CoverageBuildAction> found = getAction(id, current);
             if (found.isPresent()) {
                 return found;
             }
-            current = current.getPreviousBuild();
         }
 
         return Optional.empty();
