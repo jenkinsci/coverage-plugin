@@ -130,17 +130,45 @@ public class SourceCodeFacade {
      */
     void copySourcesToBuildFolder(final Run<?, ?> build, final FilePath workspace, final FilteredLog log)
             throws InterruptedException {
+        var buildFolder = new FilePath(build.getRootDir()).child(COVERAGE_SOURCES_DIRECTORY);
+        FilePath buildZip = buildFolder.child(COVERAGE_SOURCES_ZIP);
+        var workspaceZip = workspace.child(COVERAGE_SOURCES_ZIP);
+
         try {
-            var buildFolder = new FilePath(build.getRootDir()).child(COVERAGE_SOURCES_DIRECTORY);
-            var buildZip = buildFolder.child(COVERAGE_SOURCES_ZIP);
-            workspace.child(COVERAGE_SOURCES_ZIP).copyTo(buildZip);
+            workspaceZip.copyTo(buildZip);
             log.logInfo("-> extracting...");
             buildZip.unzip(buildFolder);
-            buildZip.delete();
             log.logInfo("-> done");
         }
         catch (IOException exception) {
             log.logException(exception, "Can't copy zipped sources from agent to controller");
+        }
+        finally {
+            delete(buildZip, log);
+            delete(workspaceZip, log);
+        }
+    }
+
+    /**
+     * Deletes a file without throwing an IOException if the delete fails.
+     *
+     * @param file
+     *         the file to delete
+     * @param log
+     *         the log
+     *
+     * @throws InterruptedException
+     *         if the user terminated the job
+     */
+    private void delete(final FilePath file, final FilteredLog log)
+            throws InterruptedException {
+        try {
+            if (file.exists()) {
+                file.delete();
+            }
+        }
+        catch (IOException exception) {
+            log.logException(exception, "Can't delete temporary file: '%s'", file);
         }
     }
 
