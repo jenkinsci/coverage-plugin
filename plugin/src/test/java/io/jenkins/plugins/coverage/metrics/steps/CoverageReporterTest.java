@@ -1,13 +1,9 @@
 package io.jenkins.plugins.coverage.metrics.steps;
 
 import org.junit.jupiter.api.Test;
-import org.mockito.MockedConstruction;
 
 import edu.hm.hafner.util.FilteredLog;
 
-import java.lang.invoke.MethodHandle;
-import java.lang.invoke.MethodHandles;
-import java.lang.invoke.MethodType;
 import java.util.List;
 import java.util.Optional;
 
@@ -24,60 +20,69 @@ import static org.mockito.Mockito.*;
  * @author Akash Manna
  */
 class CoverageReporterTest {
-    @Test
-    void shouldAdjustReferenceBuildIfSelectedBuildHasNoAction() throws Throwable {
-        Run<?, ?> currentBuild = createBuildWithAction("current-id", null);
-        Run<?, ?> previousReferenceBuild = createBuildWithAction("coverage", null);
-        Run<?, ?> selectedReferenceBuild = createBuildWithAction("other-id", previousReferenceBuild);
-        var log = new FilteredLog("Errors");
 
-        try (MockedConstruction<ReferenceFinder> mockedReferenceFinder = mockConstruction(
-                ReferenceFinder.class,
-                (mock, context) -> when(mock.findReference(eq(currentBuild), eq(log)))
-                        .thenReturn(Optional.of(selectedReferenceBuild)))) {
-
-            var action = invokeGetReferenceBuildAction(currentBuild, "coverage", log);
-
-            assertThat(action).isPresent();
-            assertThat(action).get()
-                    .extracting(CoverageBuildAction::getUrlName)
-                    .isEqualTo("coverage");
-
-            assertThat(log.getInfoMessages())
-                    .contains("-> Reference build information adjusted");
-
-            assertThat(mockedReferenceFinder.constructed()).hasSize(1);
-        }
+    private CoverageReporter createReporterWithReferenceFinder(final ReferenceFinder referenceFinder) {
+        return new CoverageReporter() {
+            @Override
+            ReferenceFinder createReferenceFinder() {
+                return referenceFinder;
+            }
+        };
     }
 
     @Test
-    void shouldHandleMissingPreviousBuildWhenSelectedReferenceHasNoAction() throws Throwable {
-        Run<?, ?> currentBuild = createBuildWithAction("current-id", null);
-        Run<?, ?> selectedReferenceBuild = createBuildWithAction("other-id", null);
+    void shouldAdjustReferenceBuildIfSelectedBuildHasNoAction() {
+        Run<?, ?> currentBuild = createBuildWithAction("current-id");
+        Run<?, ?> previousReferenceBuild = createBuildWithAction("coverage");
+        Run<?, ?> selectedReferenceBuild = createBuildWithActionAndPreviousBuild("other-id", previousReferenceBuild);
         var log = new FilteredLog("Errors");
 
-        try (MockedConstruction<ReferenceFinder> mockedReferenceFinder = mockConstruction(
-                ReferenceFinder.class,
-                (mock, context) -> when(mock.findReference(eq(currentBuild), eq(log)))
-                        .thenReturn(Optional.of(selectedReferenceBuild)))) {
+        Run<?, ?> ownerBuild = mock(Run.class);
+        when(ownerBuild.toString()).thenReturn("#42");
+        CoverageBuildAction adjustedAction = previousReferenceBuild.getActions(CoverageBuildAction.class).get(0);
+        doReturn(ownerBuild).when(adjustedAction).getOwner();
 
-            var action = invokeGetReferenceBuildAction(currentBuild, "coverage", log);
+        var referenceFinder = mock(ReferenceFinder.class);
+        when(referenceFinder.findReference(eq(currentBuild), eq(log)))
+                .thenReturn(Optional.of(selectedReferenceBuild));
 
-            assertThat(action).isEmpty();
+        var reporter = createReporterWithReferenceFinder(referenceFinder);
+        var action = reporter.getReferenceBuildAction(currentBuild, "coverage", log);
 
-            assertThat(log.getInfoMessages())
-                    .contains("-> Reference build has no action for ID 'coverage'");
+        assertThat(action).isPresent();
+        assertThat(action).get()
+                .extracting(CoverageBuildAction::getUrlName)
+                .isEqualTo("coverage");
 
-            assertThat(log.getInfoMessages())
-                    .doesNotContain("-> Reference build information adjusted");
+        assertThat(log.getInfoMessages())
+                .contains("-> Reference build information adjusted to '#42'");
+    }
 
-            assertThat(mockedReferenceFinder.constructed()).hasSize(1);
-        }
+    @Test
+    void shouldHandleMissingPreviousBuildWhenSelectedReferenceHasNoAction() {
+        Run<?, ?> currentBuild = createBuildWithAction("current-id");
+        Run<?, ?> selectedReferenceBuild = createBuildWithAction("other-id");
+        var log = new FilteredLog("Errors");
+
+        var referenceFinder = mock(ReferenceFinder.class);
+        when(referenceFinder.findReference(eq(currentBuild), eq(log)))
+                .thenReturn(Optional.of(selectedReferenceBuild));
+
+        var reporter = createReporterWithReferenceFinder(referenceFinder);
+        var action = reporter.getReferenceBuildAction(currentBuild, "coverage", log);
+
+        assertThat(action).isEmpty();
+
+        assertThat(log.getInfoMessages())
+                .contains("-> Reference build has no action for ID 'coverage'");
+
+        assertThat(log.getInfoMessages())
+                .noneMatch(msg -> msg.startsWith("-> Reference build information adjusted"));
     }
 
     @Test
     void shouldFindActionInCurrentBuild() {
-        Run<?, ?> build = createBuildWithAction("coverage", null);
+        Run<?, ?> build = createBuildWithAction("coverage");
 
         var action = CoverageReporter.findActionInBuildHistory("coverage", build);
 
@@ -86,9 +91,9 @@ class CoverageReporterTest {
 
     @Test
     void shouldFindActionInPreviousBuilds() {
-        Run<?, ?> oldestBuild = createBuildWithAction("coverage", null);
-        Run<?, ?> middleBuild = createBuildWithAction("other-id", oldestBuild);
-        Run<?, ?> latestBuild = createBuildWithAction("another-id", middleBuild);
+        Run<?, ?> oldestBuild = createBuildWithAction("coverage");
+        Run<?, ?> middleBuild = createBuildWithActionAndPreviousBuild("other-id", oldestBuild);
+        Run<?, ?> latestBuild = createBuildWithActionAndPreviousBuild("another-id", middleBuild);
 
         var action = CoverageReporter.findActionInBuildHistory("coverage", latestBuild);
 
@@ -98,15 +103,15 @@ class CoverageReporterTest {
 
     @Test
     void shouldReturnEmptyIfNoMatchingActionExists() {
-        Run<?, ?> oldestBuild = createBuildWithAction("first", null);
-        Run<?, ?> latestBuild = createBuildWithAction("second", oldestBuild);
+        Run<?, ?> oldestBuild = createBuildWithAction("first");
+        Run<?, ?> latestBuild = createBuildWithActionAndPreviousBuild("second", oldestBuild);
 
         var action = CoverageReporter.findActionInBuildHistory("coverage", latestBuild);
 
         assertThat(action).isEmpty();
     }
 
-    private Run<?, ?> createBuildWithAction(final String id, final Run<?, ?> previousBuild) {
+    private Run<?, ?> createBuildWithAction(final String id) {
         Run<?, ?> build = mock(Run.class);
 
         CoverageBuildAction action = mock(CoverageBuildAction.class);
@@ -115,34 +120,15 @@ class CoverageReporterTest {
         when(build.getActions(CoverageBuildAction.class))
                 .thenReturn(List.of(action));
 
+        return build;
+    }
+
+    private Run<?, ?> createBuildWithActionAndPreviousBuild(final String id, final Run<?, ?> previousBuild) {
+        Run<?, ?> build = createBuildWithAction(id);
+
         when(build.getPreviousBuild())
                 .thenAnswer(invocation -> previousBuild);
 
         return build;
-    }
-
-    private Optional<CoverageBuildAction> invokeGetReferenceBuildAction(
-            final Run<?, ?> build,
-            final String id,
-            final FilteredLog log) throws Throwable {
-
-        MethodHandles.Lookup lookup = MethodHandles.privateLookupIn(
-                CoverageReporter.class,
-                MethodHandles.lookup());
-
-        MethodHandle methodHandle = lookup.findVirtual(
-                CoverageReporter.class,
-                "getReferenceBuildAction",
-                MethodType.methodType(
-                        Optional.class,
-                        Run.class,
-                        String.class,
-                        FilteredLog.class));
-
-        return (Optional<CoverageBuildAction>) methodHandle.invoke(
-                new CoverageReporter(),
-                build,
-                id,
-                log);
     }
 }
