@@ -20,7 +20,6 @@ import static org.mockito.Mockito.*;
  * @author Akash Manna
  */
 class CoverageReporterTest {
-
     private CoverageReporter createReporterWithReferenceFinder(final ReferenceFinder referenceFinder) {
         return new CoverageReporter() {
             @Override
