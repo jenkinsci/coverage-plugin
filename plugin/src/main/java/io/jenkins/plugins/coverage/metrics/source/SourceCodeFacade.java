@@ -12,6 +12,7 @@ import edu.hm.hafner.util.FilteredLog;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
@@ -26,7 +27,6 @@ import java.util.stream.Collectors;
 
 import hudson.FilePath;
 import hudson.model.Run;
-import hudson.util.TextFile;
 
 /**
  * Facade to the source code file structure in Jenkins build folder. Access of those files should be done using an
@@ -69,7 +69,7 @@ public class SourceCodeFacade {
             String actualPaintedSourceFileName = Strings.CS.removeEnd(str, ZIP_FILE_EXTENSION);
             var sourceFile = tempDir.resolve(actualPaintedSourceFileName).toFile();
 
-            return new TextFile(sourceFile).read();
+            return Files.readString(sourceFile.toPath(), StandardCharsets.UTF_8);
         }
         finally {
             unzippedSourcesDir.deleteRecursive();

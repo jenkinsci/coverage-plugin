@@ -3,13 +3,19 @@ package io.jenkins.plugins.coverage.metrics.source;
 import org.jsoup.Jsoup;
 import org.jsoup.parser.Parser;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 import edu.hm.hafner.coverage.FileNode;
 import edu.hm.hafner.util.ResourceTest;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.List;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
 import static org.assertj.core.api.Assertions.*;
 
@@ -22,6 +28,26 @@ class SourceCodeFacadeTest extends ResourceTest {
     private static final String WHOLE_SOURCE_CODE = "SourcecodeTest.html";
     private static final String MODIFIED_LINES_COVERAGE_SOURCE_CODE = "SourcecodeTestCC.html";
     private static final String INDIRECT_COVERAGE_SOURCE_CODE = "SourcecodeTestICC.html";
+
+    @TempDir
+    private Path temporaryDirectory;
+
+    @Test
+    void shouldReadStoredSourceCodeAsUtf8() throws IOException, InterruptedException {
+        var sourceCodeFacade = createSourceCodeFacade();
+        var id = "coverage";
+        var path = "src/main/java/Café.java";
+        var html = "<td class=\"code\">String value = \"Café — 你好\";</td>";
+
+        Path sourceFolder = temporaryDirectory
+                .resolve(SourceCodeFacade.COVERAGE_SOURCES_DIRECTORY)
+                .resolve(id);
+        Files.createDirectories(sourceFolder);
+        createZippedSource(sourceFolder, path, html);
+
+        assertThat(sourceCodeFacade.read(temporaryDirectory.toFile(), id, path))
+                .isEqualTo(html);
+    }
 
     @Test
     void shouldCalculateSourcecodeForModifiedLinesCoverage() throws IOException {
@@ -54,6 +80,17 @@ class SourceCodeFacadeTest extends ResourceTest {
      */
     private SourceCodeFacade createSourceCodeFacade() {
         return new SourceCodeFacade();
+    }
+
+    private void createZippedSource(final Path sourceFolder, final String path, final String html) throws IOException {
+        String sanitizedFileName = SourceCodeFacade.sanitizeFilename(path);
+        Path zipFile = sourceFolder.resolve(sanitizedFileName + SourceCodeFacade.ZIP_FILE_EXTENSION);
+
+        try (var zip = new ZipOutputStream(Files.newOutputStream(zipFile))) {
+            zip.putNextEntry(new ZipEntry(sanitizedFileName));
+            zip.write(html.getBytes(StandardCharsets.UTF_8));
+            zip.closeEntry();
+        }
     }
 
     private FileNode createFileCoverageNode() {
