@@ -48,6 +48,7 @@ import io.jenkins.plugins.util.QualityGateResult.QualityGateResultItem;
  */
 @SuppressWarnings("PMD.CouplingBetweenObjects")
 class CoverageXmlStream extends AbstractXmlStream<Node> {
+    private static final String LEGACY_COMPLEXITY_MAXIMUM = "COMPLEXITY_MAXIMUM";
     private static final Collector<CharSequence, ?, String> ARRAY_JOINER = Collectors.joining(", ", "[", "]");
 
     private static String[] toArray(final String value) {
@@ -109,12 +110,28 @@ class CoverageXmlStream extends AbstractXmlStream<Node> {
 
         xStream.registerConverter(new FractionConverter());
         xStream.registerConverter(new SimpleConverter<>(Value.class, Value::serialize, Value::valueOf));
-        xStream.registerConverter(new SimpleConverter<>(Metric.class, Metric::name, Metric::valueOf));
+        xStream.registerConverter(new SimpleConverter<>(Metric.class, Metric::name, CoverageXmlStream::metricValueOf));
     }
 
     @Override
     protected Node createDefaultValue() {
         return new ModuleNode("Empty");
+    }
+
+    /**
+     * Converts a string to a {@link Metric} value. Handles legacy metric names like COMPLEXITY_MAXIMUM by mapping
+     * them to the new metric names.
+     *
+     * @param metricName
+     *         the name of the metric
+     *
+     * @return the metric value
+     */
+    private static Metric metricValueOf(final String metricName) {
+        if (LEGACY_COMPLEXITY_MAXIMUM.equals(metricName)) {
+            return Metric.CYCLOMATIC_COMPLEXITY;
+        }
+        return Metric.valueOf(metricName);
     }
 
     /**
