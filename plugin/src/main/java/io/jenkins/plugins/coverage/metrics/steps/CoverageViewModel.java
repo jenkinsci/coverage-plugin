@@ -81,8 +81,9 @@ public class CoverageViewModel extends DefaultAsyncTableContentProvider implemen
 
     private static final ElementFormatter FORMATTER = new ElementFormatter();
     private static final Set<Metric> TREE_METRICS = Set.of(
-            Metric.LINE, Metric.BRANCH, Metric.MUTATION, Metric.TEST_STRENGTH, Metric.CYCLOMATIC_COMPLEXITY, Metric.TESTS,
-            Metric.MCDC_PAIR, Metric.FUNCTION_CALL, Metric.COGNITIVE_COMPLEXITY, Metric.NCSS, Metric.NPATH_COMPLEXITY);
+            Metric.LINE, Metric.BRANCH, Metric.INSTRUCTION, Metric.MUTATION, Metric.TEST_STRENGTH, Metric.CYCLOMATIC_COMPLEXITY,
+            Metric.TESTS, Metric.MCDC_PAIR, Metric.FUNCTION_CALL, Metric.COGNITIVE_COMPLEXITY, Metric.NCSS, Metric.NPATH_COMPLEXITY,
+            Metric.STMT_DC, Metric.STMT_CC, Metric.CONDITION, Metric.BYTES);
     private final Run<?, ?> owner;
     private final String displayName;
     private final CoverageStatistics statistics;
