@@ -31,7 +31,7 @@ import static org.mockito.Mockito.*;
  * Tests the class {@link SourceCodePainter}.
  * Verifies that source painting handles files with extended ASCII characters
  * and the printer factory selection fix (JENKINS-75871).
-
+ *
  * @author Akash Manna
  */
 class SourceCodePainterTest {
