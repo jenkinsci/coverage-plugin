@@ -23,6 +23,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import hudson.FilePath;
@@ -80,8 +81,11 @@ public class SourceCodePainter {
             throws InterruptedException {
         var sourceCodeFacade = new SourceCodeFacade();
         if (sourceCodeRetention != SourceCodeRetention.NEVER) {
+            // Determine the printer factory once based on the root node metrics,
+            // rather than repeating the same checks for every file (JENKINS-75871).
+            var printerFactory = createPrinterFactory(rootNode);
             var paintedFiles = files.stream()
-                    .map(f -> createFileModel(rootNode, f))
+                    .map(printerFactory)
                     .collect(Collectors.toList());
             log.logInfo("Painting %d source files on agent", paintedFiles.size());
 
@@ -93,16 +97,26 @@ public class SourceCodePainter {
         sourceCodeRetention.cleanup(build, sourceCodeFacade.getCoverageSourcesDirectory(), log);
     }
 
-    private CoverageSourcePrinter createFileModel(final Node rootNode, final FileNode fileNode) {
+    /**
+     * Creates a factory function that produces the correct {@link CoverageSourcePrinter} subtype for a given
+     * {@link FileNode}. The printer type is determined once from the root node's available metrics, avoiding
+     * repeated metric lookups for every file when painting large numbers of source files.
+     *
+     * @param rootNode
+     *         the root of the coverage tree, used to determine which printer type to use
+     *
+     * @return a function that maps a {@link FileNode} to the appropriate {@link CoverageSourcePrinter}
+     */
+    Function<FileNode, CoverageSourcePrinter> createPrinterFactory(final Node rootNode) {
         if (rootNode.getValue(Metric.MUTATION).isPresent()) {
-            return new MutationSourcePrinter(fileNode);
+            return MutationSourcePrinter::new;
         }
         else if (rootNode.getValue(Metric.MCDC_PAIR).isPresent()
                 || rootNode.getValue(Metric.FUNCTION_CALL).isPresent()) {
-            return new VectorCastSourcePrinter(fileNode);
+            return VectorCastSourcePrinter::new;
         }
         else {
-            return new CoverageSourcePrinter(fileNode);
+            return CoverageSourcePrinter::new;
         }
     }
 
