@@ -28,8 +28,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
 
 /**
- * Verifies source code painting behavior including the printer factory selection fix (JENKINS-75871).
- *
+ * Tests the class {@link SourceCodePainter}.
+ * Verifies that source painting handles files with extended ASCII characters
+ * and the printer factory selection fix (JENKINS-75871).
+
  * @author Akash Manna
  */
 class SourceCodePainterTest {
@@ -64,10 +66,9 @@ class SourceCodePainterTest {
         assertThat(renderedText).contains("Copyright 2026, Café Corporation");
     }
 
-    // -----------------------------------------------------------------------
-    // Tests for JENKINS-75871: printer factory is determined once per build,
-    // not once per file.
-    // -----------------------------------------------------------------------
+    // -----------------------------------------------------------------------------------------
+    // Tests for JENKINS-75871: printer factory is determined once per build, not once per file.
+    // -----------------------------------------------------------------------------------------
 
     @Test
     @Issue("JENKINS-75871")
@@ -133,8 +134,6 @@ class SourceCodePainterTest {
 
         Function<FileNode, CoverageSourcePrinter> factory = createPainterAndGetFactory(root);
 
-        // Verify all files get the same printer type regardless of how many times the factory is called.
-        // This confirms the factory is determined ONCE (not per file), as required by JENKINS-75871.
         var files = List.of(
                 new FileNode("", "Foo.java"),
                 new FileNode("", "Bar.java"),
@@ -238,4 +237,4 @@ class SourceCodePainterTest {
 
         return out.toByteArray();
     }
-}
+}

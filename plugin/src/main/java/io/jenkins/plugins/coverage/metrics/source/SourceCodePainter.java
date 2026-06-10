@@ -81,8 +81,6 @@ public class SourceCodePainter {
             throws InterruptedException {
         var sourceCodeFacade = new SourceCodeFacade();
         if (sourceCodeRetention != SourceCodeRetention.NEVER) {
-            // Determine the printer factory once based on the root node metrics,
-            // rather than repeating the same checks for every file (JENKINS-75871).
             var printerFactory = createPrinterFactory(rootNode);
             var paintedFiles = files.stream()
                     .map(printerFactory)
