@@ -20,7 +20,7 @@
     <hpi-plugin.version>3.1829.v1595655f4b_49</hpi-plugin.version>
     <jenkins.version>2.568</jenkins.version>
     <json-smart.version>2.3</json-smart.version>
-    <json-unit-assertj.version>5.1.1</json-unit-assertj.version>
+    <json-unit-assertj.version>5.1.2</json-unit-assertj.version>
     <module.name>${project.groupId}.code.coverage.api.ui.tests</module.name>
 
     <!-- Maven Surefire ArgLine -->
@@ -172,7 +172,7 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-surefire-plugin</artifactId>
-        <version>3.5.5</version>
+        <version>3.5.6</version>
         <configuration>
           <skip>true</skip>
           <reuseForks>false</reuseForks>
@@ -260,7 +260,7 @@
           <plugin>
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-surefire-plugin</artifactId>
-            <version>3.5.5</version>
+            <version>3.5.6</version>
             <configuration>
               <reuseForks>false</reuseForks>
               <trimStackTrace>false</trimStackTrace>
