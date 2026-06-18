@@ -13,7 +13,7 @@
 
   <name>Coverage Plugin</name>
   <description>Collects reports of code coverage or mutation coverage tools and visualizes the results. It has support
-    for the following report formats: JaCoCo, Cobertura, and PIT.</description>
+    for the following report formats: JaCoCo, Cobertura, PIT and TRACE32.</description>
   <url>https://github.com/jenkinsci/coverage-plugin</url>
 
   <licenses>
