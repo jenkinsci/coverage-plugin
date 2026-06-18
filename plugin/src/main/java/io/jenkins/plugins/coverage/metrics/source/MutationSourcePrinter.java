@@ -93,7 +93,7 @@ final class MutationSourcePrinter extends CoverageSourcePrinter {
     }
 
     @Override
-    public String getColorClass(final int line) {
+    String getColorClass(final int line) {
         if (getCovered(line) == 0) {
             return NO_COVERAGE;
         }
@@ -109,12 +109,12 @@ final class MutationSourcePrinter extends CoverageSourcePrinter {
     }
 
     @Override
-    public String getTooltip(final int line) {
+    String getTooltip(final int line) {
         return StringUtils.defaultIfBlank(tooltipPerLine[findIndexOfLine(line)], super.getTooltip(line));
     }
 
     @Override
-    public String getSummaryColumn(final int line) {
+    String getSummaryColumn(final int line) {
         var killed = getKilled(line);
         var survived = getSurvived(line);
         if (survived + killed > 0) {
