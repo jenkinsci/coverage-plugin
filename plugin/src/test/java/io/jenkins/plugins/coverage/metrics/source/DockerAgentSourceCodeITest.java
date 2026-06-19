@@ -29,7 +29,7 @@ class DockerAgentSourceCodeITest extends SourceCodeITest {
                     PATH_UTIL_CONTAINER_PATH);
 
     @Override
-    protected Node crateCoverageAgent() {
+    Node crateCoverageAgent() {
         try {
             var agent = createDockerAgent(AGENT_CONTAINER);
             agent.setLabelString(AGENT_LABEL);
@@ -41,12 +41,12 @@ class DockerAgentSourceCodeITest extends SourceCodeITest {
     }
 
     @Override
-    protected String createExternalFolder() {
+    String createExternalFolder() {
         return SOURCES_IN_DOCKER_PATH;
     }
 
     @Override
-    protected void copySourceFileToAgent(final String sourceDirectory, final Node localAgent, final WorkflowJob job) {
+    void copySourceFileToAgent(final String sourceDirectory, final Node localAgent, final WorkflowJob job) {
         if (!sourceDirectory.startsWith(SOURCES_IN_DOCKER_PATH)) {
             copySingleFileToAgentWorkspace(localAgent, job,
                     ACU_COBOL_PARSER_SOURCE_FILE,

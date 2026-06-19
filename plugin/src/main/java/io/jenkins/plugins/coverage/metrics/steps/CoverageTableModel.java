@@ -124,6 +124,15 @@ class CoverageTableModel extends TableModel {
         configureValueColumn("functionCallCoverage", Metric.FUNCTION_CALL, Messages.Column_FunctionCall(),
                 SKIP_DELTA, columns);
 
+        configureValueColumn("stmtDcCoverage", Metric.STMT_DC, Metric.STMT_DC.getDisplayName(),
+                SKIP_DELTA, columns);
+        configureValueColumn("stmtCcCoverage", Metric.STMT_CC, Metric.STMT_CC.getDisplayName(),
+                SKIP_DELTA, columns);
+        configureValueColumn("conditionCoverage", Metric.CONDITION, Metric.CONDITION.getDisplayName(),
+                SKIP_DELTA, columns);
+        configureValueColumn("bytesCoverage", Metric.BYTES, Metric.BYTES.getDisplayName(),
+                SKIP_DELTA, columns);
+
         configureValueColumn("mutationCoverage", Metric.MUTATION, Messages.Column_MutationCoverage(),
                 Messages.Column_DeltaMutationCoverage("Δ"), columns);
         configureValueColumn("testStrength", Metric.TEST_STRENGTH, Messages.Column_TestStrength(),

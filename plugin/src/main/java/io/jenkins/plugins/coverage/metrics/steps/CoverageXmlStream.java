@@ -46,7 +46,6 @@ import io.jenkins.plugins.util.QualityGateResult.QualityGateResultItem;
 /**
  * Configures the XML stream for the coverage tree, which consists of {@link Node}s.
  */
-@SuppressWarnings("PMD.CouplingBetweenObjects")
 class CoverageXmlStream extends AbstractXmlStream<Node> {
     private static final Collector<CharSequence, ?, String> ARRAY_JOINER = Collectors.joining(", ", "[", "]");
 

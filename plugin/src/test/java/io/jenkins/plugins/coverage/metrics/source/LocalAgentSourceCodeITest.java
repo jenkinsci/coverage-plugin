@@ -20,12 +20,12 @@ class LocalAgentSourceCodeITest extends SourceCodeITest {
     private static final PathUtil PATH_UTIL = new PathUtil();
 
     @Override
-    protected Node crateCoverageAgent() {
+    Node crateCoverageAgent() {
         return createAgent(AGENT_LABEL);
     }
 
     @Override
-    protected String createExternalFolder() throws IOException {
+    String createExternalFolder() throws IOException {
         Path tempDirectory = Files.createTempDirectory("coverage");
 
         createFile(tempDirectory,
@@ -44,7 +44,7 @@ class LocalAgentSourceCodeITest extends SourceCodeITest {
     }
 
     @Override
-    protected void copySourceFileToAgent(final String sourceDirectory, final Node localAgent, final WorkflowJob job) {
+    void copySourceFileToAgent(final String sourceDirectory, final Node localAgent, final WorkflowJob job) {
         copySingleFileToAgentWorkspace(localAgent, job, ACU_COBOL_PARSER_SOURCE_FILE, createDestinationPath(sourceDirectory,
                 ACU_COBOL_PARSER_PACKAGE_PATH, ACU_COBOL_PARSER_FILE_NAME));
         copySingleFileToAgentWorkspace(localAgent, job, PATH_UTIL_SOURCE_FILE, createDestinationPath(sourceDirectory,
