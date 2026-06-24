@@ -72,7 +72,7 @@ class SourceCodePainterTest {
     // ------------------------------------------------------------------------------------------
 
     @Test
-    @Issue("https://github.com/jenkinsci/coverage-plugin/issues/771")
+    @Issue("771")
     void shouldNotDeletePreExistingWorkspaceDirectoryWithSameNameAsCoverageId()
             throws IOException, InterruptedException {
         Path workspace = Files.createTempDirectory("source-painter-issue-771");

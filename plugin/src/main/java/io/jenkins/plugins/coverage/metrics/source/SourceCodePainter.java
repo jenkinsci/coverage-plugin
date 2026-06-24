@@ -169,7 +169,9 @@ public class SourceCodePainter {
             var workspace = new FilePath(workspaceFile);
 
             try {
-                var outputFolder = workspace.createTempDir("coverage-sources-", "");
+                var tempParent = workspace.createTempDir("coverage-sources-", "");
+                var outputFolder = tempParent.child(directory);
+                outputFolder.mkdirs();
 
                 Path temporaryFolder = Files.createTempDirectory(directory);
 
@@ -192,8 +194,8 @@ public class SourceCodePainter {
                 }
                 finally {
                     deleteFolder(temporaryFolder.toFile(), log);
-                    outputFolder.deleteRecursive();
-                    log.logInfo("-> deleted temporary source folder '%s'", outputFolder);
+                    tempParent.deleteRecursive();
+                    log.logInfo("-> deleted temporary source folder '%s'", tempParent);
                 }
             }
             catch (IOException exception) {
