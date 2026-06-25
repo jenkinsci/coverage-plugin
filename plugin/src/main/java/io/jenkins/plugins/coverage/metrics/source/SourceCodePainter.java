@@ -169,30 +169,34 @@ public class SourceCodePainter {
             var workspace = new FilePath(workspaceFile);
 
             try {
-                var outputFolder = workspace.child(directory);
+                var tempParent = workspace.createTempDir("coverage-sources-", "");
+                var outputFolder = tempParent.child(directory);
                 outputFolder.mkdirs();
 
                 Path temporaryFolder = Files.createTempDirectory(directory);
 
-                int count = paintedFiles.parallelStream()
-                        .mapToInt(file -> paintSource(file, workspace, temporaryFolder, log))
-                        .sum();
+                try {
+                    int count = paintedFiles.parallelStream()
+                            .mapToInt(file -> paintSource(file, workspace, outputFolder, temporaryFolder, log))
+                            .sum();
 
-                if (count == paintedFiles.size()) {
-                    log.logInfo("-> finished painting successfully");
+                    if (count == paintedFiles.size()) {
+                        log.logInfo("-> finished painting successfully");
+                    }
+                    else {
+                        log.logInfo("-> finished painting (%d files have been painted, %d files failed)",
+                                count, paintedFiles.size() - count);
+                    }
+
+                    var zipFile = workspace.child(SourceCodeFacade.COVERAGE_SOURCES_ZIP);
+                    outputFolder.zip(zipFile);
+                    log.logInfo("-> zipping sources from folder '%s' as '%s'", outputFolder, zipFile);
                 }
-                else {
-                    log.logInfo("-> finished painting (%d files have been painted, %d files failed)",
-                            count, paintedFiles.size() - count);
+                finally {
+                    deleteFolder(temporaryFolder.toFile(), log);
+                    tempParent.deleteRecursive();
+                    log.logInfo("-> deleted temporary source folder '%s'", tempParent);
                 }
-
-                var zipFile = workspace.child(SourceCodeFacade.COVERAGE_SOURCES_ZIP);
-                outputFolder.zip(zipFile);
-                log.logInfo("-> zipping sources from folder '%s' as '%s'", outputFolder, zipFile);
-
-                deleteFolder(temporaryFolder.toFile(), log);
-                outputFolder.deleteRecursive();
-                log.logInfo("-> deleted temporary source folder '%s'", outputFolder);
             }
             catch (IOException exception) {
                 log.logException(exception,
@@ -211,12 +215,11 @@ public class SourceCodePainter {
         }
 
         private int paintSource(final CoverageSourcePrinter fileNode, final FilePath workspace,
-                final Path temporaryFolder, final FilteredLog log) {
+                final FilePath outputFolder, final Path temporaryFolder, final FilteredLog log) {
             var relativePathIdentifier = fileNode.getPath();
-            var paintedFilesDirectory = workspace.child(directory);
             return findSourceFile(workspace, relativePathIdentifier, log)
                     .map(resolvedPath -> paint(fileNode, relativePathIdentifier, resolvedPath,
-                            paintedFilesDirectory, temporaryFolder, getCharset(), log))
+                            outputFolder, temporaryFolder, getCharset(), log))
                     .orElse(0);
         }
 

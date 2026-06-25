@@ -29,8 +29,9 @@ import static org.mockito.Mockito.*;
 
 /**
  * Tests the class {@link SourceCodePainter}.
- * Verifies that source painting handles files with extended ASCII characters
- * and the printer factory selection fix (JENKINS-75871).
+ * Verifies that source painting handles files with extended ASCII characters,
+ * the printer factory selection fix (JENKINS-75871), and that painting never
+ * deletes a pre-existing workspace directory that shares the coverage ID name (#771).
  *
  * @author Akash Manna
  */
@@ -66,10 +67,45 @@ class SourceCodePainterTest {
         assertThat(renderedText).contains("Copyright 2026, Café Corporation");
     }
 
-    // -----------------------------------------------------------------------------------------
-    // Tests for JENKINS-75871: printer factory is determined once per build, not once per file.
-    // -----------------------------------------------------------------------------------------
+    /**
+     * Regression test for issue #771: pre-existing workspace directories must not be deleted.
+     */
+    @Test
+    @Issue("771")
+    void shouldNotDeletePreExistingWorkspaceDirectoryWithSameNameAsCoverageId()
+            throws IOException, InterruptedException {
+        Path workspace = Files.createTempDirectory("source-painter-issue-771");
 
+        Path existingDir = workspace.resolve("coverage");
+        Files.createDirectories(existingDir);
+        Path sentinelFile = existingDir.resolve("important-project-file.txt");
+        Files.writeString(sentinelFile, "This file must not be deleted by the coverage plugin!");
+
+        Path sourceFile = workspace.resolve("Foo.java");
+        Files.writeString(sourceFile, "class Foo {}");
+
+        var painter = new SourceCodePainter.AgentCoveragePainter(
+                List.of(new CoverageSourcePrinter(new FileNode("", "Foo.java"))),
+                StandardCharsets.UTF_8.name(),
+                "coverage");
+
+        FilteredLog log = painter.invoke(workspace.toFile(), null);
+
+        assertThat(log.getErrorMessages()).isEmpty();
+        assertThat(log.getInfoMessages()).contains("-> finished painting successfully");
+
+        assertThat(existingDir)
+                .as("Pre-existing workspace directory '%s' must not have been deleted", existingDir)
+                .exists();
+        assertThat(sentinelFile)
+                .as("Sentinel file inside pre-existing directory must not have been deleted")
+                .exists()
+                .hasContent("This file must not be deleted by the coverage plugin!");
+    }
+
+    /**
+     * Tests for JENKINS-75871: printer factory is determined once per build, not once per file.
+     */
     @Test
     @Issue("JENKINS-75871")
     void shouldSelectCoverageSourcePrinterForStandardCoverage() {
