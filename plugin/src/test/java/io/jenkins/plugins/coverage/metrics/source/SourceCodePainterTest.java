@@ -67,10 +67,9 @@ class SourceCodePainterTest {
         assertThat(renderedText).contains("Copyright 2026, Café Corporation");
     }
 
-    // ------------------------------------------------------------------------------------------
-    // Regression test for issue #771 : pre-existing workspace directories must not be deleted.
-    // ------------------------------------------------------------------------------------------
-
+    /**
+     * Regression test for issue #771: pre-existing workspace directories must not be deleted.
+     */
     @Test
     @Issue("771")
     void shouldNotDeletePreExistingWorkspaceDirectoryWithSameNameAsCoverageId()
@@ -104,10 +103,9 @@ class SourceCodePainterTest {
                 .hasContent("This file must not be deleted by the coverage plugin!");
     }
 
-    // -----------------------------------------------------------------------------------------
-    // Tests for JENKINS-75871: printer factory is determined once per build, not once per file.
-    // -----------------------------------------------------------------------------------------
-
+    /**
+     * Tests for JENKINS-75871: printer factory is determined once per build, not once per file.
+     */
     @Test
     @Issue("JENKINS-75871")
     void shouldSelectCoverageSourcePrinterForStandardCoverage() {
