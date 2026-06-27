@@ -16,6 +16,7 @@ import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
 import java.util.zip.ZipEntry;
@@ -30,6 +31,7 @@ import static org.mockito.Mockito.*;
 /**
  * Tests the class {@link SourceCodePainter}.
  * Verifies that source painting handles files with extended ASCII characters,
+ * progress logging during multi-file painting (JENKINS-76183),
  * the printer factory selection fix (JENKINS-75871), and that painting never
  * deletes a pre-existing workspace directory that shares the coverage ID name (#771).
  *
@@ -65,6 +67,67 @@ class SourceCodePainterTest {
 
         var renderedText = new String(paintedBytes, StandardCharsets.UTF_8).replace("\u00A0", " ");
         assertThat(renderedText).contains("Copyright 2026, Café Corporation");
+    }
+
+    /**
+     * Regression test for JENKINS-76183: source painting must emit periodic progress log messages
+     * so the console log is not silent for several minutes when processing many files.
+     */
+    @Test
+    @Issue("JENKINS-76183")
+    void shouldLogProgressWhilePaintingManySourceFiles() throws IOException, InterruptedException {
+        int fileCount = 250;
+        Path workspace = Files.createTempDirectory("source-painter-jenkins-76183");
+
+        List<CoverageSourcePrinter> printers = new ArrayList<>();
+        for (int i = 0; i < fileCount; i++) {
+            String name = "File" + i + ".java";
+            Files.writeString(workspace.resolve(name), "class File" + i + " {}");
+            printers.add(new CoverageSourcePrinter(new FileNode("", name)));
+        }
+
+        var painter = new SourceCodePainter.AgentCoveragePainter(
+                printers,
+                StandardCharsets.UTF_8.name(),
+                "coverage");
+
+        FilteredLog log = painter.invoke(workspace.toFile(), null);
+
+        assertThat(log.getErrorMessages()).isEmpty();
+        assertThat(log.getInfoMessages()).contains("-> finished painting successfully");
+
+        long progressMessages = log.getInfoMessages().stream()
+                .filter(msg -> msg.contains("--> painting progress:"))
+                .count();
+        assertThat(progressMessages)
+                .as("Expected at least one progress log message for %d files", fileCount)
+                .isGreaterThanOrEqualTo(1);
+    }
+
+    /**
+     * Regression test for JENKINS-76183: even a single-file paint run should emit
+     * a progress message at completion (100%).
+     */
+    @Test
+    @Issue("JENKINS-76183")
+    void shouldLogProgressForSingleFile() throws IOException, InterruptedException {
+        Path workspace = Files.createTempDirectory("source-painter-jenkins-76183-single");
+        Files.writeString(workspace.resolve("Solo.java"), "class Solo {}");
+
+        var painter = new SourceCodePainter.AgentCoveragePainter(
+                List.of(new CoverageSourcePrinter(new FileNode("", "Solo.java"))),
+                StandardCharsets.UTF_8.name(),
+                "coverage");
+
+        FilteredLog log = painter.invoke(workspace.toFile(), null);
+
+        assertThat(log.getErrorMessages()).isEmpty();
+        long progressMessages = log.getInfoMessages().stream()
+                .filter(msg -> msg.contains("--> painting progress:"))
+                .count();
+        assertThat(progressMessages)
+                .as("Expected a final progress log message even for a single file")
+                .isGreaterThanOrEqualTo(1);
     }
 
     /**

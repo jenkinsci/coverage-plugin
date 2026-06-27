@@ -23,6 +23,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -176,8 +177,18 @@ public class SourceCodePainter {
                 Path temporaryFolder = Files.createTempDirectory(directory);
 
                 try {
+                    int total = paintedFiles.size();
+                    int logInterval = Math.max(100, total / 10);
+                    var painted = new AtomicInteger(0);
                     int count = paintedFiles.parallelStream()
-                            .mapToInt(file -> paintSource(file, workspace, outputFolder, temporaryFolder, log))
+                            .mapToInt(file -> {
+                                int result = paintSource(file, workspace, outputFolder, temporaryFolder, log);
+                                int done = painted.incrementAndGet();
+                                if (done % logInterval == 0 || done == total) {
+                                    log.logInfo("--> painting progress: %d / %d source files", done, total);
+                                }
+                                return result;
+                            })
                             .sum();
 
                     if (count == paintedFiles.size()) {
