@@ -97,6 +97,28 @@ class CoverageChecksPublisherTest extends AbstractCoverageTest {
         });
     }
 
+    @Test
+    void shouldShowOnlyMeasuredMetricsInChecksTableForPit() {
+        var result = readResult("mutations.xml", new PitestParser());
+
+        var publisher = new CoverageChecksPublisher(createCoverageBuildAction(result), result, REPORT_NAME,
+                ChecksAnnotationScope.SKIP, createJenkins());
+
+        var checkDetails = publisher.extractChecksDetails();
+
+        assertThat(checkDetails.getOutput()).isPresent().get().satisfies(output -> {
+            assertThat(output.getText()).isPresent().get().asString()
+                    .as("PIT coverage table should not contain Branch Coverage column")
+                    .doesNotContain("Branch Coverage")
+                    .as("PIT coverage table should not contain Instruction Coverage column")
+                    .doesNotContain("Instruction Coverage")
+                    .as("PIT coverage table should contain Line Coverage column")
+                    .contains("Line Coverage")
+                    .as("PIT coverage table should contain Mutation Coverage column")
+                    .contains("Mutation Coverage");
+        });
+    }
+
     private void assertMutationAnnotations(final ChecksOutput output, final int expectedAnnotations) {
         assertThat(output.getChecksAnnotations()).hasSize(expectedAnnotations);
         if (expectedAnnotations == 1) {
@@ -118,6 +140,25 @@ class CoverageChecksPublisherTest extends AbstractCoverageTest {
         var checkDetails = publisher.extractChecksDetails();
         assertThat(checkDetails.getOutput()).isPresent().get().satisfies(output ->
                 assertThat(output.getTitle()).isPresent().contains(expectedTitle));
+    }
+
+    @Test
+    void shouldShowMeasuredMetricsInChecksTableForJaCoCo() {
+        var result = readJacocoResult("jacoco-codingstyle.xml");
+
+        var publisher = new CoverageChecksPublisher(createActionWithoutDelta(result), result, REPORT_NAME,
+                ChecksAnnotationScope.SKIP, createJenkins());
+
+        var checkDetails = publisher.extractChecksDetails();
+
+        assertThat(checkDetails.getOutput()).isPresent().get().satisfies(output ->
+                assertThat(output.getText()).isPresent().get().asString()
+                        .as("JaCoCo coverage table should contain Branch Coverage column since JaCoCo measures it")
+                        .contains("Branch Coverage")
+                        .as("JaCoCo coverage table should contain Instruction Coverage column since JaCoCo measures it")
+                        .contains("Instruction Coverage")
+                        .as("JaCoCo coverage table should contain Line Coverage column")
+                        .contains("Line Coverage"));
     }
 
     @ParameterizedTest(name = "should create checks (scope = {0}, expected annotations = {1})")
