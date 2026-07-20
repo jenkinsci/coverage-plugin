@@ -20,7 +20,7 @@
     <hpi-plugin.version>3.1848.v43eb_ce5a_9cb_6</hpi-plugin.version>
     <jenkins.version>2.573</jenkins.version>
     <json-smart.version>2.3</json-smart.version>
-    <json-unit-assertj.version>5.1.2</json-unit-assertj.version>
+    <json-unit-assertj.version>6.0.1</json-unit-assertj.version>
     <module.name>${project.groupId}.code.coverage.api.ui.tests</module.name>
 
     <!-- Maven Surefire ArgLine -->
@@ -71,12 +71,6 @@
     <dependency>
       <groupId>net.javacrumbs.json-unit</groupId>
       <artifactId>json-unit-assertj</artifactId>
-      <version>${json-unit-assertj.version}</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>net.javacrumbs.json-unit</groupId>
-      <artifactId>json-unit-json-path</artifactId>
       <version>${json-unit-assertj.version}</version>
       <scope>test</scope>
     </dependency>
