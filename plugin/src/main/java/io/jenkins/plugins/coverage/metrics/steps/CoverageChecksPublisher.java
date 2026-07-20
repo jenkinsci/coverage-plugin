@@ -467,7 +467,7 @@ class CoverageChecksPublisher {
     private Stream<Metric> getMetricStream() {
         return Metric.getCoverageMetrics().stream()
                 .skip(1)
-                .filter(m -> rootNode.getValue(m).isPresent());
+                .filter(m -> action.hasValue(Baseline.PROJECT, m));
     }
 
     private Collector<CharSequence, ?, String> asColumn() {
