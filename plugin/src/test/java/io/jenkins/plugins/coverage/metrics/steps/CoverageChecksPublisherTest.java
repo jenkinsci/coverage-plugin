@@ -106,17 +106,19 @@ class CoverageChecksPublisherTest extends AbstractCoverageTest {
 
         var checkDetails = publisher.extractChecksDetails();
 
-        assertThat(checkDetails.getOutput()).isPresent().get().satisfies(output -> {
-            assertThat(output.getText()).isPresent().get().asString()
-                    .as("PIT coverage table should not contain Branch Coverage column")
-                    .doesNotContain("Branch Coverage")
-                    .as("PIT coverage table should not contain Instruction Coverage column")
-                    .doesNotContain("Instruction Coverage")
-                    .as("PIT coverage table should contain Line Coverage column")
-                    .contains("Line Coverage")
-                    .as("PIT coverage table should contain Mutation Coverage column")
-                    .contains("Mutation Coverage");
-        });
+        assertThat(checkDetails.getOutput()).isPresent().get().satisfies(this::assertPitCoverageTableColumns);
+    }
+
+    private void assertPitCoverageTableColumns(final ChecksOutput output) {
+        assertThat(output.getText()).isPresent().get().asString()
+                .as("PIT coverage table should not contain Branch Coverage column")
+                .doesNotContain("Branch Coverage")
+                .as("PIT coverage table should not contain Instruction Coverage column")
+                .doesNotContain("Instruction Coverage")
+                .as("PIT coverage table should contain Line Coverage column")
+                .contains("Line Coverage")
+                .as("PIT coverage table should contain Mutation Coverage column")
+                .contains("Mutation Coverage");
     }
 
     private void assertMutationAnnotations(final ChecksOutput output, final int expectedAnnotations) {
