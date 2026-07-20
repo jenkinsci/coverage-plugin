@@ -37,7 +37,7 @@ public class AdapterThreshold extends AbstractThreshold {
      * Ensures advanced options are activated so that values can be set.
      */
     @Override
-    public void ensureAdvancedOptionsIsActivated() {
+    void ensureAdvancedOptionsIsActivated() {
         this.adapter.ensureAdvancedOptionsIsActivated();
     }
 
