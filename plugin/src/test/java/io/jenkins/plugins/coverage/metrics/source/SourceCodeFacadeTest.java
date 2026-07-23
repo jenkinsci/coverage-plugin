@@ -50,6 +50,16 @@ class SourceCodeFacadeTest extends ResourceTest {
     }
 
     @Test
+    void shouldUseIdSpecificTransferArchiveName() {
+        assertThat(SourceCodeFacade.getCoverageSourcesZip("jacoco-unit"))
+                .isEqualTo("coverage-sources-jacoco-unit.zip");
+        assertThat(SourceCodeFacade.getCoverageSourcesZip("jacoco-ui"))
+                .isNotEqualTo(SourceCodeFacade.getCoverageSourcesZip("jacoco-unit"));
+        assertThat(SourceCodeFacade.getCoverageSourcesZip("weird/id name"))
+                .isEqualTo("coverage-sources-weird_id_name.zip");
+    }
+
+    @Test
     void shouldCalculateSourcecodeForModifiedLinesCoverage() throws IOException {
         var sourceCodeFacade = createSourceCodeFacade();
         var originalHtml = readHtml(WHOLE_SOURCE_CODE);
