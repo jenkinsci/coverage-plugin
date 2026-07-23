@@ -6,11 +6,19 @@ import edu.hm.hafner.coverage.FileNode;
 import edu.hm.hafner.coverage.PackageNode;
 import edu.hm.hafner.util.LineRange;
 
+import java.io.IOException;
+import java.io.StringWriter;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
+import org.kohsuke.stapler.export.ExportConfig;
+import org.kohsuke.stapler.export.Flavor;
+import org.kohsuke.stapler.export.Model;
+import org.kohsuke.stapler.export.ModelBuilder;
+
 import io.jenkins.plugins.coverage.metrics.AbstractModifiedFilesCoverageTest;
 
+import static net.javacrumbs.jsonunit.assertj.JsonAssertions.*;
 import static org.assertj.core.api.Assertions.*;
 
 /**
@@ -35,6 +43,34 @@ class ModifiedLinesCoverageApiTest extends AbstractModifiedFilesCoverageTest {
         var expectedFileWithChangedLines = new FileWithModifiedLines("test/example/Test1.java", expectedLineBlocks);
 
         assertThat(filesWithChangedLines).containsExactly(expectedFileWithChangedLines);
+    }
+
+    /**
+     * Verifies that the exported bean is serialized by Stapler into a non-empty {@code files} array. This exercises the
+     * remote-API serialization layer (rather than the getter directly), which is where the exported {@code files}
+     * property would silently disappear if the bean or its accessors were not {@code public}: newer Stapler releases
+     * only export {@code public} members.
+     */
+    @Test
+    void shouldExportModifiedLinesAsJson() throws IOException {
+        var node = createCoverageTree();
+        var api = new ModifiedLinesCoverageApi(node);
+
+        var json = exportToJson(api);
+
+        assertThatJson(json).node("files").isArray().isNotEmpty();
+        assertThatJson(json).node("files[0].fullyQualifiedFileName").isEqualTo("test/example/Test1.java");
+        assertThatJson(json).node("files[0].modifiedLinesBlocks").isArray().isNotEmpty();
+        assertThatJson(json).node("files[0].modifiedLinesBlocks[0].startLine").isNumber();
+        assertThatJson(json).node("files[0].modifiedLinesBlocks[0].type").isString();
+    }
+
+    private String exportToJson(final ModifiedLinesCoverageApi api) throws IOException {
+        Model<ModifiedLinesCoverageApi> model = new ModelBuilder().get(ModifiedLinesCoverageApi.class);
+        try (var writer = new StringWriter()) {
+            model.writeTo(api, Flavor.JSON.createDataWriter(api, writer, new ExportConfig()));
+            return writer.toString();
+        }
     }
 
     @Test
