@@ -58,7 +58,7 @@ class SourceCodePainterTest {
         assertThat(log.getErrorMessages()).isEmpty();
         assertThat(log.getInfoMessages()).contains("-> finished painting successfully");
 
-        Path outerZipPath = workspace.resolve(SourceCodeFacade.COVERAGE_SOURCES_ZIP);
+        Path outerZipPath = workspace.resolve(SourceCodeFacade.getCoverageSourcesZip("coverage"));
         assertThat(outerZipPath).exists();
 
         byte[] paintedBytes = readPaintedBytesFromNestedZip(outerZipPath);

@@ -90,7 +90,7 @@ public class SourceCodePainter {
             paintFilesOnAgent(paintedFiles, sourceCodeEncoding, log);
             log.logInfo("Copying painted sources from agent to build folder");
 
-            sourceCodeFacade.copySourcesToBuildFolder(build, workspace, log);
+            sourceCodeFacade.copySourcesToBuildFolder(build, workspace, id, log);
         }
         sourceCodeRetention.cleanup(build, sourceCodeFacade.getCoverageSourcesDirectory(), log);
     }
@@ -188,7 +188,7 @@ public class SourceCodePainter {
                                 count, paintedFiles.size() - count);
                     }
 
-                    var zipFile = workspace.child(SourceCodeFacade.COVERAGE_SOURCES_ZIP);
+                    var zipFile = workspace.child(SourceCodeFacade.getCoverageSourcesZip(directory));
                     outputFolder.zip(zipFile);
                     log.logInfo("-> zipping sources from folder '%s' as '%s'", outputFolder, zipFile);
                 }
