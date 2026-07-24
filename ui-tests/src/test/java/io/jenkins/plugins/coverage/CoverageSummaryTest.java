@@ -17,9 +17,10 @@ import static org.assertj.core.api.Assertions.*;
 /**
  * Acceptance tests for Summary.
  */
+@SuppressWarnings("PMD.WrongTestAnnotation")
 public class CoverageSummaryTest extends UiTest {
     /**
-     * Verifies if summary of first successful build of Project is correct.
+     * Verifies if the summary of the first successful build of the project is correct.
      *
      * @param build
      *         Build of Project
@@ -36,7 +37,7 @@ public class CoverageSummaryTest extends UiTest {
     }
 
     /**
-     * Verifies if summary of second successful build of Project is correct and has reference.
+     * Verifies if the summary of the second successful build of the project is correct and has a reference.
      *
      * @param build
      *         Build of Project
@@ -62,7 +63,7 @@ public class CoverageSummaryTest extends UiTest {
     }
 
     /**
-     * Verifies if summary of failed build of Project is correct.
+     * Verifies if the summary of the failed build of the project is correct.
      *
      * @param build
      *         Build of Project
@@ -78,10 +79,10 @@ public class CoverageSummaryTest extends UiTest {
     }
 
     /**
-     * Verifies fail message on summary.
+     * Verifies a fail message on summary.
      *
      * @param build
-     *         current build of project
+     *         current build of the project
      * @param unhealthyThreshold
      *         of project
      * @param unstableThreshold
@@ -97,7 +98,7 @@ public class CoverageSummaryTest extends UiTest {
     }
 
     /**
-     * Tests if summary is not visible if build with no report is enabled.
+     * Tests if a summary is not visible if a build with no report is enabled.
      */
     @Test
     public void shouldSummaryOnNoReport() {
@@ -108,7 +109,7 @@ public class CoverageSummaryTest extends UiTest {
     }
 
     /**
-     * Tests if coverage is correct if build is successful.
+     * Tests if coverage is correct if a build is successful.
      */
     @Test
     public void shouldSuccessfulBuild() {
@@ -128,7 +129,7 @@ public class CoverageSummaryTest extends UiTest {
     }
 
     /**
-     * Test if coverage reference is correct if both builds are successful.
+     * Test if the coverage reference is correct if both builds are successful.
      */
     @Test
     public void shouldReferenceBuild() {
@@ -155,7 +156,7 @@ public class CoverageSummaryTest extends UiTest {
     }
 
     /**
-     * Test if coverage is displayed correct if build fails.
+     * Test if coverage is displayed correct if the build fails.
      */
     @Test
     public void shouldFailedBuild() {
