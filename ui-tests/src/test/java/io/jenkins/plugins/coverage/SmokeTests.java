@@ -9,6 +9,7 @@ import java.util.List;
 /**
  * Smoke Test to test the most used features of coverage plugin.
  */
+@SuppressWarnings("PMD.WrongTestAnnotation")
 public class SmokeTests extends UiTest {
     /**
      * Creates two successful builds. Tests the reference values in summary, coverage report and main panel.
