@@ -133,33 +133,377 @@ table.source th {
     text-align: left;
 }
 
-table.source tr.coverFull {
-    background-color: var(--green);
-    color: var(--white);
-    font-weight: bold;
+/* --- Reset: all rows use the default background and text color --- */
+/* This overrides the old solid green/red/orange backgrounds */
+table.source tr {
+    position: relative;
+    background-color: var(--background-color) !important;
+    color: var(--text-color) !important;
+    font-weight: normal !important;
 }
 
-table.source tr.coverPart {
-    background-color: var(--orange);
-    color: var(--text-color);
-    font-weight: bold;
+table.source tr td {
+    font-weight: normal !important;
 }
 
-table.source tr.coverPart td.hits, table.source tr.coverNone td.hits {
-    font-weight: bold;
+/*
+ * "New Code" label appears above the FIRST row of a modified block.
+ * It is always visible (not hover-dependent) so users immediately know
+ * which lines are new/changed since the reference build.
+ */
+table.source tr:not(.modified) + tr.modified:after {
+    content: "New Code";
+    display: flex;
+    position: absolute;
+    right: 5px;
+    top: -23px;
+    background-color: rgba(159, 169, 237, 0.15);
+    color: rgb(93, 108, 208);
+    padding: 5px;
+    border-top-left-radius: 5px;
+    border-top-right-radius: 5px;
+    height: 23px;
+    align-items: center;
+    font-family: monospace;
+    z-index: 2;
 }
 
-table.source tr.coverNone {
-    background-color: var(--red);
-    color: var(--white);
-    font-weight: bold;
+/*
+ * Blue overlay on every modified line's code cell.
+ * position:absolute fills the entire code cell without affecting layout.
+ */
+table.source tr.modified td.code:before {
+    content: "";
+    position: absolute;
+    display: flex;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 100%;
+    z-index: 1;
+    background: rgba(159, 169, 237, 0.15) !important;
 }
 
-table.source tr.noCover {
-    background-color: var(--background-color);
-    color: var(--text-color);
+/*
+ * "Uncovered code" label appears above the FIRST row of an uncovered block when any row in that block is hovered.
+ * Uses :has() to detect hover anywhere in the block and propagate upward.
+ */
+table.source tr:has(~ tr.coverNone:hover) ~ tr:not(.coverNone) + tr.coverNone:after {
+    content: "Uncovered code";
+    display: flex;
+    position: absolute;
+    right: 5px;
+    top: -23px;
+    background: rgba(240, 68, 56, 0.15);
+    color: rgb(217, 45, 32);
+    padding: 5px;
+    border-top-left-radius: 5px;
+    border-top-right-radius: 5px;
+    height: 23px;
+    align-items: center;
+    font-family: monospace;
+    z-index: 2;
 }
 
+/* Highlight subsequent uncovered lines after the hovered uncovered line. */
+table.source tr.coverNone:hover ~ tr.coverNone td.code:after {
+    content: "";
+    position: absolute;
+    display: flex;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 100%;
+    z-index: 1;
+    background: rgba(240, 68, 56, 0.15) !important;
+}
+
+/* Highlight preceding uncovered lines before the hovered uncovered line. */
+table.source tr.coverNone:has(~ tr.coverNone:hover) td.code:after {
+    content: "";
+    position: absolute;
+    display: flex;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 100%;
+    z-index: 1;
+    background: rgba(240, 68, 56, 0.15) !important;
+}
+
+/* Highlight the hovered uncovered line itself. */
+table.source tr.coverNone:hover td.code:after {
+    content: "";
+    position: absolute;
+    display: flex;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 100%;
+    z-index: 1;
+    background: rgba(240, 68, 56, 0.15) !important;
+}
+
+/* Don't highlight uncovered lines before the currently hovered uncovered block. */
+table.source tr.coverNone:has(~ tr.noCover ~ tr.coverNone:hover) td.code:after {
+    display: none !important;
+}
+
+/* Don't label uncovered lines before the currently hovered uncovered block. */
+table.source tr.coverNone:has(~ tr.noCover ~ tr.coverNone:hover):after {
+    display: none !important;
+}
+
+/* Don't highlight uncovered lines after the currently hovered uncovered block. */
+table.source tr.coverNone:hover ~ tr.noCover ~ tr.coverNone td.code:after {
+    display: none !important;
+}
+
+/* Don't label uncovered lines after the currently hovered uncovered block. */
+table.source tr.coverNone:hover ~ tr.noCover ~ tr.coverNone:after {
+    display: none !important;
+}
+
+/*
+ * "Covered code" label appears above the FIRST row of a covered block when any row in that block is hovered.
+ */
+table.source tr:has(~ tr.coverFull:hover) ~ tr:not(.coverFull) + tr.coverFull:after {
+    content: "Covered code";
+    display: flex;
+    position: absolute;
+    right: 5px;
+    top: -23px;
+    background: rgba(18, 183, 106, 0.15);
+    color: rgb(118, 175, 141);
+    padding: 5px;
+    border-top-left-radius: 5px;
+    border-top-right-radius: 5px;
+    height: 23px;
+    align-items: center;
+    font-family: monospace;
+    z-index: 2;
+}
+
+/* Highlight subsequent covered lines after the hovered covered line. */
+table.source tr.coverFull:hover ~ tr.coverFull td.code:after {
+    content: "";
+    position: absolute;
+    display: flex;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 100%;
+    z-index: 1;
+    background: rgba(18, 183, 106, 0.15) !important;
+}
+
+/* Highlight preceding covered lines before the hovered covered line. */
+table.source tr.coverFull:has(~ tr.coverFull:hover) td.code:after {
+    content: "";
+    position: absolute;
+    display: flex;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 100%;
+    z-index: 1;
+    background: rgba(18, 183, 106, 0.15) !important;
+}
+
+/* Highlight the hovered covered line itself. */
+table.source tr.coverFull:hover td.code:after {
+    content: "";
+    position: absolute;
+    display: flex;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 100%;
+    z-index: 1;
+    background: rgba(18, 183, 106, 0.15) !important;
+}
+
+/* Don't highlight covered lines before the currently hovered covered block. */
+table.source tr.coverFull:has(~ tr.noCover ~ tr.coverFull:hover) td.code:after {
+    display: none !important;
+}
+
+/* Don't label covered lines before the currently hovered covered block. */
+table.source tr.coverFull:has(~ tr.noCover ~ tr.coverFull:hover):after {
+    display: none !important;
+}
+
+/* Don't highlight covered lines after the currently hovered covered block. */
+table.source tr.coverFull:hover ~ tr.noCover ~ tr.coverFull td.code:after {
+    display: none !important;
+}
+
+/* Don't label covered lines after the currently hovered covered block. */
+table.source tr.coverFull:hover ~ tr.noCover ~ tr.coverFull:after {
+    display: none !important;
+}
+
+/*
+ * "Partially covered code" label appears above the FIRST row of a 
+ * partially-covered block when any row in that block is hovered.
+ */
+table.source tr:has(~ tr.coverPart:hover) ~ tr:not(.coverPart) + tr.coverPart:after {
+    content: "Partially covered code";
+    display: flex;
+    position: absolute;
+    right: 5px;
+    top: -23px;
+    background-color: rgba(255, 165, 0, 0.15);
+    color: rgb(255, 165, 0);
+    padding: 5px;
+    border-top-left-radius: 5px;
+    border-top-right-radius: 5px;
+    height: 23px;
+    align-items: center;
+    font-family: monospace;
+    z-index: 2;
+}
+
+/* Highlight subsequent partially covered lines after the hovered line. */
+table.source tr.coverPart:hover ~ tr.coverPart td.code:after {
+    content: "";
+    position: absolute;
+    display: flex;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 100%;
+    z-index: 1;
+    background: rgba(255, 165, 0, 0.15) !important;
+}
+
+/* Highlight preceding partially covered lines before the hovered line. */
+table.source tr.coverPart:has(~ tr.coverPart:hover) td.code:after {
+    content: "";
+    position: absolute;
+    display: flex;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 100%;
+    z-index: 1;
+    background: rgba(255, 165, 0, 0.15) !important;
+}
+
+/* Highlight the hovered partially covered line itself. */
+table.source tr.coverPart:hover td.code:after {
+    content: "";
+    position: absolute;
+    display: flex;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 100%;
+    z-index: 1;
+    background: rgba(255, 165, 0, 0.15) !important;
+}
+
+/* Don't highlight partially covered lines before the currently hovered block. */
+table.source tr.coverPart:has(~ tr.noCover ~ tr.coverPart:hover) td.code:after {
+    display: none !important;
+}
+
+/* Don't label partially covered lines before the currently hovered block. */
+table.source tr.coverPart:has(~ tr.noCover ~ tr.coverPart:hover):after {
+    display: none !important;
+}
+
+/* Don't highlight partially covered lines after the currently hovered block. */
+table.source tr.coverPart:hover ~ tr.noCover ~ tr.coverPart td.code:after {
+    display: none !important;
+}
+
+/* Don't label partially covered lines after the currently hovered block. */
+table.source tr.coverPart:hover ~ tr.noCover ~ tr.coverPart:after {
+    display: none !important;
+}
+
+/* --- General row hover: light blue-grey background --- */
+table.source tr:hover td.line,
+table.source tr:hover td.hits,
+table.source tr:hover td.code {
+    background: rgb(239, 242, 249);
+}
+
+/* Override hover for coverage-typed rows to use same neutral grey */
+table.source tr.coverNone:hover td.line,
+table.source tr.coverNone:hover td.hits,
+table.source tr.coverNone:hover td.code {
+    background: rgb(239, 242, 249) !important;
+}
+
+table.source tr.coverFull:hover td.line,
+table.source tr.coverFull:hover td.hits,
+table.source tr.coverFull:hover td.code {
+    background: rgb(239, 242, 249) !important;
+}
+
+table.source tr.coverPart:hover td.line,
+table.source tr.coverPart:hover td.hits,
+table.source tr.coverPart:hover td.code {
+    background: rgb(239, 242, 249) !important;
+}
+
+/* --- Hits column: position:relative so ::after stripe is positioned correctly --- */
+table.source tr td.hits {
+    position: relative;
+    padding-right: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: right;
+    min-height: 23px;
+}
+
+/* td.code needs position:relative for the ::after overlay pseudo-element */
+table.source tr td.code {
+    position: relative;
+}
+
+/* --- 5px colored stripe on the right edge of the hits column --- */
+table.source tr td.hits:after {
+    content: "";
+    position: absolute;
+    right: -1px;
+    display: inline-block;
+    width: 5px;
+    height: 23px;
+}
+
+/* Green stripe for fully covered lines */
+table.source tr.coverFull td.hits:after {
+    background-color: rgb(166, 244, 197);
+}
+
+/* Red stripe for uncovered lines */
+table.source tr.coverNone td.hits:after {
+    background-color: rgb(217, 45, 32);
+}
+
+/* Orange stripe for partially covered lines */
+table.source tr.coverPart td.hits:after {
+    background-color: rgb(255, 165, 0);
+}
+
+/* Ensure line/hits columns for uncovered rows keep default background */
+table.source tr.coverNone td.line {
+    background-color: var(--background-color) !important;
+}
+
+table.source tr.coverNone td.hits {
+    background-color: var(--background-color) !important;
+}
+
+/* --- Skipped lines --- */
 table.source tr.coverSkip {
-    background-color: #b4b4b4;
+    background-color: #b4b4b4 !important;
+}
+
+/* Hide tippy tooltips (replaced by our own block labels) */
+div[id^=tippy] {
+    display: none !important;
 }
