@@ -15,7 +15,6 @@ class CoverageSourcePrinterTest extends AbstractCoverageTest {
     static final String RENDERED_CODE = "\u00a0\u00a0\u00a0\u00a0\u00a0\u00a0\u00a0\u00a0\u00a0\u00a0\u00a0\u00a0\u00a0\u00a0\u00a0\u00a0\u00a0\u00a0\u00a0\u00a0"
             + "for\u00a0(int\u00a0line\u00a0=\u00a00;\u00a0line\u00a0<\u00a0lines.size();\u00a0line++)\u00a0{";
 
-
     @Test
     void shouldRenderLinesWithVariousCoverages() {
         var tree = readResult("../steps/jacoco-codingstyle.xml", new JacocoParser());
