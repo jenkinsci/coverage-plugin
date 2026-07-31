@@ -14,6 +14,7 @@ import static org.assertj.core.api.AssertionsForClassTypes.*;
  * Acceptance tests for CoveragePublisher. Verifies if set options in CoveragePublisher are used and lead to excepted
  * results.
  */
+@SuppressWarnings("PMD.WrongTestAnnotation")
 public class CoveragePublisherTest extends UiTest {
     /**
      * Verifies that a job with no report fails when setFailNoReports(true).

@@ -10,6 +10,7 @@ import static org.assertj.core.api.Assertions.*;
  * Acceptance tests for MainPanel of a project.
  * Contains static test-methods which can also be used other classes, especially used {@link SmokeTests}.
  */
+@SuppressWarnings("PMD.WrongTestAnnotation")
 public class MainPanelTest extends UiTest {
     /**
      * Test for MainPanel of job with some builds with reports.
