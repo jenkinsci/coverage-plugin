@@ -118,7 +118,9 @@ class CoverageChecksPublisherTest extends AbstractCoverageTest {
                 .as("PIT coverage table should contain Line Coverage column")
                 .contains("Line Coverage")
                 .as("PIT coverage table should contain Mutation Coverage column")
-                .contains("Mutation Coverage");
+                .contains("Mutation Coverage")
+                .as("PIT coverage table should contain Test Strength column")
+                .contains("Test Strength");
     }
 
     private void assertMutationAnnotations(final ChecksOutput output, final int expectedAnnotations) {
@@ -160,7 +162,9 @@ class CoverageChecksPublisherTest extends AbstractCoverageTest {
                         .as("JaCoCo coverage table should contain Instruction Coverage column since JaCoCo measures it")
                         .contains("Instruction Coverage")
                         .as("JaCoCo coverage table should contain Line Coverage column")
-                        .contains("Line Coverage"));
+                        .contains("Line Coverage")
+                        .as("JaCoCo coverage table should not contain Test Strength column since JaCoCo does not measure mutations")
+                        .doesNotContain("Test Strength"));
     }
 
     @ParameterizedTest(name = "should create checks (scope = {0}, expected annotations = {1})")
