@@ -36,6 +36,7 @@ import hudson.util.FormValidation;
 import hudson.util.ListBoxModel;
 import jenkins.model.Jenkins;
 
+import io.jenkins.plugins.checks.steps.ChecksInfo;
 import io.jenkins.plugins.prism.SourceCodeDirectory;
 import io.jenkins.plugins.prism.SourceCodeRetention;
 import io.jenkins.plugins.util.AbstractExecution;
@@ -365,6 +366,7 @@ public class CoverageStep extends Step implements Serializable {
             recorder.setSourceCodeEncoding(step.getSourceCodeEncoding());
             recorder.setSourceDirectories(List.copyOf(step.getSourceDirectories()));
             recorder.setSourceCodeRetention(step.getSourceCodeRetention());
+            recorder.setChecksInfo(getContext().get(ChecksInfo.class));
 
             recorder.perform(getRun(), getWorkspace(), getTaskListener(), createResultHandler());
 
