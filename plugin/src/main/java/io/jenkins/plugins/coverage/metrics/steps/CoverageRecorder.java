@@ -76,7 +76,7 @@ import io.jenkins.plugins.util.ValidationUtilities;
  *
  * @author Ullrich Hafner
  */
-@SuppressWarnings({"PMD.GodClass", "PMD.CouplingBetweenObjects", "checkstyle:ClassFanOutComplexity", "checkstyle:ClassDataAbstractionCoupling"})
+@SuppressWarnings({"PMD.GodClass", "PMD.CouplingBetweenObjects", "PMD.TooManyFields", "checkstyle:ClassFanOutComplexity", "checkstyle:ClassDataAbstractionCoupling"})
 public class CoverageRecorder extends Recorder {
     static final String CHECKS_DEFAULT_NAME = "Code Coverage";
 
