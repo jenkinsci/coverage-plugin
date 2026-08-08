@@ -9,6 +9,7 @@ import org.junitpioneer.jupiter.DefaultLocale;
 import edu.hm.hafner.coverage.Coverage.CoverageBuilder;
 import edu.hm.hafner.coverage.Difference;
 import edu.hm.hafner.coverage.Metric;
+import edu.hm.hafner.coverage.ModuleNode;
 import edu.hm.hafner.coverage.Node;
 import edu.hm.hafner.coverage.Value;
 import edu.hm.hafner.coverage.parser.PitestParser;
@@ -183,6 +184,110 @@ class CoverageChecksPublisherTest extends AbstractCoverageTest {
         assertThat(checkDetails.getDetailsURL()).isPresent()
                 .contains("http://127.0.0.1:8080/job/pipeline-coding-style/job/5/coverage");
         assertThatDetailsAreCorrect(checkDetails, expectedAnnotations);
+    }
+
+    @Test
+    void shouldRenderPositiveDeltasInGreenAndNegativeDeltasInRed() {
+        var result = readJacocoResult("jacoco-codingstyle.xml");
+
+        var publisher = new CoverageChecksPublisher(createCoverageBuildAction(result), result, REPORT_NAME,
+                ChecksAnnotationScope.SKIP, createJenkins());
+
+        var output = publisher.extractChecksDetails().getOutput();
+        assertThat(output).isPresent().get().satisfies(checksOutput -> {
+            assertThat(checksOutput.getSummary()).isPresent().get().asString()
+                    .contains("Line Coverage: 91.02% (294/323) $\\color{green}{\\textsf{(+50.00\\%)}}$")
+                    .doesNotContain("- Delta:");
+            assertThat(checksOutput.getText()).isPresent().get().asString()
+                    .contains("$\\color{green}{\\textsf{(+50.00\\%)}}$") // line coverage delta
+                    .contains("$\\color{red}{\\textsf{(-50.00\\%)}}$") // package coverage delta
+                    .contains("$\\textsf{(±0\\%)}$") // module coverage has no delta at all
+                    .doesNotContain(":arrow_up:", ":arrow_down:");
+        });
+    }
+
+    @Test
+    void shouldNotRenderDeltasIfThereIsNoReferenceBuild() {
+        var result = readJacocoResult("jacoco-codingstyle.xml");
+
+        var publisher = new CoverageChecksPublisher(createActionWithoutDelta(result), result, REPORT_NAME,
+                ChecksAnnotationScope.SKIP, createJenkins());
+
+        var output = publisher.extractChecksDetails().getOutput();
+        assertThat(output).isPresent().get().satisfies(checksOutput -> {
+            assertThat(checksOutput.getSummary()).isPresent().get().asString().doesNotContain("\\color");
+            assertThat(checksOutput.getText()).isPresent().get().asString().doesNotContain("\\color");
+        });
+    }
+
+    @ParameterizedTest(name = "should mark {0} coverage without missed items as perfect")
+    @CsvSource({"LINE, Line Coverage", "MUTATION, Mutation Coverage"})
+    void shouldShowPerfectSuffixForFullyCoveredMetrics(final Metric metric, final String displayName) {
+        var result = createResultWithCoverage(metric, 10, 0);
+
+        var publisher = new CoverageChecksPublisher(createActionWithoutDelta(result), result, REPORT_NAME,
+                ChecksAnnotationScope.SKIP, createJenkins());
+
+        assertThat(publisher.extractChecksDetails().getOutput()).isPresent().get().satisfies(output ->
+                assertThat(output.getSummary()).isPresent().get().asString()
+                        .contains("* %s: 100.00%% (10/10) - perfect :tada:".formatted(displayName)));
+    }
+
+    @ParameterizedTest(name = "should not mark {0} coverage with missed items as perfect")
+    @CsvSource({"LINE, Line Coverage", "MUTATION, Mutation Coverage"})
+    void shouldNotShowPerfectSuffixIfItemsAreMissed(final Metric metric, final String displayName) {
+        var result = createResultWithCoverage(metric, 9, 1);
+
+        var publisher = new CoverageChecksPublisher(createActionWithoutDelta(result), result, REPORT_NAME,
+                ChecksAnnotationScope.SKIP, createJenkins());
+
+        assertThat(publisher.extractChecksDetails().getOutput()).isPresent().get().satisfies(output ->
+                assertThat(output.getSummary()).isPresent().get().asString()
+                        .contains("* %s: 90.00%% (9/10)".formatted(displayName))
+                        .doesNotContain("perfect"));
+    }
+
+    @Test
+    void shouldNotShowPerfectSuffixForOtherFullyCoveredMetrics() {
+        var result = createResultWithCoverage(Metric.BRANCH, 10, 0);
+
+        var publisher = new CoverageChecksPublisher(createActionWithoutDelta(result), result, REPORT_NAME,
+                ChecksAnnotationScope.SKIP, createJenkins());
+
+        assertThat(publisher.extractChecksDetails().getOutput()).isPresent().get().satisfies(output ->
+                assertThat(output.getSummary()).isPresent().get().asString()
+                        .contains("* Branch Coverage: 100.00% (10/10)")
+                        .doesNotContain("perfect"));
+    }
+
+    @Test
+    void shouldShowPerfectSuffixInBaselineOverviewWithDelta() {
+        var result = readJacocoResult("jacoco-codingstyle.xml");
+        result.findFile("TreeStringBuilder.java").ifPresent(file -> file.addModifiedLines(61, 62, 113));
+
+        var perfectCoverage = new CoverageBuilder(Metric.LINE).withCovered(2).withMissed(0).build();
+        var run = mock(Run.class);
+        when(run.getUrl()).thenReturn(BUILD_LINK);
+        var action = new CoverageBuildAction(run, COVERAGE_ID, REPORT_NAME, StringUtils.EMPTY, result,
+                new QualityGateResult(), null, "refId",
+                List.of(getValue("LINE: 50")),
+                List.of(perfectCoverage), List.of(getValue("LINE: 50")),
+                List.of(perfectCoverage), List.of(getValue("LINE: 50")),
+                List.of(perfectCoverage), false);
+
+        var publisher = new CoverageChecksPublisher(action, result, REPORT_NAME,
+                ChecksAnnotationScope.SKIP, createJenkins());
+
+        assertThat(publisher.extractChecksDetails().getOutput()).isPresent().get().satisfies(output ->
+                assertThat(output.getSummary()).isPresent().get().asString()
+                        .contains("Line Coverage: 100.00% (2/2) "
+                                + "$\\color{green}{\\textsf{(+50.00\\%)}}$ - perfect :tada:"));
+    }
+
+    private Node createResultWithCoverage(final Metric metric, final int covered, final int missed) {
+        var module = new ModuleNode("Module");
+        module.addValue(new CoverageBuilder(metric).withCovered(covered).withMissed(missed).build());
+        return module;
     }
 
     @Test
