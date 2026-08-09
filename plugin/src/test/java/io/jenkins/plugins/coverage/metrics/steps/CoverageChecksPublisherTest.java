@@ -9,6 +9,7 @@ import org.junitpioneer.jupiter.DefaultLocale;
 import edu.hm.hafner.coverage.Coverage.CoverageBuilder;
 import edu.hm.hafner.coverage.Difference;
 import edu.hm.hafner.coverage.Metric;
+import edu.hm.hafner.coverage.ModuleNode;
 import edu.hm.hafner.coverage.Node;
 import edu.hm.hafner.coverage.Value;
 import edu.hm.hafner.coverage.parser.PitestParser;
@@ -97,6 +98,32 @@ class CoverageChecksPublisherTest extends AbstractCoverageTest {
         });
     }
 
+    @Test
+    void shouldShowOnlyMeasuredMetricsInChecksTableForPit() {
+        var result = readResult("mutations.xml", new PitestParser());
+
+        var publisher = new CoverageChecksPublisher(createCoverageBuildAction(result), result, REPORT_NAME,
+                ChecksAnnotationScope.SKIP, createJenkins());
+
+        var checkDetails = publisher.extractChecksDetails();
+
+        assertThat(checkDetails.getOutput()).isPresent().get().satisfies(this::assertPitCoverageTableColumns);
+    }
+
+    private void assertPitCoverageTableColumns(final ChecksOutput output) {
+        assertThat(output.getText()).isPresent().get().asString()
+                .as("PIT coverage table should not contain Branch Coverage column")
+                .doesNotContain("Branch Coverage")
+                .as("PIT coverage table should not contain Instruction Coverage column")
+                .doesNotContain("Instruction Coverage")
+                .as("PIT coverage table should contain Line Coverage column")
+                .contains("Line Coverage")
+                .as("PIT coverage table should contain Mutation Coverage column")
+                .contains("Mutation Coverage")
+                .as("PIT coverage table should contain Test Strength column")
+                .contains("Test Strength");
+    }
+
     private void assertMutationAnnotations(final ChecksOutput output, final int expectedAnnotations) {
         assertThat(output.getChecksAnnotations()).hasSize(expectedAnnotations);
         if (expectedAnnotations == 1) {
@@ -120,6 +147,27 @@ class CoverageChecksPublisherTest extends AbstractCoverageTest {
                 assertThat(output.getTitle()).isPresent().contains(expectedTitle));
     }
 
+    @Test
+    void shouldShowMeasuredMetricsInChecksTableForJaCoCo() {
+        var result = readJacocoResult("jacoco-codingstyle.xml");
+
+        var publisher = new CoverageChecksPublisher(createActionWithoutDelta(result), result, REPORT_NAME,
+                ChecksAnnotationScope.SKIP, createJenkins());
+
+        var checkDetails = publisher.extractChecksDetails();
+
+        assertThat(checkDetails.getOutput()).isPresent().get().satisfies(output ->
+                assertThat(output.getText()).isPresent().get().asString()
+                        .as("JaCoCo coverage table should contain Branch Coverage column since JaCoCo measures it")
+                        .contains("Branch Coverage")
+                        .as("JaCoCo coverage table should contain Instruction Coverage column since JaCoCo measures it")
+                        .contains("Instruction Coverage")
+                        .as("JaCoCo coverage table should contain Line Coverage column")
+                        .contains("Line Coverage")
+                        .as("JaCoCo coverage table should not contain Test Strength column since JaCoCo does not measure mutations")
+                        .doesNotContain("Test Strength"));
+    }
+
     @ParameterizedTest(name = "should create checks (scope = {0}, expected annotations = {1})")
     @CsvSource({"SKIP, 0", "ALL_LINES, 28", "MODIFIED_LINES, 2"})
     void shouldCreateChecksReportJaCoCo(final ChecksAnnotationScope scope, final int expectedAnnotations) {
@@ -136,6 +184,110 @@ class CoverageChecksPublisherTest extends AbstractCoverageTest {
         assertThat(checkDetails.getDetailsURL()).isPresent()
                 .contains("http://127.0.0.1:8080/job/pipeline-coding-style/job/5/coverage");
         assertThatDetailsAreCorrect(checkDetails, expectedAnnotations);
+    }
+
+    @Test
+    void shouldRenderPositiveDeltasInGreenAndNegativeDeltasInRed() {
+        var result = readJacocoResult("jacoco-codingstyle.xml");
+
+        var publisher = new CoverageChecksPublisher(createCoverageBuildAction(result), result, REPORT_NAME,
+                ChecksAnnotationScope.SKIP, createJenkins());
+
+        var output = publisher.extractChecksDetails().getOutput();
+        assertThat(output).isPresent().get().satisfies(checksOutput -> {
+            assertThat(checksOutput.getSummary()).isPresent().get().asString()
+                    .contains("Line Coverage: 91.02% (294/323) $\\color{green}{\\textsf{(+50.00\\%)}}$")
+                    .doesNotContain("- Delta:");
+            assertThat(checksOutput.getText()).isPresent().get().asString()
+                    .contains("$\\color{green}{\\textsf{(+50.00\\%)}}$") // line coverage delta
+                    .contains("$\\color{red}{\\textsf{(-50.00\\%)}}$") // package coverage delta
+                    .contains("$\\textsf{(±0\\%)}$") // module coverage has no delta at all
+                    .doesNotContain(":arrow_up:", ":arrow_down:");
+        });
+    }
+
+    @Test
+    void shouldNotRenderDeltasIfThereIsNoReferenceBuild() {
+        var result = readJacocoResult("jacoco-codingstyle.xml");
+
+        var publisher = new CoverageChecksPublisher(createActionWithoutDelta(result), result, REPORT_NAME,
+                ChecksAnnotationScope.SKIP, createJenkins());
+
+        var output = publisher.extractChecksDetails().getOutput();
+        assertThat(output).isPresent().get().satisfies(checksOutput -> {
+            assertThat(checksOutput.getSummary()).isPresent().get().asString().doesNotContain("\\color");
+            assertThat(checksOutput.getText()).isPresent().get().asString().doesNotContain("\\color");
+        });
+    }
+
+    @ParameterizedTest(name = "should mark {0} coverage without missed items as perfect")
+    @CsvSource({"LINE, Line Coverage", "MUTATION, Mutation Coverage"})
+    void shouldShowPerfectSuffixForFullyCoveredMetrics(final Metric metric, final String displayName) {
+        var result = createResultWithCoverage(metric, 10, 0);
+
+        var publisher = new CoverageChecksPublisher(createActionWithoutDelta(result), result, REPORT_NAME,
+                ChecksAnnotationScope.SKIP, createJenkins());
+
+        assertThat(publisher.extractChecksDetails().getOutput()).isPresent().get().satisfies(output ->
+                assertThat(output.getSummary()).isPresent().get().asString()
+                        .contains("* %s: 100.00%% (10/10) - perfect :tada:".formatted(displayName)));
+    }
+
+    @ParameterizedTest(name = "should not mark {0} coverage with missed items as perfect")
+    @CsvSource({"LINE, Line Coverage", "MUTATION, Mutation Coverage"})
+    void shouldNotShowPerfectSuffixIfItemsAreMissed(final Metric metric, final String displayName) {
+        var result = createResultWithCoverage(metric, 9, 1);
+
+        var publisher = new CoverageChecksPublisher(createActionWithoutDelta(result), result, REPORT_NAME,
+                ChecksAnnotationScope.SKIP, createJenkins());
+
+        assertThat(publisher.extractChecksDetails().getOutput()).isPresent().get().satisfies(output ->
+                assertThat(output.getSummary()).isPresent().get().asString()
+                        .contains("* %s: 90.00%% (9/10)".formatted(displayName))
+                        .doesNotContain("perfect"));
+    }
+
+    @Test
+    void shouldNotShowPerfectSuffixForOtherFullyCoveredMetrics() {
+        var result = createResultWithCoverage(Metric.BRANCH, 10, 0);
+
+        var publisher = new CoverageChecksPublisher(createActionWithoutDelta(result), result, REPORT_NAME,
+                ChecksAnnotationScope.SKIP, createJenkins());
+
+        assertThat(publisher.extractChecksDetails().getOutput()).isPresent().get().satisfies(output ->
+                assertThat(output.getSummary()).isPresent().get().asString()
+                        .contains("* Branch Coverage: 100.00% (10/10)")
+                        .doesNotContain("perfect"));
+    }
+
+    @Test
+    void shouldShowPerfectSuffixInBaselineOverviewWithDelta() {
+        var result = readJacocoResult("jacoco-codingstyle.xml");
+        result.findFile("TreeStringBuilder.java").ifPresent(file -> file.addModifiedLines(61, 62, 113));
+
+        var perfectCoverage = new CoverageBuilder(Metric.LINE).withCovered(2).withMissed(0).build();
+        var run = mock(Run.class);
+        when(run.getUrl()).thenReturn(BUILD_LINK);
+        var action = new CoverageBuildAction(run, COVERAGE_ID, REPORT_NAME, StringUtils.EMPTY, result,
+                new QualityGateResult(), null, "refId",
+                List.of(getValue("LINE: 50")),
+                List.of(perfectCoverage), List.of(getValue("LINE: 50")),
+                List.of(perfectCoverage), List.of(getValue("LINE: 50")),
+                List.of(perfectCoverage), false);
+
+        var publisher = new CoverageChecksPublisher(action, result, REPORT_NAME,
+                ChecksAnnotationScope.SKIP, createJenkins());
+
+        assertThat(publisher.extractChecksDetails().getOutput()).isPresent().get().satisfies(output ->
+                assertThat(output.getSummary()).isPresent().get().asString()
+                        .contains("Line Coverage: 100.00% (2/2) "
+                                + "$\\color{green}{\\textsf{(+50.00\\%)}}$ - perfect :tada:"));
+    }
+
+    private Node createResultWithCoverage(final Metric metric, final int covered, final int missed) {
+        var module = new ModuleNode("Module");
+        module.addValue(new CoverageBuilder(metric).withCovered(covered).withMissed(missed).build());
+        return module;
     }
 
     @Test

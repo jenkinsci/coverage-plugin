@@ -2,6 +2,7 @@ package io.jenkins.plugins.coverage.metrics.steps;
 
 import org.apache.commons.lang3.StringUtils;
 
+import edu.hm.hafner.coverage.Coverage;
 import edu.hm.hafner.coverage.FileNode;
 import edu.hm.hafner.coverage.Metric;
 import edu.hm.hafner.coverage.Mutation;
@@ -54,6 +55,15 @@ class CoverageChecksPublisher {
     private static final char NEW_LINE = '\n';
     private static final String COLUMN = "|";
     private static final String GAP = " ";
+
+    /** Color of a delta that improves the coverage. */
+    private static final String POSITIVE_DELTA_COLOR = "green";
+    /** Color of a delta that decreases the coverage. */
+    private static final String NEGATIVE_DELTA_COLOR = "red";
+    /** Suffix that is appended to line or mutation coverage values that have no missed items. */
+    private static final String PERFECT_SUFFIX = " - perfect :tada:";
+    /** Metrics that are marked as perfect if all items are covered. */
+    private static final Set<Metric> PERFECT_METRICS = Set.of(Metric.LINE, Metric.MUTATION);
 
     private final CoverageBuildAction action;
     private final Node rootNode;
@@ -372,9 +382,9 @@ class CoverageChecksPublisher {
                 for (Value value : getValues(baseline)) {
                     var display = FORMATTER.formatDetailedValueWithMetric(value);
                     if (action.hasDelta(baseline, value.getMetric())) {
-                        display += " - Delta: %s".formatted(action.formatDelta(baseline, value.getMetric()));
+                        display += GAP + formatColoredDelta(baseline, value.getMetric());
                     }
-                    description.append(getBulletListItem(TITLE_HEADER_LEVEL, display));
+                    description.append(getBulletListItem(TITLE_HEADER_LEVEL, display + getPerfectSuffix(value)));
                 }
             }
         }
@@ -393,7 +403,8 @@ class CoverageChecksPublisher {
         description.append("No changes detected, that affect the code coverage.\n");
 
         for (Value value : getValues(Baseline.PROJECT)) {
-            description.append(getBulletListItem(1, FORMATTER.formatDetailedValueWithMetric(value)));
+            description.append(getBulletListItem(1,
+                    FORMATTER.formatDetailedValueWithMetric(value) + getPerfectSuffix(value)));
         }
 
         description.append(NEW_LINE);
@@ -460,13 +471,71 @@ class CoverageChecksPublisher {
     }
 
     private String getFormatDelta(final Baseline baseline, final Metric metric) {
-        var delta = action.formatDelta(baseline, metric);
-        return delta + getTrendIcon(delta);
+        if (action.hasDelta(baseline, metric)) {
+            return formatColoredDelta(baseline, metric);
+        }
+        return action.formatDelta(baseline, metric); // shows the 'not available' text
+    }
+
+    /**
+     * Renders the delta of the specified baseline and metric as colored markdown text: deltas that improve the
+     * coverage are rendered in green, deltas that decrease the coverage are rendered in red. Deltas without an
+     * actual change are rendered without a color.
+     *
+     * @param baseline
+     *         the baseline of the delta
+     * @param metric
+     *         the metric of the delta
+     *
+     * @return the colored delta
+     */
+    private String formatColoredDelta(final Baseline baseline, final Metric metric) {
+        var delta = escapeLatex(action.formatDelta(baseline, metric));
+        var trend = action.getTrend(baseline, metric);
+        if (trend > 0) {
+            return colorize(POSITIVE_DELTA_COLOR, delta);
+        }
+        if (trend < 0) {
+            return colorize(NEGATIVE_DELTA_COLOR, delta);
+        }
+        return "$\\textsf{(%s)}$".formatted(delta);
+    }
+
+    private String colorize(final String color, final String delta) {
+        return "$\\color{%s}{\\textsf{(%s)}}$".formatted(color, delta);
+    }
+
+    /**
+     * Escapes the characters of the specified text that have a special meaning in the LaTeX blocks that are used to
+     * render the colored values: an unescaped percent sign starts a comment and would swallow the rest of the block.
+     *
+     * @param text
+     *         the text to escape
+     *
+     * @return the escaped text
+     */
+    private String escapeLatex(final String text) {
+        return text.replace("%", "\\%");
+    }
+
+    /**
+     * Returns the suffix that marks line or mutation coverage results that have no missed items at all.
+     *
+     * @param value
+     *         the value to check
+     *
+     * @return the perfect suffix, or an empty string if the value is not a perfect line or mutation coverage
+     */
+    private String getPerfectSuffix(final Value value) {
+        if (PERFECT_METRICS.contains(value.getMetric())
+                && value instanceof Coverage coverage && coverage.getMissed() == 0) {
+            return PERFECT_SUFFIX;
+        }
+        return StringUtils.EMPTY;
     }
 
     private Stream<Metric> getMetricStream() {
-        return Metric.getCoverageMetrics().stream()
-                .skip(1)
+        return Stream.concat(Metric.getCoverageMetrics().stream().skip(1), Stream.of(Metric.TEST_STRENGTH))
                 .filter(m -> rootNode.getValue(m).isPresent());
     }
 
@@ -479,13 +548,6 @@ class CoverageChecksPublisher {
             case BOLD -> "**" + text + "**";
             case CURSIVE -> "_" + text + "_";
         };
-    }
-
-    private String getTrendIcon(final String trend) {
-        if (!StringUtils.containsAny(trend, "123456789") || trend.startsWith("n/a")) {
-            return StringUtils.EMPTY;
-        }
-        return GAP + (trend.startsWith("+") ? Icon.ARROW_UP.markdown : Icon.ARROW_DOWN.markdown);
     }
 
     private String getBulletListItem(final int level, final String text) {
@@ -512,9 +574,7 @@ class CoverageChecksPublisher {
         FEET(":feet:"),
         WHITE_CHECK_MARK(":white_check_mark:"),
         CHART_UPWARDS_TREND(":chart_with_upwards_trend:"),
-        ARROW_UP(":arrow_up:"),
-        ARROW_RIGHT(":arrow_right:"),
-        ARROW_DOWN(":arrow_down:");
+        ARROW_RIGHT(":arrow_right:");
 
         private final String markdown;
 
