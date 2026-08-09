@@ -12,7 +12,7 @@ import org.kohsuke.stapler.export.ExportedBean;
  * lines and comments are also included in blocks.
  */
 @ExportedBean
-class ModifiedLinesBlock implements Comparable<ModifiedLinesBlock> {
+public class ModifiedLinesBlock implements Comparable<ModifiedLinesBlock> {
     private final int startLine;
     private final int endLine;
     private final LineCoverageType type;

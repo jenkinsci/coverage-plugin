@@ -31,7 +31,7 @@ then this style will be used automatically.
 
 Moreover, (since this project is about static code analysis :wink:) a configuration for the following static code
 analysis tools is defined in the POM (and the `etc` and `.idea` folders of the `codingstyle` module):
-- [Checkstyle](https://checkstyle.sourceforge.net/)
+- [Checkstyle](https://checkstyle.org/)
 - [PMD](https://pmd.github.io/)
 - [SpotBugs](https://spotbugs.github.io)
 - [Error Prone](https://errorprone.info)
@@ -67,9 +67,4 @@ There is no additional action required from pull request authors at this point.
 The Coverage plugin is licensed under [MIT license](./LICENSE). We consider all contributions as MIT unless it's 
 explicitly stated otherwise. MIT-incompatible code contributions will be rejected.
 Contributions under MIT-compatible licenses may be also rejected if they are not ultimately necessary.
-
-## Continuous Integration
-
-The Jenkins project has a Continuous Integration server... powered by Jenkins, of course.
-The CI job for this project is located at [ci.jenkins.io](https://ci.jenkins.io/job/Plugins/job/coverage-plugin/).
 

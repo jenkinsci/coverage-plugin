@@ -1,4 +1,4 @@
-/* global $, proxy, echartsJenkinsApi, bootstrap5 */
+/* global $, proxy, echartsJenkinsApi, bootstrap5, culori */
 
 (function ($) {
     function fillDialog(trendConfiguration, jsonConfiguration) {
@@ -34,7 +34,7 @@
             if (colorHex.match(/^#[a-fA-F0-9]{6}$/) !== null) {
                 colorHexMapping.set(jenkinsId, colorHex);
             }
-        })
+        });
         return colorHexMapping;
     }
 
@@ -42,8 +42,12 @@
         return echartsJenkinsApi.resolveJenkinsColor(colorName);
     }
 
-    function printPercentage(value, minimumFractionDigits = 2) {
-        return Number(value / 100.0).toLocaleString(undefined, {style: 'percent', minimumFractionDigits: minimumFractionDigits});
+    function printPercentage(value, minimumFractionDigits) {
+        const options = {
+            style: 'percent',
+            minimumFractionDigits: minimumFractionDigits ? minimumFractionDigits : 2
+        };
+        return Number(value / 100.0).toLocaleString(undefined, options);
     }
 
     const openBuild = function (build) { // NOPMD
@@ -439,7 +443,7 @@
 
                 return true;
             }
-            return false
+            return false;
         }
 
         const selectedTabID = 'jenkins-coverage-activeTab';
@@ -595,7 +599,7 @@
             else {
                 showNoSelection();
             }
-        })
+        });
         datatable.on('deselect', function () {
             showNoSelection();
         });

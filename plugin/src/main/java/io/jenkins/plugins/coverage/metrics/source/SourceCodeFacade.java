@@ -12,6 +12,7 @@ import edu.hm.hafner.util.FilteredLog;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
@@ -26,7 +27,6 @@ import java.util.stream.Collectors;
 
 import hudson.FilePath;
 import hudson.model.Run;
-import hudson.util.TextFile;
 
 /**
  * Facade to the source code file structure in Jenkins build folder. Access of those files should be done using an
@@ -38,12 +38,25 @@ import hudson.util.TextFile;
 public class SourceCodeFacade {
     /** Toplevel directory in the build folder of the controller that contains the zipped source files. */
     static final String COVERAGE_SOURCES_DIRECTORY = "coverage-sources";
-    static final String COVERAGE_SOURCES_ZIP = "coverage-sources.zip";
     static final int MAX_FILENAME_LENGTH = 245; // Windows has limitations on long file names
     static final String ZIP_FILE_EXTENSION = ".zip";
 
     static String sanitizeFilename(final String inputName) {
         return StringUtils.right(inputName.replaceAll("[^a-zA-Z0-9-_.]", "_"), MAX_FILENAME_LENGTH);
+    }
+
+    /**
+     * Returns the name of the transfer archive that holds the painted sources for a single coverage result. The name
+     * is unique per coverage ID so that concurrent {@code recordCoverage} steps of the same build (which all share the
+     * same build folder on the controller) do not overwrite or delete each other's archive.
+     *
+     * @param id
+     *         the ID of the coverage results
+     *
+     * @return the ID-specific name of the transfer archive
+     */
+    static String getCoverageSourcesZip(final String id) {
+        return COVERAGE_SOURCES_DIRECTORY + "-" + sanitizeFilename(id) + ZIP_FILE_EXTENSION;
     }
 
     /**
@@ -69,7 +82,7 @@ public class SourceCodeFacade {
             String actualPaintedSourceFileName = Strings.CS.removeEnd(str, ZIP_FILE_EXTENSION);
             var sourceFile = tempDir.resolve(actualPaintedSourceFileName).toFile();
 
-            return new TextFile(sourceFile).read();
+            return Files.readString(sourceFile.toPath(), StandardCharsets.UTF_8);
         }
         finally {
             unzippedSourcesDir.deleteRecursive();
@@ -122,25 +135,57 @@ public class SourceCodeFacade {
      *         the build with the coverage result
      * @param workspace
      *         the workspace on the agent that created the ZIP file
+     * @param id
+     *         the ID of the coverage results, used to select the ID-specific transfer archive
      * @param log
      *         the log
      *
      * @throws InterruptedException
      *         in case the user terminated the job
      */
-    void copySourcesToBuildFolder(final Run<?, ?> build, final FilePath workspace, final FilteredLog log)
+    void copySourcesToBuildFolder(final Run<?, ?> build, final FilePath workspace, final String id,
+            final FilteredLog log)
             throws InterruptedException {
+        var zipName = getCoverageSourcesZip(id);
+        var buildFolder = new FilePath(build.getRootDir()).child(COVERAGE_SOURCES_DIRECTORY);
+        FilePath buildZip = buildFolder.child(zipName);
+        var workspaceZip = workspace.child(zipName);
+
         try {
-            var buildFolder = new FilePath(build.getRootDir()).child(COVERAGE_SOURCES_DIRECTORY);
-            var buildZip = buildFolder.child(COVERAGE_SOURCES_ZIP);
-            workspace.child(COVERAGE_SOURCES_ZIP).copyTo(buildZip);
+            workspaceZip.copyTo(buildZip);
             log.logInfo("-> extracting...");
             buildZip.unzip(buildFolder);
-            buildZip.delete();
             log.logInfo("-> done");
         }
         catch (IOException exception) {
             log.logException(exception, "Can't copy zipped sources from agent to controller");
+        }
+        finally {
+            delete(buildZip, log);
+            delete(workspaceZip, log);
+        }
+    }
+
+    /**
+     * Deletes a file without throwing an IOException if the delete fails.
+     *
+     * @param file
+     *         the file to delete
+     * @param log
+     *         the log
+     *
+     * @throws InterruptedException
+     *         if the user terminated the job
+     */
+    private void delete(final FilePath file, final FilteredLog log)
+            throws InterruptedException {
+        try {
+            if (file.exists()) {
+                file.delete();
+            }
+        }
+        catch (IOException exception) {
+            log.logException(exception, "Can't delete temporary file: '%s'", file);
         }
     }
 

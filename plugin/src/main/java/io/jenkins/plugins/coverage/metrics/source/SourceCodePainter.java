@@ -8,17 +8,22 @@ import edu.hm.hafner.coverage.Node;
 import edu.hm.hafner.util.FilteredLog;
 import edu.umd.cs.findbugs.annotations.NonNull;
 
+import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
 import java.io.Serial;
+import java.io.InputStreamReader;
+import java.nio.charset.CodingErrorAction;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import hudson.FilePath;
@@ -76,29 +81,40 @@ public class SourceCodePainter {
             throws InterruptedException {
         var sourceCodeFacade = new SourceCodeFacade();
         if (sourceCodeRetention != SourceCodeRetention.NEVER) {
+            var printerFactory = createPrinterFactory(rootNode);
             var paintedFiles = files.stream()
-                    .map(f -> createFileModel(rootNode, f))
+                    .map(printerFactory)
                     .collect(Collectors.toList());
             log.logInfo("Painting %d source files on agent", paintedFiles.size());
 
             paintFilesOnAgent(paintedFiles, sourceCodeEncoding, log);
             log.logInfo("Copying painted sources from agent to build folder");
 
-            sourceCodeFacade.copySourcesToBuildFolder(build, workspace, log);
+            sourceCodeFacade.copySourcesToBuildFolder(build, workspace, id, log);
         }
         sourceCodeRetention.cleanup(build, sourceCodeFacade.getCoverageSourcesDirectory(), log);
     }
 
-    private CoverageSourcePrinter createFileModel(final Node rootNode, final FileNode fileNode) {
+    /**
+     * Creates a factory function that produces the correct {@link CoverageSourcePrinter} subtype for a given
+     * {@link FileNode}. The printer type is determined once from the root node's available metrics, avoiding
+     * repeated metric lookups for every file when painting large numbers of source files.
+     *
+     * @param rootNode
+     *         the root of the coverage tree, used to determine which printer type to use
+     *
+     * @return a function that maps a {@link FileNode} to the appropriate {@link CoverageSourcePrinter}
+     */
+    Function<FileNode, CoverageSourcePrinter> createPrinterFactory(final Node rootNode) {
         if (rootNode.getValue(Metric.MUTATION).isPresent()) {
-            return new MutationSourcePrinter(fileNode);
+            return MutationSourcePrinter::new;
         }
         else if (rootNode.getValue(Metric.MCDC_PAIR).isPresent()
                 || rootNode.getValue(Metric.FUNCTION_CALL).isPresent()) {
-            return new VectorCastSourcePrinter(fileNode);
+            return VectorCastSourcePrinter::new;
         }
         else {
-            return new CoverageSourcePrinter(fileNode);
+            return CoverageSourcePrinter::new;
         }
     }
 
@@ -123,8 +139,8 @@ public class SourceCodePainter {
         @Serial
         private static final long serialVersionUID = 3966282357309568323L;
 
-        @SuppressWarnings("PMD.LooseCoupling")
-        private final ArrayList<? extends CoverageSourcePrinter> paintedFiles;
+        @SuppressWarnings("serial")
+        private final List<? extends CoverageSourcePrinter> paintedFiles;
         private final String sourceCodeEncoding;
         private final String directory;
 
@@ -153,28 +169,34 @@ public class SourceCodePainter {
             var workspace = new FilePath(workspaceFile);
 
             try {
-                var outputFolder = workspace.child(directory);
+                var tempParent = workspace.createTempDir("coverage-sources-", "");
+                var outputFolder = tempParent.child(directory);
                 outputFolder.mkdirs();
 
                 Path temporaryFolder = Files.createTempDirectory(directory);
 
-                int count = paintedFiles.parallelStream()
-                        .mapToInt(file -> paintSource(file, workspace, temporaryFolder, log))
-                        .sum();
+                try {
+                    int count = paintedFiles.parallelStream()
+                            .mapToInt(file -> paintSource(file, workspace, outputFolder, temporaryFolder, log))
+                            .sum();
 
-                if (count == paintedFiles.size()) {
-                    log.logInfo("-> finished painting successfully");
+                    if (count == paintedFiles.size()) {
+                        log.logInfo("-> finished painting successfully");
+                    }
+                    else {
+                        log.logInfo("-> finished painting (%d files have been painted, %d files failed)",
+                                count, paintedFiles.size() - count);
+                    }
+
+                    var zipFile = workspace.child(SourceCodeFacade.getCoverageSourcesZip(directory));
+                    outputFolder.zip(zipFile);
+                    log.logInfo("-> zipping sources from folder '%s' as '%s'", outputFolder, zipFile);
                 }
-                else {
-                    log.logInfo("-> finished painting (%d files have been painted, %d files failed)",
-                            count, paintedFiles.size() - count);
+                finally {
+                    deleteFolder(temporaryFolder.toFile(), log);
+                    tempParent.deleteRecursive();
+                    log.logInfo("-> deleted temporary source folder '%s'", tempParent);
                 }
-
-                var zipFile = workspace.child(SourceCodeFacade.COVERAGE_SOURCES_ZIP);
-                outputFolder.zip(zipFile);
-                log.logInfo("-> zipping sources from folder '%s' as '%s'", outputFolder, zipFile);
-
-                deleteFolder(temporaryFolder.toFile(), log);
             }
             catch (IOException exception) {
                 log.logException(exception,
@@ -193,12 +215,11 @@ public class SourceCodePainter {
         }
 
         private int paintSource(final CoverageSourcePrinter fileNode, final FilePath workspace,
-                final Path temporaryFolder, final FilteredLog log) {
+                final FilePath outputFolder, final Path temporaryFolder, final FilteredLog log) {
             var relativePathIdentifier = fileNode.getPath();
-            var paintedFilesDirectory = workspace.child(directory);
             return findSourceFile(workspace, relativePathIdentifier, log)
                     .map(resolvedPath -> paint(fileNode, relativePathIdentifier, resolvedPath,
-                            paintedFilesDirectory, temporaryFolder, getCharset(), log))
+                            outputFolder, temporaryFolder, getCharset(), log))
                     .orElse(0);
         }
 
@@ -211,8 +232,8 @@ public class SourceCodePainter {
             try {
                 Path paintedFilesFolder = Files.createTempDirectory(temporaryFolder, directory);
                 var fullSourcePath = paintedFilesFolder.resolve(sanitizedFileName);
-                try (BufferedWriter output = Files.newBufferedWriter(fullSourcePath)) {
-                    List<String> lines = Files.readAllLines(Path.of(resolvedPath.getRemote()), charset);
+                try (BufferedWriter output = Files.newBufferedWriter(fullSourcePath, StandardCharsets.UTF_8)) {
+                    List<String> lines = readSourceLines(Path.of(resolvedPath.getRemote()), charset);
 
                     // added a header to display what is being shown in each column
                     output.write(paint.getColumnHeader());
@@ -228,6 +249,14 @@ public class SourceCodePainter {
                 log.logException(exception, "Can't write coverage paint of '%s' to zipped source file '%s'",
                         relativePathIdentifier, zipOutputPath);
                 return 0;
+            }
+        }
+
+        private List<String> readSourceLines(final Path sourcePath, final Charset charset) throws IOException {
+            try (var reader = new BufferedReader(new InputStreamReader(Files.newInputStream(sourcePath),
+                    charset.newDecoder().onMalformedInput(CodingErrorAction.REPLACE)
+                            .onUnmappableCharacter(CodingErrorAction.REPLACE)))) {
+                return reader.lines().collect(Collectors.toList());
             }
         }
 

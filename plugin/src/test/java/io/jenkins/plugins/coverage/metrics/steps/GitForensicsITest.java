@@ -6,8 +6,6 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
-import org.testcontainers.junit.jupiter.Container;
-import org.testcontainers.junit.jupiter.Testcontainers;
 
 import edu.hm.hafner.coverage.Coverage;
 import edu.hm.hafner.coverage.Difference;
@@ -44,7 +42,6 @@ import static org.assertj.core.api.Assumptions.*;
  * @author Florian Orendi
  */
 @Disabled("Docker tests are failing with Java 17 Jenkins")
-@Testcontainers(disabledWithoutDocker = true)
 class GitForensicsITest extends AbstractCoverageITest {
     /** The JaCoCo coverage report, generated for the commit {@link #COMMIT}. */
     private static final String JACOCO_FILE = "forensics_integration.xml";
@@ -56,7 +53,6 @@ class GitForensicsITest extends AbstractCoverageITest {
 
     private static final String REPOSITORY = "https://github.com/jenkinsci/forensics-api-plugin.git";
 
-    @Container
     private static final AgentContainer AGENT_CONTAINER = new AgentContainer();
 
     @ParameterizedTest(name = "Source code retention {0} should store {1} files")
@@ -116,8 +112,10 @@ class GitForensicsITest extends AbstractCoverageITest {
         verifyGitRepositoryForCommit(referenceBuild, COMMIT_REFERENCE);
 
         String qualityGate = String.format(", qualityGates: ["
-                + "     [threshold: %f, metric: 'LINE', baseline: '%s', criticality: 'UNSTABLE']]", threshold, baseline.name());
-        project.setDefinition(createPipelineForCommit(node, COMMIT, JACOCO_FILE, SourceCodeRetention.EVERY_BUILD, qualityGate));
+                        + "     [threshold: %f, metric: 'LINE', baseline: '%s', criticality: 'UNSTABLE']]", threshold,
+                baseline.name());
+        project.setDefinition(
+                createPipelineForCommit(node, COMMIT, JACOCO_FILE, SourceCodeRetention.EVERY_BUILD, qualityGate));
         Run<?, ?> build = buildWithResult(project, Result.UNSTABLE);
 
         verifyCoverage(build.getAction(CoverageBuildAction.class), referenceBuild.getAction(CoverageBuildAction.class));
@@ -127,10 +125,12 @@ class GitForensicsITest extends AbstractCoverageITest {
         if (baseline == Baseline.PROJECT_DELTA
                 || baseline == Baseline.MODIFIED_FILES_DELTA
                 || baseline == Baseline.MODIFIED_LINES_DELTA) {
-            assertThat(getConsoleLog(build)).contains("≪Unstable≫ - (Actual value: %+.2f%%, Quality gate: %.2f)".formatted(value, threshold));
+            assertThat(getConsoleLog(build)).contains(
+                    "≪Unstable≫ - (Actual value: %+.2f%%, Quality gate: %.2f)".formatted(value, threshold));
         }
         else {
-            assertThat(getConsoleLog(build)).contains("≪Unstable≫ - (Actual value: %.2f%%, Quality gate: %.2f)".formatted(value, threshold));
+            assertThat(getConsoleLog(build)).contains(
+                    "≪Unstable≫ - (Actual value: %.2f%%, Quality gate: %.2f)".formatted(value, threshold));
         }
     }
 

@@ -11,7 +11,7 @@ import org.kohsuke.stapler.export.ExportedBean;
  * described by its fully qualified name.
  */
 @ExportedBean
-class FileWithModifiedLines {
+public class FileWithModifiedLines {
     private final String fullyQualifiedFileName;
     private final SortedSet<ModifiedLinesBlock> modifiedLinesBlocks;
 

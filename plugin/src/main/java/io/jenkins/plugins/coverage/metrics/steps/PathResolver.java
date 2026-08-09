@@ -81,12 +81,12 @@ public class PathResolver {
         private static final long serialVersionUID = 3966282357309568323L;
         private static final PathUtil PATH_UTIL = new PathUtil();
 
-        @SuppressWarnings("PMD.LooseCoupling")
-        private final HashSet<String> relativePaths;
-        @SuppressWarnings("PMD.LooseCoupling")
-        private final HashSet<String> permittedSourceDirectories;
-        @SuppressWarnings("PMD.LooseCoupling")
-        private final HashSet<String> requestedSourceDirectories;
+        @SuppressWarnings("serial")
+        private final Set<String> relativePaths;
+        @SuppressWarnings("serial")
+        private final Set<String> permittedSourceDirectories;
+        @SuppressWarnings("serial")
+        private final Set<String> requestedSourceDirectories;
 
         /**
          * Creates a new instance of {@link AgentPathResolver}.

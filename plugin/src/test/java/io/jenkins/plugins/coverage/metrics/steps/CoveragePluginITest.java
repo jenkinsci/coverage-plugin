@@ -604,7 +604,9 @@ class CoveragePluginITest extends AbstractCoverageITest {
         Run<?, ?> failure = buildWithResult(job, Result.FAILURE);
 
         assertThat(getConsoleLog(failure))
-                .contains("java.lang.IllegalArgumentException: There is already the same child [METHOD] Enumerate()");
+                .contains("A duplicate element was detected",
+                        "ignoreErrors=true",
+                        "Enumerate");
 
         job.setDefinition(createPipelineScript(
                 """
@@ -617,6 +619,39 @@ class CoveragePluginITest extends AbstractCoverageITest {
 
         assertThat(getConsoleLog(success))
                 .doesNotContain("java.lang.IllegalArgumentException");
+    }
+
+    @Test
+    @Issue("658")
+    void shouldHandleCSharpOverloadedMethods() {
+        var job = createPipeline();
+        copyFileToWorkspace(job, "cobertura-overloaded-methods.xml", "cobertura.xml");
+        job.setDefinition(createPipelineScript(
+                """
+                        node {
+                            recordCoverage tools: [[parser: 'COBERTURA']]
+                        }
+                        """));
+
+        Run<?, ?> failure = buildWithResult(job, Result.FAILURE);
+
+        assertThat(getConsoleLog(failure))
+                .contains("A duplicate element was detected",
+                        "ignoreErrors=true",
+                        "Get");
+
+        job.setDefinition(createPipelineScript(
+                """
+                        node {
+                            recordCoverage tools: [[parser: 'COBERTURA']], ignoreParsingErrors: true
+                        }
+                        """));
+
+        Run<?, ?> success = buildWithResult(job, Result.SUCCESS);
+
+        assertThat(getConsoleLog(success))
+                .doesNotContain("java.lang.IllegalArgumentException")
+                .doesNotContain("java.lang.IllegalStateException");
     }
 
     @Test

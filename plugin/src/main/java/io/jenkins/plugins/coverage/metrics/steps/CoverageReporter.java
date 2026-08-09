@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
+import edu.hm.hafner.util.VisibleForTesting;
 import hudson.FilePath;
 import hudson.model.Run;
 import hudson.model.TaskListener;
@@ -200,26 +201,40 @@ public class CoverageReporter {
         return value instanceof Coverage coverage && coverage.isSet();
     }
 
-    private Optional<CoverageBuildAction> getReferenceBuildAction(final Run<?, ?> build, final String id,
+    Optional<CoverageBuildAction> getReferenceBuildAction(final Run<?, ?> build, final String id,
             final FilteredLog log) {
         log.logInfo("Obtaining result action of reference build");
 
-        var referenceFinder = new ReferenceFinder();
+        var referenceFinder = createReferenceFinder();
         Optional<Run<?, ?>> reference = referenceFinder.findReference(build, log);
 
         if (reference.isPresent()) {
             Run<?, ?> referenceBuild = reference.get();
 
             log.logInfo("-> Using reference build '%s'", referenceBuild);
-            Optional<CoverageBuildAction> possibleResult = getAction(id, reference.get());
+            Optional<CoverageBuildAction> possibleResult = getAction(id, referenceBuild);
             if (possibleResult.isEmpty()) {
                 log.logInfo("-> Reference build has no action for ID '%s'", id);
+                possibleResult = Optional.ofNullable(referenceBuild.getPreviousBuild())
+                        .flatMap(previousBuild -> findActionInBuildHistory(id, previousBuild));
+                possibleResult.ifPresent(action ->
+                        log.logInfo("-> Reference build information adjusted to '%s'", action.getOwner()));
             }
             return possibleResult;
         }
         log.logInfo("-> Found no reference build");
 
         return Optional.empty();
+    }
+
+    /**
+     * Creates a new {@link ReferenceFinder} instance. Override in tests to inject a stub.
+     *
+     * @return a new {@link ReferenceFinder}
+     */
+    @VisibleForTesting
+    ReferenceFinder createReferenceFinder() {
+        return new ReferenceFinder();
     }
 
     private Optional<CoverageBuildAction> getAction(final String id, final Run<?, ?> build) {
@@ -229,6 +244,17 @@ public class CoverageReporter {
                 return Optional.of(action);
             }
         }
+        return Optional.empty();
+    }
+
+    Optional<CoverageBuildAction> findActionInBuildHistory(final String id, final Run<?, ?> build) {
+        for (Run<?, ?> current = build; current != null; current = current.getPreviousBuild()) {
+            Optional<CoverageBuildAction> found = getAction(id, current);
+            if (found.isPresent()) {
+                return found;
+            }
+        }
+
         return Optional.empty();
     }
 }

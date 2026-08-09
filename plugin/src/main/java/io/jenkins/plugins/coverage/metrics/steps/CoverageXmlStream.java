@@ -46,7 +46,6 @@ import io.jenkins.plugins.util.QualityGateResult.QualityGateResultItem;
 /**
  * Configures the XML stream for the coverage tree, which consists of {@link Node}s.
  */
-@SuppressWarnings("PMD.CouplingBetweenObjects")
 class CoverageXmlStream extends AbstractXmlStream<Node> {
     private static final String LEGACY_COMPLEXITY_MAXIMUM = "COMPLEXITY_MAXIMUM";
     private static final Collector<CharSequence, ?, String> ARRAY_JOINER = Collectors.joining(", ", "[", "]");
@@ -67,7 +66,7 @@ class CoverageXmlStream extends AbstractXmlStream<Node> {
     }
 
     @VisibleForTesting
-    public XStream2 getStream() {
+    XStream2 getStream() {
         return createStream();
     }
 
@@ -186,7 +185,7 @@ class CoverageXmlStream extends AbstractXmlStream<Node> {
      * @param <T>
      *         type of the objects that will be marshalled and unmarshalled
      */
-    public static class SimpleConverter<T> implements Converter {
+    static class SimpleConverter<T> implements Converter {
         private final Class<T> type;
         private final Function<T, String> marshaller;
         private final Function<String, Object> unmarshaller;

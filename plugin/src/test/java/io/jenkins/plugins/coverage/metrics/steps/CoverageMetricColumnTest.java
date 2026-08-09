@@ -70,7 +70,7 @@ class CoverageMetricColumnTest extends AbstractCoverageTest {
      * @return the created stub
      */
     @VisibleForTesting
-    public static Job<?, ?> createJobWithActions(final CoverageBuildAction... actions) {
+    static Job<?, ?> createJobWithActions(final CoverageBuildAction... actions) {
         Job<?, ?> job = mock(Job.class);
         Run<?, ?> build = createBuildWithActions(actions);
         when(job.getLastCompletedBuild()).thenAnswer(a -> build);
@@ -86,7 +86,7 @@ class CoverageMetricColumnTest extends AbstractCoverageTest {
      * @return the created stub
      */
     @VisibleForTesting
-    public static Run<?, ?> createBuildWithActions(final CoverageBuildAction... actions) {
+    static Run<?, ?> createBuildWithActions(final CoverageBuildAction... actions) {
         Run<?, ?> build = mock(Run.class);
         when(build.getActions(CoverageBuildAction.class)).thenReturn(Arrays.asList(actions));
         if (actions.length > 0) {

@@ -36,7 +36,7 @@ public class GlobalThreshold extends AbstractThreshold {
      * Ensures advanced options are activated so that values can be set.
      */
     @Override
-    public void ensureAdvancedOptionsIsActivated() {
+    void ensureAdvancedOptionsIsActivated() {
         this.coveragePublisher.ensureAdvancedOptionsIsActivated();
     }
 

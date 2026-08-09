@@ -16,6 +16,7 @@ import static org.assertj.core.api.Assertions.*;
  * Acceptance tests for CoverageReport, containing three charts and one table ({@link FileCoverageTable}). Contains
  * static test-methods which can also be used other classes, especially used {@link SmokeTests}.
  */
+@SuppressWarnings("PMD.WrongTestAnnotation")
 public class CoverageReportTest extends UiTest {
     /**
      * Test for CoverageReport of job with no reports does not exist. Verifies CoverageReport can't be opened.

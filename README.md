@@ -2,24 +2,30 @@
 
 [![Join the chat at Gitter/Matrix](https://badges.gitter.im/jenkinsci/code-coverage-api-plugin.svg)](https://gitter.im/jenkinsci/code-coverage-api-plugin?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
 [![Jenkins Plugin Installs](https://img.shields.io/jenkins/plugin/i/coverage.svg?color=red)](https://plugins.jenkins.io/coverage)
-[![Jenkins](https://ci.jenkins.io/job/Plugins/job/coverage-plugin/job/main/badge/icon?subject=Jenkins%20CI)](https://ci.jenkins.io/job/Plugins/job/coverage-plugin/job/main/)
 [![GitHub Actions](https://github.com/jenkinsci/coverage-plugin/workflows/GitHub%20CI/badge.svg)](https://github.com/jenkinsci/coverage-plugin/actions)
 [![CodeQL](https://github.com/jenkinsci/coverage-plugin/workflows/CodeQL/badge.svg)](https://github.com/jenkinsci/coverage-plugin/actions/workflows/codeql.yml)
 
 The Jenkins Coverage Plug-in collects reports of code coverage or mutation coverage tools. 
 It has support for the following report formats:
 
-- [Cobertura](https://cobertura.github.io/cobertura/) code coverage results
-- [Open Clover](https://openclover.org/) code coverage results
-- [Go Coverage](https://go.dev/doc/build-cover) results
-- [JaCoCo](https://www.jacoco.org/) code coverage results
-- [OpenCover](https://github.com/OpenCover/opencover) code coverage results
-- [VectorCAST](https://www.vector.com/int/en/products/products-a-z/software/vectorcast) code coverage results including MC/DC, Function, Function Call coverages
-- [PIT](https://pitest.org/) mutation coverage results
-- [JUnit](https://junit.org/junit5/) test results
-- [NUnit](https://nunit.org) test results
-- [XUnit](https://xunit.net) test results
-- [PMD software metrics](https://github.com/uhafner/codingstyle-pom/blob/main/pom.xml#L945-L960) via a patched version of [PMD](https://pmd.github.io/)
+- Code Coverage
+  - [Cobertura](https://cobertura.github.io/cobertura/) code coverage results
+  - [Open Clover](https://openclover.org/) code coverage results
+  - [Go Coverage](https://go.dev/doc/build-cover) results
+  - [JaCoCo](https://www.jacoco.org/) code coverage results
+  - [LCOV](https://github.com/linux-test-project/lcov) code coverage results
+  - [OpenCover](https://github.com/OpenCover/opencover) code coverage results
+  - [TRACE32](https://www.lauterbach.com) code coverage results
+  - [VectorCAST](https://www.vector.com/int/en/products/products-a-z/software/vectorcast) code coverage results including MC/DC, Function, Function Call coverages
+- Mutation Coverage
+  - [PIT](https://pitest.org/) mutation coverage results
+  - [Stryker](https://stryker-mutator.io) mutation coverage results
+- Test Results
+  - [JUnit](https://junit.org) test results
+  - [NUnit](https://nunit.org) test results
+  - [XUnit](https://xunit.net) test results
+- Software Metrics
+  - [PMD software metrics](https://github.com/uhafner/codingstyle-pom/blob/main/pom.xml#L945-L960) via a patched version of [PMD](https://pmd.github.io/)
 If your coverage tool is not yet supported by the coverage plugin, feel free to provide a pull request for the [Coverage Model](https://github.com/jenkinsci/coverage-model/pulls).
 
 The plugin publishes a report of the code and mutation coverage in your build, so you can navigate to a summary report from the main build page. 
