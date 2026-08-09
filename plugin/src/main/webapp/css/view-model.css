@@ -502,8 +502,3 @@ table.source tr.coverNone td.hits {
 table.source tr.coverSkip {
     background-color: #b4b4b4 !important;
 }
-
-/* Hide tippy tooltips (replaced by our own block labels) */
-div[id^=tippy] {
-    display: none !important;
-}
