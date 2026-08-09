@@ -11,7 +11,7 @@
 
   <groupId>io.jenkins.plugins</groupId>
   <artifactId>coverage-ui-tests</artifactId>
-  <version>UNVERSIONED</version>
+  <version>UNVERSIONED-SNAPSHOT</version>
   <packaging>jar</packaging>
   <name>UI Tests of Code Coverage Plugin</name>
 
@@ -49,7 +49,7 @@
     <dependency>
       <groupId>org.jenkins-ci</groupId>
       <artifactId>acceptance-test-harness</artifactId>
-      <version>6724.v091f4822e6f3</version>
+      <version>6724.va_7c5c4b_fcf9c</version>
     </dependency>
     <dependency>
       <groupId>com.fasterxml.jackson.core</groupId>
@@ -80,10 +80,6 @@
     <repository>
       <id>maven.jenkins-ci.org</id>
       <url>https://repo.jenkins-ci.org/releases/</url>
-    </repository>
-    <repository>
-      <id>incrementals.jenkins-ci.org</id>
-      <url>https://repo.jenkins-ci.org/incrementals/</url>
     </repository>
   </repositories>
 
@@ -276,12 +272,6 @@
       <properties>
         <maven.test.skip>false</maven.test.skip>
       </properties>
-    </profile>
-    <profile>
-      <id>consume-incrementals</id>
-    </profile>
-    <profile>
-      <id>might-produce-incrementals</id>
     </profile>
   </profiles>
 
