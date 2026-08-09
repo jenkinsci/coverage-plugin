@@ -211,7 +211,7 @@ class CoverageChecksPublisherTest extends AbstractCoverageTest {
         var result = readJacocoResult("jacoco-codingstyle.xml");
 
         var publisher = new CoverageChecksPublisher(createCoverageBuildAction(result), result, REPORT_NAME,
-                ChecksAnnotationScope.SKIP, createJenkins());
+                ChecksAnnotationScope.SKIP, NO_CHECKS_INFO, createJenkins());
 
         var output = publisher.extractChecksDetails().getOutput();
         assertThat(output).isPresent().get().satisfies(checksOutput -> {
@@ -231,7 +231,7 @@ class CoverageChecksPublisherTest extends AbstractCoverageTest {
         var result = readJacocoResult("jacoco-codingstyle.xml");
 
         var publisher = new CoverageChecksPublisher(createActionWithoutDelta(result), result, REPORT_NAME,
-                ChecksAnnotationScope.SKIP, createJenkins());
+                ChecksAnnotationScope.SKIP, NO_CHECKS_INFO, createJenkins());
 
         var output = publisher.extractChecksDetails().getOutput();
         assertThat(output).isPresent().get().satisfies(checksOutput -> {
@@ -246,7 +246,7 @@ class CoverageChecksPublisherTest extends AbstractCoverageTest {
         var result = createResultWithCoverage(metric, 10, 0);
 
         var publisher = new CoverageChecksPublisher(createActionWithoutDelta(result), result, REPORT_NAME,
-                ChecksAnnotationScope.SKIP, createJenkins());
+                ChecksAnnotationScope.SKIP, NO_CHECKS_INFO, createJenkins());
 
         assertThat(publisher.extractChecksDetails().getOutput()).isPresent().get().satisfies(output ->
                 assertThat(output.getSummary()).isPresent().get().asString()
@@ -259,7 +259,7 @@ class CoverageChecksPublisherTest extends AbstractCoverageTest {
         var result = createResultWithCoverage(metric, 9, 1);
 
         var publisher = new CoverageChecksPublisher(createActionWithoutDelta(result), result, REPORT_NAME,
-                ChecksAnnotationScope.SKIP, createJenkins());
+                ChecksAnnotationScope.SKIP, NO_CHECKS_INFO, createJenkins());
 
         assertThat(publisher.extractChecksDetails().getOutput()).isPresent().get().satisfies(output ->
                 assertThat(output.getSummary()).isPresent().get().asString()
@@ -272,7 +272,7 @@ class CoverageChecksPublisherTest extends AbstractCoverageTest {
         var result = createResultWithCoverage(Metric.BRANCH, 10, 0);
 
         var publisher = new CoverageChecksPublisher(createActionWithoutDelta(result), result, REPORT_NAME,
-                ChecksAnnotationScope.SKIP, createJenkins());
+                ChecksAnnotationScope.SKIP, NO_CHECKS_INFO, createJenkins());
 
         assertThat(publisher.extractChecksDetails().getOutput()).isPresent().get().satisfies(output ->
                 assertThat(output.getSummary()).isPresent().get().asString()
@@ -296,7 +296,7 @@ class CoverageChecksPublisherTest extends AbstractCoverageTest {
                 List.of(perfectCoverage), false);
 
         var publisher = new CoverageChecksPublisher(action, result, REPORT_NAME,
-                ChecksAnnotationScope.SKIP, createJenkins());
+                ChecksAnnotationScope.SKIP, NO_CHECKS_INFO, createJenkins());
 
         assertThat(publisher.extractChecksDetails().getOutput()).isPresent().get().satisfies(output ->
                 assertThat(output.getSummary()).isPresent().get().asString()
