@@ -26,6 +26,7 @@ import io.jenkins.plugins.coverage.metrics.color.ColorProviderFactory;
  *
  * @author Florian Orendi
  */
+@SuppressWarnings("PMD.GodClass")
 public final class ElementFormatter {
     private static final Pattern PERCENTAGE = Pattern.compile("\\d+(\\.\\d+)?%");
 

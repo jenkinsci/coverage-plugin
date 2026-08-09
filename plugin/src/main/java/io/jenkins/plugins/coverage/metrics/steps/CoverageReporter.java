@@ -120,7 +120,6 @@ public class CoverageReporter {
         }
 
         var overallAggregation = CoverageStatistics.aggregateValues(rootNode);
-        var overallValues = getTotalValues(overallAggregation);
         List<Difference> overallDelta = rootNode.computeDelta(referenceRoot);
         var modifiedLinesAggregation = CoverageStatistics.aggregateValues(modifiedLinesCoverageRoot);
         var modifiedLinesValues = getTotalValues(modifiedLinesAggregation);

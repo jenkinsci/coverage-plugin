@@ -484,7 +484,6 @@ class CoverageQualityGateEvaluatorTest extends AbstractCoverageTest {
         return root;
     }
 
-
     private static void assertThatStatusWillBeOverwritten(final CoverageQualityGateEvaluator evaluator) {
         var log = new FilteredLog("Errors");
         var result = evaluator.evaluate(new NullResultHandler(), log);
