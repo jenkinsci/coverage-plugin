@@ -9,6 +9,7 @@ import edu.hm.hafner.coverage.Coverage;
 import edu.hm.hafner.coverage.Coverage.CoverageBuilder;
 import edu.hm.hafner.coverage.Difference;
 import edu.hm.hafner.coverage.Metric;
+import edu.hm.hafner.coverage.MetricAggregation;
 import edu.hm.hafner.coverage.Value;
 
 import java.util.Locale;
@@ -140,5 +141,24 @@ class ElementFormatterTest {
 
         assertThat(formatter.getBaselineItems()).extracting(o -> o.value).contains(baseline.name());
         assertThat(formatter.getDisplayName(baseline)).isNotEmpty();
+    }
+
+    @ParameterizedTest
+    @EnumSource(MetricAggregation.class)
+    void shouldSupportAllAggregations(final MetricAggregation aggregation) {
+        var formatter = new ElementFormatter();
+
+        assertThat(formatter.getAggregationItems()).extracting(o -> o.value).contains(aggregation.name());
+        assertThat(formatter.getDisplayName(aggregation)).isNotEmpty();
+    }
+
+    @Test
+    void shouldFormatAggregations() {
+        var formatter = new ElementFormatter();
+
+        assertThat(formatter.getDisplayName(MetricAggregation.TOTAL)).isEqualTo("Total");
+        assertThat(formatter.getDisplayName(MetricAggregation.MAXIMUM)).isEqualTo("Maximum");
+        assertThat(formatter.getDisplayName(MetricAggregation.MINIMUM)).isEqualTo("Minimum");
+        assertThat(formatter.getDisplayName(MetricAggregation.AVERAGE)).isEqualTo("Average");
     }
 }

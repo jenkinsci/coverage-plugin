@@ -1,6 +1,7 @@
 package io.jenkins.plugins.coverage.metrics.steps;
 
 import edu.hm.hafner.coverage.Metric;
+import edu.hm.hafner.coverage.MetricAggregation;
 import edu.hm.hafner.util.VisibleForTesting;
 
 import java.io.Serial;
@@ -14,7 +15,6 @@ import jenkins.model.Jenkins;
 
 import io.jenkins.plugins.coverage.metrics.model.Baseline;
 import io.jenkins.plugins.coverage.metrics.model.ElementFormatter;
-import io.jenkins.plugins.coverage.metrics.model.MetricAggregation;
 import io.jenkins.plugins.util.JenkinsFacade;
 import io.jenkins.plugins.util.QualityGate;
 
@@ -25,7 +25,7 @@ import io.jenkins.plugins.util.QualityGate;
  *
  * @author Johannes Walter
  */
-@SuppressWarnings("PMD.DataClass") 
+@SuppressWarnings("PMD.DataClass")
 public class CoverageQualityGate extends QualityGate {
     @Serial
     private static final long serialVersionUID = -397278599489426668L;
@@ -34,7 +34,7 @@ public class CoverageQualityGate extends QualityGate {
 
     private final Metric metric;
     private Baseline baseline = Baseline.PROJECT;
-    private MetricAggregation aggregation = MetricAggregation.TOTAL;
+    private MetricAggregation aggregation = MetricAggregation.getDefault();
 
     /**
      * Creates a new instance of {@link CoverageQualityGate}.
@@ -55,14 +55,6 @@ public class CoverageQualityGate extends QualityGate {
         setThreshold(threshold);
 
         this.metric = metric;
-    }
-
-    CoverageQualityGate(final double threshold, final Metric metric,
-            final Baseline baseline, final QualityGateCriticality criticality) {
-        this(metric, threshold);
-
-        setBaseline(baseline);
-        setCriticality(criticality);
     }
 
     CoverageQualityGate(final double threshold, final Metric metric,
@@ -87,11 +79,11 @@ public class CoverageQualityGate extends QualityGate {
     }
 
     /**
-     * Sets the aggregation mode for software metrics (total, maximum, or average). This is only applicable for
-     * software metrics like cyclomatic complexity. For coverage metrics, this setting is ignored.
+     * Sets the aggregation that will be used to compute the value of the metric: the values of the individual
+     * classes or methods can be aggregated as total, minimum, maximum, or average value.
      *
      * @param aggregation
-     *         the aggregation mode to use
+     *         the aggregation to use
      */
     @DataBoundSetter
     public final void setAggregation(final MetricAggregation aggregation) {
@@ -105,12 +97,12 @@ public class CoverageQualityGate extends QualityGate {
      */
     @Override
     public String getName() {
-        if (MetricAggregation.isSupported(metric) && aggregation != MetricAggregation.TOTAL) {
-            return "%s - %s (%s)".formatted(FORMATTER.getDisplayName(getBaseline()),
-                    FORMATTER.getDisplayName(getMetric()), aggregation);
+        if (aggregation == MetricAggregation.getDefault()) {
+            return "%s - %s".formatted(FORMATTER.getDisplayName(getBaseline()),
+                    FORMATTER.getDisplayName(getMetric()));
         }
-        return "%s - %s".formatted(FORMATTER.getDisplayName(getBaseline()),
-                FORMATTER.getDisplayName(getMetric()));
+        return "%s - %s (%s)".formatted(FORMATTER.getDisplayName(getBaseline()),
+                FORMATTER.getDisplayName(getMetric()), FORMATTER.getDisplayName(aggregation));
     }
 
     public Metric getMetric() {

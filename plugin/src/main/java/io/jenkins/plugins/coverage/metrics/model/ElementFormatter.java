@@ -4,6 +4,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import edu.hm.hafner.coverage.Coverage;
 import edu.hm.hafner.coverage.Metric;
+import edu.hm.hafner.coverage.MetricAggregation;
 import edu.hm.hafner.coverage.Percentage;
 import edu.hm.hafner.coverage.Value;
 
@@ -393,6 +394,23 @@ public final class ElementFormatter {
     }
 
     /**
+     * Returns a localized human-readable name for the specified aggregation.
+     *
+     * @param aggregation
+     *         the aggregation to get the name for
+     *
+     * @return the display name
+     */
+    public String getDisplayName(final MetricAggregation aggregation) {
+        return switch (aggregation) {
+            case TOTAL -> Messages.Aggregation_TOTAL();
+            case MAXIMUM -> Messages.Aggregation_MAXIMUM();
+            case MINIMUM -> Messages.Aggregation_MINIMUM();
+            case AVERAGE -> Messages.Aggregation_AVERAGE();
+        };
+    }
+
+    /**
      * Returns all available metrics as a {@link ListBoxModel}.
      *
      * @return the metrics in a {@link ListBoxModel}
@@ -428,14 +446,14 @@ public final class ElementFormatter {
     }
 
     /**
-     * Returns all available aggregation modes as a {@link ListBoxModel}.
+     * Returns all available aggregations as a {@link ListBoxModel}.
      *
-     * @return the aggregation modes in a {@link ListBoxModel}
+     * @return the aggregations in a {@link ListBoxModel}
      */
     public ListBoxModel getAggregationItems() {
         var options = new ListBoxModel();
         for (MetricAggregation aggregation : MetricAggregation.values()) {
-            options.add(aggregation.name(), aggregation.name());
+            options.add(getDisplayName(aggregation), aggregation.name());
         }
         return options;
     }

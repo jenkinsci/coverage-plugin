@@ -17,6 +17,7 @@ import edu.hm.hafner.coverage.Difference;
 import edu.hm.hafner.coverage.FileNode;
 import edu.hm.hafner.coverage.MethodNode;
 import edu.hm.hafner.coverage.Metric;
+import edu.hm.hafner.coverage.MetricAggregation;
 import edu.hm.hafner.coverage.ModuleNode;
 import edu.hm.hafner.coverage.Mutation;
 import edu.hm.hafner.coverage.Node;
@@ -47,7 +48,6 @@ import io.jenkins.plugins.util.QualityGateResult.QualityGateResultItem;
  * Configures the XML stream for the coverage tree, which consists of {@link Node}s.
  */
 class CoverageXmlStream extends AbstractXmlStream<Node> {
-    private static final String LEGACY_COMPLEXITY_MAXIMUM = "COMPLEXITY_MAXIMUM";
     private static final Collector<CharSequence, ?, String> ARRAY_JOINER = Collectors.joining(", ", "[", "]");
 
     private static String[] toArray(final String value) {
@@ -108,8 +108,8 @@ class CoverageXmlStream extends AbstractXmlStream<Node> {
         xStream.alias("item", QualityGateResultItem.class);
 
         xStream.registerConverter(new FractionConverter());
-        xStream.registerConverter(new SimpleConverter<>(Value.class, Value::serialize, Value::valueOf));
-        xStream.registerConverter(new SimpleConverter<>(Metric.class, Metric::name, CoverageXmlStream::metricValueOf));
+        xStream.registerConverter(new SimpleConverter<>(Value.class, Value::serialize, CoverageXmlStream::valueOf));
+        xStream.registerConverter(new SimpleConverter<>(Metric.class, Metric::name, Metric::fromName));
     }
 
     @Override
@@ -118,19 +118,24 @@ class CoverageXmlStream extends AbstractXmlStream<Node> {
     }
 
     /**
-     * Converts a string to a {@link Metric} value. Handles legacy metric names like COMPLEXITY_MAXIMUM by mapping
-     * them to the new metric names.
+     * Converts the serialization of a value into a {@link Value} instance. Values of removed legacy metrics like
+     * {@code COMPLEXITY_MAXIMUM} are just another aggregation of the cyclomatic complexity, restoring them would
+     * create a second and conflicting value for that metric. So these values are rejected and will be skipped while
+     * restoring the results of old builds.
      *
-     * @param metricName
-     *         the name of the metric
+     * @param serialization
+     *         the serialization of the value
      *
-     * @return the metric value
+     * @return the restored value
+     * @throws IllegalArgumentException
+     *         if the value cannot be restored
      */
-    private static Metric metricValueOf(final String metricName) {
-        if (LEGACY_COMPLEXITY_MAXIMUM.equals(metricName)) {
-            return Metric.CYCLOMATIC_COMPLEXITY;
+    private static Value valueOf(final String serialization) {
+        var metricName = StringUtils.deleteWhitespace(StringUtils.substringBefore(serialization, ':'));
+        if (Metric.extractAggregation(metricName) != MetricAggregation.getDefault()) {
+            throw new IllegalArgumentException("Skipping value of removed legacy metric: " + serialization);
         }
-        return Metric.valueOf(metricName);
+        return Value.valueOf(serialization);
     }
 
     /**

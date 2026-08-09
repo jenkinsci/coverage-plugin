@@ -5,9 +5,9 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
 import edu.hm.hafner.coverage.ClassNode;
-import edu.hm.hafner.coverage.Coverage.CoverageBuilder;
 import edu.hm.hafner.coverage.MethodNode;
 import edu.hm.hafner.coverage.Metric;
+import edu.hm.hafner.coverage.MetricAggregation;
 import edu.hm.hafner.coverage.ModuleNode;
 import edu.hm.hafner.coverage.Node;
 import edu.hm.hafner.coverage.Value;
@@ -19,6 +19,7 @@ import java.util.List;
 
 import io.jenkins.plugins.coverage.metrics.AbstractCoverageTest;
 import io.jenkins.plugins.coverage.metrics.model.Baseline;
+import io.jenkins.plugins.coverage.metrics.model.CoverageStatistics;
 import io.jenkins.plugins.util.NullResultHandler;
 import io.jenkins.plugins.util.QualityGate.QualityGateCriticality;
 import io.jenkins.plugins.util.QualityGateResult;
@@ -47,20 +48,20 @@ class CoverageQualityGateEvaluatorTest extends AbstractCoverageTest {
     void shouldPassForTooLowThresholds() {
         Collection<CoverageQualityGate> qualityGates = new ArrayList<>();
 
-        qualityGates.add(new CoverageQualityGate(0, Metric.FILE, Baseline.PROJECT, QualityGateCriticality.UNSTABLE));
-        qualityGates.add(new CoverageQualityGate(0, Metric.LINE, Baseline.PROJECT, QualityGateCriticality.UNSTABLE));
-        qualityGates.add(new CoverageQualityGate(0, Metric.FILE, Baseline.MODIFIED_LINES, QualityGateCriticality.UNSTABLE));
-        qualityGates.add(new CoverageQualityGate(0, Metric.LINE, Baseline.MODIFIED_LINES, QualityGateCriticality.UNSTABLE));
-        qualityGates.add(new CoverageQualityGate(0, Metric.FILE, Baseline.MODIFIED_FILES, QualityGateCriticality.UNSTABLE));
-        qualityGates.add(new CoverageQualityGate(0, Metric.LINE, Baseline.MODIFIED_FILES, QualityGateCriticality.UNSTABLE));
+        qualityGates.add(new CoverageQualityGate(0, Metric.FILE, Baseline.PROJECT, QualityGateCriticality.UNSTABLE, MetricAggregation.TOTAL));
+        qualityGates.add(new CoverageQualityGate(0, Metric.LINE, Baseline.PROJECT, QualityGateCriticality.UNSTABLE, MetricAggregation.TOTAL));
+        qualityGates.add(new CoverageQualityGate(0, Metric.FILE, Baseline.MODIFIED_LINES, QualityGateCriticality.UNSTABLE, MetricAggregation.TOTAL));
+        qualityGates.add(new CoverageQualityGate(0, Metric.LINE, Baseline.MODIFIED_LINES, QualityGateCriticality.UNSTABLE, MetricAggregation.TOTAL));
+        qualityGates.add(new CoverageQualityGate(0, Metric.FILE, Baseline.MODIFIED_FILES, QualityGateCriticality.UNSTABLE, MetricAggregation.TOTAL));
+        qualityGates.add(new CoverageQualityGate(0, Metric.LINE, Baseline.MODIFIED_FILES, QualityGateCriticality.UNSTABLE, MetricAggregation.TOTAL));
 
         var minimum = -10;
-        qualityGates.add(new CoverageQualityGate(minimum, Metric.FILE, Baseline.PROJECT_DELTA, QualityGateCriticality.UNSTABLE));
-        qualityGates.add(new CoverageQualityGate(minimum, Metric.LINE, Baseline.PROJECT_DELTA, QualityGateCriticality.UNSTABLE));
-        qualityGates.add(new CoverageQualityGate(minimum, Metric.FILE, Baseline.MODIFIED_LINES_DELTA, QualityGateCriticality.UNSTABLE));
-        qualityGates.add(new CoverageQualityGate(minimum, Metric.LINE, Baseline.MODIFIED_LINES_DELTA, QualityGateCriticality.UNSTABLE));
-        qualityGates.add(new CoverageQualityGate(minimum, Metric.FILE, Baseline.MODIFIED_FILES_DELTA, QualityGateCriticality.UNSTABLE));
-        qualityGates.add(new CoverageQualityGate(minimum, Metric.LINE, Baseline.MODIFIED_FILES_DELTA, QualityGateCriticality.UNSTABLE));
+        qualityGates.add(new CoverageQualityGate(minimum, Metric.FILE, Baseline.PROJECT_DELTA, QualityGateCriticality.UNSTABLE, MetricAggregation.TOTAL));
+        qualityGates.add(new CoverageQualityGate(minimum, Metric.LINE, Baseline.PROJECT_DELTA, QualityGateCriticality.UNSTABLE, MetricAggregation.TOTAL));
+        qualityGates.add(new CoverageQualityGate(minimum, Metric.FILE, Baseline.MODIFIED_LINES_DELTA, QualityGateCriticality.UNSTABLE, MetricAggregation.TOTAL));
+        qualityGates.add(new CoverageQualityGate(minimum, Metric.LINE, Baseline.MODIFIED_LINES_DELTA, QualityGateCriticality.UNSTABLE, MetricAggregation.TOTAL));
+        qualityGates.add(new CoverageQualityGate(minimum, Metric.FILE, Baseline.MODIFIED_FILES_DELTA, QualityGateCriticality.UNSTABLE, MetricAggregation.TOTAL));
+        qualityGates.add(new CoverageQualityGate(minimum, Metric.LINE, Baseline.MODIFIED_FILES_DELTA, QualityGateCriticality.UNSTABLE, MetricAggregation.TOTAL));
 
         var evaluator = new CoverageQualityGateEvaluator(qualityGates, createStatistics());
 
@@ -88,11 +89,11 @@ class CoverageQualityGateEvaluatorTest extends AbstractCoverageTest {
     void shouldSkipIfValueNotDefined() {
         Collection<CoverageQualityGate> qualityGates = new ArrayList<>();
 
-        qualityGates.add(new CoverageQualityGate(0, Metric.FILE, Baseline.MODIFIED_LINES, QualityGateCriticality.UNSTABLE));
-        qualityGates.add(new CoverageQualityGate(0, Metric.FILE, Baseline.MODIFIED_FILES, QualityGateCriticality.UNSTABLE));
-        qualityGates.add(new CoverageQualityGate(0, Metric.LINE, Baseline.PROJECT_DELTA, QualityGateCriticality.UNSTABLE));
-        qualityGates.add(new CoverageQualityGate(0, Metric.FILE, Baseline.MODIFIED_LINES_DELTA, QualityGateCriticality.UNSTABLE));
-        qualityGates.add(new CoverageQualityGate(0, Metric.LINE, Baseline.MODIFIED_FILES_DELTA, QualityGateCriticality.UNSTABLE));
+        qualityGates.add(new CoverageQualityGate(0, Metric.FILE, Baseline.MODIFIED_LINES, QualityGateCriticality.UNSTABLE, MetricAggregation.TOTAL));
+        qualityGates.add(new CoverageQualityGate(0, Metric.FILE, Baseline.MODIFIED_FILES, QualityGateCriticality.UNSTABLE, MetricAggregation.TOTAL));
+        qualityGates.add(new CoverageQualityGate(0, Metric.LINE, Baseline.PROJECT_DELTA, QualityGateCriticality.UNSTABLE, MetricAggregation.TOTAL));
+        qualityGates.add(new CoverageQualityGate(0, Metric.FILE, Baseline.MODIFIED_LINES_DELTA, QualityGateCriticality.UNSTABLE, MetricAggregation.TOTAL));
+        qualityGates.add(new CoverageQualityGate(0, Metric.LINE, Baseline.MODIFIED_FILES_DELTA, QualityGateCriticality.UNSTABLE, MetricAggregation.TOTAL));
 
         var evaluator = new CoverageQualityGateEvaluator(qualityGates, createOnlyProjectStatistics());
 
@@ -113,12 +114,12 @@ class CoverageQualityGateEvaluatorTest extends AbstractCoverageTest {
     void shouldReportUnstableIfBelowThreshold() {
         Collection<CoverageQualityGate> qualityGates = new ArrayList<>();
 
-        qualityGates.add(new CoverageQualityGate(76.0, Metric.FILE, Baseline.PROJECT, QualityGateCriticality.UNSTABLE));
-        qualityGates.add(new CoverageQualityGate(51.0, Metric.LINE, Baseline.PROJECT, QualityGateCriticality.UNSTABLE));
-        qualityGates.add(new CoverageQualityGate(76.0, Metric.FILE, Baseline.MODIFIED_LINES, QualityGateCriticality.UNSTABLE));
-        qualityGates.add(new CoverageQualityGate(51.0, Metric.LINE, Baseline.MODIFIED_LINES, QualityGateCriticality.UNSTABLE));
-        qualityGates.add(new CoverageQualityGate(76.0, Metric.FILE, Baseline.MODIFIED_FILES, QualityGateCriticality.UNSTABLE));
-        qualityGates.add(new CoverageQualityGate(51.0, Metric.LINE, Baseline.MODIFIED_FILES, QualityGateCriticality.UNSTABLE));
+        qualityGates.add(new CoverageQualityGate(76.0, Metric.FILE, Baseline.PROJECT, QualityGateCriticality.UNSTABLE, MetricAggregation.TOTAL));
+        qualityGates.add(new CoverageQualityGate(51.0, Metric.LINE, Baseline.PROJECT, QualityGateCriticality.UNSTABLE, MetricAggregation.TOTAL));
+        qualityGates.add(new CoverageQualityGate(76.0, Metric.FILE, Baseline.MODIFIED_LINES, QualityGateCriticality.UNSTABLE, MetricAggregation.TOTAL));
+        qualityGates.add(new CoverageQualityGate(51.0, Metric.LINE, Baseline.MODIFIED_LINES, QualityGateCriticality.UNSTABLE, MetricAggregation.TOTAL));
+        qualityGates.add(new CoverageQualityGate(76.0, Metric.FILE, Baseline.MODIFIED_FILES, QualityGateCriticality.UNSTABLE, MetricAggregation.TOTAL));
+        qualityGates.add(new CoverageQualityGate(51.0, Metric.LINE, Baseline.MODIFIED_FILES, QualityGateCriticality.UNSTABLE, MetricAggregation.TOTAL));
 
         var evaluator = new CoverageQualityGateEvaluator(qualityGates, createStatistics());
         var log = new FilteredLog("Errors");
@@ -138,12 +139,12 @@ class CoverageQualityGateEvaluatorTest extends AbstractCoverageTest {
         Collection<CoverageQualityGate> qualityGates = new ArrayList<>();
 
         var minimum = 0;
-        qualityGates.add(new CoverageQualityGate(minimum, Metric.FILE, Baseline.PROJECT_DELTA, QualityGateCriticality.UNSTABLE));
-        qualityGates.add(new CoverageQualityGate(minimum, Metric.LINE, Baseline.PROJECT_DELTA, QualityGateCriticality.UNSTABLE));
-        qualityGates.add(new CoverageQualityGate(minimum, Metric.FILE, Baseline.MODIFIED_LINES_DELTA, QualityGateCriticality.UNSTABLE));
-        qualityGates.add(new CoverageQualityGate(minimum, Metric.LINE, Baseline.MODIFIED_LINES_DELTA, QualityGateCriticality.UNSTABLE));
-        qualityGates.add(new CoverageQualityGate(minimum, Metric.FILE, Baseline.MODIFIED_FILES_DELTA, QualityGateCriticality.UNSTABLE));
-        qualityGates.add(new CoverageQualityGate(minimum, Metric.LINE, Baseline.MODIFIED_FILES_DELTA, QualityGateCriticality.UNSTABLE));
+        qualityGates.add(new CoverageQualityGate(minimum, Metric.FILE, Baseline.PROJECT_DELTA, QualityGateCriticality.UNSTABLE, MetricAggregation.TOTAL));
+        qualityGates.add(new CoverageQualityGate(minimum, Metric.LINE, Baseline.PROJECT_DELTA, QualityGateCriticality.UNSTABLE, MetricAggregation.TOTAL));
+        qualityGates.add(new CoverageQualityGate(minimum, Metric.FILE, Baseline.MODIFIED_LINES_DELTA, QualityGateCriticality.UNSTABLE, MetricAggregation.TOTAL));
+        qualityGates.add(new CoverageQualityGate(minimum, Metric.LINE, Baseline.MODIFIED_LINES_DELTA, QualityGateCriticality.UNSTABLE, MetricAggregation.TOTAL));
+        qualityGates.add(new CoverageQualityGate(minimum, Metric.FILE, Baseline.MODIFIED_FILES_DELTA, QualityGateCriticality.UNSTABLE, MetricAggregation.TOTAL));
+        qualityGates.add(new CoverageQualityGate(minimum, Metric.LINE, Baseline.MODIFIED_FILES_DELTA, QualityGateCriticality.UNSTABLE, MetricAggregation.TOTAL));
 
         var evaluator = new CoverageQualityGateEvaluator(qualityGates, createStatistics());
         var log = new FilteredLog("Errors");
@@ -163,7 +164,7 @@ class CoverageQualityGateEvaluatorTest extends AbstractCoverageTest {
     void shouldHandleNegativeValues(final double minimum) {
         Collection<CoverageQualityGate> qualityGates = new ArrayList<>();
 
-        qualityGates.add(new CoverageQualityGate(minimum, Metric.FILE, Baseline.PROJECT_DELTA, QualityGateCriticality.UNSTABLE));
+        qualityGates.add(new CoverageQualityGate(minimum, Metric.FILE, Baseline.PROJECT_DELTA, QualityGateCriticality.UNSTABLE, MetricAggregation.TOTAL));
 
         var evaluator = new CoverageQualityGateEvaluator(qualityGates, createStatistics());
         var log = new FilteredLog("Errors");
@@ -178,7 +179,7 @@ class CoverageQualityGateEvaluatorTest extends AbstractCoverageTest {
     void shouldPassAllThresholds(final double minimum) {
         Collection<CoverageQualityGate> qualityGates = new ArrayList<>();
 
-        qualityGates.add(new CoverageQualityGate(minimum, Metric.LINE, Baseline.PROJECT, QualityGateCriticality.UNSTABLE));
+        qualityGates.add(new CoverageQualityGate(minimum, Metric.LINE, Baseline.PROJECT, QualityGateCriticality.UNSTABLE, MetricAggregation.TOTAL));
 
         var evaluator = new CoverageQualityGateEvaluator(qualityGates, createStatistics());
         var log = new FilteredLog("Errors");
@@ -193,7 +194,7 @@ class CoverageQualityGateEvaluatorTest extends AbstractCoverageTest {
     void shouldFailAllThresholds(final double minimum) {
         Collection<CoverageQualityGate> qualityGates = new ArrayList<>();
 
-        qualityGates.add(new CoverageQualityGate(minimum, Metric.LINE, Baseline.PROJECT, QualityGateCriticality.UNSTABLE));
+        qualityGates.add(new CoverageQualityGate(minimum, Metric.LINE, Baseline.PROJECT, QualityGateCriticality.UNSTABLE, MetricAggregation.TOTAL));
 
         var evaluator = new CoverageQualityGateEvaluator(qualityGates, createStatistics());
         var log = new FilteredLog("Errors");
@@ -207,9 +208,9 @@ class CoverageQualityGateEvaluatorTest extends AbstractCoverageTest {
     void shouldReportUnstableIfLargerThanThreshold() {
         Collection<CoverageQualityGate> qualityGates = new ArrayList<>();
 
-        qualityGates.add(new CoverageQualityGate(149.0, Metric.CYCLOMATIC_COMPLEXITY, Baseline.PROJECT, QualityGateCriticality.UNSTABLE));
-        qualityGates.add(new CoverageQualityGate(14, Metric.NPATH_COMPLEXITY, Baseline.PROJECT, QualityGateCriticality.UNSTABLE));
-        qualityGates.add(new CoverageQualityGate(999, Metric.LOC, Baseline.MODIFIED_LINES, QualityGateCriticality.UNSTABLE));
+        qualityGates.add(new CoverageQualityGate(149.0, Metric.CYCLOMATIC_COMPLEXITY, Baseline.PROJECT, QualityGateCriticality.UNSTABLE, MetricAggregation.TOTAL));
+        qualityGates.add(new CoverageQualityGate(14, Metric.NPATH_COMPLEXITY, Baseline.PROJECT, QualityGateCriticality.UNSTABLE, MetricAggregation.TOTAL));
+        qualityGates.add(new CoverageQualityGate(999, Metric.LOC, Baseline.MODIFIED_LINES, QualityGateCriticality.UNSTABLE, MetricAggregation.TOTAL));
 
         var evaluator = new CoverageQualityGateEvaluator(qualityGates, createStatistics());
         var log = new FilteredLog("Errors");
@@ -226,8 +227,8 @@ class CoverageQualityGateEvaluatorTest extends AbstractCoverageTest {
         Collection<CoverageQualityGate> qualityGates = new ArrayList<>();
 
         var minimum = 0;
-        qualityGates.add(new CoverageQualityGate(minimum, Metric.CYCLOMATIC_COMPLEXITY, Baseline.PROJECT_DELTA, QualityGateCriticality.UNSTABLE));
-        qualityGates.add(new CoverageQualityGate(minimum, Metric.LOC, Baseline.PROJECT_DELTA, QualityGateCriticality.UNSTABLE));
+        qualityGates.add(new CoverageQualityGate(minimum, Metric.CYCLOMATIC_COMPLEXITY, Baseline.PROJECT_DELTA, QualityGateCriticality.UNSTABLE, MetricAggregation.TOTAL));
+        qualityGates.add(new CoverageQualityGate(minimum, Metric.LOC, Baseline.PROJECT_DELTA, QualityGateCriticality.UNSTABLE, MetricAggregation.TOTAL));
 
         var evaluator = new CoverageQualityGateEvaluator(qualityGates, createStatistics());
         var log = new FilteredLog("Errors");
@@ -260,20 +261,20 @@ class CoverageQualityGateEvaluatorTest extends AbstractCoverageTest {
     static QualityGateResult createQualityGateResult() {
         Collection<CoverageQualityGate> qualityGates = new ArrayList<>();
 
-        qualityGates.add(new CoverageQualityGate(76.0, Metric.FILE, Baseline.PROJECT, QualityGateCriticality.FAILURE));
-        qualityGates.add(new CoverageQualityGate(51.0, Metric.LINE, Baseline.PROJECT, QualityGateCriticality.FAILURE));
-        qualityGates.add(new CoverageQualityGate(76.0, Metric.FILE, Baseline.MODIFIED_LINES, QualityGateCriticality.FAILURE));
-        qualityGates.add(new CoverageQualityGate(51.0, Metric.LINE, Baseline.MODIFIED_LINES, QualityGateCriticality.FAILURE));
-        qualityGates.add(new CoverageQualityGate(76.0, Metric.FILE, Baseline.MODIFIED_FILES, QualityGateCriticality.FAILURE));
-        qualityGates.add(new CoverageQualityGate(51.0, Metric.LINE, Baseline.MODIFIED_FILES, QualityGateCriticality.FAILURE));
+        qualityGates.add(new CoverageQualityGate(76.0, Metric.FILE, Baseline.PROJECT, QualityGateCriticality.FAILURE, MetricAggregation.TOTAL));
+        qualityGates.add(new CoverageQualityGate(51.0, Metric.LINE, Baseline.PROJECT, QualityGateCriticality.FAILURE, MetricAggregation.TOTAL));
+        qualityGates.add(new CoverageQualityGate(76.0, Metric.FILE, Baseline.MODIFIED_LINES, QualityGateCriticality.FAILURE, MetricAggregation.TOTAL));
+        qualityGates.add(new CoverageQualityGate(51.0, Metric.LINE, Baseline.MODIFIED_LINES, QualityGateCriticality.FAILURE, MetricAggregation.TOTAL));
+        qualityGates.add(new CoverageQualityGate(76.0, Metric.FILE, Baseline.MODIFIED_FILES, QualityGateCriticality.FAILURE, MetricAggregation.TOTAL));
+        qualityGates.add(new CoverageQualityGate(51.0, Metric.LINE, Baseline.MODIFIED_FILES, QualityGateCriticality.FAILURE, MetricAggregation.TOTAL));
 
         var minimum = 10;
-        qualityGates.add(new CoverageQualityGate(minimum, Metric.FILE, Baseline.PROJECT_DELTA, QualityGateCriticality.FAILURE));
-        qualityGates.add(new CoverageQualityGate(minimum, Metric.LINE, Baseline.PROJECT_DELTA, QualityGateCriticality.FAILURE));
-        qualityGates.add(new CoverageQualityGate(minimum, Metric.FILE, Baseline.MODIFIED_LINES_DELTA, QualityGateCriticality.FAILURE));
-        qualityGates.add(new CoverageQualityGate(minimum, Metric.LINE, Baseline.MODIFIED_LINES_DELTA, QualityGateCriticality.FAILURE));
-        qualityGates.add(new CoverageQualityGate(minimum, Metric.FILE, Baseline.MODIFIED_FILES_DELTA, QualityGateCriticality.FAILURE));
-        qualityGates.add(new CoverageQualityGate(minimum, Metric.LINE, Baseline.MODIFIED_FILES_DELTA, QualityGateCriticality.FAILURE));
+        qualityGates.add(new CoverageQualityGate(minimum, Metric.FILE, Baseline.PROJECT_DELTA, QualityGateCriticality.FAILURE, MetricAggregation.TOTAL));
+        qualityGates.add(new CoverageQualityGate(minimum, Metric.LINE, Baseline.PROJECT_DELTA, QualityGateCriticality.FAILURE, MetricAggregation.TOTAL));
+        qualityGates.add(new CoverageQualityGate(minimum, Metric.FILE, Baseline.MODIFIED_LINES_DELTA, QualityGateCriticality.FAILURE, MetricAggregation.TOTAL));
+        qualityGates.add(new CoverageQualityGate(minimum, Metric.LINE, Baseline.MODIFIED_LINES_DELTA, QualityGateCriticality.FAILURE, MetricAggregation.TOTAL));
+        qualityGates.add(new CoverageQualityGate(minimum, Metric.FILE, Baseline.MODIFIED_FILES_DELTA, QualityGateCriticality.FAILURE, MetricAggregation.TOTAL));
+        qualityGates.add(new CoverageQualityGate(minimum, Metric.LINE, Baseline.MODIFIED_FILES_DELTA, QualityGateCriticality.FAILURE, MetricAggregation.TOTAL));
 
         var evaluator = new CoverageQualityGateEvaluator(qualityGates, createStatistics());
 
@@ -284,8 +285,8 @@ class CoverageQualityGateEvaluatorTest extends AbstractCoverageTest {
     void shouldOverwriteStatus() {
         Collection<CoverageQualityGate> qualityGates = new ArrayList<>();
 
-        qualityGates.add(new CoverageQualityGate(76.0, Metric.FILE, Baseline.PROJECT, QualityGateCriticality.UNSTABLE));
-        qualityGates.add(new CoverageQualityGate(51.0, Metric.LINE, Baseline.PROJECT, QualityGateCriticality.FAILURE));
+        qualityGates.add(new CoverageQualityGate(76.0, Metric.FILE, Baseline.PROJECT, QualityGateCriticality.UNSTABLE, MetricAggregation.TOTAL));
+        qualityGates.add(new CoverageQualityGate(51.0, Metric.LINE, Baseline.PROJECT, QualityGateCriticality.FAILURE, MetricAggregation.TOTAL));
 
         var evaluator = new CoverageQualityGateEvaluator(qualityGates, createStatistics());
         assertThatStatusWillBeOverwritten(evaluator);
@@ -295,8 +296,8 @@ class CoverageQualityGateEvaluatorTest extends AbstractCoverageTest {
     void shouldOverwriteStageStatus() {
         Collection<CoverageQualityGate> qualityGates = new ArrayList<>();
 
-        qualityGates.add(new CoverageQualityGate(76.0, Metric.FILE, Baseline.PROJECT, QualityGateCriticality.NOTE));
-        qualityGates.add(new CoverageQualityGate(51.0, Metric.LINE, Baseline.PROJECT, QualityGateCriticality.UNSTABLE));
+        qualityGates.add(new CoverageQualityGate(76.0, Metric.FILE, Baseline.PROJECT, QualityGateCriticality.NOTE, MetricAggregation.TOTAL));
+        qualityGates.add(new CoverageQualityGate(51.0, Metric.LINE, Baseline.PROJECT, QualityGateCriticality.UNSTABLE, MetricAggregation.TOTAL));
 
         var evaluator = new CoverageQualityGateEvaluator(qualityGates, createStatistics());
         var log = new FilteredLog("Errors");
@@ -309,8 +310,8 @@ class CoverageQualityGateEvaluatorTest extends AbstractCoverageTest {
     @Test
     void shouldAddAllQualityGates() {
         Collection<CoverageQualityGate> qualityGates = List.of(
-                new CoverageQualityGate(76.0, Metric.FILE, Baseline.PROJECT, QualityGateCriticality.UNSTABLE),
-                new CoverageQualityGate(51.0, Metric.LINE, Baseline.PROJECT, QualityGateCriticality.FAILURE));
+                new CoverageQualityGate(76.0, Metric.FILE, Baseline.PROJECT, QualityGateCriticality.UNSTABLE, MetricAggregation.TOTAL),
+                new CoverageQualityGate(51.0, Metric.LINE, Baseline.PROJECT, QualityGateCriticality.FAILURE, MetricAggregation.TOTAL));
 
         var evaluator = new CoverageQualityGateEvaluator(qualityGates, createStatistics());
 
@@ -318,269 +319,171 @@ class CoverageQualityGateEvaluatorTest extends AbstractCoverageTest {
     }
 
     @Test
-    void shouldSupportMaximumAggregation() {
-        Collection<CoverageQualityGate> qualityGates = new ArrayList<>();
+    void shouldEvaluateMaximumAggregation() {
+        var qualityGates = List.of(new CoverageQualityGate(15.0, Metric.CYCLOMATIC_COMPLEXITY,
+                Baseline.PROJECT, QualityGateCriticality.UNSTABLE, MetricAggregation.MAXIMUM));
 
-        var gate = new CoverageQualityGate(10.0, Metric.CYCLOMATIC_COMPLEXITY, Baseline.PROJECT, QualityGateCriticality.UNSTABLE);
-        gate.setAggregation(io.jenkins.plugins.coverage.metrics.model.MetricAggregation.MAXIMUM);
-        qualityGates.add(gate);
+        var evaluator = new CoverageQualityGateEvaluator(qualityGates,
+                createStatistics(createTreeWithComplexity()));
+
+        var result = evaluator.evaluate(new NullResultHandler(), new FilteredLog("Errors"));
+
+        assertThat(result).hasOverallStatus(QualityGateStatus.WARNING).isNotSuccessful().hasMessages(
+                "[Overall project - Cyclomatic Complexity (Maximum)]: ≪Unstable≫ - (Actual value: 20, Quality gate: 15.00)");
+    }
+
+    @Test
+    void shouldEvaluateMinimumAggregation() {
+        var qualityGates = List.of(new CoverageQualityGate(4.0, Metric.CYCLOMATIC_COMPLEXITY,
+                Baseline.PROJECT, QualityGateCriticality.UNSTABLE, MetricAggregation.MINIMUM));
+
+        var evaluator = new CoverageQualityGateEvaluator(qualityGates,
+                createStatistics(createTreeWithComplexity()));
+
+        var result = evaluator.evaluate(new NullResultHandler(), new FilteredLog("Errors"));
+
+        assertThat(result).hasOverallStatus(QualityGateStatus.WARNING).isNotSuccessful().hasMessages(
+                "[Overall project - Cyclomatic Complexity (Minimum)]: ≪Unstable≫ - (Actual value: 5, Quality gate: 4.00)");
+    }
+
+    @Test
+    void shouldEvaluateAverageAggregation() {
+        var qualityGates = List.of(new CoverageQualityGate(10.0, Metric.CYCLOMATIC_COMPLEXITY,
+                Baseline.PROJECT, QualityGateCriticality.UNSTABLE, MetricAggregation.AVERAGE));
+
+        var evaluator = new CoverageQualityGateEvaluator(qualityGates,
+                createStatistics(createTreeWithComplexity()));
+
+        var result = evaluator.evaluate(new NullResultHandler(), new FilteredLog("Errors"));
+
+        // The average complexity is (5 + 10 + 15 + 20) / 4 = 12.5
+        assertThat(result).hasOverallStatus(QualityGateStatus.WARNING).isNotSuccessful();
+    }
+
+    @Test
+    void shouldPassIfAggregatedValueIsWithinThreshold() {
+        var qualityGates = List.of(new CoverageQualityGate(20.0, Metric.CYCLOMATIC_COMPLEXITY,
+                Baseline.PROJECT, QualityGateCriticality.UNSTABLE, MetricAggregation.MAXIMUM));
+
+        var evaluator = new CoverageQualityGateEvaluator(qualityGates,
+                createStatistics(createTreeWithComplexity()));
+
+        var result = evaluator.evaluate(new NullResultHandler(), new FilteredLog("Errors"));
+
+        assertThat(result).hasOverallStatus(QualityGateStatus.PASSED).isSuccessful();
+    }
+
+    @Test
+    void shouldUseTotalAggregationAsDefault() {
+        var qualityGates = List.of(new CoverageQualityGate(149.0, Metric.CYCLOMATIC_COMPLEXITY,
+                Baseline.PROJECT, QualityGateCriticality.UNSTABLE, MetricAggregation.TOTAL));
 
         var evaluator = new CoverageQualityGateEvaluator(qualityGates, createStatistics());
 
-        var log = new FilteredLog("Errors");
-        var result = evaluator.evaluate(new NullResultHandler(), log);
+        var result = evaluator.evaluate(new NullResultHandler(), new FilteredLog("Errors"));
 
-        assertThat(result).hasOverallStatus(QualityGateStatus.WARNING).isNotSuccessful();
-    }
-
-    @Test
-    void shouldSupportMaximumAggregationWithRootNode() {
-        var rootNode = createNodeTreeWithComplexity();
-        Collection<CoverageQualityGate> qualityGates = new ArrayList<>();
-
-        var gate = new CoverageQualityGate(15.0, Metric.CYCLOMATIC_COMPLEXITY, Baseline.PROJECT, QualityGateCriticality.UNSTABLE);
-        gate.setAggregation(io.jenkins.plugins.coverage.metrics.model.MetricAggregation.MAXIMUM);
-        qualityGates.add(gate);
-
-        var evaluator = new CoverageQualityGateEvaluator(qualityGates, createStatistics(), rootNode);
-
-        var log = new FilteredLog("Errors");
-        var result = evaluator.evaluate(new NullResultHandler(), log);
-
-        // The maximum complexity in the tree is 20, which is > 15.0
-        assertThat(result).hasOverallStatus(QualityGateStatus.WARNING).isNotSuccessful();
-    }
-
-    @Test
-    void shouldSupportAverageAggregation() {
-        var rootNode = createNodeTreeWithComplexity();
-        Collection<CoverageQualityGate> qualityGates = new ArrayList<>();
-
-        var gate = new CoverageQualityGate(10.0, Metric.CYCLOMATIC_COMPLEXITY, Baseline.PROJECT, QualityGateCriticality.UNSTABLE);
-        gate.setAggregation(io.jenkins.plugins.coverage.metrics.model.MetricAggregation.AVERAGE);
-        qualityGates.add(gate);
-
-        var evaluator = new CoverageQualityGateEvaluator(qualityGates, createStatistics(), rootNode);
-
-        var log = new FilteredLog("Errors");
-        var result = evaluator.evaluate(new NullResultHandler(), log);
-
-        // The average complexity is (5 + 10 + 15 + 20) / 4 = 12.5, which is > 10.0
-        assertThat(result).hasOverallStatus(QualityGateStatus.WARNING).isNotSuccessful();
-    }
-
-    @Test
-    void shouldHandleTotalAggregationAsDefault() {
-        Collection<CoverageQualityGate> qualityGates = new ArrayList<>();
-
-        var gate = new CoverageQualityGate(149.0, Metric.CYCLOMATIC_COMPLEXITY, Baseline.PROJECT, QualityGateCriticality.UNSTABLE);
-        // Do not set aggregation, should default to TOTAL
-        qualityGates.add(gate);
-
-        var evaluator = new CoverageQualityGateEvaluator(qualityGates, createStatistics());
-
-        var log = new FilteredLog("Errors");
-        var result = evaluator.evaluate(new NullResultHandler(), log);
-
-        // Should use total value from statistics (150) which is > 149.0
         assertThat(result).hasOverallStatus(QualityGateStatus.WARNING).isNotSuccessful().hasMessages(
                 "[Overall project - Cyclomatic Complexity]: ≪Unstable≫ - (Actual value: 150, Quality gate: 149.00)");
     }
 
     @Test
-    void shouldNotApplyAggregationForCoverageMetrics() {
-        var rootNode = createNodeTreeWithCoverage();
-        Collection<CoverageQualityGate> qualityGates = new ArrayList<>();
+    void shouldAggregateClassMetricsForClassNodes() {
+        var qualityGates = List.of(new CoverageQualityGate(55.0, Metric.LOC,
+                Baseline.PROJECT, QualityGateCriticality.UNSTABLE, MetricAggregation.MAXIMUM));
 
-        var gate = new CoverageQualityGate(60.0, Metric.LINE, Baseline.PROJECT, QualityGateCriticality.UNSTABLE);
-        gate.setAggregation(io.jenkins.plugins.coverage.metrics.model.MetricAggregation.MAXIMUM);
-        qualityGates.add(gate);
+        var evaluator = new CoverageQualityGateEvaluator(qualityGates, createStatistics(createTreeWithLoc()));
 
-        var evaluator = new CoverageQualityGateEvaluator(qualityGates, createStatistics(), rootNode);
+        var result = evaluator.evaluate(new NullResultHandler(), new FilteredLog("Errors"));
 
-        var log = new FilteredLog("Errors");
-        var result = evaluator.evaluate(new NullResultHandler(), log);
-
-        // For coverage metrics, aggregation should be ignored and use statistics value (50%)
+        // The maximum number of lines of code of all classes is 60
         assertThat(result).hasOverallStatus(QualityGateStatus.WARNING).isNotSuccessful().hasMessages(
-                "[Overall project - Line Coverage]: ≪Unstable≫ - (Actual value: 50.00%, Quality gate: 60.00)");
+                "[Overall project - Lines of Code (Maximum)]: ≪Unstable≫ - (Actual value: 60, Quality gate: 55.00)");
     }
 
     @Test
-    void shouldSupportMultipleAggregationsInSameEvaluation() {
-        var rootNode = createNodeTreeWithComplexity();
-        Collection<CoverageQualityGate> qualityGates = new ArrayList<>();
+    void shouldEvaluateAggregationForModifiedLines() {
+        var qualityGates = List.of(new CoverageQualityGate(15.0, Metric.CYCLOMATIC_COMPLEXITY,
+                Baseline.MODIFIED_LINES, QualityGateCriticality.UNSTABLE, MetricAggregation.MAXIMUM));
 
-        var maxGate = new CoverageQualityGate(15.0, Metric.CYCLOMATIC_COMPLEXITY, Baseline.PROJECT, QualityGateCriticality.UNSTABLE);
-        maxGate.setAggregation(io.jenkins.plugins.coverage.metrics.model.MetricAggregation.MAXIMUM);
-        qualityGates.add(maxGate);
+        var evaluator = new CoverageQualityGateEvaluator(qualityGates,
+                createStatistics(createTreeWithComplexity()));
 
-        var avgGate = new CoverageQualityGate(10.0, Metric.CYCLOMATIC_COMPLEXITY, Baseline.PROJECT, QualityGateCriticality.FAILURE);
-        avgGate.setAggregation(io.jenkins.plugins.coverage.metrics.model.MetricAggregation.AVERAGE);
-        qualityGates.add(avgGate);
+        var result = evaluator.evaluate(new NullResultHandler(), new FilteredLog("Errors"));
 
-        var evaluator = new CoverageQualityGateEvaluator(qualityGates, createStatistics(), rootNode);
-
-        var log = new FilteredLog("Errors");
-        var result = evaluator.evaluate(new NullResultHandler(), log);
-
-        // Both should fail: maximum is 20 > 15.0 and average is 12.5 > 10.0
-        assertThat(result).hasOverallStatus(QualityGateStatus.FAILED).isNotSuccessful();
+        assertThat(result).hasOverallStatus(QualityGateStatus.WARNING).isNotSuccessful().hasMessages(
+                "[Modified code lines - Cyclomatic Complexity (Maximum)]: ≪Unstable≫ - (Actual value: 20, Quality gate: 15.00)");
     }
 
     @Test
-    void shouldHandleEmptyNodeTree() {
-        var rootNode = new ModuleNode("empty");
-        Collection<CoverageQualityGate> qualityGates = new ArrayList<>();
+    void shouldBeInactiveIfAggregatedValueIsNotAvailable() {
+        var qualityGates = List.of(new CoverageQualityGate(10.0, Metric.CYCLOMATIC_COMPLEXITY,
+                Baseline.PROJECT, QualityGateCriticality.UNSTABLE, MetricAggregation.MAXIMUM));
 
-        var gate = new CoverageQualityGate(10.0, Metric.CYCLOMATIC_COMPLEXITY, Baseline.PROJECT, QualityGateCriticality.UNSTABLE);
-        gate.setAggregation(io.jenkins.plugins.coverage.metrics.model.MetricAggregation.MAXIMUM);
-        qualityGates.add(gate);
+        var evaluator = new CoverageQualityGateEvaluator(qualityGates, createStatistics());
 
-        var evaluator = new CoverageQualityGateEvaluator(qualityGates, createStatistics(), rootNode);
+        var result = evaluator.evaluate(new NullResultHandler(), new FilteredLog("Errors"));
 
-        var log = new FilteredLog("Errors");
-        var result = evaluator.evaluate(new NullResultHandler(), log);
-
-        // Empty node tree has no values to aggregate, should mark as inactive
         assertThat(result).hasOverallStatus(QualityGateStatus.INACTIVE).isInactive();
     }
 
     @Test
-    void shouldHandleNullRootNodeForAggregation() {
-        Collection<CoverageQualityGate> qualityGates = new ArrayList<>();
+    void shouldBeInactiveIfTreeIsEmpty() {
+        var qualityGates = List.of(new CoverageQualityGate(10.0, Metric.CYCLOMATIC_COMPLEXITY,
+                Baseline.PROJECT, QualityGateCriticality.UNSTABLE, MetricAggregation.MAXIMUM));
 
-        var gate = new CoverageQualityGate(10.0, Metric.CYCLOMATIC_COMPLEXITY, Baseline.PROJECT, QualityGateCriticality.UNSTABLE);
-        gate.setAggregation(io.jenkins.plugins.coverage.metrics.model.MetricAggregation.MAXIMUM);
-        qualityGates.add(gate);
+        var evaluator = new CoverageQualityGateEvaluator(qualityGates,
+                createStatistics(new ModuleNode("empty")));
 
-        // No root node provided
-        var evaluator = new CoverageQualityGateEvaluator(qualityGates, createStatistics());
+        var result = evaluator.evaluate(new NullResultHandler(), new FilteredLog("Errors"));
 
-        var log = new FilteredLog("Errors");
-        var result = evaluator.evaluate(new NullResultHandler(), log);
-
-        // Should fall back to statistics value when root node is null
-        assertThat(result).hasOverallStatus(QualityGateStatus.WARNING).isNotSuccessful();
+        assertThat(result).hasOverallStatus(QualityGateStatus.INACTIVE).isInactive();
     }
 
-    @Test
-    void shouldFallBackToStatisticsForNonProjectBaseline() {
-        var rootNode = createNodeTreeWithComplexity();
-        Collection<CoverageQualityGate> qualityGates = new ArrayList<>();
+    private static CoverageStatistics createStatistics(final Node root) {
+        var aggregatedValues = CoverageStatistics.aggregateValues(root);
 
-        var gate = new CoverageQualityGate(10.0, Metric.CYCLOMATIC_COMPLEXITY, Baseline.MODIFIED_LINES, QualityGateCriticality.UNSTABLE);
-        gate.setAggregation(io.jenkins.plugins.coverage.metrics.model.MetricAggregation.MAXIMUM);
-        qualityGates.add(gate);
-
-        var evaluator = new CoverageQualityGateEvaluator(qualityGates, createStatistics(), rootNode);
-
-        var log = new FilteredLog("Errors");
-        var result = evaluator.evaluate(new NullResultHandler(), log);
-
-        // For non-PROJECT baselines, should use statistics even with custom aggregation
-        assertThat(result).hasOverallStatus(QualityGateStatus.WARNING).isNotSuccessful();
-    }
-
-    @Test
-    void shouldSupportMaximumAggregationForLinesOfCode() {
-        var rootNode = createNodeTreeWithLOC();
-        Collection<CoverageQualityGate> qualityGates = new ArrayList<>();
-
-        var gate = new CoverageQualityGate(55.0, Metric.LOC, Baseline.PROJECT, QualityGateCriticality.UNSTABLE);
-        gate.setAggregation(io.jenkins.plugins.coverage.metrics.model.MetricAggregation.MAXIMUM);
-        qualityGates.add(gate);
-
-        var evaluator = new CoverageQualityGateEvaluator(qualityGates, createStatistics(), rootNode);
-
-        var log = new FilteredLog("Errors");
-        var result = evaluator.evaluate(new NullResultHandler(), log);
-
-        // The maximum LOC is 60, which is > 55.0
-        assertThat(result).hasOverallStatus(QualityGateStatus.WARNING).isNotSuccessful();
+        return new CoverageStatistics(aggregatedValues, List.of(),
+                aggregatedValues, List.of(), aggregatedValues, List.of());
     }
 
     /**
-     * Creates a node tree with cyclomatic complexity values for testing.
-     * Structure: Module -> Class -> Methods with complexity values: 5, 10, 15, 20
+     * Creates a tree that contains a single class with four methods that have the cyclomatic complexity values 5, 10,
+     * 15, and 20.
      *
-     * @return a node tree with complexity values
+     * @return the created tree
      */
-    private static Node createNodeTreeWithComplexity() {
-        var root = new ModuleNode("TestProject");
+    private static Node createTreeWithComplexity() {
+        var root = new ModuleNode("Complexity");
         var classNode = new ClassNode("TestClass");
         root.addChild(classNode);
 
-        var method1 = new MethodNode("method1", "()V");
-        method1.addValue(new Value(Metric.CYCLOMATIC_COMPLEXITY, 5));
-        classNode.addChild(method1);
-
-        var method2 = new MethodNode("method2", "()V");
-        method2.addValue(new Value(Metric.CYCLOMATIC_COMPLEXITY, 10));
-        classNode.addChild(method2);
-
-        var method3 = new MethodNode("method3", "()V");
-        method3.addValue(new Value(Metric.CYCLOMATIC_COMPLEXITY, 15));
-        classNode.addChild(method3);
-
-        var method4 = new MethodNode("method4", "()V");
-        method4.addValue(new Value(Metric.CYCLOMATIC_COMPLEXITY, 20));
-        classNode.addChild(method4);
+        for (int complexity : List.of(5, 10, 15, 20)) {
+            var method = new MethodNode("method-" + complexity, "()V");
+            method.addValue(new Value(Metric.CYCLOMATIC_COMPLEXITY, complexity));
+            classNode.addChild(method);
+        }
 
         return root;
     }
 
     /**
-     * Creates a node tree with LOC values for testing.
-     * Structure: Module -> Class -> Methods with LOC values: 30, 40, 50, 60
+     * Creates a tree that contains two classes with the lines of code values 40 and 60. Since {@link Metric#LOC} is
+     * not a method level metric, the values are aggregated for all classes.
      *
-     * @return a node tree with LOC values
+     * @return the created tree
      */
-    private static Node createNodeTreeWithLOC() {
-        var root = new ModuleNode("TestProject");
-        var classNode = new ClassNode("TestClass");
-        root.addChild(classNode);
+    private static Node createTreeWithLoc() {
+        var root = new ModuleNode("Lines of Code");
 
-        var method1 = new MethodNode("method1", "()V");
-        method1.addValue(new Value(Metric.LOC, 30));
-        classNode.addChild(method1);
-
-        var method2 = new MethodNode("method2", "()V");
-        method2.addValue(new Value(Metric.LOC, 40));
-        classNode.addChild(method2);
-
-        var method3 = new MethodNode("method3", "()V");
-        method3.addValue(new Value(Metric.LOC, 50));
-        classNode.addChild(method3);
-
-        var method4 = new MethodNode("method4", "()V");
-        method4.addValue(new Value(Metric.LOC, 60));
-        classNode.addChild(method4);
+        for (int loc : List.of(40, 60)) {
+            var classNode = new ClassNode("class-" + loc);
+            classNode.addValue(new Value(Metric.LOC, loc));
+            root.addChild(classNode);
+        }
 
         return root;
     }
 
-    /**
-     * Creates a node tree with coverage values for testing.
-     * Structure: Module -> Class -> Methods with line coverage
-     *
-     * @return a node tree with coverage values
-     */
-    private static Node createNodeTreeWithCoverage() {
-        var root = new ModuleNode("TestProject");
-        var classNode = new ClassNode("TestClass");
-        root.addChild(classNode);
-
-        var method1 = new MethodNode("method1", "()V");
-        method1.addValue(new CoverageBuilder().withMetric(Metric.LINE).withCovered(5).withMissed(5).build());
-        classNode.addChild(method1);
-
-        var method2 = new MethodNode("method2", "()V");
-        method2.addValue(new CoverageBuilder().withMetric(Metric.LINE).withCovered(8).withMissed(2).build());
-        classNode.addChild(method2);
-
-        return root;
-    }
 
     private static void assertThatStatusWillBeOverwritten(final CoverageQualityGateEvaluator evaluator) {
         var log = new FilteredLog("Errors");

@@ -3,6 +3,7 @@ package io.jenkins.plugins.coverage.metrics.steps;
 import org.junit.jupiter.api.Test;
 
 import edu.hm.hafner.coverage.Metric;
+import edu.hm.hafner.coverage.MetricAggregation;
 
 import hudson.model.Descriptor;
 import hudson.model.FreeStyleProject;
@@ -88,8 +89,8 @@ class JobDslITest extends IntegrationTestWithJenkinsPerTest {
                         new CoverageTool(Parser.COBERTURA, "cobertura-pattern.*"));
         assertThat(recorder.getQualityGates()).hasSize(2).usingRecursiveFieldByFieldElementComparator()
                 .containsExactly(
-                        new CoverageQualityGate(70.0, Metric.LINE, Baseline.PROJECT, QualityGateCriticality.UNSTABLE),
-                        new CoverageQualityGate(80.0, Metric.BRANCH, Baseline.MODIFIED_LINES, QualityGateCriticality.FAILURE));
+                        new CoverageQualityGate(70.0, Metric.LINE, Baseline.PROJECT, QualityGateCriticality.UNSTABLE, MetricAggregation.TOTAL),
+                        new CoverageQualityGate(80.0, Metric.BRANCH, Baseline.MODIFIED_LINES, QualityGateCriticality.FAILURE, MetricAggregation.TOTAL));
         assertThat(recorder.getSourceDirectories()).hasSize(2).extracting(SourceCodeDirectory::getPath)
                 .containsExactlyInAnyOrder("directory-1", "directory-2");
         assertThat(recorder)
