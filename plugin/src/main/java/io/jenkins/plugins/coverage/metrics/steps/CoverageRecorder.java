@@ -10,6 +10,7 @@ import edu.hm.hafner.coverage.Node;
 import edu.hm.hafner.coverage.PackageNode;
 import edu.hm.hafner.util.FilteredLog;
 import edu.hm.hafner.util.TreeStringBuilder;
+import edu.umd.cs.findbugs.annotations.CheckForNull;
 import edu.umd.cs.findbugs.annotations.NonNull;
 
 import java.io.IOException;
@@ -51,6 +52,7 @@ import hudson.util.FormValidation.Kind;
 import hudson.util.ListBoxModel;
 import jenkins.model.Jenkins;
 
+import io.jenkins.plugins.checks.steps.ChecksInfo;
 import io.jenkins.plugins.coverage.metrics.steps.CoverageTool.Parser;
 import io.jenkins.plugins.coverage.metrics.steps.CoverageTool.ParserType;
 import io.jenkins.plugins.prism.SourceCodeDirectory;
@@ -74,7 +76,7 @@ import io.jenkins.plugins.util.ValidationUtilities;
  *
  * @author Ullrich Hafner
  */
-@SuppressWarnings({"PMD.GodClass", "PMD.CouplingBetweenObjects", "checkstyle:ClassFanOutComplexity", "checkstyle:ClassDataAbstractionCoupling"})
+@SuppressWarnings({"PMD.GodClass", "PMD.CouplingBetweenObjects", "PMD.TooManyFields", "checkstyle:ClassFanOutComplexity", "checkstyle:ClassDataAbstractionCoupling"})
 public class CoverageRecorder extends Recorder {
     static final String CHECKS_DEFAULT_NAME = "Code Coverage";
 
@@ -98,6 +100,8 @@ public class CoverageRecorder extends Recorder {
     private String sourceCodeEncoding = StringUtils.EMPTY;
     private Set<SourceCodeDirectory> sourceDirectories = new HashSet<>();
     private SourceCodeRetention sourceCodeRetention = SourceCodeRetention.LAST_BUILD;
+    @CheckForNull
+    private ChecksInfo checksInfo;
 
     /**
      * Creates a new instance of {@link  CoverageRecorder}.
@@ -432,7 +436,7 @@ public class CoverageRecorder extends Recorder {
                     getSourceCodeEncoding(), getSourceCodeRetention(), resultHandler, log);
 
             if (!skipPublishingChecks) {
-                var checksPublisher = new CoverageChecksPublisher(action, aggregatedResult, getChecksName(), getChecksAnnotationScope());
+                var checksPublisher = new CoverageChecksPublisher(action, aggregatedResult, getChecksName(), getChecksAnnotationScope(), checksInfo);
                 checksPublisher.publishCoverageReport(taskListener);
             }
         }
@@ -612,6 +616,10 @@ public class CoverageRecorder extends Recorder {
     @Override
     public Descriptor getDescriptor() {
         return (Descriptor) super.getDescriptor();
+    }
+
+    void setChecksInfo(@CheckForNull final ChecksInfo checksInfo) {
+        this.checksInfo = checksInfo;
     }
 
     /**

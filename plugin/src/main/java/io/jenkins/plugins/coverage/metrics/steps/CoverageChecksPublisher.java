@@ -10,6 +10,7 @@ import edu.hm.hafner.coverage.Node;
 import edu.hm.hafner.coverage.Value;
 import edu.hm.hafner.util.LineRange;
 import edu.hm.hafner.util.VisibleForTesting;
+import edu.umd.cs.findbugs.annotations.CheckForNull;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -37,6 +38,7 @@ import io.jenkins.plugins.checks.api.ChecksDetails.ChecksDetailsBuilder;
 import io.jenkins.plugins.checks.api.ChecksOutput.ChecksOutputBuilder;
 import io.jenkins.plugins.checks.api.ChecksPublisherFactory;
 import io.jenkins.plugins.checks.api.ChecksStatus;
+import io.jenkins.plugins.checks.steps.ChecksInfo;
 import io.jenkins.plugins.coverage.metrics.model.Baseline;
 import io.jenkins.plugins.coverage.metrics.model.ElementFormatter;
 import io.jenkins.plugins.coverage.metrics.steps.CoverageRecorder.ChecksAnnotationScope;
@@ -48,7 +50,7 @@ import io.jenkins.plugins.util.QualityGateStatus;
  *
  * @author Florian Orendi
  */
-@SuppressWarnings({"PMD.GodClass", "PMD.CyclomaticComplexity", "PMD.CouplingBetweenObjects"})
+@SuppressWarnings({"PMD.GodClass", "PMD.CyclomaticComplexity", "PMD.CouplingBetweenObjects", "checkstyle:ClassFanOutComplexity"})
 class CoverageChecksPublisher {
     private static final ElementFormatter FORMATTER = new ElementFormatter();
     private static final int TITLE_HEADER_LEVEL = 4;
@@ -67,19 +69,22 @@ class CoverageChecksPublisher {
 
     private final CoverageBuildAction action;
     private final Node rootNode;
+    @CheckForNull
+    private final ChecksInfo checksInfo;
     private final JenkinsFacade jenkinsFacade;
     private final String checksName;
     private final ChecksAnnotationScope annotationScope;
 
     CoverageChecksPublisher(final CoverageBuildAction action, final Node rootNode, final String checksName,
-            final ChecksAnnotationScope annotationScope) {
-        this(action, rootNode, checksName, annotationScope, new JenkinsFacade());
+            final ChecksAnnotationScope annotationScope, @CheckForNull final ChecksInfo checksInfo) {
+        this(action, rootNode, checksName, annotationScope, checksInfo, new JenkinsFacade());
     }
 
     @VisibleForTesting
     CoverageChecksPublisher(final CoverageBuildAction action, final Node rootNode, final String checksName,
-            final ChecksAnnotationScope annotationScope, final JenkinsFacade jenkinsFacade) {
+            final ChecksAnnotationScope annotationScope, @CheckForNull final ChecksInfo checksInfo, final JenkinsFacade jenkinsFacade) {
         this.rootNode = rootNode;
+        this.checksInfo = checksInfo;
         this.jenkinsFacade = jenkinsFacade;
         this.action = action;
         this.checksName = checksName;
@@ -113,11 +118,18 @@ class CoverageChecksPublisher {
                 .withAnnotations(getAnnotations())
                 .build();
 
+        var actualChecksName = Optional.ofNullable(checksInfo).map(ChecksInfo::getName)
+                .filter(StringUtils::isNotEmpty)
+                .orElse(checksName);
+        var detailsUrl = Optional.ofNullable(checksInfo).map(ChecksInfo::getDetailsURL)
+                .filter(StringUtils::isNotEmpty)
+                .orElse(getBaseUrl());
+
         return new ChecksDetailsBuilder()
-                .withName(checksName)
+                .withName(actualChecksName)
                 .withStatus(ChecksStatus.COMPLETED)
                 .withConclusion(getCheckConclusion(action.getQualityGateResult().getOverallStatus()))
-                .withDetailsURL(getBaseUrl())
+                .withDetailsURL(detailsUrl)
                 .withOutput(output)
                 .build();
     }
