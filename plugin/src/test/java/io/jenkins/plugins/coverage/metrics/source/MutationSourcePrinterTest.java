@@ -10,6 +10,9 @@ import io.jenkins.plugins.coverage.metrics.AbstractCoverageTest;
 import static org.assertj.core.api.Assertions.*;
 
 class MutationSourcePrinterTest extends AbstractCoverageTest {
+    /** CSS class emitted by the sentinel row to identify mutation coverage tables. */
+    static final String MUTATION_CLASS = "mutation";
+
     @Test
     void shouldRenderLinesWithVariousMutations() {
         var tree = readResult("../steps/mutations.xml", new PitestParser());
@@ -114,5 +117,19 @@ class MutationSourcePrinterTest extends AbstractCoverageTest {
                 .singleElement()
                 .hasAttribute(CoverageSourcePrinterTest.CLASS, CoverageSourcePrinter.UNDEFINED)
                 .doesNotHaveAttribute("data-html-tooltip");
+    }
+
+    @Test
+    void shouldEmitMutationSentinelRowAsColumnHeader() {
+        var tree = readResult("../steps/mutations.xml", new PitestParser());
+        var file = new MutationSourcePrinter(tree.findFile("CoberturaParser.java").get());
+
+        var header = file.getColumnHeader();
+
+        assertThat(header).isNotEmpty();
+        XmlAssert.assertThat(header)
+                .nodesByXPath("/tr").exist().hasSize(1)
+                .singleElement()
+                .hasAttribute(CoverageSourcePrinterTest.CLASS, MUTATION_CLASS);
     }
 }

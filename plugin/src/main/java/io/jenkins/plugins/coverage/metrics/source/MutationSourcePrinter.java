@@ -92,6 +92,16 @@ final class MutationSourcePrinter extends CoverageSourcePrinter {
         return getCounter(line, killedPerLine);
     }
 
+    /**
+     * Returns a hidden sentinel row that marks this table as a mutation coverage view.
+     *
+     * @return HTML string for the sentinel mutation row
+     */
+    @Override
+    String getColumnHeader() {
+        return tr().withClass("mutation").render();
+    }
+
     @Override
     String getColorClass(final int line) {
         if (getCovered(line) == 0) {

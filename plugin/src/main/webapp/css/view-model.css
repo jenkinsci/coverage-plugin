@@ -147,6 +147,13 @@ table.source tr td {
 }
 
 /*
+ * Sentinel row emitted by MutationSourcePrinter.getColumnHeader(). It is invisible to the user but lets :has(tr.mutation) * CSS selectors identify mutation coverage tables and override block label text.
+ */
+table.source tr.mutation {
+    display: none;
+}
+
+/*
  * "New Code" label appears above the FIRST row of a modified block.
  * It is always visible (not hover-dependent) so users immediately know
  * which lines are new/changed since the reference build.
@@ -203,6 +210,14 @@ table.source tr:has(~ tr.coverNone:hover) ~ tr:not(.coverNone) + tr.coverNone:af
     align-items: center;
     font-family: monospace;
     z-index: 2;
+}
+
+/*
+ * Mutation coverage override: for tables that contain the .mutation sentinel row,
+ * replace "Uncovered code" with "Mutations survived" — the correct mutation context label.
+ */
+table.source:has(tr.mutation) tr:has(~ tr.coverNone:hover) ~ tr:not(.coverNone) + tr.coverNone:after {
+    content: "Mutations survived";
 }
 
 /* Highlight subsequent uncovered lines after the hovered uncovered line. */
@@ -284,6 +299,13 @@ table.source tr:has(~ tr.coverFull:hover) ~ tr:not(.coverFull) + tr.coverFull:af
     z-index: 2;
 }
 
+/*
+ * Mutation coverage override: replace "Covered code" with "All mutations killed".
+ */
+table.source:has(tr.mutation) tr:has(~ tr.coverFull:hover) ~ tr:not(.coverFull) + tr.coverFull:after {
+    content: "All mutations killed";
+}
+
 /* Highlight subsequent covered lines after the hovered covered line. */
 table.source tr.coverFull:hover ~ tr.coverFull td.code:after {
     content: "";
@@ -362,6 +384,13 @@ table.source tr:has(~ tr.coverPart:hover) ~ tr:not(.coverPart) + tr.coverPart:af
     align-items: center;
     font-family: monospace;
     z-index: 2;
+}
+
+/*
+ * Mutation coverage override: replace "Partially covered code" with "Some mutations survived".
+ */
+table.source:has(tr.mutation) tr:has(~ tr.coverPart:hover) ~ tr:not(.coverPart) + tr.coverPart:after {
+    content: "Some mutations survived";
 }
 
 /* Highlight subsequent partially covered lines after the hovered line. */
@@ -501,4 +530,11 @@ table.source tr.coverNone td.hits {
 /* --- Skipped lines --- */
 table.source tr.coverSkip {
     background-color: #b4b4b4 !important;
+}
+
+/*
+ * Suppress tippy tooltip popups for mutation coverage tables only.
+ */
+table.source:has(tr.mutation) [data-html-tooltip] {
+    pointer-events: none;
 }
