@@ -49,12 +49,15 @@ class MutationSourcePrinterTest extends AbstractCoverageTest {
                 .nodesByXPath("/tr").exist().hasSize(1)
                 .singleElement()
                 .hasAttribute(CoverageSourcePrinterTest.CLASS, "coverNone")
-                .hasAttribute("data-html-tooltip");
+                .doesNotHaveAttribute("data-html-tooltip");
         var assertThatColumns = XmlAssert.assertThat(renderedLine).nodesByXPath("/tr/td").exist().hasSize(3);
         assertThatColumns.extractingAttribute("class").containsExactly("line", "hits", "code");
 
         XmlAssert.assertThat(renderedLine).nodesByXPath("/tr/td[1]/a").exist().hasSize(1)
                 .extractingAttribute("name").containsExactly("137");
+        XmlAssert.assertThat(renderedLine).nodesByXPath("/tr/td[2]").exist().hasSize(1)
+                .singleElement()
+                .hasAttribute("data-html-tooltip");
         XmlAssert.assertThat(renderedLine).nodesByXPath("/tr/td[2]")
                 .extractingText().containsExactly("0/1");
         XmlAssert.assertThat(renderedLine).nodesByXPath("/tr/td[3]")
@@ -62,7 +65,7 @@ class MutationSourcePrinterTest extends AbstractCoverageTest {
     }
 
     @Test
-    void shouldRenderDataHtmlTooltipOnAllMutationPaintedLines() {
+    void shouldRenderDataHtmlTooltipOnHitsCellForAllMutationPaintedLines() {
         var tree = readResult("../steps/mutations.xml", new PitestParser());
         var file = new MutationSourcePrinter(tree.findFile("CoberturaParser.java").get());
 
@@ -73,9 +76,13 @@ class MutationSourcePrinterTest extends AbstractCoverageTest {
                 .nodesByXPath("/tr").exist().hasSize(1)
                 .singleElement()
                 .hasAttribute(CoverageSourcePrinterTest.CLASS, CoverageSourcePrinter.FULL_COVERAGE)
+                .doesNotHaveAttribute("data-html-tooltip");
+        XmlAssert.assertThat(fullLine)
+                .nodesByXPath("/tr/td[2]").exist().hasSize(1)
+                .singleElement()
                 .hasAttribute("data-html-tooltip");
         XmlAssert.assertThat(fullLine)
-                .nodesByXPath("/tr/@data-html-tooltip").exist()
+                .nodesByXPath("/tr/td[2]/@data-html-tooltip").exist()
                 .extractingText().first().asString()
                 .contains("Killed Mutations:");
 
@@ -84,9 +91,13 @@ class MutationSourcePrinterTest extends AbstractCoverageTest {
                 .nodesByXPath("/tr").exist().hasSize(1)
                 .singleElement()
                 .hasAttribute(CoverageSourcePrinterTest.CLASS, CoverageSourcePrinter.NO_COVERAGE)
+                .doesNotHaveAttribute("data-html-tooltip");
+        XmlAssert.assertThat(survivedLine)
+                .nodesByXPath("/tr/td[2]").exist().hasSize(1)
+                .singleElement()
                 .hasAttribute("data-html-tooltip");
         XmlAssert.assertThat(survivedLine)
-                .nodesByXPath("/tr/@data-html-tooltip").exist()
+                .nodesByXPath("/tr/td[2]/@data-html-tooltip").exist()
                 .extractingText().first().asString()
                 .contains("Survived Mutations:");
 
@@ -95,16 +106,21 @@ class MutationSourcePrinterTest extends AbstractCoverageTest {
                 .nodesByXPath("/tr").exist().hasSize(1)
                 .singleElement()
                 .hasAttribute(CoverageSourcePrinterTest.CLASS, CoverageSourcePrinter.PARTIAL_COVERAGE)
+                .doesNotHaveAttribute("data-html-tooltip");
+        XmlAssert.assertThat(partialLine)
+                .nodesByXPath("/tr/td[2]").exist().hasSize(1)
+                .singleElement()
                 .hasAttribute("data-html-tooltip");
         XmlAssert.assertThat(partialLine)
-                .nodesByXPath("/tr/@data-html-tooltip").exist()
+                .nodesByXPath("/tr/td[2]/@data-html-tooltip").exist()
                 .extractingText().first().asString()
                 .contains("Killed Mutations:");
         XmlAssert.assertThat(partialLine)
-                .nodesByXPath("/tr/@data-html-tooltip").exist()
+                .nodesByXPath("/tr/td[2]/@data-html-tooltip").exist()
                 .extractingText().first().asString()
                 .contains("Survived Mutations:");
     }
+
 
     @Test
     void shouldNotRenderTooltipOnUnpaintedMutationLines() {

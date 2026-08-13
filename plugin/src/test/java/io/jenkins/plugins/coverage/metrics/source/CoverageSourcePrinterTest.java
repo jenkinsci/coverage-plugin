@@ -105,7 +105,7 @@ class CoverageSourcePrinterTest extends AbstractCoverageTest {
                 .nodesByXPath("/tr").exist().hasSize(1)
                 .singleElement()
                 .hasAttribute(CLASS, CoverageSourcePrinter.NO_COVERAGE)
-                .hasAttribute("data-html-tooltip", "Not covered");
+                .doesNotHaveAttribute("data-html-tooltip");
         var assertThatColumns = XmlAssert.assertThat(renderedLine).nodesByXPath("/tr/td").exist().hasSize(3);
         assertThatColumns.extractingAttribute("class").containsExactly("line", "hits", "code");
 

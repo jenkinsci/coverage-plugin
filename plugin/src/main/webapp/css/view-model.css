@@ -531,10 +531,3 @@ table.source tr.coverNone td.hits {
 table.source tr.coverSkip {
     background-color: #b4b4b4 !important;
 }
-
-/*
- * Suppress tippy tooltip popups for mutation coverage tables only.
- */
-table.source:has(tr.mutation) [data-html-tooltip] {
-    pointer-events: none;
-}

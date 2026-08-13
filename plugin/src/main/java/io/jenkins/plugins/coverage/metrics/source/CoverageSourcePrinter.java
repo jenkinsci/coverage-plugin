@@ -53,7 +53,6 @@ class CoverageSourcePrinter implements Serializable {
         var isPainted = isPainted(line);
         return tr()
                 .withClasses(isPainted ? getColorClass(line) : UNDEFINED, getModifiedClass(line))
-                .condAttr(isPainted, "data-html-tooltip", isPainted ? getTooltip(line) : StringUtils.EMPTY)
                 .with(
                         td().withClass("line")
                                 .with(a().withName(String.valueOf(line)).withText(String.valueOf(line))),
