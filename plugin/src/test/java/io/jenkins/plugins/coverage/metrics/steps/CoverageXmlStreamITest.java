@@ -49,7 +49,7 @@ import static org.xmlunit.assertj.XmlAssert.assertThat;
  *
  * @author Ullrich Hafner
  */
-@SuppressWarnings("checkstyle:ClassDataAbstractionCoupling")
+@SuppressWarnings({"checkstyle:ClassDataAbstractionCoupling", "checkstyle:ClassFanOutComplexity"})
 class CoverageXmlStreamITest extends SerializableTest<Node> {
     private static final String ACTION_QUALIFIED_NAME = "io.jenkins.plugins.coverage.metrics.steps.CoverageBuildAction";
     private static final String EMPTY = "[]";
