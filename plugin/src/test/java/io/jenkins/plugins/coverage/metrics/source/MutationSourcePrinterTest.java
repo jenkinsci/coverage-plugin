@@ -121,7 +121,6 @@ class MutationSourcePrinterTest extends AbstractCoverageTest {
                 .contains("Survived Mutations:");
     }
 
-
     @Test
     void shouldNotRenderTooltipOnUnpaintedMutationLines() {
         var tree = readResult("../steps/mutations.xml", new PitestParser());
