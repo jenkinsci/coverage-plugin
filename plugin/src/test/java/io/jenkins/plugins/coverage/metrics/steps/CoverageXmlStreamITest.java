@@ -2,10 +2,12 @@ package io.jenkins.plugins.coverage.metrics.steps;
 
 import org.apache.commons.lang3.StringUtils;
 import org.junit.jupiter.api.Test;
+import org.junitpioneer.jupiter.Issue;
 import org.xmlunit.builder.Input;
 import org.xmlunit.builder.Input.Builder;
 
 import edu.hm.hafner.coverage.Difference;
+import edu.hm.hafner.coverage.FileNode;
 import edu.hm.hafner.coverage.Metric;
 import edu.hm.hafner.coverage.Node;
 import edu.hm.hafner.coverage.Value;
@@ -19,6 +21,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.NavigableMap;
 import java.util.NavigableSet;
 import java.util.TreeMap;
@@ -46,14 +49,21 @@ import static org.xmlunit.assertj.XmlAssert.assertThat;
  *
  * @author Ullrich Hafner
  */
-@SuppressWarnings("checkstyle:ClassDataAbstractionCoupling")
+@SuppressWarnings({"checkstyle:ClassDataAbstractionCoupling", "checkstyle:ClassFanOutComplexity"})
 class CoverageXmlStreamITest extends SerializableTest<Node> {
     private static final String ACTION_QUALIFIED_NAME = "io.jenkins.plugins.coverage.metrics.steps.CoverageBuildAction";
     private static final String EMPTY = "[]";
 
+    private static final String MODIFIED_FILE = "Test1.java";
+    private static final String MODIFIED_FILE_PATH = "test/example/" + MODIFIED_FILE;
+    private static final String MODIFIED_FILE_PATH_OLD = "test/example/old/" + MODIFIED_FILE;
+
     @Override
     protected Node createSerializable() {
-        var fileName = "jacoco-codingstyle.xml";
+        return parseJacocoReport("jacoco-codingstyle.xml");
+    }
+
+    private Node parseJacocoReport(final String fileName) {
         return new JacocoParser().parse(new InputStreamReader(asInputStream(fileName),
                 StandardCharsets.UTF_8), fileName, new FilteredLog("Errors"));
     }
@@ -100,6 +110,58 @@ class CoverageXmlStreamITest extends SerializableTest<Node> {
                 .hasSize(1).extractingText()
                 .containsExactly(
                         "[19: 0, 20: 0, 31: 0, 43: 0, 50: 0, 51: 0, 54: 0, 57: 0, 61: 1, 62: 1, 70: 0, 72: 0, 73: 0, 74: 0, 85: 0, 86: 0, 89: 0, 90: 0, 91: 0, 92: 0, 93: 0, 95: 0, 96: 0, 97: 0, 100: 0, 101: 0, 103: 0, 106: 0, 109: 0, 112: 0, 113: 1, 114: 0, 115: 0, 117: 0, 125: 0, 126: 0, 128: 0, 140: 0, 142: 0, 143: 0, 144: 0, 146: 0, 160: 0, 162: 0, 163: 0, 164: 0, 167: 0, 177: 0, 178: 0, 179: 0, 180: 0, 181: 0, 184: 0]");
+    }
+
+    /**
+     * Verifies that the coverage deltas of the individual files survive a save and restore cycle. Otherwise, the delta
+     * columns of the file tables will vanish as soon as the coverage tree has been restored from disk (i.e., after a
+     * restart of Jenkins or after the cached tree has been garbage collected).
+     */
+    @Test @Issue("https://github.com/jenkinsci/coverage-plugin/issues/643")
+    void shouldSaveAndRestoreFileCoverageDeltas() {
+        Path saved = createTempFile();
+        var tree = createTreeWithFileCoverageDeltas();
+
+        assertThatDeltasOfModifiedFileAreCorrect(tree);
+
+        var xmlStream = new CoverageXmlStream();
+        xmlStream.write(saved, tree);
+
+        assertThat(Input.from(saved)).nodesByXPath("//file[./name = '" + MODIFIED_FILE + "']/coverageDelta")
+                .hasSize(1).extractingText()
+                .containsExactly(
+                        "[FILE: Δ0, CLASS: Δ0, METHOD: Δ-40:3, LINE: Δ100:39, BRANCH: Δ25:2, "
+                                + "INSTRUCTION: Δ1000:111, LOC: Δ4, CYCLOMATIC_COMPLEXITY: Δ2]");
+
+        assertThatDeltasOfModifiedFileAreCorrect(xmlStream.read(saved));
+    }
+
+    private void assertThatDeltasOfModifiedFileAreCorrect(final Node tree) {
+        var file = findModifiedFile(tree);
+
+        then(file.hasDelta(LINE)).isTrue();
+        then(file.hasDelta(BRANCH)).isTrue();
+        then(file.getDelta(LINE)).isEqualTo(new Difference(LINE, 100, 39));
+        then(file.getDelta(BRANCH)).isEqualTo(new Difference(BRANCH, 25, 2));
+        then(file.getDelta(INSTRUCTION)).isEqualTo(new Difference(INSTRUCTION, 1000, 111));
+        then(file.getDelta(METHOD)).isEqualTo(new Difference(METHOD, -40, 3));
+    }
+
+    private FileNode findModifiedFile(final Node tree) {
+        return tree.getAllFileNodes().stream()
+                .filter(file -> MODIFIED_FILE.equals(file.getName()))
+                .findFirst()
+                .orElseThrow(() -> new AssertionError("No file " + MODIFIED_FILE + " found in " + tree));
+    }
+
+    private Node createTreeWithFileCoverageDeltas() {
+        var reference = parseJacocoReport("file-changes-test-before.xml");
+        var tree = parseJacocoReport("file-changes-test-after.xml");
+
+        new FileChangesProcessor().attachFileCoverageDeltas(tree, reference,
+                Map.of(MODIFIED_FILE_PATH, MODIFIED_FILE_PATH_OLD));
+
+        return tree;
     }
 
     @Test
@@ -224,6 +286,50 @@ class CoverageXmlStreamITest extends SerializableTest<Node> {
                 .containsExactly(
                         entry(LINE, new Difference(LINE, 75)),
                         entry(BRANCH, new Difference(BRANCH, -50)));
+    }
+
+    @Test @Issue("https://github.com/jenkinsci/coverage-plugin/issues/643")
+    void shouldConvertDeltaMap2String() {
+        NavigableMap<Metric, Value> map = new TreeMap<>();
+
+        var converter = new MetricFractionMapConverter();
+
+        map.put(BRANCH, new Difference(BRANCH, 25, 2));
+        assertThat(converter.marshal(map)).isEqualTo("[BRANCH: Δ25:2]");
+
+        map.put(LINE, new Difference(LINE, 10));
+        map.put(LOC, new Difference(LOC, -16));
+        assertThat(converter.marshal(map)).isEqualTo("[LINE: Δ10, BRANCH: Δ25:2, LOC: Δ-16]");
+    }
+
+    @Test @Issue("https://github.com/jenkinsci/coverage-plugin/issues/643")
+    void shouldConvertString2DeltaMap() {
+        var converter = new MetricFractionMapConverter();
+
+        Assertions.assertThat(converter.unmarshal("[BRANCH: Δ25:2]"))
+                .containsExactly(entry(BRANCH, new Difference(BRANCH, 25, 2)));
+        Assertions.assertThat(converter.unmarshal("[LINE: Δ10, BRANCH: Δ-25:2, LOC: Δ-16]"))
+                .containsExactly(
+                        entry(LINE, new Difference(LINE, 10)),
+                        entry(BRANCH, new Difference(BRANCH, -25, 2)),
+                        entry(LOC, new Difference(LOC, -16)));
+    }
+
+    @Test @Issue("https://github.com/jenkinsci/coverage-plugin/issues/643")
+    void shouldRoundTripDeltaMap() {
+        NavigableMap<Metric, Value> map = new TreeMap<>();
+
+        map.put(LINE, new Difference(LINE, 100, 39));
+        map.put(BRANCH, new Difference(BRANCH, 25, 2));
+        map.put(INSTRUCTION, new Difference(INSTRUCTION, 1000, 111));
+        map.put(METHOD, new Difference(METHOD, -40, 3));
+        map.put(Metric.CLASS, new Difference(Metric.CLASS, 0));
+        map.put(LOC, new Difference(LOC, -16));
+
+        var converter = new MetricFractionMapConverter();
+
+        Assertions.assertThat(converter.unmarshal(converter.marshal(map)))
+                .containsExactlyInAnyOrderEntriesOf(map);
     }
 
     @Test
