@@ -137,16 +137,14 @@ class CoverageXmlStreamITest extends SerializableTest<Node> {
     }
 
     private void assertThatDeltasOfModifiedFileAreCorrect(final Node tree) {
-        Assertions.assertThat(findModifiedFile(tree))
-                .satisfies(file -> {
-                    Assertions.assertThat(file.hasDelta(LINE)).isTrue();
-                    Assertions.assertThat(file.hasDelta(BRANCH)).isTrue();
-                    Assertions.assertThat(file.getDelta(LINE)).isEqualTo(new Difference(LINE, 100, 39));
-                    Assertions.assertThat(file.getDelta(BRANCH)).isEqualTo(new Difference(BRANCH, 25, 2));
-                    Assertions.assertThat(file.getDelta(INSTRUCTION))
-                            .isEqualTo(new Difference(INSTRUCTION, 1000, 111));
-                    Assertions.assertThat(file.getDelta(METHOD)).isEqualTo(new Difference(METHOD, -40, 3));
-                });
+        var file = findModifiedFile(tree);
+
+        then(file.hasDelta(LINE)).isTrue();
+        then(file.hasDelta(BRANCH)).isTrue();
+        then(file.getDelta(LINE)).isEqualTo(new Difference(LINE, 100, 39));
+        then(file.getDelta(BRANCH)).isEqualTo(new Difference(BRANCH, 25, 2));
+        then(file.getDelta(INSTRUCTION)).isEqualTo(new Difference(INSTRUCTION, 1000, 111));
+        then(file.getDelta(METHOD)).isEqualTo(new Difference(METHOD, -40, 3));
     }
 
     private FileNode findModifiedFile(final Node tree) {
