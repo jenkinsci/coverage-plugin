@@ -92,6 +92,43 @@ final class MutationSourcePrinter extends CoverageSourcePrinter {
         return getCounter(line, killedPerLine);
     }
 
+    /**
+     * Returns a hidden sentinel row that marks this table as a mutation coverage view.
+     *
+     * @return HTML string for the sentinel mutation row
+     */
+    @Override
+    String getColumnHeader() {
+        return tr().withClass("mutation").render();
+    }
+
+    /**
+     * Renders a source line with the mutation detail tooltip placed on the {@code td.hits} cell only.
+     *
+     * @param line
+     *         the 1-based line number
+     * @param sourceCode
+     *         the raw source code text for this line
+     *
+     * @return the rendered HTML {@code <tr>} element
+     */
+    @Override
+    String renderLine(final int line, final String sourceCode) {
+        var isPainted = isPainted(line);
+        return tr()
+                .withClasses(isPainted ? getColorClass(line) : UNDEFINED, getModifiedClass(line))
+                .with(
+                        td().withClass("line")
+                                .with(a().withName(String.valueOf(line)).withText(String.valueOf(line))),
+                        td().withClass("hits")
+                                .condAttr(isPainted, "data-html-tooltip",
+                                        isPainted ? getTooltip(line) : StringUtils.EMPTY)
+                                .with(isPainted ? text(getSummaryColumn(line)) : text(StringUtils.EMPTY)),
+                        td().withClass("code")
+                                .with(rawHtml(SANITIZER.render(cleanupCode(sourceCode)))))
+                .render();
+    }
+
     @Override
     String getColorClass(final int line) {
         if (getCovered(line) == 0) {

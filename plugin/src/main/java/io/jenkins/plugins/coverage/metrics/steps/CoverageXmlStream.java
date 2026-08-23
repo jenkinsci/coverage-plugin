@@ -162,8 +162,8 @@ class CoverageXmlStream extends AbstractXmlStream<Node> {
     }
 
     /**
-     * {@link Converter} for a {@link TreeMap} of coverage percentages per metric. Stores the mapping in the condensed
-     * format {@code metric1: numerator1/denominator1, metric2: numerator2/denominator2, ...}.
+     * {@link Converter} for a {@link TreeMap} of coverage deltas per metric. Stores the mapping in the condensed
+     * format {@code metric1: Δvalue1, metric2: Δvalue2, ...}, i.e., using the serialization of {@link Difference}.
      */
     static final class MetricFractionMapConverter extends TreeMapConverter<Metric, Value> {
         @Override
@@ -174,6 +174,10 @@ class CoverageXmlStream extends AbstractXmlStream<Node> {
         @Override
         protected Entry<Metric, Value> createMapping(final String key, final String value) {
             var metric = Metric.valueOf(key);
+            if (Strings.CS.startsWith(value, Difference.DELTA)) {
+                return entry(metric, Difference.valueOf("%s: %s".formatted(metric.name(), value)));
+            }
+
             var deserialized = Fraction.getFraction(value);
             if (metric.isCoverage()) {
                 deserialized = deserialized.multiplyBy(

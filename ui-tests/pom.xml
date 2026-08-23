@@ -5,20 +5,20 @@
   <parent>
     <groupId>edu.hm.hafner</groupId>
     <artifactId>codingstyle-pom</artifactId>
-    <version>6.14.0</version>
+    <version>6.16.0</version>
     <relativePath/>
   </parent>
 
   <groupId>io.jenkins.plugins</groupId>
   <artifactId>coverage-ui-tests</artifactId>
-  <version>UNVERSIONED</version>
+  <version>UNVERSIONED-SNAPSHOT</version>
   <packaging>jar</packaging>
   <name>UI Tests of Code Coverage Plugin</name>
 
   <properties>
     <jenkins.version>2.563</jenkins.version>
     <hpi-plugin.version>3.1848.v43eb_ce5a_9cb_6</hpi-plugin.version>
-    <jenkins.version>2.573</jenkins.version>
+    <jenkins.version>2.576</jenkins.version>
     <json-smart.version>2.3</json-smart.version>
     <json-unit-assertj.version>6.0.1</json-unit-assertj.version>
     <module.name>${project.groupId}.code.coverage.api.ui.tests</module.name>
@@ -38,7 +38,7 @@
         <!-- ClassNotFoundException if omitted -->
         <groupId>io.netty</groupId>
         <artifactId>netty-bom</artifactId>
-        <version>4.2.16.Final</version>
+        <version>4.2.17.Final</version>
         <type>pom</type>
         <scope>import</scope>
       </dependency>
@@ -49,7 +49,7 @@
     <dependency>
       <groupId>org.jenkins-ci</groupId>
       <artifactId>acceptance-test-harness</artifactId>
-      <version>6724.v091f4822e6f3</version>
+      <version>6724.va_7c5c4b_fcf9c</version>
     </dependency>
     <dependency>
       <groupId>com.fasterxml.jackson.core</groupId>
@@ -80,10 +80,6 @@
     <repository>
       <id>maven.jenkins-ci.org</id>
       <url>https://repo.jenkins-ci.org/releases/</url>
-    </repository>
-    <repository>
-      <id>incrementals.jenkins-ci.org</id>
-      <url>https://repo.jenkins-ci.org/incrementals/</url>
     </repository>
   </repositories>
 
@@ -276,12 +272,6 @@
       <properties>
         <maven.test.skip>false</maven.test.skip>
       </properties>
-    </profile>
-    <profile>
-      <id>consume-incrementals</id>
-    </profile>
-    <profile>
-      <id>might-produce-incrementals</id>
     </profile>
   </profiles>
 
