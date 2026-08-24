@@ -12,10 +12,10 @@ import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
-import java.io.Serial;
 import java.io.InputStreamReader;
-import java.nio.charset.CodingErrorAction;
+import java.io.Serial;
 import java.nio.charset.Charset;
+import java.nio.charset.CodingErrorAction;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.InvalidPathException;
@@ -92,7 +92,7 @@ public class SourceCodePainter {
 
             sourceCodeFacade.copySourcesToBuildFolder(build, workspace, id, log);
         }
-        sourceCodeRetention.cleanup(build, sourceCodeFacade.getCoverageSourcesDirectory(), log);
+        sourceCodeRetention.cleanup(build, sourceCodeFacade.getCoverageSourcesDirectory(id), log);
     }
 
     /**
