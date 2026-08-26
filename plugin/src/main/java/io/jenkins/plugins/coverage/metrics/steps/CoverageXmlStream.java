@@ -17,6 +17,7 @@ import edu.hm.hafner.coverage.Difference;
 import edu.hm.hafner.coverage.FileNode;
 import edu.hm.hafner.coverage.MethodNode;
 import edu.hm.hafner.coverage.Metric;
+import edu.hm.hafner.coverage.MetricAggregation;
 import edu.hm.hafner.coverage.ModuleNode;
 import edu.hm.hafner.coverage.Mutation;
 import edu.hm.hafner.coverage.Node;
@@ -107,13 +108,34 @@ class CoverageXmlStream extends AbstractXmlStream<Node> {
         xStream.alias("item", QualityGateResultItem.class);
 
         xStream.registerConverter(new FractionConverter());
-        xStream.registerConverter(new SimpleConverter<>(Value.class, Value::serialize, Value::valueOf));
-        xStream.registerConverter(new SimpleConverter<>(Metric.class, Metric::name, Metric::valueOf));
+        xStream.registerConverter(new SimpleConverter<>(Value.class, Value::serialize, CoverageXmlStream::valueOf));
+        xStream.registerConverter(new SimpleConverter<>(Metric.class, Metric::name, Metric::fromName));
     }
 
     @Override
     protected Node createDefaultValue() {
         return new ModuleNode("Empty");
+    }
+
+    /**
+     * Converts the serialization of a value into a {@link Value} instance. Values of removed legacy metrics like
+     * {@code COMPLEXITY_MAXIMUM} are just another aggregation of the cyclomatic complexity, restoring them would
+     * create a second and conflicting value for that metric. So these values are rejected and will be skipped while
+     * restoring the results of old builds.
+     *
+     * @param serialization
+     *         the serialization of the value
+     *
+     * @return the restored value
+     * @throws IllegalArgumentException
+     *         if the value cannot be restored
+     */
+    private static Value valueOf(final String serialization) {
+        var metricName = StringUtils.deleteWhitespace(StringUtils.substringBefore(serialization, ':'));
+        if (Metric.extractAggregation(metricName) != MetricAggregation.getDefault()) {
+            throw new IllegalArgumentException("Skipping value of removed legacy metric: " + serialization);
+        }
+        return Value.valueOf(serialization);
     }
 
     /**
