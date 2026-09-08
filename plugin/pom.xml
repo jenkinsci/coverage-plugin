@@ -5,7 +5,7 @@
   <parent>
     <groupId>io.jenkins.plugins</groupId>
     <artifactId>coverage-parent</artifactId>
-    <version>${revision}.${changelist}</version>
+    <version>${revision}.3325.${changelist}</version>
   </parent>
 
   <artifactId>coverage</artifactId>

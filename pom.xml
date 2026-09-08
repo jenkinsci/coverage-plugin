@@ -12,7 +12,7 @@
   <groupId>io.jenkins.plugins</groupId>
   <artifactId>coverage-parent</artifactId>
   <packaging>pom</packaging>
-  <version>${revision}.${changelist}</version>
+  <version>${revision}.3325.${changelist}</version>
 
   <name>Aggregator for Coverage Plugin</name>
 
