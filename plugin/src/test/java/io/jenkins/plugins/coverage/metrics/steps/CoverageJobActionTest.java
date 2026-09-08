@@ -13,6 +13,7 @@ import org.kohsuke.stapler.StaplerRequest2;
 import org.kohsuke.stapler.StaplerResponse2;
 import hudson.model.FreeStyleBuild;
 import hudson.model.FreeStyleProject;
+import hudson.model.Job;
 
 import static io.jenkins.plugins.coverage.metrics.AbstractCoverageTest.*;
 import static net.javacrumbs.jsonunit.assertj.JsonAssertions.*;
@@ -26,6 +27,24 @@ import static org.mockito.Mockito.*;
  */
 class CoverageJobActionTest {
     private static final String URL = "coverage";
+
+    @Test
+    void shouldFailBrokenUrl() {
+        var illegalUrl = "javascript:alert(document.domain)";
+
+        assertThatIllegalArgumentException().isThrownBy(
+                () -> new CoverageJobAction(mock(Job.class), illegalUrl, "Coverage Results", StringUtils.EMPTY)
+        );
+
+        var good = new CoverageJobAction(mock(Job.class), "validUrl", "Coverage Results", StringUtils.EMPTY);
+
+        assertThat(good.readResolve()).isSameAs(good);
+
+        good.setId(illegalUrl);
+
+        assertThatIllegalArgumentException()
+                .isThrownBy(good::readResolve);
+    }
 
     @Test
     void shouldIgnoreIndexIfNoActionFound() throws IOException {
