@@ -6,6 +6,7 @@ import edu.hm.hafner.coverage.Metric;
 import edu.hm.hafner.coverage.Node;
 import edu.hm.hafner.coverage.Value;
 import edu.hm.hafner.echarts.line.LinesChartModel;
+import edu.hm.hafner.util.VisibleForTesting;
 import edu.umd.cs.findbugs.annotations.NonNull;
 
 import java.util.Collection;
@@ -17,27 +18,43 @@ import hudson.model.Job;
 import io.jenkins.plugins.coverage.metrics.model.Baseline;
 import io.jenkins.plugins.echarts.ActionSelector;
 import io.jenkins.plugins.echarts.TrendChartJobAction;
+import io.jenkins.plugins.util.ValidationUtilities;
 
 /**
  * Project level action for the coverage results. A job action displays a link on the side panel of a job that refers to
- * the last build that contains coverage results (i.e. a {@link CoverageBuildAction} with a {@link Node} instance). This
- * action also is responsible to render the historical trend via its associated 'floatingBox.jelly' view.
+ * the last build that contains coverage results (i.e., a {@link CoverageBuildAction} with a {@link Node} instance). This
+ * action also is responsible for rendering the historical trend via its associated 'floatingBox.jelly' view.
  *
  * @author Ullrich Hafner
  */
 public class CoverageJobAction extends TrendChartJobAction<CoverageBuildAction> {
+    private static final ValidationUtilities VALIDATION_UTILITIES = new ValidationUtilities();
+
     private static final LinesChartModel EMPTY_CHART = new LinesChartModel();
 
-    private final String id;
+    private /* almost final */ String id;
     private final String name;
     private final String icon;
 
     CoverageJobAction(final Job<?, ?> owner, final String id, final String name, final String icon) {
         super(owner, CoverageBuildAction.class);
 
+        VALIDATION_UTILITIES.ensureValidId(id);
+
         this.id = id;
         this.name = name;
         this.icon = icon;
+    }
+
+    protected Object readResolve() {
+        VALIDATION_UTILITIES.ensureValidId(id);
+
+        return this;
+    }
+
+    @VisibleForTesting
+    void setId(final String id) {
+        this.id = id;
     }
 
     @Override
