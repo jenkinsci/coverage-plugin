@@ -28,6 +28,17 @@
     <maven.deploy.skip>true</maven.deploy.skip>
   </properties>
 
+  <dependencyManagement>
+    <dependencies>
+      <!-- Remove when in bom -->
+      <dependency>
+        <groupId>io.jenkins.plugins</groupId>
+        <artifactId>echarts-api</artifactId>
+        <version>6.1.0-1321.v86c4c5114494</version>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
+
   <scm child.scm.connection.inherit.append.path="false"
        child.scm.developerConnection.inherit.append.path="false"
        child.scm.url.inherit.append.path="false">
