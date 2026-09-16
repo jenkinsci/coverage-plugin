@@ -1,0 +1,26 @@
+<?jelly escape-by-default='true'?>
+<j:jelly xmlns:j="jelly:core" xmlns:l="/lib/layout" xmlns:st="jelly:stapler">
+  <st:adjunct includes="io.jenkins.plugins.coverage.metrics.steps.RunTab.styles"/>
+
+  <j:set var="maxItems" value="7"/>
+
+  <l:card title="${it.displayName}" expandable="${it.urlName}">
+    <j:set var="widget" value="${it.widget}"/>
+
+    <a class="coverage-widget__link" href="${it.urlName}" tabindex="-1" aria-hidden="true"/>
+
+    <div class="jenkins-card__teaser">
+      <l:icon src="${widget.symbol}" class="jenkins-!-success-color"/>
+      <div>${widget.message}</div>
+
+      <div class="coverage-widget">
+        <j:forEach var="action" items="${widget.results}">
+            <a href="${action.urlName}" class="coverage-widget__item">
+                <l:icon src="${action.iconFileName}"/>
+                ${action.displayName}
+            </a>
+        </j:forEach>
+      </div>
+    </div>
+  </l:card>
+</j:jelly>

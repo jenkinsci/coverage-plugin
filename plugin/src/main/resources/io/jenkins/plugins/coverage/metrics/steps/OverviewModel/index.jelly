@@ -1,0 +1,35 @@
+<?jelly escape-by-default='true'?>
+<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:l="/lib/layout" xmlns:cov="/coverage" xmlns:c="/controls">
+
+  <st:header name="Content-Type" value="text/html;charset=UTF-8"/>
+
+  <l:run-subpage>
+
+    <st:adjunct includes="io.jenkins.plugins.coverage.metrics.steps.RunTab.styles"/>
+    <st:adjunct includes="io.jenkins.plugins.coverage.metrics.cell-style"/>
+
+    <l:app-bar title="${it.displayName}"/>
+
+    <div class="coverage-body">
+      <cov:sidepanel id="${it.id}"/>
+
+      <div class="content">
+        <l:card title="${%Overview}">
+          <ul>
+            <j:forEach var="baseline" items="${it.baselines}">
+              <cov:coverage-summary baseline="${baseline}" asLink="false"/>
+            </j:forEach>
+            <j:if test="${it.referenceBuild.present}">
+              <li>
+                ${%Reference build}: <j:out value="${it.referenceBuildLink}"/>
+              </li>
+            </j:if>
+            <c:qualityGate result="${it.qualityGateResult}"/>
+          </ul>
+        </l:card>
+      </div>
+    </div>
+
+  </l:run-subpage>
+
+</j:jelly>

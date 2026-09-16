@@ -1,0 +1,35 @@
+<?jelly escape-by-default='true'?>
+<j:jelly xmlns:st="jelly:stapler" xmlns:j="jelly:core" xmlns:l="/lib/layout">
+
+  <st:documentation>
+    Provides the side panel links for the coverage tab.
+
+    <st:attribute name="id" type="String" use="required">
+      The ID of the coverage results.
+    </st:attribute>
+
+  </st:documentation>
+
+  <div id="side-panel" class="app-page-body__sidebar coverage-sidebar">
+
+    <l:tasks>
+      <l:task title="${%Overview}"
+              icon="symbol-grid-outline plugin-ionicons-api"
+              href="${url + '/' + id + '/overview'}"/>
+      <l:task title="${%Trend}"
+              icon="symbol-trending-up-outline plugin-ionicons-api"
+              href="${url + '/' + id + '/trend'}"/>
+      <l:task title="${%Treemap}"
+              icon="symbol-apps-outline plugin-ionicons-api"
+              href="${url + '/' + id + '/treemap'}"/>
+      <l:task title="${%Files}"
+              icon="symbol-documents-outline plugin-ionicons-api"
+              href="${url + '/' + id + '/table'}"/>
+      <l:task title="${%Log Messages}"
+              icon="symbol-information-circle-outline plugin-ionicons-api"
+              href="${url + '/' + id + '/log'}"/>
+
+    </l:tasks>
+  </div>
+
+</j:jelly>
