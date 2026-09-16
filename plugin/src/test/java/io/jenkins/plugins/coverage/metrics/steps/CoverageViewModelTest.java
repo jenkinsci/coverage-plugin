@@ -120,8 +120,8 @@ class CoverageViewModelTest extends AbstractCoverageTest {
     void shouldProvideFileCoverageApi() {
         var model = createModel(createIndirectCoverageChangesNode());
 
-        assertThat(model.getDynamic("files", null, null)).isInstanceOf(FileCoverageApiModel.class);
-        assertThat(model.getDynamic("info", null, null)).isInstanceOf(MessagesViewModel.class);
+        assertThat(model.getDynamic("files")).isInstanceOf(FileCoverageApiModel.class);
+        assertThat(model.getDynamic("info")).isInstanceOf(MessagesViewModel.class);
     }
 
     private CoverageViewModel createModelFromCodingStyleReport() {

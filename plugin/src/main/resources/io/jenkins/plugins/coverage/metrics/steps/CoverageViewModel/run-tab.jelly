@@ -1,0 +1,16 @@
+<?jelly escape-by-default='true'?>
+<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:l="/lib/layout" xmlns:cov="/coverage">
+
+  <l:run-subpage>
+
+    <st:adjunct includes="io.jenkins.plugins.coverage.metrics.steps.RunTab.styles"/>
+
+    <l:app-bar title="${it.displayName}" />
+
+    <div class="coverage-body">
+      <cov:sidepanel id="${it.id}"/>
+    </div>
+
+  </l:run-subpage>
+
+</j:jelly>

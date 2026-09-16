@@ -115,7 +115,8 @@ public class CoverageJobAction extends TrendChartJobAction<CoverageBuildAction> 
         var latestAction = getLatestAction();
 
         return latestAction
-                .map(a -> new TrendChartFactory().createChartModel(configuration, a))
+                .map(a -> new TrendChartFactory().createChartModel(configuration, a,
+                        TrendChartFactory.LEGACY_DEFAULT_TREND_METRICS))
                 .orElse(EMPTY_CHART);
     }
 

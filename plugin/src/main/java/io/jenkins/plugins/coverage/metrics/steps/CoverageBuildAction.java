@@ -696,12 +696,21 @@ public final class CoverageBuildAction extends BuildAction<Node> implements Stap
                 this::createCoverageModel, this::createMetricsModel);
     }
 
+    @VisibleForTesting
+    CoverageViewModel getTarget(final CoverageViewModel.UsePropertyFacade usePropertyFacade) {
+        return new CoverageViewModel(getOwner(), getUrlName(), name, getResult(),
+                getStatistics(), getQualityGateResult(), getReferenceBuildLink(), log,
+                this::createCoverageModel, this::createMetricsModel, usePropertyFacade);
+    }
+
     private String createCoverageModel(final String configuration) {
-        return new ObjectMapper().writeValueAsString(new TrendChartFactory().createChartModel(configuration, this));
+        return new ObjectMapper().writeValueAsString(new TrendChartFactory().createChartModel(configuration, this,
+                TrendChartFactory.LEGACY_DEFAULT_TREND_METRICS));
     }
 
     private String createMetricsModel(final String configuration) {
-        return new ObjectMapper().writeValueAsString(new TrendChartFactory().createMetricsModel(configuration, this));
+        return new ObjectMapper().writeValueAsString(new TrendChartFactory().createMetricsModel(configuration, this,
+                TrendChartFactory.LEGACY_DEFAULT_TREND_METRICS));
     }
 
     @NonNull

@@ -44,6 +44,27 @@
     <testcontainers.version>2.0.5</testcontainers.version>
   </properties>
 
+  <dependencyManagement>
+    <!-- TODO: Remove once coverage plugin release is again part of latest BOM. -->
+    <dependencies>
+      <dependency>
+        <groupId>io.jenkins.plugins</groupId>
+        <artifactId>echarts-api</artifactId>
+        <version>6.1.0-1321.v86c4c5114494</version>
+      </dependency>
+      <dependency>
+        <groupId>io.jenkins.plugins</groupId>
+        <artifactId>font-awesome-api</artifactId>
+        <version>7.3.1-1013.v0835a_879ec6d</version>
+      </dependency>
+      <dependency>
+        <groupId>io.jenkins.plugins</groupId>
+        <artifactId>jackson3-api</artifactId>
+        <version>3.2.2-96.v599957900a_1a_</version>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
+
   <dependencies>
     <!-- Library Dependencies -->
     <dependency>

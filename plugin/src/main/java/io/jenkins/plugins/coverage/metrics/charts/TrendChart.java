@@ -3,7 +3,6 @@ package io.jenkins.plugins.coverage.metrics.charts;
 import edu.hm.hafner.coverage.Metric;
 import edu.hm.hafner.echarts.BuildResult;
 import edu.hm.hafner.echarts.ChartModelConfiguration;
-import edu.hm.hafner.echarts.JacksonFacade;
 import edu.hm.hafner.echarts.line.LineSeries;
 import edu.hm.hafner.echarts.line.LineSeries.FilledMode;
 import edu.hm.hafner.echarts.line.LineSeries.StackedMode;
@@ -18,11 +17,10 @@ import io.jenkins.plugins.coverage.metrics.model.CoverageStatistics;
 
 /**
  * Builds the Java side model for a trend chart. The number of builds to consider is controlled by a
- * {@link ChartModelConfiguration} instance. The created model object can be serialized to JSON (e.g., using the
- * {@link JacksonFacade}) and can be used 1:1 as ECharts configuration object in the corresponding JS file.
+ * {@link ChartModelConfiguration} instance. The created model object can be serialized to JSON
+ * and can be used 1:1 as an ECharts configuration object in the corresponding JS file.
  *
  * @author Ullrich Hafner
- * @see JacksonFacade
  */
 public abstract class TrendChart {
     private static final Set<Metric> ALL_METRICS = Arrays.stream(Metric.values()).collect(Collectors.toSet());
