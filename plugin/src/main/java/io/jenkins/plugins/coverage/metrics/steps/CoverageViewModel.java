@@ -48,6 +48,7 @@ import io.jenkins.plugins.coverage.metrics.color.CoverageColorJenkinsId;
 import io.jenkins.plugins.coverage.metrics.model.CoverageStatistics;
 import io.jenkins.plugins.coverage.metrics.model.ElementFormatter;
 import io.jenkins.plugins.coverage.metrics.restapi.CoverageApi;
+import io.jenkins.plugins.coverage.metrics.restapi.FileCoverageApiModel;
 import io.jenkins.plugins.coverage.metrics.restapi.ModifiedLinesCoverageApiModel;
 import io.jenkins.plugins.coverage.metrics.source.SourceCodeFacade;
 import io.jenkins.plugins.coverage.metrics.source.SourceViewModel;
@@ -78,6 +79,7 @@ public class CoverageViewModel extends DefaultAsyncTableContentProvider implemen
     private static final String INLINE_SUFFIX = "-inline";
     private static final String INFO_MESSAGES_VIEW_URL = "info";
     private static final String MODIFIED_LINES_API_URL = "modified";
+    private static final String FILE_COVERAGE_API_URL = "files";
 
     private static final ElementFormatter FORMATTER = new ElementFormatter();
     private static final Set<Metric> TREE_METRICS = Set.of(
@@ -513,6 +515,9 @@ public class CoverageViewModel extends DefaultAsyncTableContentProvider implemen
     public Object getDynamic(final String link, final StaplerRequest2 request, final StaplerResponse2 response) {
         if (MODIFIED_LINES_API_URL.equals(link)) {
             return new ModifiedLinesCoverageApiModel(node);
+        }
+        if (FILE_COVERAGE_API_URL.equals(link)) {
+            return new FileCoverageApiModel(node);
         }
         if (INFO_MESSAGES_VIEW_URL.equals(link)) {
             return new MessagesViewModel(getOwner(), Messages.MessagesViewModel_Title(),

@@ -353,3 +353,21 @@ Example output:
   ]
 }
 ```
+
+The whole-file (absolute) coverage of the files with coverage relevant changes is provided using the following URL: `https://[jenkins-url]/job/[job-name]/[build-number]/coverage/files/api/json?pretty=true`. Only modified files are reported (to keep the response bounded for large projects); each file lists the coverage metrics that are actually available for it, keyed by metric name.
+
+Example output:
+```json
+{
+  "_class": "io.jenkins.plugins.coverage.metrics.restapi.FileCoverageApi",
+  "files": [
+    {
+      "fullyQualifiedFileName": "io/jenkins/plugins/coverage/metrics/restapi/FileCoverageApi.java",
+      "metrics": {
+        "line": "88.44%",
+        "branch": "82.19%"
+      }
+    }
+  ]
+}
+```

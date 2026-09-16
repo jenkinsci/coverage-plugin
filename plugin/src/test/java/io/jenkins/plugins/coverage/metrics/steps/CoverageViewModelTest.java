@@ -16,7 +16,9 @@ import java.util.function.Function;
 
 import hudson.model.Run;
 
+import io.jenkins.plugins.bootstrap5.MessagesViewModel;
 import io.jenkins.plugins.coverage.metrics.AbstractCoverageTest;
+import io.jenkins.plugins.coverage.metrics.restapi.FileCoverageApiModel;
 import io.jenkins.plugins.coverage.metrics.steps.CoverageTableModel.CoverageRow;
 import io.jenkins.plugins.util.QualityGateResult;
 
@@ -112,6 +114,14 @@ class CoverageViewModelTest extends AbstractCoverageTest {
 
         assertThatExceptionOfType(NoSuchElementException.class)
                 .isThrownBy(() -> model.getTableModel("wrong-id"));
+    }
+
+    @Test
+    void shouldProvideFileCoverageApi() {
+        var model = createModel(createIndirectCoverageChangesNode());
+
+        assertThat(model.getDynamic("files", null, null)).isInstanceOf(FileCoverageApiModel.class);
+        assertThat(model.getDynamic("info", null, null)).isInstanceOf(MessagesViewModel.class);
     }
 
     private CoverageViewModel createModelFromCodingStyleReport() {
