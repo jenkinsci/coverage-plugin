@@ -26,7 +26,7 @@ import io.jenkins.plugins.echarts.GenericBuildActionIterator.BuildActionIterable
  */
 class TrendChartFactory {
     static final Set<Metric> DEFAULT_TREND_METRICS = Set.of(
-            Metric.LINE, Metric.BRANCH,
+            Metric.LINE, Metric.BRANCH, Metric.INSTRUCTION,
             Metric.MUTATION, Metric.TEST_STRENGTH,
             Metric.NCSS, Metric.LOC, Metric.CYCLOMATIC_COMPLEXITY, Metric.COGNITIVE_COMPLEXITY);
     static final Set<Metric> IGNORED_TREND_METRICS = Set.of(
@@ -40,7 +40,9 @@ class TrendChartFactory {
     }
 
     LinesChartModel createChartModel(final String configuration, final CoverageBuildAction latestAction) {
-        return getLinesChartModel(configuration, latestAction, false);
+        var linesChartModel = getLinesChartModel(configuration, latestAction, false);
+        linesChartModel.setZeroBasedYAxis(useZeroBasedAxis(configuration));
+        return linesChartModel;
     }
 
     private LinesChartModel getLinesChartModel(final String configuration, final CoverageBuildAction latestAction,
@@ -60,6 +62,10 @@ class TrendChartFactory {
 
     private boolean useLines(final String configuration) {
         return getBoolean(configuration, "useLines", false);
+    }
+
+    private boolean useZeroBasedAxis(final String configuration) {
+        return getBoolean(configuration, "zeroBasedYAxis", false);
     }
 
     private boolean getBoolean(final String json, final String property, final boolean defaultValue) {

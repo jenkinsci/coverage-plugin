@@ -1,0 +1,42 @@
+<?jelly escape-by-default='true'?>
+<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:l="/lib/layout" xmlns:cov="/coverage">
+
+  <st:header name="Content-Type" value="text/html;charset=UTF-8"/>
+
+  <l:run-subpage>
+
+    <st:adjunct includes="io.jenkins.plugins.coverage.metrics.steps.RunTab.styles"/>
+    <st:adjunct includes="io.jenkins.plugins.jquery3"/>
+
+    <l:app-bar title="${it.displayName}"/>
+
+    <div class="coverage-body">
+      <cov:sidepanel id="${it.id}"/>
+
+      <div class="content">
+        <j:if test="${it.hasErrors()}">
+          <l:card title="${%Error Messages}">
+            <pre id="errors" class="coverage-log">
+              <j:forEach var="message" items="${it.errorMessages}">
+                <div>${message}</div>
+              </j:forEach>
+            </pre>
+          </l:card>
+        </j:if>
+
+        <l:card title="${%Information Messages}">
+          <pre id="info" class="coverage-log">
+            <j:forEach var="message" items="${it.infoMessages}">
+              <div>${message}</div>
+            </j:forEach>
+          </pre>
+        </l:card>
+
+      </div>
+    </div>
+
+    <st:adjunct includes="io.jenkins.plugins.coverage.metrics.steps.LogModel.log-model"/>
+
+  </l:run-subpage>
+
+</j:jelly>

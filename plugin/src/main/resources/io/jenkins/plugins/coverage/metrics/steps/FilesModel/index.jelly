@@ -1,0 +1,56 @@
+<?jelly escape-by-default='true'?>
+<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:l="/lib/layout" xmlns:cov="/coverage">
+
+  <st:header name="Content-Type" value="text/html;charset=UTF-8"/>
+
+  <l:run-subpage>
+
+    <st:adjunct includes="io.jenkins.plugins.coverage.metrics.steps.RunTab.styles"/>
+    <st:adjunct includes="io.jenkins.plugins.coverage.metrics.cell-style"/>
+
+    <l:app-bar title="${it.displayName}">
+      <div class="jenkins-!-margin-bottom-2 jenkins-!-margin-top-0" style="display: flex; align-items: center;">
+        <div class="jenkins-!-margin-right-1" style="text-wrap: nowrap">${%Table}:</div>
+        <div class="jenkins-select">
+          <select id="files-table-select" class="jenkins-select__input" style="min-width: 16em;" data-report-id="${it.id}">
+            <option value="absolute-coverage">${%files-type-all}</option>
+            <j:if test="${it.hasModifiedLinesCoverage()}">
+              <option value="modified-lines-coverage">${%files-type-modified}</option>
+            </j:if>
+            <j:if test="${it.hasIndirectCoverageChanges()}">
+              <option value="indirect-coverage">${%files-type-indirect}</option>
+            </j:if>
+          </select>
+        </div>
+      </div>
+    </l:app-bar>
+
+    <div class="coverage-body">
+      <cov:sidepanel id="${it.id}"/>
+
+      <div class="content">
+        <div id="files-panel-absolute-coverage" class="files-table-panel">
+          <cov:coverage-table showChangedToggle="true" id="absolute-coverage" title="${%files-type-all}"
+                               symbol="symbol-regular/file-lines plugin-font-awesome-api"/>
+        </div>
+        <j:if test="${it.hasModifiedLinesCoverage()}">
+          <div id="files-panel-modified-lines-coverage" class="files-table-panel" style="display: none;">
+            <cov:coverage-table id="modified-lines-coverage" title="${%files-type-modified}"
+                                 symbol="symbol-diff-stat plugin-forensics-api"/>
+          </div>
+        </j:if>
+        <j:if test="${it.hasIndirectCoverageChanges()}">
+          <div id="files-panel-indirect-coverage" class="files-table-panel" style="display: none;">
+            <cov:coverage-table id="indirect-coverage" title="${%files-type-indirect}"
+                                 symbol="symbol-regular/face-smile plugin-font-awesome-api"/>
+          </div>
+        </j:if>
+      </div>
+    </div>
+
+    <st:bind var="proxy" value="${it}"/>
+    <st:adjunct includes="io.jenkins.plugins.coverage.metrics.steps.CoverageFilesModel.files-model"/>
+
+  </l:run-subpage>
+
+</j:jelly>

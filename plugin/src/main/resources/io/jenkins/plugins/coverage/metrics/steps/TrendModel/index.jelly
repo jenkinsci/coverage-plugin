@@ -1,0 +1,58 @@
+<?jelly escape-by-default='true'?>
+<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:l="/lib/layout" xmlns:cov="/coverage">
+
+  <st:header name="Content-Type" value="text/html;charset=UTF-8"/>
+
+  <l:run-subpage>
+
+    <st:adjunct includes="io.jenkins.plugins.coverage.metrics.steps.RunTab.styles"/>
+    <st:adjunct includes="io.jenkins.plugins.echarts"/>
+
+    <link rel="stylesheet" href="${resURL}/plugin/coverage/css/view-model.css"/>
+
+    <l:app-bar title="${it.displayName}">
+      <div class="jenkins-!-margin-bottom-2 jenkins-!-margin-top-0"
+           style="display: flex; flex-direction: row; justify-content: space-between; align-items: center; height: auto; flex-wrap: wrap;">
+        <div style="display: flex; flex-basis: auto; justify-content: space-between; align-items: center"
+             tooltip="${%filled-tooltip}">
+          <span class="jenkins-checkbox">
+            <input type="checkbox" class="jenkins-!-margin-left-0 jenkins-!-margin-right-0" id="area-chart" />
+            <label class="attach-previous">${%filled-title}</label>
+          </span>
+        </div>
+
+        <div style="flex-grow: 1" class="jenkins-!-margin-right-4"/>
+        <div style="display: flex; flex-basis: auto; justify-content: space-between; align-items: center"
+             tooltip="${%zero-yaxis-tooltip}">
+          <span class="jenkins-checkbox">
+            <input type="checkbox" class="jenkins-!-margin-left-0 jenkins-!-margin-right-0" id="zero-axis" />
+            <label class="attach-previous">${%zero-yaxis-title}</label>
+          </span>
+        </div>
+
+        <div style="flex-grow: 1" class="jenkins-!-margin-right-4"/>
+        <div style="display: flex; flex-basis: auto; justify-content: space-between; align-items: center"
+             tooltip="${%builds-tooltip}">
+          <div class="jenkins-!-margin-right-1" style="text-wrap: nowrap">${%builds-title}:</div>
+          <input class="jenkins-!-margin-left-0 jenkins-!-margin-right-0 jenkins-input" id="builds" type="number"/>
+        </div>
+      </div>
+    </l:app-bar>
+
+    <div class="coverage-body">
+      <cov:sidepanel id="${it.id}"/>
+
+      <div class="content">
+        <l:card title="${%Trend}">
+          <div id="coverage-trend" class="graph-cursor-pointer" data-report-id="${it.id}"/>
+        </l:card>
+      </div>
+
+    </div>
+
+    <st:bind var="proxy" value="${it}"/>
+    <st:adjunct includes="io.jenkins.plugins.coverage.metrics.steps.TrendModel.trend-model"/>
+
+  </l:run-subpage>
+
+</j:jelly>
