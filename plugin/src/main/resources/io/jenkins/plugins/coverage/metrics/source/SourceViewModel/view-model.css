@@ -63,10 +63,12 @@ table.source th {
 }
 
 /* --- Reset: all rows use the default background and text color --- */
-/* This overrides the old solid green/red/orange backgrounds */
+/* This overrides the old solid green/red/orange backgrounds. Explicit "transparent" rather than
+   a var() -- there is no Jenkins design token for "the ambient background", and the ancestor
+   card/table already paints the real, theme-aware background underneath. */
 table.source tr {
     position: relative;
-    background-color: var(--background-color) !important;
+    background-color: transparent !important;
     color: var(--text-color) !important;
     font-weight: normal !important;
 }
@@ -153,15 +155,15 @@ table.source tr.block-hover.coverPart td.code:after {
 }
 
 table.source tr.block-hover.coverNone td.code:after {
-    background: rgba(240, 68, 56, 0.15) !important;
+    background: color-mix(in sRGB, var(--red) 15%, transparent) !important;
 }
 
 table.source tr.block-hover.coverFull td.code:after {
-    background: rgba(18, 183, 106, 0.15) !important;
+    background: color-mix(in sRGB, var(--green) 15%, transparent) !important;
 }
 
 table.source tr.block-hover.coverPart td.code:after {
-    background: rgba(255, 165, 0, 0.15) !important;
+    background: color-mix(in sRGB, var(--orange) 15%, transparent) !important;
 }
 
 /*
@@ -221,45 +223,45 @@ table.source td.coverage-block-label.coverage-block-label--overflow {
 }
 
 table.source td.coverage-block-label.block-label-none {
-    background: rgb(253, 227, 225);
-    color: rgb(217, 45, 32);
+    background: color-mix(in sRGB, var(--red) 12%, var(--card-background, #fff));
+    color: var(--error-color);
 }
 
 table.source td.coverage-block-label.block-label-full {
-    background: rgb(219, 244, 233);
-    color: rgb(118, 175, 141);
+    background: color-mix(in sRGB, var(--green) 12%, var(--card-background, #fff));
+    color: var(--success-color);
 }
 
 table.source td.coverage-block-label.block-label-part {
-    background: rgb(255, 242, 217);
-    color: rgb(255, 165, 0);
+    background: color-mix(in sRGB, var(--orange) 12%, var(--card-background, #fff));
+    color: var(--warning-color);
 }
 
 
-/* --- General row hover: light blue-grey background --- */
+/* --- General row hover: neutral tint, theme-aware --- */
 table.source tr:hover td.line,
 table.source tr:hover td.hits,
 table.source tr:hover td.code {
-    background: rgb(239, 242, 249);
+    background: color-mix(in sRGB, var(--text-color) 7%, transparent);
 }
 
-/* Override hover for coverage-typed rows to use same neutral grey */
+/* Override hover for coverage-typed rows to use same neutral tint */
 table.source tr.coverNone:hover td.line,
 table.source tr.coverNone:hover td.hits,
 table.source tr.coverNone:hover td.code {
-    background: rgb(239, 242, 249) !important;
+    background: color-mix(in sRGB, var(--text-color) 7%, transparent) !important;
 }
 
 table.source tr.coverFull:hover td.line,
 table.source tr.coverFull:hover td.hits,
 table.source tr.coverFull:hover td.code {
-    background: rgb(239, 242, 249) !important;
+    background: color-mix(in sRGB, var(--text-color) 7%, transparent) !important;
 }
 
 table.source tr.coverPart:hover td.line,
 table.source tr.coverPart:hover td.hits,
 table.source tr.coverPart:hover td.code {
-    background: rgb(239, 242, 249) !important;
+    background: color-mix(in sRGB, var(--text-color) 7%, transparent) !important;
 }
 
 /* --- Hits column: sticky (see td.line above), also the positioning context for the ::after stripe --- */
@@ -292,17 +294,17 @@ table.source tr td.hits:after {
 
 /* Green stripe for fully covered lines */
 table.source tr.coverFull td.hits:after {
-    background-color: rgb(166, 244, 197);
+    background-color: var(--light-green);
 }
 
 /* Red stripe for uncovered lines */
 table.source tr.coverNone td.hits:after {
-    background-color: rgb(217, 45, 32);
+    background-color: var(--red);
 }
 
 /* Orange stripe for partially covered lines */
 table.source tr.coverPart td.hits:after {
-    background-color: rgb(255, 165, 0);
+    background-color: var(--orange);
 }
 
 /* Ensure line/hits columns for uncovered rows keep default background. Uses the real Jenkins
@@ -317,5 +319,5 @@ table.source tr.coverNone td.hits {
 
 /* --- Skipped lines --- */
 table.source tr.coverSkip {
-    background-color: #b4b4b4 !important;
+    background-color: var(--medium-grey) !important;
 }
