@@ -1,0 +1,321 @@
+/*
+ * Styles for the source code table (table.source).
+ *
+ * Split out of the shared view-model.css into its own adjunct
+ * (io.jenkins.plugins.coverage.metrics.source.SourceViewModel.view-model) so that only pages which
+ * actually render a source table pull it in: the dedicated Source code view (SourceViewModel) and
+ * the embedded per-file source preview in the file coverage tables (coverage-table.jelly, itself
+ * embedded in CoverageViewModel). Pages that never render table.source no longer load these rules.
+ */
+
+table.source {
+    border-spacing: 0;
+    border-collapse: collapse;
+    border: 1px solid #bbb;
+    width: 100%;
+}
+
+table.source td {
+    border-spacing: 0;
+    border-collapse: collapse;
+    border: 0 solid #bbb;
+    padding-left: 0.2em;
+    padding-right: 0.2em;
+    font-family: monospace;
+}
+
+table.source .text {
+    margin-top: -1px;
+}
+
+/*
+ * Keep the line-number and hits columns visible while scrolling a long line horizontally, so the
+ * coverage status (stripe in td.hits, tint on hover) stays visible without needing to scroll back
+ * to the left edge, and without wrapping the line. --source-line-col-width is measured in JS (the
+ * line-number column's width varies with the file's line count) -- see the adjacent view-model.js.
+ */
+table.source td.line {
+    text-align: right;
+    border-width: 0 1px 0 0;
+    position: sticky;
+    left: 0;
+    z-index: 3;
+    /* --background-color (used elsewhere in this file) isn't an actual Jenkins design token --
+       it always resolves to nothing, which happened to look fine while cells just fell back to
+       transparent. That doesn't work for a sticky cell, which needs a real, opaque background to
+       occlude the code column scrolling underneath it -- so this one explicitly uses the real
+       token instead, with a plain fallback. */
+    background-color: var(--card-background, #fff);
+}
+
+table.source td.hits {
+    text-align: right;
+    border-width: 0px 1px 0px 0px;
+}
+
+table.source th {
+    padding-left: 0.5em;
+    font-weight: bold;
+    font-family: serif;
+    background-color: #f0f0f0;
+    border-width: 1px 1px 1px 1px;
+    text-align: left;
+}
+
+/* --- Reset: all rows use the default background and text color --- */
+/* This overrides the old solid green/red/orange backgrounds */
+table.source tr {
+    position: relative;
+    background-color: var(--background-color) !important;
+    color: var(--text-color) !important;
+    font-weight: normal !important;
+}
+
+table.source tr td {
+    font-weight: normal !important;
+}
+
+/*
+ * Sentinel row emitted by MutationSourcePrinter.getColumnHeader(). It is invisible to the user but lets :has(tr.mutation) * CSS selectors identify mutation coverage tables and override block label text.
+ */
+table.source tr.mutation {
+    display: none;
+}
+
+/*
+ * "New Code" label appears above the FIRST row of a modified block.
+ * It is always visible (not hover-dependent) so users immediately know
+ * which lines are new/changed since the reference build.
+ */
+table.source tr:not(.modified) + tr.modified:after {
+    content: "New Code";
+    display: flex;
+    position: absolute;
+    right: 5px;
+    top: -23px;
+    background-color: rgba(159, 169, 237, 0.15);
+    color: rgb(93, 108, 208);
+    padding: 5px;
+    border-top-left-radius: 5px;
+    border-top-right-radius: 5px;
+    height: 23px;
+    align-items: center;
+    font-family: monospace;
+    z-index: 2;
+}
+
+/*
+ * Blue overlay on every modified line's code cell.
+ * position:absolute fills the entire code cell without affecting layout.
+ */
+table.source tr.modified td.code:before {
+    content: "";
+    position: absolute;
+    display: flex;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 100%;
+    z-index: 1;
+    background: rgba(159, 169, 237, 0.15) !important;
+}
+
+/*
+ * Coverage block hover highlight and label.
+ *
+ * Block membership and the label text are computed once (per table load), in JS, by grouping
+ * directly adjacent rows that share the same coverage status -- see the adjacent view-model.js. That
+ * JS toggles the plain "block-hover" class on the rows of the currently hovered block, and tags
+ * each block's first row with "block-first" plus a data-block-label attribute (mutation-aware).
+ *
+ * This replaces the previous approach of combining :has() with the general sibling combinator (~)
+ * and :hover directly in CSS, e.g.:
+ *
+ *   table.source tr:has(~ tr.coverNone:hover) ~ tr:not(.coverNone) + tr.coverNone:after { ... }
+ *
+ * That forced the browser to re-check, on every hover change, whether *any* later row in the table
+ * matched -- an O(n^2) cost in the number of rows -- which became noticeably laggy on source files
+ * with a few hundred lines or more.
+ */
+
+/* Overlay tint on every row of the currently hovered block. */
+table.source tr.block-hover.coverNone td.code:after,
+table.source tr.block-hover.coverFull td.code:after,
+table.source tr.block-hover.coverPart td.code:after {
+    content: "";
+    position: absolute;
+    display: flex;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 100%;
+    z-index: 1;
+}
+
+table.source tr.block-hover.coverNone td.code:after {
+    background: rgba(240, 68, 56, 0.15) !important;
+}
+
+table.source tr.block-hover.coverFull td.code:after {
+    background: rgba(18, 183, 106, 0.15) !important;
+}
+
+table.source tr.block-hover.coverPart td.code:after {
+    background: rgba(255, 165, 0, 0.15) !important;
+}
+
+/*
+ * Label ("Uncovered code" / "Covered code" / "Partially covered code", or the mutation-coverage
+ * variants) for the currently hovered block. JS (view-model.js) appends it, on hover, as an actual
+ * extra <td> at the end of the block's first row -- not a pseudo-element. The background is a
+ * solid, pre-mixed pastel (not a translucent rgba tint like the block overlay above) so the row
+ * above it never shows through.
+ *
+ * Default: position:absolute, anchored to the row (table.source tr is position:relative), lifted
+ * above the row with "top" instead of a translateY transform. Deliberately NOT sticky/relative/
+ * static: those stay in the table's normal layout flow and so still count towards the table's
+ * auto-layout column widths even while doing nothing else -- appending this cell to only the
+ * hovered row would then nudge the whole table a few pixels wider than before. Invisible on a
+ * table that already needs to scroll, but on one that exactly fits its container (no horizontal
+ * scrollbar), that extra width flips a scrollbar on and off on every hover, a visible jump; worse,
+ * since the pinned position (see the --overflow variant below) is measured from the *viewport*
+ * edge, not from wherever this particular line's text actually ends, it would often land on top of
+ * the tail of the code instead of past it. position:absolute is taken out of the layout flow
+ * entirely, so it can't cause either problem, at the cost of no longer tracking horizontal scroll
+ * -- which is fine here, since this variant is only used when there is none to track.
+ */
+table.source td.coverage-block-label {
+    position: absolute;
+    right: 5px;
+    top: -23px;
+    z-index: 4;
+    display: flex;
+    align-items: center;
+    white-space: nowrap;
+    padding: 5px;
+    border-top-left-radius: 5px;
+    border-top-right-radius: 5px;
+    height: 23px;
+    font-family: monospace;
+}
+
+/*
+ * Used instead of the plain (default) variant above only while the table actually needs
+ * horizontal scrolling (see the usesFloatingLabel check in showLabel, view-model.js): pinned 5px
+ * from the right edge of the scrolling viewport so the label stays visible without the user
+ * having to scroll all the way to the row's real end, instead of sitting at a fixed spot on the
+ * row that scrolls out of view. This needs to be a real, in-flow table cell rather than a plain
+ * positioned element placed next to the table -- both were tried and both silently failed to stay
+ * in view while scrolling: position:sticky here only reliably tracks the right edge of *this*
+ * horizontally-scrolling table when the element is itself a real cell participating in the
+ * table's column layout (verified live; a positioned element outside the table, or nested inside
+ * the already-sticky, narrow hits column, sticks to the wrong reference box instead and either
+ * scrolls away or hugs the wrong edge). transform (not "top") lifts it to float just above the
+ * row -- only the horizontal axis needs to stay pinned while scrolling, since this table only
+ * ever scrolls horizontally.
+ */
+table.source td.coverage-block-label.coverage-block-label--overflow {
+    position: sticky;
+    top: auto;
+    transform: translateY(-23px);
+}
+
+table.source td.coverage-block-label.block-label-none {
+    background: rgb(253, 227, 225);
+    color: rgb(217, 45, 32);
+}
+
+table.source td.coverage-block-label.block-label-full {
+    background: rgb(219, 244, 233);
+    color: rgb(118, 175, 141);
+}
+
+table.source td.coverage-block-label.block-label-part {
+    background: rgb(255, 242, 217);
+    color: rgb(255, 165, 0);
+}
+
+
+/* --- General row hover: light blue-grey background --- */
+table.source tr:hover td.line,
+table.source tr:hover td.hits,
+table.source tr:hover td.code {
+    background: rgb(239, 242, 249);
+}
+
+/* Override hover for coverage-typed rows to use same neutral grey */
+table.source tr.coverNone:hover td.line,
+table.source tr.coverNone:hover td.hits,
+table.source tr.coverNone:hover td.code {
+    background: rgb(239, 242, 249) !important;
+}
+
+table.source tr.coverFull:hover td.line,
+table.source tr.coverFull:hover td.hits,
+table.source tr.coverFull:hover td.code {
+    background: rgb(239, 242, 249) !important;
+}
+
+table.source tr.coverPart:hover td.line,
+table.source tr.coverPart:hover td.hits,
+table.source tr.coverPart:hover td.code {
+    background: rgb(239, 242, 249) !important;
+}
+
+/* --- Hits column: sticky (see td.line above), also the positioning context for the ::after stripe --- */
+table.source tr td.hits {
+    position: sticky;
+    left: var(--source-line-col-width, 3em);
+    z-index: 3;
+    background-color: var(--card-background, #fff);
+    padding-right: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: right;
+    min-height: 23px;
+}
+
+/* td.code needs position:relative for the ::after overlay pseudo-element */
+table.source tr td.code {
+    position: relative;
+}
+
+/* --- 5px colored stripe on the right edge of the hits column --- */
+table.source tr td.hits:after {
+    content: "";
+    position: absolute;
+    right: -1px;
+    display: inline-block;
+    width: 5px;
+    height: 23px;
+}
+
+/* Green stripe for fully covered lines */
+table.source tr.coverFull td.hits:after {
+    background-color: rgb(166, 244, 197);
+}
+
+/* Red stripe for uncovered lines */
+table.source tr.coverNone td.hits:after {
+    background-color: rgb(217, 45, 32);
+}
+
+/* Orange stripe for partially covered lines */
+table.source tr.coverPart td.hits:after {
+    background-color: rgb(255, 165, 0);
+}
+
+/* Ensure line/hits columns for uncovered rows keep default background. Uses the real Jenkins
+   design token (see the comment on td.line's sticky rule above -- --background-color isn't one). */
+table.source tr.coverNone td.line {
+    background-color: var(--card-background, #fff) !important;
+}
+
+table.source tr.coverNone td.hits {
+    background-color: var(--card-background, #fff) !important;
+}
+
+/* --- Skipped lines --- */
+table.source tr.coverSkip {
+    background-color: #b4b4b4 !important;
+}
