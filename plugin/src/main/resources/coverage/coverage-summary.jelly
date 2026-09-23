@@ -6,11 +6,23 @@
     <st:attribute name="baseline" type="io.jenkins.plugins.coverage.metrics.model.Baseline">
       The baseline to show.
     </st:attribute>
+    <st:attribute name="asLink" type="Boolean">
+      Whether the baseline title should be rendered as a link to the "${it.urlName}/#${baseline.url}" anchor
+      (the legacy tabbed overview page). Defaults to true for backward compatibility. Set to false when this tag is
+      used on a page where that anchor target does not apply (e.g. a dedicated sub-page of the new tabbed UI).
+    </st:attribute>
   </st:documentation>
 
   <j:if test="${it.hasBaselineResult(baseline)}">
     <li>
-      <a href="${it.urlName}/#${baseline.url}">${it.getTitle(baseline)}</a>
+      <j:choose>
+        <j:when test="${asLink == null or asLink}">
+          <a href="${it.urlName}/#${baseline.url}">${it.getTitle(baseline)}</a>
+        </j:when>
+        <j:otherwise>
+          <span>${it.getTitle(baseline)}</span>
+        </j:otherwise>
+      </j:choose>
       <div class="${baseline}-summary">
         <j:set var="values" value="${it.getAllValues(baseline)}"/>
         <j:set var="formatter" value="${it.formatter}"/>

@@ -1,0 +1,58 @@
+<?jelly escape-by-default='true'?>
+<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:l="/lib/layout" xmlns:cov="/coverage">
+
+  <st:header name="Content-Type" value="text/html;charset=UTF-8"/>
+
+  <l:run-subpage>
+
+    <st:adjunct includes="io.jenkins.plugins.coverage.metrics.steps.RunTab.styles"/>
+    <st:adjunct includes="io.jenkins.plugins.coverage.metrics.color-scale"/>
+    <st:adjunct includes="io.jenkins.plugins.echarts"/>
+
+    <link rel="stylesheet" href="${resURL}/plugin/coverage/css/view-model.css"/>
+
+    <j:set var="formatter" value="${it.formatter}"/>
+
+    <l:app-bar title="${it.displayName}">
+      <div class="jenkins-details"
+           style="display: flex; flex-direction: row; justify-content: flex-end; align-items: center; flex-wrap: wrap; gap: 12px;">
+        <div style="display: flex; align-items: center;">
+          <div class="jenkins-!-margin-right-1" style="text-wrap: nowrap">${%Metric}:</div>
+          <div class="jenkins-select">
+            <select id="hierarchy-metric-select" class="jenkins-select__input" style="min-width: 20em;">
+              <j:forEach var="metric" items="${it.treeMetrics}">
+                <option value="${metric.toTagName()}" data-order="${metric.tendency}"
+                        data-shares-overview-thresholds="${it.sharesOverviewThresholds(metric)}">
+                  ${formatter.getDisplayName(metric)}
+                </option>
+              </j:forEach>
+            </select>
+          </div>
+        </div>
+        <div style="display: flex; align-items: center;" tooltip="${%green-tooltip}">
+          <div class="jenkins-!-margin-right-1" style="text-wrap: nowrap">${%green-title}:</div>
+          <input type="number" step="any" id="hierarchy-green-threshold" class="jenkins-input" style="width: 7em;"/>
+        </div>
+        <div style="display: flex; align-items: center;" tooltip="${%red-tooltip}">
+          <div class="jenkins-!-margin-right-1" style="text-wrap: nowrap">${%red-title}:</div>
+          <input type="number" step="any" id="hierarchy-red-threshold" class="jenkins-input" style="width: 7em;"/>
+        </div>
+      </div>
+    </l:app-bar>
+
+    <div class="coverage-body">
+      <cov:sidepanel id="${it.id}"/>
+
+      <div class="content">
+        <l:card title="${%Treemap}">
+          <div id="hierarchy-tree" class="graph-cursor-pointer tree-chart" data-report-id="${it.id}"/>
+        </l:card>
+      </div>
+    </div>
+
+    <st:bind var="proxy" value="${it}"/>
+    <st:adjunct includes="io.jenkins.plugins.coverage.metrics.steps.TreeMapModel.treemap-model"/>
+
+  </l:run-subpage>
+
+</j:jelly>

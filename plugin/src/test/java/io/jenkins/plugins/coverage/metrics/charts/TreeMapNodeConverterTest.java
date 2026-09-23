@@ -12,6 +12,7 @@ import io.jenkins.plugins.coverage.metrics.AbstractCoverageTest;
 import io.jenkins.plugins.coverage.metrics.color.ColorProvider;
 import io.jenkins.plugins.coverage.metrics.color.ColorProviderFactory;
 import io.jenkins.plugins.coverage.metrics.color.CoverageLevel;
+import io.jenkins.plugins.coverage.metrics.color.ThresholdColorProvider;
 
 import static org.assertj.core.api.Assertions.*;
 
@@ -56,6 +57,53 @@ class TreeMapNodeConverterTest extends AbstractCoverageTest {
         var nodes = aggregateChildren(root);
         nodes.stream().filter(node -> node.getName().endsWith(".java")).forEach(node ->
                 assertThat(node.getValue()).hasSize(2));
+    }
+
+    @Test
+    void shouldColorTreeUsingConfiguredThresholds() {
+        var tree = readJacocoResult(PREFIX + JACOCO_CODING_STYLE_FILE);
+
+        var greenThreshold = 100.0;
+        var redThreshold = 0.0;
+        var root = new TreeMapNodeConverter().toThresholdTreeChartModel(tree, Metric.LINE,
+                greenThreshold, redThreshold, COLOR_PROVIDER);
+
+        assertThat(root.getName()).isEqualTo("Java coding style");
+
+        var overallCoveragePercentage = 100.0 * JACOCO_CODING_STYLE_COVERED / JACOCO_CODING_STYLE_TOTAL;
+        var expectedFillColor = ThresholdColorProvider.getFillColorAsHex(overallCoveragePercentage,
+                Metric.LINE.getTendency(), greenThreshold, redThreshold, COLOR_PROVIDER);
+        assertThat(root.getItemStyle().getColor()).isEqualTo(expectedFillColor);
+
+        var overallCoverage = String.valueOf(JACOCO_CODING_STYLE_TOTAL);
+        assertThat(root.getValue()).contains(overallCoverage);
+    }
+
+    @Test
+    void shouldBuildTheSameTreeShapeRegardlessOfColoringStrategy() {
+        var tree = readJacocoResult(PREFIX + JACOCO_ANALYSIS_MODEL_FILE);
+
+        var plain = new TreeMapNodeConverter().toTreeChartModel(tree, Metric.BRANCH, COLOR_PROVIDER);
+        var threshold = new TreeMapNodeConverter().toThresholdTreeChartModel(tree, Metric.BRANCH,
+                100.0, 0.0, COLOR_PROVIDER);
+
+        // same node count and same size ("value") independent of how the nodes end up being colored
+        assertThat(aggregateChildren(threshold)).hasSameSizeAs(aggregateChildren(plain));
+        assertThat(threshold.getValue()).isEqualTo(plain.getValue());
+    }
+
+    @Test
+    void shouldClampEveryNodeToFullyGreenWhenTheGreenThresholdIsUnreachablyLow() {
+        var tree = readJacocoResult(PREFIX + JACOCO_CODING_STYLE_FILE);
+
+        // a green threshold below the worst possible value (0%) means every node, however covered, is fully green
+        var root = new TreeMapNodeConverter().toThresholdTreeChartModel(tree, Metric.LINE, 0.0, -1.0, COLOR_PROVIDER);
+
+        var fullyGreen = ThresholdColorProvider.getFillColorAsHex(100.0, Metric.LINE.getTendency(), 0.0, -1.0,
+                COLOR_PROVIDER);
+        assertThat(root.getItemStyle().getColor()).isEqualTo(fullyGreen);
+        aggregateChildren(root).forEach(node ->
+                assertThat(node.getItemStyle().getColor()).isEqualTo(fullyGreen));
     }
 
     private List<LabeledTreeMapNode> aggregateChildren(final LabeledTreeMapNode root) {

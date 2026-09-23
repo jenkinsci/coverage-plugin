@@ -4,9 +4,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Strings;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 
-import tools.jackson.core.type.TypeReference;
-import tools.jackson.databind.ObjectMapper;
-
 import edu.hm.hafner.coverage.Coverage;
 import edu.hm.hafner.coverage.FileNode;
 import edu.hm.hafner.coverage.Metric;
@@ -19,6 +16,7 @@ import edu.hm.hafner.util.VisibleForTesting;
 import edu.umd.cs.findbugs.annotations.CheckForNull;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -30,17 +28,19 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
-import org.kohsuke.stapler.StaplerRequest2;
-import org.kohsuke.stapler.StaplerResponse2;
-import org.kohsuke.stapler.bind.JavaScriptMethod;
 import tools.jackson.core.JacksonException;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.ObjectMapper;
+
+import org.kohsuke.stapler.HttpResponse;
+import org.kohsuke.stapler.bind.JavaScriptMethod;
 import hudson.model.Api;
 import hudson.model.ModelObject;
 import hudson.model.Run;
+import hudson.util.HttpResponses;
+import jenkins.model.experimentalflags.BooleanUserExperimentalFlag;
 
 import io.jenkins.plugins.bootstrap5.MessagesViewModel;
-import io.jenkins.plugins.prism.SourceCodeViewModel;
 import io.jenkins.plugins.coverage.metrics.charts.TreeMapNodeConverter;
 import io.jenkins.plugins.coverage.metrics.color.ColorProvider;
 import io.jenkins.plugins.coverage.metrics.color.ColorProviderFactory;
@@ -57,6 +57,7 @@ import io.jenkins.plugins.coverage.metrics.steps.CoverageTableModel.LinkedRowRen
 import io.jenkins.plugins.coverage.metrics.steps.CoverageTableModel.RowRenderer;
 import io.jenkins.plugins.datatables.DefaultAsyncTableContentProvider;
 import io.jenkins.plugins.datatables.TableModel;
+import io.jenkins.plugins.prism.SourceCodeViewModel;
 import io.jenkins.plugins.util.BuildResultNavigator;
 import io.jenkins.plugins.util.QualityGateResult;
 
@@ -78,12 +79,25 @@ public class CoverageViewModel extends DefaultAsyncTableContentProvider implemen
     static final String INDIRECT_COVERAGE_TABLE_ID = "indirect-coverage-table";
     private static final String INLINE_SUFFIX = "-inline";
     private static final String INFO_MESSAGES_VIEW_URL = "info";
+
+    /** Additional URLs for the remote API. */
     private static final String MODIFIED_LINES_API_URL = "modified";
     private static final String FILE_COVERAGE_API_URL = "files";
 
+    /** New URLs for the run tab. */
+    static final String OVERVIEW_URL = "overview";
+    private static final String TREND_URL = "trend";
+    private static final String TREEMAP_URL = "treemap";
+    private static final String FILES_URL = "table";
+    private static final String LOG_VIEW_URL = "log";
+
+    private static final String NEW_BUILD_PAGE_FLAG_CLASS_NAME =
+            "jenkins.model.experimentalflags.NewBuildPageUserExperimentalFlag";
+
     private static final ElementFormatter FORMATTER = new ElementFormatter();
     private static final Set<Metric> TREE_METRICS = Set.of(
-            Metric.LINE, Metric.BRANCH, Metric.MUTATION, Metric.TEST_STRENGTH, Metric.CYCLOMATIC_COMPLEXITY, Metric.TESTS,
+            Metric.LINE, Metric.BRANCH, Metric.MUTATION, Metric.TEST_STRENGTH, Metric.CYCLOMATIC_COMPLEXITY,
+            Metric.TESTS,
             Metric.MCDC_PAIR, Metric.FUNCTION_CALL, Metric.COGNITIVE_COMPLEXITY, Metric.NCSS, Metric.NPATH_COMPLEXITY);
     private final Run<?, ?> owner;
     private final String displayName;
@@ -98,6 +112,7 @@ public class CoverageViewModel extends DefaultAsyncTableContentProvider implemen
     private final Node indirectCoverageChangesTreeRoot;
     private final Function<String, String> trendChartFunction;
     private final Function<String, String> metricsTrendFunction;
+    private final UsePropertyFacade usePropertyFacade;
 
     private ColorProvider colorProvider = ColorProviderFactory.createDefaultColorProvider();
 
@@ -107,6 +122,18 @@ public class CoverageViewModel extends DefaultAsyncTableContentProvider implemen
             final String referenceBuild, final FilteredLog log,
             final Function<String, String> trendChartFunction,
             final Function<String, String> metricsTrendFunction) {
+        this(owner, id, displayName, node, statistics, qualityGateResult, referenceBuild, log,
+                trendChartFunction, metricsTrendFunction, CoverageViewModel::isRunTabActive);
+    }
+
+    @VisibleForTesting
+    @SuppressWarnings("checkstyle:ParameterNumber")
+    CoverageViewModel(final Run<?, ?> owner, final String id, final String displayName, final Node node,
+            final CoverageStatistics statistics, final QualityGateResult qualityGateResult,
+            final String referenceBuild, final FilteredLog log,
+            final Function<String, String> trendChartFunction,
+            final Function<String, String> metricsTrendFunction,
+            final UsePropertyFacade usePropertyFacade) {
         super();
 
         this.owner = owner;
@@ -125,6 +152,7 @@ public class CoverageViewModel extends DefaultAsyncTableContentProvider implemen
         indirectCoverageChangesTreeRoot = node.filterByIndirectChanges();
         this.trendChartFunction = trendChartFunction;
         this.metricsTrendFunction = metricsTrendFunction;
+        this.usePropertyFacade = usePropertyFacade;
     }
 
     @VisibleForTesting
@@ -138,6 +166,14 @@ public class CoverageViewModel extends DefaultAsyncTableContentProvider implemen
 
     public Run<?, ?> getOwner() {
         return owner;
+    }
+
+    public Run<?, ?> getObject() {
+        return getOwner();
+    }
+
+    public RunTab getTab() {
+        return new RunTab(getOwner());
     }
 
     public Node getNode() {
@@ -319,16 +355,66 @@ public class CoverageViewModel extends DefaultAsyncTableContentProvider implemen
     }
 
     /**
+     * Returns the root of the tree of nodes for the ECharts treemap, colored by linearly interpolating between red and
+     * green using the two given thresholds (rather than using the configured {@link ColorProvider}). Used by the
+     * hierarchy tab, where the user can freely configure the green/red boundaries.
+     *
+     * @param coverageMetric
+     *         the used coverage metric (line, branch, instruction, mutation)
+     * @param greenThreshold
+     *         the value from which on a result is considered fully green (best)
+     * @param redThreshold
+     *         the value from which on a result is considered fully red (worst)
+     *
+     * @return the tree of nodes for the ECharts treemap
+     */
+    @JavaScriptMethod
+    @SuppressWarnings("unused")
+    public LabeledTreeMapNode getThresholdCoverageTree(final String coverageMetric,
+            final double greenThreshold, final double redThreshold) {
+        var metric = getCoverageMetricFromText(coverageMetric);
+        return TREE_MAP_NODE_CONVERTER.toThresholdTreeChartModel(getNode(), metric, greenThreshold, redThreshold,
+                colorProvider);
+    }
+
+    /**
+     * Returns the minimum and maximum value of the given metric across all files. Used by the client to initialize
+     * sensible default green/red threshold values for the hierarchy tree map.
+     *
+     * @param coverageMetric
+     *         the used coverage metric (line, branch, instruction, mutation)
+     *
+     * @return a list with exactly two elements: the minimum (index 0) and the maximum (index 1) value
+     */
+    @JavaScriptMethod
+    @SuppressWarnings("unused")
+    public List<Double> getMetricValueRange(final String coverageMetric) {
+        var metric = getCoverageMetricFromText(coverageMetric);
+        var values = getNode().getAllFileNodes().stream()
+                .map(fileNode -> fileNode.getValue(metric))
+                .flatMap(Optional::stream)
+                .mapToDouble(Value::asDouble)
+                .toArray();
+        if (values.length == 0) {
+            return List.of(0.0, 100.0);
+        }
+        return List.of(
+                Arrays.stream(values).min().orElse(0.0),
+                Arrays.stream(values).max().orElse(100.0));
+    }
+
+    /**
      * Gets the {@link Metric} from a String representation used in the frontend.
      *
      * @param text
      *         The coverage metric as String
      *
      * @return the coverage metric
-     * @throws IllegalArgumentException if the coverage metric is unknown
+     * @throws IllegalArgumentException
+     *         if the coverage metric is unknown
      */
     private Metric getCoverageMetricFromText(final String text) {
-        for (Metric metric: Metric.values()) {
+        for (Metric metric : Metric.values()) {
             if (text.contains(metric.toTagName())) {
                 return metric;
             }
@@ -499,36 +585,70 @@ public class CoverageViewModel extends DefaultAsyncTableContentProvider implemen
     }
 
     /**
+     * Handles the root URL of these coverage results. When the new (tabbed) build page UI is active for the current
+     * user redirects to the "Overview" tab. When the new build page UI is not active falls back to rendering the legacy
+     * single-page view (with its own in-page tabs) via 'index.jelly', unchanged.
+     *
+     * @return a redirect to the overview tab, or a forward to the (legacy) index view
+     */
+    @SuppressWarnings("unused") // Called by Stapler
+    public HttpResponse doIndex() {
+        if (usePropertyFacade.isRunTabEnabled()) {
+            // Build an absolute (context-path relative) URL rather than a page relative one: doIndex is reached
+            // both with and without a trailing slash on the current request URL, and a plain relative redirect
+            // resolves differently for each.
+            return HttpResponses.redirectViaContextPath(getOwner().getUrl() + getId() + "/" + OVERVIEW_URL);
+        }
+        return HttpResponses.forwardToView(this, "index.jelly");
+    }
+
+    /**
      * Returns a new subpage for the selected link.
      *
      * @param link
      *         the link to identify the subpage to show
-     * @param request
-     *         Stapler request
-     * @param response
-     *         Stapler response
      *
      * @return the new subpage
      */
-    @SuppressWarnings("unused") // Called by jelly view
+    @SuppressWarnings({"unused", "PMD.CyclomaticComplexity", "PMD.CognitiveComplexity"}) // Called by jelly view
     @CheckForNull
-    public Object getDynamic(final String link, final StaplerRequest2 request, final StaplerResponse2 response) {
-        if (MODIFIED_LINES_API_URL.equals(link)) {
-            return new ModifiedLinesCoverageApiModel(node);
+    public Object getDynamic(final String link) {
+        if (usePropertyFacade.isRunTabEnabled()) {
+            // The constant URLs are only used for the new run tab
+            if (TREND_URL.equals(link)) {
+                return new TrendModel(getOwner(), getLatestAction());
+            }
+            if (OVERVIEW_URL.equals(link)) {
+                return new OverviewModel(getOwner(), getLatestAction());
+            }
+            if (TREEMAP_URL.equals(link)) {
+                return new TreeMapModel(this);
+            }
+            if (FILES_URL.equals(link)) {
+                return new FilesModel(this);
+            }
+            if (LOG_VIEW_URL.equals(link)) {
+                return new LogModel(getId(), getOwner(), getFormatter(), getLog());
+            }
         }
+
         if (FILE_COVERAGE_API_URL.equals(link)) {
             return new FileCoverageApiModel(node);
+        }
+        if (MODIFIED_LINES_API_URL.equals(link)) {
+            return new ModifiedLinesCoverageApiModel(node);
         }
         if (INFO_MESSAGES_VIEW_URL.equals(link)) {
             return new MessagesViewModel(getOwner(), Messages.MessagesViewModel_Title(),
                     log.getInfoMessages(), log.getErrorMessages());
         }
+
+        // The remaining link must be a source code file coded as integer
         if (StringUtils.isNotEmpty(link)) {
             try {
                 Optional<Node> targetResult
                         = getNode().findByHashCode(Metric.FILE, Integer.parseInt(link));
-                if (targetResult.isPresent() && targetResult.get() instanceof FileNode) {
-                    var fileNode = (FileNode) targetResult.get();
+                if (targetResult.isPresent() && targetResult.get() instanceof FileNode fileNode) {
                     var view = new SourceViewModel(getOwner(), getId(), fileNode);
                     return SourceCodeViewModel.protectedSourceCodeView(view, getOwner(), fileNode.getName());
                 }
@@ -538,6 +658,19 @@ public class CoverageViewModel extends DefaultAsyncTableContentProvider implemen
             }
         }
         return null; // fallback on broken URLs
+    }
+
+    private CoverageBuildAction getLatestAction() {
+        return owner.getActions(CoverageBuildAction.class).stream()
+                .filter(action -> action.getUrlName().equals(id))
+                .findFirst()
+                .orElseThrow(() -> new NoSuchElementException("No coverage action found for id " + id));
+    }
+
+    private static boolean isRunTabActive() {
+        Boolean newBuildPage = BooleanUserExperimentalFlag.getFlagValueForCurrentUser(NEW_BUILD_PAGE_FLAG_CLASS_NAME);
+
+        return Boolean.TRUE.equals(newBuildPage);
     }
 
     /**
@@ -604,5 +737,13 @@ public class CoverageViewModel extends DefaultAsyncTableContentProvider implemen
      */
     @SuppressWarnings("PMD.LooseCoupling")
     private static final class ColorMappingType extends TypeReference<HashMap<String, String>> {
+    }
+
+    /**
+     * Determines whether the run tab is enabled for the current user in his Jenkins instance.
+     */
+    @FunctionalInterface
+    interface UsePropertyFacade {
+        boolean isRunTabEnabled();
     }
 }

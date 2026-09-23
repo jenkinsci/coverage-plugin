@@ -1,0 +1,306 @@
+.coverage-body {
+    display: grid;
+    grid-template-columns: 300px 1fr;
+    gap: var(--section-padding);
+    align-items: start;
+}
+
+.coverage-sidebar {
+    position: sticky;
+    top: calc(var(--header-height) + var(--section-padding));
+    width: unset !important;
+
+    #tasks {
+        margin: 0 !important;
+    }
+}
+
+.coverage-widget {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 0.25rem;
+    margin-top: 0.5rem;
+    margin-bottom: -1rem;
+}
+
+.coverage-widget__item {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: var(--jenkins-border);
+    border-radius: 50px;
+    padding: 0.25rem 0.75rem;
+    gap: 0.5rem;
+    font-size: 12px;
+    color: var(--text-color) !important;
+    text-decoration: none !important;
+    z-index: 2;
+
+    svg, img {
+        width: 0.875rem;
+        height: 0.875rem;
+        margin-bottom: 0;
+    }
+
+    span {
+        margin-right: -0.5rem;
+    }
+}
+
+.coverage-widget__link {
+    position: absolute;
+    inset: 0;
+    background: transparent;
+    z-index: 1;
+}
+
+.coverage-widget__item--more {
+    pointer-events: none;
+
+    svg {
+        margin-inline: -0.25rem;
+        color: var(--text-color-secondary);
+    }
+}
+
+.coverage-widget--metrics {
+    /* Badges are not individually clickable (there is only one result, so nothing to disambiguate); let clicks
+       fall through to the card-wide overlay link (.coverage-widget__link) instead, same as everywhere else on
+       this card. */
+    pointer-events: none;
+}
+
+.coverage-widget__metric .coverage-jenkins-cell-inner {
+    font-size: 12px;
+    white-space: nowrap;
+}
+
+.coverage-widget__metric-label {
+    font-weight: 600;
+    margin-right: 3px;
+}
+
+.coverage-log {
+    display: block;
+    overflow-y: auto;
+    margin: 0;
+    padding-left: 0;
+    border: none;
+    border-radius: 0;
+    background: transparent;
+}
+
+.coverage-dashboard {
+    display: flex;
+    flex-direction: column;
+    /* Match the card-to-card spacing Jenkins core itself uses between the cards on the build's main page (see
+       .app-build__grid, e.g. Changes/Warnings/this plugin's own widget), so the Overview tab's cards do not look
+       more loosely spaced than everywhere else. */
+    gap: calc(var(--section-padding) / 2);
+}
+
+.coverage-dashboard__top {
+    display: flex;
+    flex-wrap: wrap;
+    gap: calc(var(--section-padding) / 2);
+    align-items: stretch;
+}
+
+.coverage-dashboard__top-item {
+    flex: 0 1 320px;
+    min-width: 260px;
+}
+
+.coverage-dashboard__top-item--wide {
+    flex: 0 0 auto;
+    width: fit-content;
+    max-width: 100%;
+    min-width: 260px;
+}
+
+.coverage-dashboard__metrics {
+    display: flex;
+    flex-wrap: wrap;
+    gap: calc(var(--section-padding) / 2);
+    align-items: flex-start;
+}
+
+.coverage-dashboard__metric-card {
+    flex: 0 0 auto;
+    width: fit-content;
+    max-width: 100%;
+}
+
+.coverage-dashboard__quality-gate-total {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 0 12px;
+    text-align: center;
+}
+
+.coverage-dashboard__quality-gate-status {
+    font-size: 14px;
+    font-weight: 700;
+}
+
+.coverage-dashboard__divider {
+    height: 1px;
+    background: var(--jenkins-border-color, #e5e7eb);
+    margin: 0 0 12px;
+}
+
+/* Each quality gate result is a row of 3 grid cells (name / value / threshold, see index.jelly) so that the value
+   column lines up flush left across all rows, independent of how wide the name or the value text happens to be --
+   a flex row with justify-content: space-between could only align the value block's right edge, not the value
+   text itself. `display: contents` on the row lets its 3 children become direct grid items of the list. */
+.coverage-dashboard__quality-gate-items {
+    display: grid;
+    grid-template-columns: max-content max-content max-content;
+    column-gap: 10px;
+    row-gap: 8px;
+    align-items: center;
+    padding-right: 28px;
+    font-size: 12px;
+}
+
+.coverage-dashboard__quality-gate-item {
+    display: contents;
+}
+
+.coverage-dashboard__quality-gate-item-name {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--text-color-secondary);
+    white-space: nowrap;
+}
+
+.coverage-dashboard__quality-gate-item-value {
+    font-weight: 600;
+    white-space: nowrap;
+    text-align: left;
+}
+
+.coverage-dashboard__quality-gate-item-value[data-successful="false"] {
+    color: var(--red);
+}
+
+.coverage-dashboard__quality-gate-item-value[data-successful="true"] {
+    color: var(--green);
+}
+
+.coverage-dashboard__quality-gate-item-threshold {
+    font-weight: 400;
+    color: var(--text-color-secondary);
+    font-size: 11px;
+    white-space: nowrap;
+}
+
+.coverage-dashboard__rings {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 32px;
+    align-items: flex-start;
+}
+
+/* A card that renders only a single gauge (one baseline) looks better with that gauge centered in the -- now
+   uniformly sized, see dashboard-metrics.js -- card, rather than flush left with empty space to its right. Cards
+   with several gauges keep flowing left-to-right as before. */
+.coverage-dashboard__rings:has(> .coverage-ring-widget:only-child) {
+    justify-content: center;
+}
+
+.coverage-ring-widget {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+}
+
+.coverage-ring {
+    position: relative;
+    width: 88px;
+    height: 88px;
+}
+
+.coverage-ring__arc {
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    background: #e5e7eb;
+    transition: background 0.2s ease;
+}
+
+.coverage-ring__hole {
+    position: absolute;
+    inset: 10px;
+    border-radius: 50%;
+    background: var(--card-background, #fff);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.coverage-ring__label {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text-color);
+    white-space: nowrap;
+}
+
+.coverage-ring-widget__title {
+    font-size: 12px;
+    color: var(--text-color-secondary);
+    text-align: center;
+}
+
+.coverage-ring-widget__counts {
+    font-size: 12px;
+    color: var(--text-color-secondary);
+}
+
+/* Only as wide as its content, not stretched to the full row width (see index.jelly, which wraps the "Further
+   metrics" card in this class). */
+.coverage-dashboard__further-metrics {
+    width: fit-content;
+    max-width: 100%;
+}
+
+/* Each baseline gets 2 columns -- value and badge -- instead of 1, so that a value's delta badge starts at the
+   same x position on every row (a fixed-width column boundary) rather than trailing directly after values of
+   varying digit width. */
+.coverage-dashboard__count-grid {
+    display: grid;
+    grid-template-columns: minmax(160px, max-content) repeat(4, minmax(30px, max-content) minmax(20px, max-content));
+    gap: 10px 12px;
+    font-size: 12px;
+}
+
+.coverage-dashboard__count-grid-header {
+    color: var(--text-color-secondary);
+    font-weight: 600;
+    padding-bottom: 6px;
+    border-bottom: 1px solid var(--jenkins-border-color, #e5e7eb);
+}
+
+.coverage-dashboard__count-grid-header--group {
+    grid-column: span 2;
+}
+
+.coverage-dashboard__count-grid-label {
+    color: var(--text-color-secondary);
+    align-self: center;
+}
+
+.coverage-dashboard__count-grid-value {
+    font-weight: 600;
+    align-self: center;
+    white-space: nowrap;
+}
+
+.coverage-dashboard__count-grid-badge {
+    align-self: center;
+}
