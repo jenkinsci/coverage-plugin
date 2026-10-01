@@ -13,7 +13,7 @@
     <div class="coverage-body">
       <cov:sidepanel id="${it.id}"/>
 
-      <div class="content">
+      <div class="content coverage-log-cards">
         <j:if test="${it.hasErrors()}">
           <l:card title="${%Error Messages}">
             <pre id="errors" class="coverage-log">

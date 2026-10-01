@@ -91,6 +91,14 @@
     background: transparent;
 }
 
+/* Error and Information Messages cards on the log page: same card-to-card spacing as on the Overview tab
+   (see .coverage-dashboard below). The height computation in log-model.js measures this gap dynamically. */
+.coverage-log-cards {
+    display: flex;
+    flex-direction: column;
+    gap: calc(var(--section-padding) / 2);
+}
+
 .coverage-dashboard {
     display: flex;
     flex-direction: column;
