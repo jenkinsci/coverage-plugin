@@ -279,11 +279,15 @@
 
 /* Each baseline gets 2 columns -- value and badge -- instead of 1, so that a value's delta badge starts at the
    same x position on every row (a fixed-width column boundary) rather than trailing directly after values of
-   varying digit width. */
+   varying digit width.
+   The column gap leaves a little space between the underlines of the baseline headers, so that each baseline
+   gets its own short line. The label column (the metrics) is separated from the values by a vertical line that
+   starts at the first metric; the top-left corner has no lines at all. The row spacing is padding (instead of a
+   row gap) so that this vertical line has no gaps. */
 .coverage-dashboard__count-grid {
     display: grid;
     grid-template-columns: minmax(160px, max-content) repeat(4, minmax(30px, max-content) minmax(20px, max-content));
-    gap: 10px 12px;
+    gap: 0 12px;
     font-size: 12px;
 }
 
@@ -291,6 +295,8 @@
     color: var(--text-color-secondary);
     font-weight: 600;
     padding-bottom: 6px;
+    /* Same distance between the underline and the first row as before (10px row gap) */
+    margin-bottom: 5px;
     border-bottom: 1px solid var(--jenkins-border-color, #e5e7eb);
 }
 
@@ -298,17 +304,31 @@
     grid-column: span 2;
 }
 
+/* Top-left corner ("Metric"): no lines, the underline only belongs to the baselines. */
+.coverage-dashboard__count-grid-header:not(.coverage-dashboard__count-grid-header--group) {
+    border-bottom: none;
+}
+
+/* The label column is the row header, so it is styled like the column headers (bold, secondary color) and is
+   separated from the values by a vertical line. */
 .coverage-dashboard__count-grid-label {
     color: var(--text-color-secondary);
-    align-self: center;
+    font-weight: 600;
+    /* Not align-self: center -- the cell has to fill the whole row so that the border has no gaps. */
+    display: flex;
+    align-items: center;
+    padding: 5px 16px 5px 0;
+    border-right: 1px solid var(--jenkins-border-color, #e5e7eb);
 }
 
 .coverage-dashboard__count-grid-value {
     font-weight: 600;
     align-self: center;
+    padding: 5px 0;
     white-space: nowrap;
 }
 
 .coverage-dashboard__count-grid-badge {
     align-self: center;
+    padding: 5px 0;
 }
