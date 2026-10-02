@@ -27,13 +27,13 @@ class CoverageQualityGateEvaluator extends QualityGateEvaluator<CoverageQualityG
 
     @Override
     protected void evaluate(final CoverageQualityGate qualityGate, final QualityGateResult result) {
-        var baseline = qualityGate.getBaseline();
-        var possibleValue = statistics.getValue(baseline, qualityGate.getMetric());
+        var possibleValue = statistics.getValue(qualityGate.getBaseline(), qualityGate.getMetric(),
+                qualityGate.getAggregation());
         if (possibleValue.isPresent()) {
             var actualValue = possibleValue.get();
             var status = actualValue.isOutOfValidRange(
                     qualityGate.getThreshold()) ? qualityGate.getStatus() : QualityGateStatus.PASSED;
-            result.add(qualityGate, status, FORMATTER.format(possibleValue.get(), Locale.ENGLISH));
+            result.add(qualityGate, status, FORMATTER.format(actualValue, Locale.ENGLISH));
         }
         else {
             result.add(qualityGate, QualityGateStatus.INACTIVE, "n/a");

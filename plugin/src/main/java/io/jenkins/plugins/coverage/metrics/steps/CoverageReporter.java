@@ -4,11 +4,13 @@ import edu.hm.hafner.coverage.Coverage;
 import edu.hm.hafner.coverage.Difference;
 import edu.hm.hafner.coverage.FileNode;
 import edu.hm.hafner.coverage.Metric;
+import edu.hm.hafner.coverage.MetricAggregation;
 import edu.hm.hafner.coverage.Node;
 import edu.hm.hafner.coverage.Value;
 import edu.hm.hafner.util.FilteredLog;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
@@ -33,7 +35,7 @@ import io.jenkins.plugins.util.ResultHandler;
  */
 @SuppressWarnings({"checkstyle:ClassDataAbstractionCoupling", "PMD.CouplingBetweenObjects"})
 public class CoverageReporter {
-    private static final List<Value> EMPTY_VALUES = List.of();
+    private static final Map<MetricAggregation, List<Value>> EMPTY_AGGREGATION = Map.of();
 
     @SuppressWarnings({"checkstyle:ParameterNumber", "checkstyle:JavaNCSS"})
     CoverageBuildAction publishAction(final String id, final String optionalName, final String icon,
@@ -67,8 +69,8 @@ public class CoverageReporter {
             final List<CoverageQualityGate> qualityGates, final String sourceCodeEncoding,
             final SourceCodeRetention sourceCodeRetention, final ResultHandler notifier,
             final FilteredLog log) throws InterruptedException {
-        var statistics = new CoverageStatistics(rootNode.aggregateValues(),
-                List.of(), List.<Difference>of(), List.of(), EMPTY_VALUES, List.of());
+        var statistics = new CoverageStatistics(CoverageStatistics.aggregateValues(rootNode),
+                List.of(), EMPTY_AGGREGATION, List.<Difference>of(), EMPTY_AGGREGATION, List.of());
         var evaluator = new CoverageQualityGateEvaluator(qualityGates, statistics);
         var qualityGateStatus = evaluator.evaluate(notifier, log);
 
@@ -98,18 +100,18 @@ public class CoverageReporter {
         var modifiedLinesCoverageRoot = rootNode.filterByModifiedLines();
 
         List<Difference> modifiedLinesDelta;
-        List<Value> modifiedFilesValues;
+        Map<MetricAggregation, List<Value>> modifiedFilesAggregation;
         List<Difference> modifiedFilesDelta;
         if (hasModifiedLinesCoverage(modifiedLinesCoverageRoot)) {
             var modifiedFilesCoverageRoot = rootNode.filterByModifiedFiles();
-            modifiedFilesValues = modifiedFilesCoverageRoot.aggregateValues();
+            modifiedFilesAggregation = CoverageStatistics.aggregateValues(modifiedFilesCoverageRoot);
             modifiedFilesDelta = modifiedFilesCoverageRoot.computeDelta(
                     referenceRoot.filterByFileNames(modifiedFilesCoverageRoot.getFiles()));
             modifiedLinesDelta = modifiedLinesCoverageRoot.computeDelta(modifiedFilesCoverageRoot);
         }
         else {
             modifiedLinesDelta = List.of();
-            modifiedFilesValues = List.of();
+            modifiedFilesAggregation = EMPTY_AGGREGATION;
             modifiedFilesDelta = List.of();
 
             if (rootNode.hasModifiedLines()) {
@@ -117,12 +119,14 @@ public class CoverageReporter {
             }
         }
 
-        var overallValues = rootNode.aggregateValues();
+        var overallAggregation = CoverageStatistics.aggregateValues(rootNode);
         List<Difference> overallDelta = rootNode.computeDelta(referenceRoot);
-        var modifiedLinesValues = modifiedLinesCoverageRoot.aggregateValues();
+        var modifiedLinesAggregation = CoverageStatistics.aggregateValues(modifiedLinesCoverageRoot);
+        var modifiedLinesValues = getTotalValues(modifiedLinesAggregation);
+        var modifiedFilesValues = getTotalValues(modifiedFilesAggregation);
 
-        var statistics = new CoverageStatistics(overallValues, overallDelta,
-                modifiedLinesValues, modifiedLinesDelta, modifiedFilesValues, modifiedFilesDelta);
+        var statistics = new CoverageStatistics(overallAggregation, overallDelta,
+                modifiedLinesAggregation, modifiedLinesDelta, modifiedFilesAggregation, modifiedFilesDelta);
         var evaluator = new CoverageQualityGateEvaluator(qualityGates, statistics);
         var qualityGateResult = evaluator.evaluate(notifier, log);
 
@@ -134,6 +138,10 @@ public class CoverageReporter {
                 modifiedLinesValues, modifiedLinesDelta,
                 modifiedFilesValues, modifiedFilesDelta,
                 rootNode.filterByIndirectChanges().aggregateValues());
+    }
+
+    private static List<Value> getTotalValues(final Map<MetricAggregation, List<Value>> aggregatedValues) {
+        return aggregatedValues.getOrDefault(MetricAggregation.getDefault(), List.of());
     }
 
     private List<FileNode> computePaintedFiles(final Node rootNode, final SourceCodeRetention sourceCodeRetention,
