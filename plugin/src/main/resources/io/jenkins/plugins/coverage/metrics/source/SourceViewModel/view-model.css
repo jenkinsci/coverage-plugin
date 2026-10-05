@@ -267,14 +267,12 @@ table.source tr.coverPart:hover td.code {
 /* --- Hits column: sticky (see td.line above), also the positioning context for the ::after stripe --- */
 table.source tr td.hits {
     position: sticky;
-    left: var(--source-line-col-width, 3em);
+    left: var(--source-metric-col-left, var(--source-line-col-width, 3em));
     z-index: 3;
     background-color: var(--card-background, #fff);
     padding-right: 6px;
-    display: flex;
-    align-items: center;
-    justify-content: right;
-    min-height: 23px;
+    display: table-cell;
+    height: 23px;
 }
 
 /* td.code needs position:relative for the ::after overlay pseudo-element */
@@ -320,4 +318,21 @@ table.source tr.coverNone td.hits {
 /* --- Skipped lines --- */
 table.source tr.coverSkip {
     background-color: var(--medium-grey) !important;
+}
+
+/* VectorCAST metric cells carry their own coverage state, independent of the row. */
+table.source tr td.hits.coverFull:after {
+    background-color: var(--light-green);
+}
+
+table.source tr td.hits.coverNone:after {
+    background-color: var(--red);
+}
+
+table.source tr td.hits.coverPart:after {
+    background-color: var(--orange);
+}
+
+table.source tr td.hits.noCover:after {
+    background-color: transparent;
 }

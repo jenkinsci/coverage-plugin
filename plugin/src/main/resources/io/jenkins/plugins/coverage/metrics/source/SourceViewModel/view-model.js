@@ -113,6 +113,14 @@
         const line = table.querySelector('td.line');
         if (line) {
             table.style.setProperty('--source-line-col-width', line.getBoundingClientRect().width + 'px');
+            table.querySelectorAll('tr').forEach(function (row) {
+                const lineCell = row.querySelector('td.line');
+                let offset = lineCell ? lineCell.getBoundingClientRect().width : 0;
+                row.querySelectorAll('td.hits').forEach(function (cell) {
+                    cell.style.setProperty('--source-metric-col-left', offset + 'px');
+                    offset += cell.getBoundingClientRect().width;
+                });
+            });
         }
     }
 

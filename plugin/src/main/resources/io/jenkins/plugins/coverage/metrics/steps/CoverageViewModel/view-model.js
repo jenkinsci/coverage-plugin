@@ -593,6 +593,7 @@
                     }
                     else {
                         sourceView.html(sourceCode);
+                        Behaviour.applySubtree(sourceView[0], true);
                     }
                 });
             }
