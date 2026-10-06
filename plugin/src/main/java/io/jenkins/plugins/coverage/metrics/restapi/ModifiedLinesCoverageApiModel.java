@@ -9,6 +9,11 @@ import io.jenkins.plugins.coverage.metrics.source.Messages;
 
 /**
  * Server side model that provides the data for modified lines coverage results.
+ *
+ * <p>
+ * Note that this class has no UI representation yet and primarily is used to provide an access point for the remote
+ * API.
+ * </p>
  */
 public class ModifiedLinesCoverageApiModel implements ModelObject {
     private final Node node;

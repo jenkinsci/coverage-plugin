@@ -1,0 +1,51 @@
+<?jelly escape-by-default='true'?>
+<j:jelly xmlns:j="jelly:core" xmlns:l="/lib/layout" xmlns:st="jelly:stapler">
+  <st:adjunct includes="io.jenkins.plugins.coverage.metrics.steps.RunTab.styles"/>
+  <st:adjunct includes="io.jenkins.plugins.coverage.metrics.cell-style"/>
+  <st:adjunct includes="io.jenkins.plugins.coverage.metrics.color-scale"/>
+  <st:adjunct includes="io.jenkins.plugins.coverage.metrics.steps.RunTab.widget-badges"/>
+
+  <j:set var="maxItems" value="7"/>
+
+  <l:card title="${it.displayName}" expandable="${it.urlName}">
+    <j:set var="widget" value="${it.widget}"/>
+
+    <a class="coverage-widget__link" href="${it.urlName}" tabindex="-1" aria-hidden="true"/>
+
+    <div class="jenkins-card__teaser">
+      <l:icon src="${widget.symbol}" class="${widget.iconColor}"/>
+      <div>${widget.message}</div>
+
+      <j:choose>
+        <!-- A single result leaves no ambiguity about which result a click would open, so show its card metrics
+             (the same ones promoted to gauge cards on the Overview tab) as colored badges instead of one generic,
+             not very informative pill. Several results still get one pill each, so they stay individually
+             clickable. -->
+        <j:when test="${widget.singleResult.present}">
+          <div class="coverage-widget coverage-widget--metrics">
+            <j:forEach var="badge" items="${widget.singleResultMetrics}">
+              <div class="coverage-cell-outer coverage-widget__metric">
+                <div class="coverage-jenkins-cell-inner" style="${badge.style}" title="${badge.tooltip}"
+                     data-report-id="${badge.reportId}" data-value="${badge.percentage}"
+                     data-fill-percentage="${badge.fillPercentage}">
+                  <span class="coverage-widget__metric-label">${badge.label}</span>
+                  ${badge.value}
+                </div>
+              </div>
+            </j:forEach>
+          </div>
+        </j:when>
+        <j:otherwise>
+          <div class="coverage-widget">
+            <j:forEach var="action" items="${widget.results}">
+                <a href="${action.urlName}" class="coverage-widget__item">
+                    <l:icon src="${action.iconFileName}"/>
+                    ${action.displayName}
+                </a>
+            </j:forEach>
+          </div>
+        </j:otherwise>
+      </j:choose>
+    </div>
+  </l:card>
+</j:jelly>

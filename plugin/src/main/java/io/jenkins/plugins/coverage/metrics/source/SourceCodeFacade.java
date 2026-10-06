@@ -123,8 +123,8 @@ public class SourceCodeFacade {
         return files != null && files.length > 0;
     }
 
-    String getCoverageSourcesDirectory() {
-        return COVERAGE_SOURCES_DIRECTORY;
+    String getCoverageSourcesDirectory(final String id) {
+        return COVERAGE_SOURCES_DIRECTORY + "/" + id;
     }
 
     /**

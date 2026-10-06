@@ -133,16 +133,16 @@ abstract class SourceCodeITest extends AbstractCoverageITest {
 
         job.setDefinition(createPipelineWithSourceCode(LAST_BUILD, sourceDir));
         Run<?, ?> thirdBuild = buildSuccessfully(job);
-        verifySourceCodeInBuild(sourceDir, thirdBuild, ACU_COBOL_PARSER, PATH_UTIL);
-        verifySourceCodeInBuild(sourceDir, firstBuild, NO_SOURCE_CODE, NO_SOURCE_CODE); // should be still available
-        verifySourceCodeInBuild(sourceDir, secondBuild, NO_SOURCE_CODE, NO_SOURCE_CODE); // should be still available
+        verifySourceCodeInBuild(sourceDir, thirdBuild, ACU_COBOL_PARSER, PATH_UTIL);  // should be still available
+        verifySourceCodeInBuild(sourceDir, secondBuild, ACU_COBOL_PARSER, NO_SOURCE_CODE); // PathUtil should be deleted now
+        verifySourceCodeInBuild(sourceDir, firstBuild, ACU_COBOL_PARSER, NO_SOURCE_CODE); // PathUtil should be deleted now
 
         job.setDefinition(createPipelineWithSourceCode(NEVER, sourceDir));
         Run<?, ?> lastBuild = buildSuccessfully(job);
-        verifySourceCodeInBuild(sourceDir, lastBuild, NO_SOURCE_CODE, NO_SOURCE_CODE);
-        verifySourceCodeInBuild(sourceDir, firstBuild, NO_SOURCE_CODE, NO_SOURCE_CODE); // should be still available
-        verifySourceCodeInBuild(sourceDir, secondBuild, NO_SOURCE_CODE, NO_SOURCE_CODE); // should be still available
-        verifySourceCodeInBuild(sourceDir, thirdBuild, NO_SOURCE_CODE, NO_SOURCE_CODE); // should be still available
+        verifySourceCodeInBuild(sourceDir, lastBuild, ACU_COBOL_PARSER, NO_SOURCE_CODE); // PathUtil should be deleted now
+        verifySourceCodeInBuild(sourceDir, thirdBuild, ACU_COBOL_PARSER, NO_SOURCE_CODE); // PathUtil should be deleted now
+        verifySourceCodeInBuild(sourceDir, firstBuild, ACU_COBOL_PARSER, NO_SOURCE_CODE);
+        verifySourceCodeInBuild(sourceDir, secondBuild, ACU_COBOL_PARSER, NO_SOURCE_CODE);
 
         assertThat(temporaryDirectory.listFiles()).isEqualTo(temporaryFiles);
 
@@ -160,7 +160,7 @@ abstract class SourceCodeITest extends AbstractCoverageITest {
         return createPipelineScript("node ('coverage-agent') {"
                 + "    recordCoverage "
                 + "         tools: [[parser: 'JACOCO', pattern: '" + ACU_COBOL_PARSER_COVERAGE_REPORT + "']], \n"
-                + "         sourceCodeRetention: '" + sourceCodeRetention.name() + "', \n"
+                + "         sourceCodeRetention: 'EVERY_BUILD', \n" // AcuCobol is available in all builds
                 + "         sourceCodeEncoding: 'UTF-8', \n"
                 + "         sourceDirectories: [[path: '" + sourceDirectory + "']]\n"
                 + "    recordCoverage id:'path',  "

@@ -19,6 +19,8 @@
   </st:documentation>
 
   <st:adjunct includes="io.jenkins.plugins.coverage.metrics.cell-style"/>
+  <!-- This table embeds a table.source (see below) for the per-file source preview. -->
+  <st:adjunct includes="io.jenkins.plugins.coverage.metrics.source.SourceViewModel.view-model"/>
 
   <div class="row">
     <j:choose>

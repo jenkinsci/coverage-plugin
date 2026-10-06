@@ -1,0 +1,161 @@
+<?jelly escape-by-default='true'?>
+<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:l="/lib/layout" xmlns:cov="/coverage">
+
+  <st:header name="Content-Type" value="text/html;charset=UTF-8"/>
+
+  <l:run-subpage>
+
+    <st:adjunct includes="io.jenkins.plugins.coverage.metrics.steps.RunTab.styles"/>
+    <st:adjunct includes="io.jenkins.plugins.coverage.metrics.color-scale"/>
+    <st:adjunct includes="io.jenkins.plugins.jquery3"/>
+    <st:adjunct includes="io.jenkins.plugins.coverage.metrics.steps.RunTab.dashboard-metrics"/>
+
+    <j:set var="formatter" value="${it.formatter}"/>
+    <j:set var="qualityGateResult" value="${it.qualityGateResult}"/>
+
+    <l:app-bar title="${it.displayName}">
+      <div class="jenkins-details"
+           style="display: flex; flex-direction: row; justify-content: flex-end; align-items: center; flex-wrap: wrap; gap: 12px;">
+        <j:if test="${it.referenceBuild.present}">
+          <div class="jenkins-details">
+            <a href="${rootURL}/${it.referenceBuildUrl}" class="jenkins-details__item">
+              <div class="jenkins-details__item__icon">
+                <l:icon src="symbol-git-compare-outline plugin-ionicons-api" alt=""/>
+              </div>
+              <span>${it.referenceBuildText}</span>
+            </a>
+          </div>
+        </j:if>
+        <div style="display: flex; align-items: center;" tooltip="${%green-tooltip}">
+          <div class="jenkins-!-margin-right-1" style="text-wrap: nowrap">${%green-title}:</div>
+          <input type="number" step="any" id="overview-green-threshold" class="jenkins-input" style="width: 7em;"/>
+        </div>
+        <div style="display: flex; align-items: center;" tooltip="${%red-tooltip}">
+          <div class="jenkins-!-margin-right-1" style="text-wrap: nowrap">${%red-title}:</div>
+          <input type="number" step="any" id="overview-red-threshold" class="jenkins-input" style="width: 7em;"/>
+        </div>
+      </div>
+    </l:app-bar>
+
+    <div class="coverage-body">
+      <cov:sidepanel id="${it.id}"/>
+
+      <div class="content">
+        <div class="coverage-dashboard" data-report-id="${it.id}">
+
+          <div class="coverage-dashboard__top">
+            <j:if test="${!qualityGateResult.inactive}">
+              <div class="coverage-dashboard__top-item coverage-dashboard__top-item--wide">
+                <l:card title="${%Quality Gates}">
+                  <div class="coverage-dashboard__quality-gate-total">
+                    <l:icon class="${qualityGateResult.overallStatus.iconClass} icon-lg"
+                            alt="${qualityGateResult.overallStatus.description}"/>
+                    <div class="coverage-dashboard__quality-gate-status">${qualityGateResult.overallStatus.description}</div>
+                  </div>
+                  <j:if test="${!qualityGateResult.resultItems.isEmpty()}">
+                    <div class="coverage-dashboard__divider"/>
+                    <div class="coverage-dashboard__quality-gate-items">
+                      <j:forEach var="item" items="${qualityGateResult.resultItems}">
+                        <div class="coverage-dashboard__quality-gate-item">
+                          <span class="coverage-dashboard__quality-gate-item-name">
+                            <l:icon class="${item.status.iconClass} icon-sm" alt="${item.status.description}"/>
+                            ${item.qualityGate.name}
+                          </span>
+                          <span class="coverage-dashboard__quality-gate-item-value" data-successful="${item.status.successful}">${item.actualValue}</span>
+                          <span class="coverage-dashboard__quality-gate-item-threshold">(${%Threshold}: ${item.qualityGate.threshold})</span>
+                        </div>
+                      </j:forEach>
+                    </div>
+                  </j:if>
+                </l:card>
+              </div>
+            </j:if>
+          </div>
+
+          <div class="coverage-dashboard__metrics">
+            <j:forEach var="metric" items="${it.coverageMetrics}">
+              <div class="coverage-dashboard__metric-card">
+                <l:card title="${formatter.getDisplayName(metric)}">
+                  <div class="coverage-dashboard__rings">
+                    <j:forEach var="baseline" items="${it.baselines}">
+                      <j:if test="${it.hasValue(baseline, metric)}">
+                        <div class="coverage-ring-widget">
+                          <div class="coverage-ring" data-value="${it.getPercentage(baseline, metric)}">
+                            <div class="coverage-ring__arc"/>
+                            <div class="coverage-ring__hole">
+                              <div class="coverage-ring__label">${it.getShortValue(baseline, metric)}</div>
+                            </div>
+                          </div>
+                          <div class="coverage-ring-widget__title">${baseline.title}</div>
+                          <div class="coverage-ring-widget__counts">${it.getCoveredTotal(baseline, metric)}</div>
+                          <j:if test="${it.hasDelta(baseline, metric)}">
+                            <j:choose>
+                              <j:when test="${it.getTrend(baseline, metric) gt 0}">
+                                <span class="jenkins-badge jenkins-!-success-color">${it.formatDelta(baseline, metric)}</span>
+                              </j:when>
+                              <j:when test="${it.getTrend(baseline, metric) lt 0}">
+                                <span class="jenkins-badge jenkins-!-error-color">${it.formatDelta(baseline, metric)}</span>
+                              </j:when>
+                              <j:otherwise>
+                                <span class="jenkins-badge">${it.formatDelta(baseline, metric)}</span>
+                              </j:otherwise>
+                            </j:choose>
+                          </j:if>
+                        </div>
+                      </j:if>
+                    </j:forEach>
+                  </div>
+                </l:card>
+              </div>
+            </j:forEach>
+          </div>
+
+          <j:if test="${!it.countMetrics.isEmpty()}">
+            <div class="coverage-dashboard__further-metrics">
+              <l:card title="${%Further metrics}">
+                <div class="coverage-dashboard__count-grid">
+                  <div class="coverage-dashboard__count-grid-header"/>
+                  <j:forEach var="baseline" items="${it.baselines}">
+                    <div class="coverage-dashboard__count-grid-header coverage-dashboard__count-grid-header--group">${baseline.title}</div>
+                  </j:forEach>
+                  <j:forEach var="metric" items="${it.countMetrics}">
+                    <div class="coverage-dashboard__count-grid-label">${formatter.getDisplayName(metric)}</div>
+                    <j:forEach var="baseline" items="${it.baselines}">
+                      <j:choose>
+                        <j:when test="${it.hasValue(baseline, metric)}">
+                          <div class="coverage-dashboard__count-grid-value">${it.formatValue(baseline, metric)}</div>
+                          <div class="coverage-dashboard__count-grid-badge">
+                            <j:if test="${it.hasDelta(baseline, metric)}">
+                              <j:choose>
+                                <j:when test="${it.getTrend(baseline, metric) gt 0}">
+                                  <span class="jenkins-badge jenkins-!-success-color">${it.formatDelta(baseline, metric)}</span>
+                                </j:when>
+                                <j:when test="${it.getTrend(baseline, metric) lt 0}">
+                                  <span class="jenkins-badge jenkins-!-error-color">${it.formatDelta(baseline, metric)}</span>
+                                </j:when>
+                                <j:otherwise>
+                                  <span class="jenkins-badge">${it.formatDelta(baseline, metric)}</span>
+                                </j:otherwise>
+                              </j:choose>
+                            </j:if>
+                          </div>
+                        </j:when>
+                        <j:otherwise>
+                          <div class="coverage-dashboard__count-grid-value">&#8211;</div>
+                          <div class="coverage-dashboard__count-grid-badge"/>
+                        </j:otherwise>
+                      </j:choose>
+                    </j:forEach>
+                  </j:forEach>
+                </div>
+              </l:card>
+            </div>
+          </j:if>
+
+        </div>
+      </div>
+    </div>
+
+  </l:run-subpage>
+
+</j:jelly>

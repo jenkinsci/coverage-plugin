@@ -25,7 +25,20 @@ import io.jenkins.plugins.echarts.GenericBuildActionIterator.BuildActionIterable
  * @author Ullrich Hafner
  */
 class TrendChartFactory {
+    /**
+     * Default metrics for the trend charts of the new (tabbed) run UI. Also used as the fallback when a
+     * configuration does not specify an explicit metric selection.
+     */
     static final Set<Metric> DEFAULT_TREND_METRICS = Set.of(
+            Metric.LINE, Metric.BRANCH, Metric.INSTRUCTION,
+            Metric.MUTATION, Metric.TEST_STRENGTH,
+            Metric.NCSS, Metric.LOC, Metric.CYCLOMATIC_COMPLEXITY, Metric.COGNITIVE_COMPLEXITY);
+    /**
+     * Default metrics for the trend charts of the legacy single-page view. Intentionally excludes
+     * {@link Metric#INSTRUCTION}, keeping the historical default so that switching the new-build-page
+     * experimental flag on or off cannot change what a user of the legacy view sees by default.
+     */
+    static final Set<Metric> LEGACY_DEFAULT_TREND_METRICS = Set.of(
             Metric.LINE, Metric.BRANCH,
             Metric.MUTATION, Metric.TEST_STRENGTH,
             Metric.NCSS, Metric.LOC, Metric.CYCLOMATIC_COMPLEXITY, Metric.COGNITIVE_COMPLEXITY);
@@ -35,16 +48,20 @@ class TrendChartFactory {
                     Metric.WEIGHT_OF_CLASS, Metric.COHESION, Metric.CONTAINER,
                     Metric.FAN_OUT, Metric.MODULE);
 
-    LinesChartModel createMetricsModel(final String configuration, final CoverageBuildAction latestAction) {
-        return getLinesChartModel(configuration, latestAction, true);
+    LinesChartModel createMetricsModel(final String configuration, final CoverageBuildAction latestAction,
+            final Set<Metric> defaultMetrics) {
+        return getLinesChartModel(configuration, latestAction, true, defaultMetrics);
     }
 
-    LinesChartModel createChartModel(final String configuration, final CoverageBuildAction latestAction) {
-        return getLinesChartModel(configuration, latestAction, false);
+    LinesChartModel createChartModel(final String configuration, final CoverageBuildAction latestAction,
+            final Set<Metric> defaultMetrics) {
+        var linesChartModel = getLinesChartModel(configuration, latestAction, false, defaultMetrics);
+        linesChartModel.setZeroBasedYAxis(useZeroBasedAxis(configuration));
+        return linesChartModel;
     }
 
     private LinesChartModel getLinesChartModel(final String configuration, final CoverageBuildAction latestAction,
-            final boolean isMetric) {
+            final boolean isMetric, final Set<Metric> defaultMetrics) {
         var buildActions = new BuildActionIterable<>(CoverageBuildAction.class, Optional.of(latestAction),
                 action -> latestAction.getUrlName().equals(action.getUrlName()),
                 CoverageBuildAction::getStatistics);
@@ -52,7 +69,7 @@ class TrendChartFactory {
         Set<Metric> actualValues = latestAction.getAllValues(Baseline.PROJECT).stream()
                 .map(Value::getMetric)
                 .collect(Collectors.toSet());
-        actualValues.retainAll(getVisibleMetrics(configuration));
+        actualValues.retainAll(getVisibleMetrics(configuration, defaultMetrics));
 
         return getTrendChartType(latestAction, actualValues, useLines(configuration), isMetric)
                 .create(buildActions, ChartModelConfiguration.fromJson(configuration));
@@ -60,6 +77,10 @@ class TrendChartFactory {
 
     private boolean useLines(final String configuration) {
         return getBoolean(configuration, "useLines", false);
+    }
+
+    private boolean useZeroBasedAxis(final String configuration) {
+        return getBoolean(configuration, "zeroBasedYAxis", false);
     }
 
     private boolean getBoolean(final String json, final String property, final boolean defaultValue) {
@@ -77,7 +98,7 @@ class TrendChartFactory {
         return defaultValue;
     }
 
-    Set<Metric> getVisibleMetrics(final String configuration) {
+    Set<Metric> getVisibleMetrics(final String configuration, final Set<Metric> defaultMetrics) {
         try {
             var objectMapper = new ObjectMapper();
             var jsonNodes = objectMapper.readValue(configuration, ObjectNode.class);
@@ -96,7 +117,7 @@ class TrendChartFactory {
             // ignore and return default values
         }
 
-        return DEFAULT_TREND_METRICS;
+        return defaultMetrics;
     }
 
     private TrendChart getTrendChartType(final CoverageBuildAction latestAction,

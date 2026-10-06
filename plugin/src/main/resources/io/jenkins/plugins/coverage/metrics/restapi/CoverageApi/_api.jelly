@@ -12,6 +12,13 @@
     <dd>
       ${%modified.description}
     </dd>
+
+    <dt>
+      <a href="../files/api">${%files.title}</a>
+    </dt>
+    <dd>
+      ${%files.description}
+    </dd>
   </dl>
 
 </j:jelly>

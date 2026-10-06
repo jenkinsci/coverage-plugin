@@ -19,6 +19,7 @@ import io.jenkins.plugins.coverage.metrics.color.ColorProvider;
 import io.jenkins.plugins.coverage.metrics.color.ColorProvider.DisplayColors;
 import io.jenkins.plugins.coverage.metrics.color.ColorProviderFactory;
 import io.jenkins.plugins.coverage.metrics.color.CoverageLevel;
+import io.jenkins.plugins.coverage.metrics.color.ThresholdColorProvider;
 import io.jenkins.plugins.coverage.metrics.model.ElementFormatter;
 import io.jenkins.plugins.echarts.JenkinsPalette;
 
@@ -158,5 +159,84 @@ public class TreeMapNodeConverter {
             final ItemStyle itemStyle, final Label label) {
         return new LabeledTreeMapNode(getId(node), node.getName(), itemStyle, label, label,
                 value.asText(Functions.getCurrentLocale()), FORMATTER.getTooltip(value));
+    }
+
+    /**
+     * Converts a coverage tree of {@link Node nodes} to an ECharts tree map of {@link TreeMapNode}, coloring every
+     * node (leaf and aggregate alike) by linearly interpolating between a red, a yellow, and a green color. Which
+     * value is considered fully green (best) and fully red (worst) is configurable via the two threshold
+     * parameters, so that the caller (rather than {@link Node#getValue(Metric)}'s percentage-to-color-step mapping)
+     * decides where the good/bad boundaries lie. The three anchor colors themselves still come from the passed
+     * {@link ColorProvider}, so the result stays consistent with the plugin's other (theme aware) colorization.
+     *
+     * @param node
+     *         The root node of the tree to be converted
+     * @param metric
+     *         The coverage metric that should be represented
+     * @param greenThreshold
+     *         the value from which on a result is considered fully green (best)
+     * @param redThreshold
+     *         the value from which on a result is considered fully red (worst)
+     * @param colorProvider
+     *         provides the red/yellow/green anchor colors to interpolate between
+     *
+     * @return the converted tree map representation
+     */
+    public LabeledTreeMapNode toThresholdTreeChartModel(final Node node, final Metric metric,
+            final double greenThreshold, final double redThreshold, final ColorProvider colorProvider) {
+        var tree = mergePackages(node);
+        var root = toThresholdTreeMapNode(tree, metric, greenThreshold, redThreshold, colorProvider)
+                .orElse(new LabeledTreeMapNode(getId(node), node.getName()));
+        for (LabeledTreeMapNode child : root.getChildren()) {
+            child.collapseEmptyPackages();
+        }
+
+        return root;
+    }
+
+    private Optional<LabeledTreeMapNode> toThresholdTreeMapNode(final Node node, final Metric metric,
+            final double greenThreshold, final double redThreshold, final ColorProvider colorProvider) {
+        var value = node.getValue(metric);
+        if (value.isPresent()) {
+            return Optional.of(
+                    createThresholdTree(value.get(), node, metric, greenThreshold, redThreshold, colorProvider));
+        }
+
+        return Optional.empty();
+    }
+
+    private LabeledTreeMapNode createThresholdTree(final Value value, final Node node, final Metric metric,
+            final double greenThreshold, final double redThreshold, final ColorProvider colorProvider) {
+        var fillColor = ThresholdColorProvider.getFillColorAsHex(value.asDouble(), metric.getTendency(),
+                greenThreshold, redThreshold, colorProvider);
+        var textColor = ThresholdColorProvider.getTextColorAsHex(fillColor);
+        var label = new Label(true, textColor);
+
+        String sizeValue;
+        String tooltip;
+        if (value instanceof Coverage coverage) {
+            sizeValue = String.valueOf(coverage.getTotal());
+            tooltip = FORMATTER.getTooltip(coverage);
+        }
+        else {
+            sizeValue = value.asText(Functions.getCurrentLocale());
+            tooltip = FORMATTER.getTooltip(value);
+        }
+
+        if (node instanceof FileNode) { // stop recursion and create a colored leaf
+            return new LabeledTreeMapNode(getId(node), node.getName(), new ItemStyle(fillColor), label, label,
+                    sizeValue, tooltip);
+        }
+
+        var boldFill = new ItemStyle(fillColor, fillColor, 4);
+        var treeNode = new LabeledTreeMapNode(getId(node), node.getName(), boldFill, label, label,
+                sizeValue, tooltip);
+
+        node.getChildren().stream()
+                .map(n -> toThresholdTreeMapNode(n, metric, greenThreshold, redThreshold, colorProvider))
+                .flatMap(Optional::stream)
+                .forEach(treeNode::insertNode); // recursively build the tree
+
+        return treeNode;
     }
 }

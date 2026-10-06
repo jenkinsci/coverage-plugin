@@ -1,0 +1,177 @@
+<?jelly escape-by-default='true'?>
+<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:bs="/bootstrap5" xmlns:cov="/coverage" xmlns:c="/charts" xmlns:l="/lib/layout">
+
+  <bs:page it="${it}">
+
+    <st:adjunct includes="io.jenkins.plugins.echarts"/>
+    <st:adjunct includes="io.jenkins.plugins.data-tables-select"/>
+
+    <link rel="stylesheet" href="${resURL}/plugin/font-awesome-api/css/jenkins-style.css"/>
+    <link rel="stylesheet" href="${resURL}/plugin/coverage/css/view-model.css"/>
+
+    <j:set var="formatter" value="${it.formatter}"/>
+
+    <j:set var="hasModifiedLinesCoverage" value="${it.hasModifiedLinesCoverage()}"/>
+    <j:set var="hasIndirectCoverageChanges" value="${it.hasIndirectCoverageChanges()}"/>
+    <j:set var="hasCoverage" value="${it.hasCoverage()}"/>
+    <j:set var="hasMetrics" value="${it.hasMetrics()}"/>
+
+    <div class="tabBarFrame">
+      <ul class="flex-wrap tabBar" role="tablist" id="tab-details">
+        <j:if test="${hasCoverage}">
+          <li class="nav-item tab" role="presentation">
+            <a class="nav-link" id="overview-tab" data-bs-toggle="tab" data-bs-target="#overview" type="button"
+               role="tab" aria-controls="overview" aria-selected="false">${%tab.name.overview}
+            </a>
+          </li>
+        </j:if>
+        <j:if test="${hasMetrics}">
+          <li class="nav-item tab" role="presentation">
+            <a class="nav-link" id="metrics-tab" data-bs-toggle="tab" data-bs-target="#metrics" type="button" role="tab" aria-controls="metrics" aria-selected="false">${%tab.name.metrics}</a>
+          </li>
+        </j:if>
+        <j:forEach var="metric" items="${it.treeMetrics}">
+          <li class="nav-item tab" role="presentation">
+            <a class="nav-link" id="${metric.toTagName()}-tab" data-bs-toggle="tab" data-bs-target="#${metric.toTagName()}" type="button" role="tab" aria-controls="${metric.toTagName()}" aria-selected="false">${metric.displayName}</a>
+          </li>
+        </j:forEach>
+        <li class="nav-item tab" role="presentation">
+          <a class="nav-link" id="fileCoverage-tab" data-bs-toggle="tab" data-bs-target="#fileCoverage" type="button" role="tab" aria-controls="fileCoverage" aria-selected="false">${%tab.name.files}</a>
+        </li>
+        <j:if test="${hasModifiedLinesCoverage}">
+          <li class="nav-item tab" role="presentation">
+            <a class="nav-link" id="changeCoverage-tab" data-bs-toggle="tab" data-bs-target="#changeCoverage" type="button" role="tab" aria-controls="changeCoverage" aria-selected="false">${%tab.name.lines}</a>
+          </li>
+        </j:if>
+        <j:if test="${hasIndirectCoverageChanges}">
+          <li class="nav-item tab" role="presentation">
+            <a class="nav-link" id="indirectCoverage-tab" data-bs-toggle="tab" data-bs-target="#indirectCoverage" type="button" role="tab" aria-controls="indirectCoverage" aria-selected="false">${%tab.name.indirect}</a>
+          </li>
+        </j:if>
+      </ul>
+    </div>
+
+    <div class="tab-content">
+
+      <div role="tabpanel" id="overview" class="tab-pane fade" aria-labelledby="overview-tab" >
+        <j:if test="${hasCoverage}">
+          <div class="row">
+            <div class="col-5">
+              <l:card title="${%Total coverage overview}">
+                <div id="coverage-overview" class="graph-cursor-pointer overview-chart h-100"/>
+              </l:card>
+            </div>
+            <div class="col-7">
+              <l:card title="${%Coverage trend}">
+                <div id="coverage-trend" class="graph-cursor-pointer overview-chart h-100"/>
+              </l:card>
+            </div>
+          </div>
+        </j:if>
+      </div>
+      <j:if test="${hasMetrics}">
+        <div role="tabpanel" id="metrics" class="tab-pane fade" aria-labelledby="metrics-tab" >
+          <div class="row">
+            <div class="col-12">
+              <l:card title="${%Metrics trend}">
+                <div id="metrics-trend" class="graph-cursor-pointer overview-chart h-100"/>
+              </l:card>
+            </div>
+          </div>
+        </div>
+      </j:if>
+      <j:forEach var="metric" items="${it.treeMetrics}">
+        <div role="tabpanel" id="${metric.toTagName()}" class="tab-pane fade" aria-labelledby="${metric.toTagName()}-tab">
+          <l:card title="${formatter.getDisplayName(metric)}">
+            <div id="project-${metric.toTagName()}" class="graph-cursor-pointer tree-chart"
+                 data-item-name="project-${metric.toTagName()}"
+                 data-item-order="${metric.getTendency()}"
+                 data-item-coverage="${metric.coverage}"
+            />
+          </l:card>
+        </div>
+      </j:forEach>
+
+      <div role="tabpanel" id="fileCoverage" class="tab-pane fade" aria-labelledby="fileCoverage-tab">
+        <cov:coverage-table showChangedToggle="true" id="absolute-coverage" title="${%Coverage of all files}" symbol="symbol-regular/file-lines plugin-font-awesome-api"/>
+      </div>
+
+      <j:if test="${hasModifiedLinesCoverage}">
+        <div role="tabpanel" id="changeCoverage" class="tab-pane fade" aria-labelledby="changeCoverage-tab">
+          <cov:coverage-table id="modified-lines-coverage" title="${%Coverage of modified lines}" symbol="symbol-diff-stat plugin-forensics-api"/>
+        </div>
+      </j:if>
+
+      <j:if test="${hasIndirectCoverageChanges}">
+        <div role="tabpanel" id="indirectCoverage" class="tab-pane fade" aria-labelledby="indirectCoverage-tab">
+          <cov:coverage-table id="indirect-coverage" title="${%Indirect coverage changes}" symbol="symbol-regular/face-smile plugin-font-awesome-api"/>
+        </div>
+      </j:if>
+
+    </div>
+
+    <script type="text/javascript" src="${resURL}/plugin/echarts-api/js/culori.min.js"/>
+    <st:bind var="proxy" value="${it}" />
+    <st:adjunct includes="io.jenkins.plugins.coverage.metrics.steps.CoverageViewModel.view-model"/>
+
+  </bs:page>
+
+  <c:chart-custom-setup id="coverage-history">
+    <div class="mb-3">
+      <label class="form-label fw-bold">
+        Metrics to show
+      </label>
+    </div>
+    <j:forEach var="metric" items="${it.coverageMetrics}">
+      <div class="mb-1">
+        <input class="form-check-input" type="checkbox"
+               name="${metric}" id="coverage-history-metric-${metric}"/>
+        <label class="form-check-label" for="coverage-history-metric-${metric}">
+          ${metric.displayName}
+        </label>
+      </div>
+    </j:forEach>
+    <div class="mb-3">
+      <label class="form-label fw-bold">
+        General configuration
+      </label>
+    </div>
+    <div class="mb-3">
+      <input class="form-check-input" type="checkbox"
+             name="lines" id="coverage-history-lines"/>
+      <label class="form-check-label" for="coverage-history-lines">
+        Show results as a lines chart
+      </label>
+    </div>
+  </c:chart-custom-setup>
+
+  <c:chart-custom-setup id="metrics-history">
+    <div class="mb-3">
+      <label class="form-label fw-bold">
+        Metrics to show
+      </label>
+    </div>
+    <j:forEach var="metric" items="${it.softwareMetrics}">
+      <div class="mb-1">
+        <input class="form-check-input" type="checkbox"
+               name="${metric}" id="metric-history-metric-${metric}"/>
+        <label class="form-check-label" for="metric-history-metric-${metric}">
+          ${metric.displayName}
+        </label>
+      </div>
+    </j:forEach>
+    <div class="mb-3">
+      <label class="form-label fw-bold">
+        General configuration
+      </label>
+    </div>
+    <div class="mb-3">
+      <input class="form-check-input" type="checkbox"
+             name="lines" id="metric-history-lines"/>
+      <label class="form-check-label" for="metric-history-lines">
+        Show results as a lines chart
+      </label>
+    </div>
+  </c:chart-custom-setup>
+
+</j:jelly>

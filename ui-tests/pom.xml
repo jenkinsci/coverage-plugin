@@ -5,7 +5,7 @@
   <parent>
     <groupId>edu.hm.hafner</groupId>
     <artifactId>codingstyle-pom</artifactId>
-    <version>6.16.0</version>
+    <version>6.18.0</version>
     <relativePath/>
   </parent>
 
@@ -18,9 +18,9 @@
   <properties>
     <jenkins.version>2.563</jenkins.version>
     <hpi-plugin.version>3.1848.v43eb_ce5a_9cb_6</hpi-plugin.version>
-    <jenkins.version>2.576</jenkins.version>
+    <jenkins.version>2.584</jenkins.version>
     <json-smart.version>2.3</json-smart.version>
-    <json-unit-assertj.version>6.0.1</json-unit-assertj.version>
+    <json-unit-assertj.version>6.2.0</json-unit-assertj.version>
     <module.name>${project.groupId}.code.coverage.api.ui.tests</module.name>
 
     <!-- Maven Surefire ArgLine -->
@@ -38,7 +38,7 @@
         <!-- ClassNotFoundException if omitted -->
         <groupId>io.netty</groupId>
         <artifactId>netty-bom</artifactId>
-        <version>4.2.17.Final</version>
+        <version>4.2.18.Final</version>
         <type>pom</type>
         <scope>import</scope>
       </dependency>
@@ -49,12 +49,12 @@
     <dependency>
       <groupId>org.jenkins-ci</groupId>
       <artifactId>acceptance-test-harness</artifactId>
-      <version>6724.va_7c5c4b_fcf9c</version>
+      <version>6731.va_ea_dd2a_673a_4</version>
     </dependency>
     <dependency>
       <groupId>com.fasterxml.jackson.core</groupId>
       <artifactId>jackson-databind</artifactId>
-      <version>2.22.1</version>
+      <version>2.22.3</version>
       <scope>test</scope>
     </dependency>
     <dependency>
@@ -162,7 +162,7 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-surefire-plugin</artifactId>
-        <version>3.5.6</version>
+        <version>3.6.0</version>
         <configuration>
           <skip>true</skip>
           <reuseForks>false</reuseForks>
@@ -250,7 +250,7 @@
           <plugin>
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-surefire-plugin</artifactId>
-            <version>3.5.6</version>
+            <version>3.6.0</version>
             <configuration>
               <reuseForks>false</reuseForks>
               <trimStackTrace>false</trimStackTrace>
