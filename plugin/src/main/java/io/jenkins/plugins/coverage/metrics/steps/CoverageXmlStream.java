@@ -117,7 +117,13 @@ class CoverageXmlStream extends AbstractXmlStream<Node> {
         return new ModuleNode("Empty");
     }
 
-    /** Restores a value and rejects removed legacy aggregated metrics. */
+    /**
+     * Restores a value and rejects removed legacy aggregated metrics.
+     *
+     * @param serialization
+     *         the serialized value
+     * @return the restored value
+     */
     private static Value valueOf(final String serialization) {
         var metricName = StringUtils.deleteWhitespace(StringUtils.substringBefore(serialization, ':'));
         if (extractAggregation(metricName) != MetricAggregation.getDefault()) {
