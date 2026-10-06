@@ -117,25 +117,22 @@ class CoverageXmlStream extends AbstractXmlStream<Node> {
         return new ModuleNode("Empty");
     }
 
-    /**
-     * Converts the serialization of a value into a {@link Value} instance. Values of removed legacy metrics like
-     * {@code COMPLEXITY_MAXIMUM} are just another aggregation of the cyclomatic complexity, restoring them would
-     * create a second and conflicting value for that metric. So these values are rejected and will be skipped while
-     * restoring the results of old builds.
-     *
-     * @param serialization
-     *         the serialization of the value
-     *
-     * @return the restored value
-     * @throws IllegalArgumentException
-     *         if the value cannot be restored
-     */
+    /** Restores a value and rejects removed legacy aggregated metrics. */
     private static Value valueOf(final String serialization) {
         var metricName = StringUtils.deleteWhitespace(StringUtils.substringBefore(serialization, ':'));
-        if (Metric.extractAggregation(metricName) != MetricAggregation.getDefault()) {
+        if (extractAggregation(metricName) != MetricAggregation.getDefault()) {
             throw new IllegalArgumentException("Skipping value of removed legacy metric: " + serialization);
         }
         return Value.valueOf(serialization);
+    }
+
+    private static MetricAggregation extractAggregation(final String metricName) {
+        for (var aggregation : MetricAggregation.values()) {
+            if (Strings.CI.endsWith(metricName, "_" + aggregation.name())) {
+                return aggregation;
+            }
+        }
+        return MetricAggregation.getDefault();
     }
 
     /**
