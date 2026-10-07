@@ -4,15 +4,12 @@ import edu.hm.hafner.coverage.Coverage;
 import edu.hm.hafner.coverage.FileNode;
 import edu.hm.hafner.coverage.Metric;
 import edu.hm.hafner.coverage.Node;
-
+import hudson.Functions;
+import io.jenkins.plugins.coverage.metrics.color.ColorProvider;
+import io.jenkins.plugins.datatables.DetailedCell;
 import java.util.List;
 import java.util.Locale;
 import java.util.stream.Collectors;
-
-import hudson.Functions;
-
-import io.jenkins.plugins.coverage.metrics.color.ColorProvider;
-import io.jenkins.plugins.datatables.DetailedCell;
 
 /**
  * A base class for coverage table models that handle the changes to a result of a reference build.
@@ -20,8 +17,12 @@ import io.jenkins.plugins.datatables.DetailedCell;
 abstract class ChangesTableModel extends CoverageTableModel {
     private final Node changeRoot;
 
-    ChangesTableModel(final String id, final Node root, final Node changeRoot,
-            final RowRenderer renderer, final ColorProvider colorProvider) {
+    ChangesTableModel(
+            final String id,
+            final Node root,
+            final Node changeRoot,
+            final RowRenderer renderer,
+            final ColorProvider colorProvider) {
         super(id, root, renderer, colorProvider);
 
         this.changeRoot = changeRoot;
@@ -51,8 +52,12 @@ abstract class ChangesTableModel extends CoverageTableModel {
     static class ChangesRow extends CoverageRow {
         private final FileNode originalFile;
 
-        ChangesRow(final FileNode originalFile, final FileNode changedFileNode,
-                final Locale browserLocale, final RowRenderer renderer, final ColorProvider colorProvider) {
+        ChangesRow(
+                final FileNode originalFile,
+                final FileNode changedFileNode,
+                final Locale browserLocale,
+                final RowRenderer renderer,
+                final ColorProvider colorProvider) {
             super(changedFileNode, browserLocale, renderer, colorProvider);
 
             this.originalFile = originalFile;
@@ -75,8 +80,10 @@ abstract class ChangesTableModel extends CoverageTableModel {
         DetailedCell<?> createColoredModifiedLinesCoverageDeltaColumn(final Metric metric) {
             var modifiedLinesCoverage = getFile().getTypedValue(metric, Coverage.nullObject(metric));
             if (modifiedLinesCoverage.isSet()) {
-                return createColoredCoverageDeltaColumn(metric,
-                        modifiedLinesCoverage.subtract(originalFile.getTypedValue(metric, Coverage.nullObject(metric))));
+                return createColoredCoverageDeltaColumn(
+                        metric,
+                        modifiedLinesCoverage.subtract(
+                                originalFile.getTypedValue(metric, Coverage.nullObject(metric))));
             }
             return NO_COVERAGE;
         }

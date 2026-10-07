@@ -4,18 +4,15 @@ import edu.hm.hafner.coverage.Coverage;
 import edu.hm.hafner.coverage.Metric;
 import edu.hm.hafner.coverage.Value;
 import edu.umd.cs.findbugs.annotations.NonNull;
-
+import hudson.model.ModelObject;
+import hudson.model.Run;
+import io.jenkins.plugins.coverage.metrics.model.Baseline;
+import io.jenkins.plugins.coverage.metrics.model.ElementFormatter;
+import io.jenkins.plugins.util.QualityGateResult;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
 import java.util.stream.Collectors;
-
-import hudson.model.ModelObject;
-import hudson.model.Run;
-
-import io.jenkins.plugins.coverage.metrics.model.Baseline;
-import io.jenkins.plugins.coverage.metrics.model.ElementFormatter;
-import io.jenkins.plugins.util.QualityGateResult;
 
 /**
  * Server side model that provides the data for the "Overview" tab of the coverage details view. Shows the same
@@ -361,7 +358,8 @@ public class OverviewModel implements ModelObject {
      */
     @SuppressWarnings("unused") // Called by jelly view
     public String getReferenceBuildText() {
-        return getReferenceBuild().map(build -> Messages.OverviewModel_referenceBuildButton(build.getFullDisplayName()))
+        return getReferenceBuild()
+                .map(build -> Messages.OverviewModel_referenceBuildButton(build.getFullDisplayName()))
                 .orElse("");
     }
 

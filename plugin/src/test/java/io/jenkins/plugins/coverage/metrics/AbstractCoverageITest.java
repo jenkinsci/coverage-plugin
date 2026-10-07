@@ -20,11 +20,16 @@ import io.jenkins.plugins.util.IntegrationTestWithJenkinsPerSuite;
  */
 public abstract class AbstractCoverageITest extends IntegrationTestWithJenkinsPerSuite {
     protected FreeStyleProject createFreestyleJob(final Parser parser, final String... fileNames) {
-        return createFreestyleJob(parser, i -> { }, fileNames);
+        return createFreestyleJob(
+                parser,
+                i -> {
+                    // empty configuration
+                },
+                fileNames);
     }
 
-    protected FreeStyleProject createFreestyleJob(final Parser parser,
-            final Consumer<CoverageRecorder> configuration, final String... fileNames) {
+    protected FreeStyleProject createFreestyleJob(
+            final Parser parser, final Consumer<CoverageRecorder> configuration, final String... fileNames) {
         var project = createFreeStyleProjectWithWorkspaceFiles(fileNames);
 
         project.getPublishersList().add(new SimpleReferenceRecorder());
@@ -33,13 +38,17 @@ public abstract class AbstractCoverageITest extends IntegrationTestWithJenkinsPe
         return project;
     }
 
-    protected void addCoverageRecorder(final FreeStyleProject project,
-            final Parser parser, final String pattern) {
-        addCoverageRecorder(project, parser, pattern, i -> { });
+    protected void addCoverageRecorder(final FreeStyleProject project, final Parser parser, final String pattern) {
+        addCoverageRecorder(project, parser, pattern, i -> {
+            // no configuration
+        });
     }
 
-    void addCoverageRecorder(final FreeStyleProject project,
-            final Parser parser, final String pattern, final Consumer<CoverageRecorder> configuration) {
+    void addCoverageRecorder(
+            final FreeStyleProject project,
+            final Parser parser,
+            final String pattern,
+            final Consumer<CoverageRecorder> configuration) {
         var recorder = new CoverageRecorder();
 
         var tool = new CoverageTool();
@@ -51,8 +60,7 @@ public abstract class AbstractCoverageITest extends IntegrationTestWithJenkinsPe
 
         try {
             project.getPublishersList().remove(CoverageRecorder.class);
-        }
-        catch (IOException exception) {
+        } catch (IOException exception) {
             // ignore and continue
         }
         project.getPublishersList().add(recorder);
@@ -61,17 +69,13 @@ public abstract class AbstractCoverageITest extends IntegrationTestWithJenkinsPe
     protected WorkflowJob createPipeline(final Parser parser, final String... fileNames) {
         var job = createPipelineWithWorkspaceFiles(fileNames);
 
-        setPipelineScript(job,
-                "recordCoverage tools: [[parser: '" + parser.name() + "', pattern: '**/*xml']]");
+        setPipelineScript(job, "recordCoverage tools: [[parser: '" + parser.name() + "', pattern: '**/*xml']]");
 
         return job;
     }
 
     protected void setPipelineScript(final WorkflowJob job, final String recorderSnippet) {
-        job.setDefinition(createPipelineScript(
-                "node {\n"
-                        + recorderSnippet + "\n"
-                        + " }\n"));
+        job.setDefinition(createPipelineScript("node {\n" + recorderSnippet + "\n" + " }\n"));
     }
 
     protected WorkflowJob createDeclarativePipeline(final Parser parser, final String... fileNames) {

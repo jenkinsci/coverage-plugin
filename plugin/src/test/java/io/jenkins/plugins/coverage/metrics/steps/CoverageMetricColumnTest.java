@@ -1,8 +1,7 @@
 package io.jenkins.plugins.coverage.metrics.steps;
 
-import org.apache.commons.lang3.StringUtils;
-import org.junit.jupiter.api.Test;
-import org.junitpioneer.jupiter.DefaultLocale;
+import static org.assertj.core.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
 import edu.hm.hafner.coverage.Coverage.CoverageBuilder;
 import edu.hm.hafner.coverage.Difference;
@@ -10,19 +9,9 @@ import edu.hm.hafner.coverage.Metric;
 import edu.hm.hafner.coverage.Value;
 import edu.hm.hafner.util.FilteredLog;
 import edu.hm.hafner.util.VisibleForTesting;
-
-import java.awt.*;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
-
 import hudson.DescriptorExtensionList;
 import hudson.model.Job;
 import hudson.model.Run;
-import jenkins.model.GlobalConfiguration;
-import jenkins.model.Jenkins;
-
 import io.jenkins.plugins.coverage.metrics.AbstractCoverageTest;
 import io.jenkins.plugins.coverage.metrics.color.ColorProvider;
 import io.jenkins.plugins.coverage.metrics.color.ColorProviderFactory;
@@ -32,9 +21,16 @@ import io.jenkins.plugins.coverage.metrics.steps.CoverageMetricColumn.CoverageMe
 import io.jenkins.plugins.util.GlobalConfigurationFacade;
 import io.jenkins.plugins.util.JenkinsFacade;
 import io.jenkins.plugins.util.QualityGateResult;
-
-import static org.assertj.core.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import java.awt.*;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
+import jenkins.model.GlobalConfiguration;
+import jenkins.model.Jenkins;
+import org.apache.commons.lang3.StringUtils;
+import org.junit.jupiter.api.Test;
+import org.junitpioneer.jupiter.DefaultLocale;
 
 /**
  * Test class for {@link CoverageMetricColumn}.
@@ -196,14 +192,15 @@ class CoverageMetricColumnTest extends AbstractCoverageTest {
         Job<?, ?> job = createJobWithCoverageAction();
 
         assertThat(column.getCoverageText(job)).isEqualTo("93.97%");
-        assertThat(column.getCoverageValue(job))
-                .isNotEmpty()
-                .satisfies(coverage -> {
-                    assertThat(coverage).contains(
-                            new CoverageBuilder().withMetric(Metric.BRANCH).withCovered(109).withMissed(7).build());
-                    assertThat(column.getDisplayColors(job, coverage).getLineColor())
-                            .isEqualTo(Color.white);
-                });
+        assertThat(column.getCoverageValue(job)).isNotEmpty().satisfies(coverage -> {
+            assertThat(coverage)
+                    .contains(new CoverageBuilder()
+                            .withMetric(Metric.BRANCH)
+                            .withCovered(109)
+                            .withMissed(7)
+                            .build());
+            assertThat(column.getDisplayColors(job, coverage).getLineColor()).isEqualTo(Color.white);
+        });
     }
 
     @Test
@@ -214,14 +211,11 @@ class CoverageMetricColumnTest extends AbstractCoverageTest {
         Job<?, ?> job = createJobWithCoverageAction();
         assertThat(column.getCoverageText(job)).isEqualTo("+5.00%");
 
-        assertThat(column.getCoverageValue(job))
-                .isNotEmpty()
-                .satisfies(coverage -> {
-                    assertThat(coverage).contains(new Difference(Metric.BRANCH, 5));
-                    assertThat(column.getDisplayColors(job, coverage))
-                            .isEqualTo(COLOR_PROVIDER.getDisplayColorsOf(
-                                    CoverageChangeTendency.INCREASED.getColorizationId()));
-                });
+        assertThat(column.getCoverageValue(job)).isNotEmpty().satisfies(coverage -> {
+            assertThat(coverage).contains(new Difference(Metric.BRANCH, 5));
+            assertThat(column.getDisplayColors(job, coverage))
+                    .isEqualTo(COLOR_PROVIDER.getDisplayColorsOf(CoverageChangeTendency.INCREASED.getColorizationId()));
+        });
     }
 
     private CoverageMetricColumn createColumn() {
@@ -240,9 +234,22 @@ class CoverageMetricColumnTest extends AbstractCoverageTest {
         var node = readJacocoResult(JACOCO_CODING_STYLE_FILE);
         var run = mock(Run.class);
         var delta = List.of(new Difference(Metric.BRANCH, 5));
-        var coverageBuildAction = new CoverageBuildAction(run, "coverage", "Code Coverage", StringUtils.EMPTY,
-                node, new QualityGateResult(), new FilteredLog("Test"),
-                "-", delta, List.of(), List.of(), List.of(), List.of(), List.of(), false);
+        var coverageBuildAction = new CoverageBuildAction(
+                run,
+                "coverage",
+                "Code Coverage",
+                StringUtils.EMPTY,
+                node,
+                new QualityGateResult(),
+                new FilteredLog("Test"),
+                "-",
+                delta,
+                List.of(),
+                List.of(),
+                List.of(),
+                List.of(),
+                List.of(),
+                false);
         when(run.getAction(CoverageBuildAction.class)).thenReturn(coverageBuildAction);
         when(run.getActions(CoverageBuildAction.class)).thenReturn(Collections.singletonList(coverageBuildAction));
 

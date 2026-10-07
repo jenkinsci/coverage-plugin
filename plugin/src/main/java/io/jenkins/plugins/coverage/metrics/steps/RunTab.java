@@ -1,20 +1,17 @@
 package io.jenkins.plugins.coverage.metrics.steps;
 
 import edu.umd.cs.findbugs.annotations.CheckForNull;
-
+import hudson.model.Actionable;
+import io.jenkins.plugins.util.QualityGateResult;
 import java.io.IOException;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.function.Predicate;
-
-import org.kohsuke.stapler.HttpRedirect;
-import org.kohsuke.stapler.StaplerResponse2;
-import hudson.model.Actionable;
 import jenkins.management.Badge;
 import jenkins.model.Tab;
 import jenkins.model.experimentalflags.BooleanUserExperimentalFlag;
-
-import io.jenkins.plugins.util.QualityGateResult;
+import org.kohsuke.stapler.HttpRedirect;
+import org.kohsuke.stapler.StaplerResponse2;
 
 /**
  * Defines the coverage tab for a run.
@@ -51,8 +48,7 @@ public class RunTab extends Tab {
 
     @Override
     public Badge getBadge() {
-        var failed = getActions()
-                .stream()
+        var failed = getActions().stream()
                 .map(CoverageBuildAction::getQualityGateResult)
                 .filter(Predicate.not(QualityGateResult::isSuccessful))
                 .count();
@@ -61,13 +57,11 @@ public class RunTab extends Tab {
             return null;
         }
 
-        return new Badge(String.valueOf(failed), Messages.RunTab_failedQualityGates(failed),
-                Badge.Severity.WARNING);
+        return new Badge(String.valueOf(failed), Messages.RunTab_failedQualityGates(failed), Badge.Severity.WARNING);
     }
 
     public List<CoverageBuildAction> getActions() {
-        return getObject()
-                .getActions(CoverageBuildAction.class);
+        return getObject().getActions(CoverageBuildAction.class);
     }
 
     /**
@@ -111,8 +105,8 @@ public class RunTab extends Tab {
      */
     @CheckForNull
     public HttpRedirect doIndex(final StaplerResponse2 response) throws IOException {
-        Boolean newUiEnabled = BooleanUserExperimentalFlag.
-                getFlagValueForCurrentUser("jenkins.model.experimentalflags.NewBuildPageUserExperimentalFlag");
+        Boolean newUiEnabled = BooleanUserExperimentalFlag.getFlagValueForCurrentUser(
+                "jenkins.model.experimentalflags.NewBuildPageUserExperimentalFlag");
 
         if (Boolean.TRUE.equals(newUiEnabled)) {
             return new HttpRedirect(getActions().get(0).getUrlName() + CoverageViewModel.OVERVIEW_URL);

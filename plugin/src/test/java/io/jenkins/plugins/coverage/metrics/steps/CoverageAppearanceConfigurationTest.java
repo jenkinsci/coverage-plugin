@@ -1,16 +1,13 @@
 package io.jenkins.plugins.coverage.metrics.steps;
 
-import org.junit.jupiter.api.Test;
-
-import edu.hm.hafner.coverage.Metric;
-
-import jenkins.model.Jenkins;
-
-import io.jenkins.plugins.util.GlobalConfigurationFacade;
-import io.jenkins.plugins.util.JenkinsFacade;
-
 import static io.jenkins.plugins.coverage.metrics.Assertions.*;
 import static org.mockito.Mockito.*;
+
+import edu.hm.hafner.coverage.Metric;
+import io.jenkins.plugins.util.GlobalConfigurationFacade;
+import io.jenkins.plugins.util.JenkinsFacade;
+import jenkins.model.Jenkins;
+import org.junit.jupiter.api.Test;
 
 class CoverageAppearanceConfigurationTest {
     @Test
@@ -21,8 +18,10 @@ class CoverageAppearanceConfigurationTest {
 
         assertThat(configuration.doFillDefaultMetricItems()).isEmpty();
         when(jenkins.hasPermission(Jenkins.READ)).thenReturn(true);
-        assertThat(configuration.doFillDefaultMetricItems()).map(o -> o.value)
-                .contains("MODULE",
+        assertThat(configuration.doFillDefaultMetricItems())
+                .map(o -> o.value)
+                .contains(
+                        "MODULE",
                         "PACKAGE",
                         "FILE",
                         "CLASS",

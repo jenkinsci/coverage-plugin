@@ -1,24 +1,20 @@
 package io.jenkins.plugins.coverage.metrics.steps;
 
-import org.apache.commons.lang3.StringUtils;
-import org.junit.jupiter.api.Test;
-import org.junitpioneer.jupiter.Issue;
-
-import edu.hm.hafner.coverage.Node;
-import edu.hm.hafner.util.FilteredLog;
-
-import java.util.List;
-import java.util.function.Function;
-
-import hudson.model.Run;
-
-import io.jenkins.plugins.coverage.metrics.AbstractModifiedFilesCoverageTest;
-import io.jenkins.plugins.datatables.TableColumn;
-import io.jenkins.plugins.util.QualityGateResult;
-
 import static io.jenkins.plugins.coverage.metrics.steps.CoverageViewModel.*;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
+
+import edu.hm.hafner.coverage.Node;
+import edu.hm.hafner.util.FilteredLog;
+import hudson.model.Run;
+import io.jenkins.plugins.coverage.metrics.AbstractModifiedFilesCoverageTest;
+import io.jenkins.plugins.datatables.TableColumn;
+import io.jenkins.plugins.util.QualityGateResult;
+import java.util.List;
+import java.util.function.Function;
+import org.apache.commons.lang3.StringUtils;
+import org.junit.jupiter.api.Test;
+import org.junitpioneer.jupiter.Issue;
 
 /**
  * Tests the delta columns of {@link CoverageTableModel} and its subclasses.
@@ -28,8 +24,8 @@ import static org.mockito.Mockito.*;
 class CoverageTableModelITest extends AbstractModifiedFilesCoverageTest {
     private static final String LINE_DELTA_COLUMN = "lineCoverageDelta";
     private static final String BRANCH_DELTA_COLUMN = "branchCoverageDelta";
-    private static final List<String> TABLES_WITH_DELTA_COLUMNS
-            = List.of(ABSOLUTE_COVERAGE_TABLE_ID, MODIFIED_LINES_COVERAGE_TABLE_ID);
+    private static final List<String> TABLES_WITH_DELTA_COLUMNS =
+            List.of(ABSOLUTE_COVERAGE_TABLE_ID, MODIFIED_LINES_COVERAGE_TABLE_ID);
 
     @Test
     void shouldShowDeltaColumnsForAFreshlyComputedTree() {
@@ -41,7 +37,8 @@ class CoverageTableModelITest extends AbstractModifiedFilesCoverageTest {
      * Jenkins or as soon as the cached tree has been garbage collected. Even then the delta columns of the file tables
      * must still be shown.
      */
-    @Test @Issue("https://github.com/jenkinsci/coverage-plugin/issues/643")
+    @Test
+    @Issue("https://github.com/jenkinsci/coverage-plugin/issues/643")
     void shouldShowDeltaColumnsForATreeThatHasBeenRestoredFromDisk() {
         assertThatDeltaColumnsAreShown(saveAndRestore(createCoverageTree()));
     }
@@ -71,8 +68,16 @@ class CoverageTableModelITest extends AbstractModifiedFilesCoverageTest {
     }
 
     private CoverageViewModel createViewModel(final Node node) {
-        return new CoverageViewModel(mock(Run.class), "id", StringUtils.EMPTY,
-                node, createStatistics(), new QualityGateResult(), "-", new FilteredLog("Errors"),
-                Function.identity(), Function.identity());
+        return new CoverageViewModel(
+                mock(Run.class),
+                "id",
+                StringUtils.EMPTY,
+                node,
+                createStatistics(),
+                new QualityGateResult(),
+                "-",
+                new FilteredLog("Errors"),
+                Function.identity(),
+                Function.identity());
     }
 }

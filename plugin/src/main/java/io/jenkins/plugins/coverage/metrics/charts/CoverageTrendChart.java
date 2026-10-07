@@ -6,12 +6,10 @@ import edu.hm.hafner.echarts.ChartModelConfiguration;
 import edu.hm.hafner.echarts.JacksonFacade;
 import edu.hm.hafner.echarts.line.LinesChartModel;
 import edu.hm.hafner.util.VisibleForTesting;
-
-import java.util.List;
-import java.util.Set;
-
 import io.jenkins.plugins.coverage.metrics.model.CoverageStatistics;
 import io.jenkins.plugins.echarts.JenkinsPalette;
+import java.util.List;
+import java.util.Set;
 
 /**
  * Builds the Java side model for a trend chart showing the line and branch coverage of a project. The number of builds
@@ -41,15 +39,19 @@ public class CoverageTrendChart extends TrendChart {
     }
 
     @Override
-    public LinesChartModel create(final Iterable<BuildResult<CoverageStatistics>> results,
-            final ChartModelConfiguration configuration) {
+    public LinesChartModel create(
+            final Iterable<BuildResult<CoverageStatistics>> results, final ChartModelConfiguration configuration) {
         var dataSet = new CoverageSeriesBuilder().createDataSet(configuration, results);
 
         var model = new LinesChartModel(dataSet);
         if (dataSet.isNotEmpty()) {
             int colorIndex = 0;
             for (Metric metric : List.of(Metric.MODULE, Metric.PACKAGE, Metric.FILE, Metric.CLASS, Metric.METHOD)) {
-                addSeriesIfAvailable(dataSet, model, metric, JenkinsPalette.chartColor(colorIndex).normal());
+                addSeriesIfAvailable(
+                        dataSet,
+                        model,
+                        metric,
+                        JenkinsPalette.chartColor(colorIndex).normal());
                 colorIndex++;
             }
 
@@ -66,7 +68,7 @@ public class CoverageTrendChart extends TrendChart {
             addSeriesIfAvailable(dataSet, model, Metric.STMT_DC, JenkinsPalette.RED.light());
             addSeriesIfAvailable(dataSet, model, Metric.STMT_CC, JenkinsPalette.RED.light());
             addSeriesIfAvailable(dataSet, model, Metric.CONDITION, JenkinsPalette.RED.normal());
-            
+
             model.useContinuousRangeAxis();
             model.computeVisibleRange();
             model.setRangeMax(100); // Restrict the range to 100%

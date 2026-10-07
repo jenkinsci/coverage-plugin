@@ -1,13 +1,11 @@
 package io.jenkins.plugins.coverage.metrics.color;
 
-import org.junit.jupiter.api.Test;
+import static org.assertj.core.api.Assertions.*;
 
 import edu.hm.hafner.coverage.Metric.MetricTendency;
-
 import java.awt.*;
 import java.util.Map;
-
-import static org.assertj.core.api.Assertions.*;
+import org.junit.jupiter.api.Test;
 
 /**
  * Tests the class {@link ThresholdColorProvider}.
@@ -66,12 +64,12 @@ class ThresholdColorProviderTest {
     @Test
     void shouldInvertRatioForSmallerIsBetterMetrics() {
         // for a "smaller is better" metric (e.g. complexity), the green threshold is the lower value
-        assertThat(ThresholdColorProvider.getFillColorAsHex(0, MetricTendency.SMALLER_IS_BETTER,
-                0, 100, PURE_COLORS)).isEqualTo("#00ff00");
-        assertThat(ThresholdColorProvider.getFillColorAsHex(100, MetricTendency.SMALLER_IS_BETTER,
-                0, 100, PURE_COLORS)).isEqualTo("#ff0000");
-        assertThat(ThresholdColorProvider.getFillColorAsHex(50, MetricTendency.SMALLER_IS_BETTER,
-                0, 100, PURE_COLORS)).isEqualTo("#ffff00");
+        assertThat(ThresholdColorProvider.getFillColorAsHex(0, MetricTendency.SMALLER_IS_BETTER, 0, 100, PURE_COLORS))
+                .isEqualTo("#00ff00");
+        assertThat(ThresholdColorProvider.getFillColorAsHex(100, MetricTendency.SMALLER_IS_BETTER, 0, 100, PURE_COLORS))
+                .isEqualTo("#ff0000");
+        assertThat(ThresholdColorProvider.getFillColorAsHex(50, MetricTendency.SMALLER_IS_BETTER, 0, 100, PURE_COLORS))
+                .isEqualTo("#ffff00");
     }
 
     @Test
@@ -88,8 +86,12 @@ class ThresholdColorProviderTest {
         // NaN and infinite inputs fall back to 0.0 rather than propagating NaN through the calculation
         assertThat(fillColor(Double.NaN, MetricTendency.LARGER_IS_BETTER)).isEqualTo("#ff0000");
         // all three inputs sanitize to 0.0, so numerator and denominator both become 0 -- defined as fully green
-        assertThat(fillColor(Double.POSITIVE_INFINITY, MetricTendency.LARGER_IS_BETTER,
-                Double.NaN, Double.NEGATIVE_INFINITY)).isEqualTo("#00ff00");
+        assertThat(fillColor(
+                        Double.POSITIVE_INFINITY,
+                        MetricTendency.LARGER_IS_BETTER,
+                        Double.NaN,
+                        Double.NEGATIVE_INFINITY))
+                .isEqualTo("#00ff00");
     }
 
     @Test
@@ -106,8 +108,8 @@ class ThresholdColorProviderTest {
         return fillColor(value, tendency, GREEN_THRESHOLD, RED_THRESHOLD);
     }
 
-    private String fillColor(final double value, final MetricTendency tendency,
-            final double greenThreshold, final double redThreshold) {
+    private String fillColor(
+            final double value, final MetricTendency tendency, final double greenThreshold, final double redThreshold) {
         return ThresholdColorProvider.getFillColorAsHex(value, tendency, greenThreshold, redThreshold, PURE_COLORS);
     }
 }

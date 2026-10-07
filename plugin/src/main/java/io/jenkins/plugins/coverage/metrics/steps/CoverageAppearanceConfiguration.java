@@ -3,23 +3,20 @@ package io.jenkins.plugins.coverage.metrics.steps;
 import edu.hm.hafner.coverage.Metric;
 import edu.hm.hafner.util.VisibleForTesting;
 import edu.umd.cs.findbugs.annotations.NonNull;
-
-import java.util.Objects;
-
-import org.kohsuke.stapler.DataBoundConstructor;
-import org.kohsuke.stapler.DataBoundSetter;
-import org.kohsuke.stapler.verb.POST;
-import org.jenkinsci.Symbol;
 import hudson.Extension;
 import hudson.util.ListBoxModel;
-import jenkins.appearance.AppearanceCategory;
-import jenkins.model.GlobalConfigurationCategory;
-import jenkins.model.Jenkins;
-
 import io.jenkins.plugins.coverage.metrics.model.ElementFormatter;
 import io.jenkins.plugins.util.GlobalConfigurationFacade;
 import io.jenkins.plugins.util.GlobalConfigurationItem;
 import io.jenkins.plugins.util.JenkinsFacade;
+import java.util.Objects;
+import jenkins.appearance.AppearanceCategory;
+import jenkins.model.GlobalConfigurationCategory;
+import jenkins.model.Jenkins;
+import org.jenkinsci.Symbol;
+import org.kohsuke.stapler.DataBoundConstructor;
+import org.kohsuke.stapler.DataBoundSetter;
+import org.kohsuke.stapler.verb.POST;
 
 /**
  * Global appearance configuration for the Coverage Plugin.
@@ -53,7 +50,7 @@ public class CoverageAppearanceConfiguration extends GlobalConfigurationItem {
     public CoverageAppearanceConfiguration() {
         super();
 
-        jenkins =  new JenkinsFacade();
+        jenkins = new JenkinsFacade();
 
         load();
     }

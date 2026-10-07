@@ -1,40 +1,36 @@
 package io.jenkins.plugins.coverage.metrics.steps;
 
-import org.apache.commons.lang3.StringUtils;
-import org.junit.jupiter.api.Disabled;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.CsvSource;
+import static edu.hm.hafner.coverage.Metric.*;
+import static net.javacrumbs.jsonunit.assertj.JsonAssertions.*;
+import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assumptions.*;
 
 import edu.hm.hafner.coverage.Coverage;
 import edu.hm.hafner.coverage.Difference;
 import edu.hm.hafner.coverage.FileNode;
 import edu.hm.hafner.coverage.Value;
-
-import java.io.IOException;
-import java.util.Collections;
-import java.util.List;
-import java.util.stream.Collectors;
-
-import org.jenkinsci.plugins.workflow.flow.FlowDefinition;
 import hudson.model.FreeStyleProject;
 import hudson.model.Result;
 import hudson.model.Run;
 import hudson.plugins.git.BranchSpec;
 import hudson.plugins.git.GitSCM;
 import hudson.plugins.git.extensions.impl.RelativeTargetDirectory;
-
 import io.jenkins.plugins.coverage.metrics.AbstractCoverageITest;
 import io.jenkins.plugins.coverage.metrics.model.Baseline;
 import io.jenkins.plugins.coverage.metrics.restapi.ModifiedLinesCoverageApiModel;
 import io.jenkins.plugins.coverage.metrics.steps.CoverageTool.Parser;
 import io.jenkins.plugins.prism.SourceCodeRetention;
-
-import static edu.hm.hafner.coverage.Metric.*;
-import static net.javacrumbs.jsonunit.assertj.JsonAssertions.*;
-import static org.assertj.core.api.Assertions.*;
-import static org.assertj.core.api.Assumptions.*;
+import java.io.IOException;
+import java.util.Collections;
+import java.util.List;
+import java.util.stream.Collectors;
+import org.apache.commons.lang3.StringUtils;
+import org.jenkinsci.plugins.workflow.flow.FlowDefinition;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 
 /**
  * Tests the integration of the Forensics API Plugin while using its Git implementation.
@@ -56,13 +52,10 @@ class GitForensicsITest extends AbstractCoverageITest {
     private static final AgentContainer AGENT_CONTAINER = new AgentContainer();
 
     @ParameterizedTest(name = "Source code retention {0} should store {1} files")
-    @CsvSource({
-            "EVERY_BUILD, 37",
-            "MODIFIED, 2"
-    })
+    @CsvSource({"EVERY_BUILD, 37", "MODIFIED, 2"})
     @DisplayName("Should compute delta report and store selected source files")
-    void shouldComputeDeltaInPipelineOnDockerAgent(final SourceCodeRetention sourceCodeRetention,
-            final int expectedNumberOfFilesToBeStored) {
+    void shouldComputeDeltaInPipelineOnDockerAgent(
+            final SourceCodeRetention sourceCodeRetention, final int expectedNumberOfFilesToBeStored) {
         assumeThat(isWindows()).as("Running on Windows").isFalse();
 
         var agent = createDockerAgent(AGENT_CONTAINER);
@@ -81,21 +74,22 @@ class GitForensicsITest extends AbstractCoverageITest {
 
         verifyGitIntegration(build, referenceBuild);
 
-        assertThat(getConsoleLog(build)).contains(
-                "[Coverage] -> 18 files contain changes",
-                "[Coverage] Painting " + expectedNumberOfFilesToBeStored + " source files on agent");
+        assertThat(getConsoleLog(build))
+                .contains(
+                        "[Coverage] -> 18 files contain changes",
+                        "[Coverage] Painting " + expectedNumberOfFilesToBeStored + " source files on agent");
 
         verifyModifiedLinesCoverageApi(build);
     }
 
     @ParameterizedTest(name = "Baseline {0}, Threshold {1}, Actual Value {2}")
     @CsvSource({
-            "PROJECT, 60, 56.46",
-            "PROJECT_DELTA, 1, 0.72",
-            "MODIFIED_FILES, 60, 54.55",
-            "MODIFIED_FILES_DELTA, 5, +4.55",
-            "MODIFIED_LINES, 60, 50.00",
-            "MODIFIED_LINES_DELTA, -1, -4.55"
+        "PROJECT, 60, 56.46",
+        "PROJECT_DELTA, 1, 0.72",
+        "MODIFIED_FILES, 60, 54.55",
+        "MODIFIED_FILES_DELTA, 5, +4.55",
+        "MODIFIED_LINES, 60, 50.00",
+        "MODIFIED_LINES_DELTA, -1, -4.55"
     })
     @DisplayName("Should compute quality gates")
     void shouldVerifyQualityGate(final Baseline baseline, final double threshold, final double value) {
@@ -111,9 +105,9 @@ class GitForensicsITest extends AbstractCoverageITest {
         Run<?, ?> referenceBuild = buildSuccessfully(project);
         verifyGitRepositoryForCommit(referenceBuild, COMMIT_REFERENCE);
 
-        String qualityGate = String.format(", qualityGates: ["
-                        + "     [threshold: %f, metric: 'LINE', baseline: '%s', criticality: 'UNSTABLE']]", threshold,
-                baseline.name());
+        String qualityGate = String.format(
+                ", qualityGates: [" + "     [threshold: %f, metric: 'LINE', baseline: '%s', criticality: 'UNSTABLE']]",
+                threshold, baseline.name());
         project.setDefinition(
                 createPipelineForCommit(node, COMMIT, JACOCO_FILE, SourceCodeRetention.EVERY_BUILD, qualityGate));
         Run<?, ?> build = buildWithResult(project, Result.UNSTABLE);
@@ -125,12 +119,11 @@ class GitForensicsITest extends AbstractCoverageITest {
         if (baseline == Baseline.PROJECT_DELTA
                 || baseline == Baseline.MODIFIED_FILES_DELTA
                 || baseline == Baseline.MODIFIED_LINES_DELTA) {
-            assertThat(getConsoleLog(build)).contains(
-                    "≪Unstable≫ - (Actual value: %+.2f%%, Quality gate: %.2f)".formatted(value, threshold));
-        }
-        else {
-            assertThat(getConsoleLog(build)).contains(
-                    "≪Unstable≫ - (Actual value: %.2f%%, Quality gate: %.2f)".formatted(value, threshold));
+            assertThat(getConsoleLog(build))
+                    .contains("≪Unstable≫ - (Actual value: %+.2f%%, Quality gate: %.2f)".formatted(value, threshold));
+        } else {
+            assertThat(getConsoleLog(build))
+                    .contains("≪Unstable≫ - (Actual value: %.2f%%, Quality gate: %.2f)".formatted(value, threshold));
         }
     }
 
@@ -187,9 +180,9 @@ class GitForensicsITest extends AbstractCoverageITest {
         var action = build.getAction(CoverageBuildAction.class);
         assertThat(action).isNotNull();
         assertThat(action.getReferenceBuild())
-                .isPresent().hasValueSatisfying(reference ->
-                        assertThat(reference.getExternalizableId()).isEqualTo(
-                                referenceBuild.getExternalizableId()));
+                .isPresent()
+                .hasValueSatisfying(reference ->
+                        assertThat(reference.getExternalizableId()).isEqualTo(referenceBuild.getExternalizableId()));
         verifyCodeDelta(action);
         verifyCoverage(action, referenceBuild.getAction(CoverageBuildAction.class));
     }
@@ -202,14 +195,10 @@ class GitForensicsITest extends AbstractCoverageITest {
     }
 
     private void verifyOverallCoverage(final CoverageBuildAction action) {
-        assertThat(action.getAllValues(Baseline.PROJECT)).contains(
-                Coverage.valueOf(LINE, "529/937"),
-                Coverage.valueOf(BRANCH, "136/230"),
-                new Value(LOC, 937));
-        assertThat(action.getAllDeltas(Baseline.PROJECT_DELTA)).contains(
-                getValue("LINE: 6424:897646"),
-                getValue("BRANCH: 0"),
-                getValue("LOC: -21"));
+        assertThat(action.getAllValues(Baseline.PROJECT))
+                .contains(Coverage.valueOf(LINE, "529/937"), Coverage.valueOf(BRANCH, "136/230"), new Value(LOC, 937));
+        assertThat(action.getAllDeltas(Baseline.PROJECT_DELTA))
+                .contains(getValue("LINE: 6424:897646"), getValue("BRANCH: 0"), getValue("LOC: -21"));
     }
 
     private Difference getValue(final String stringRepresentation) {
@@ -217,26 +206,18 @@ class GitForensicsITest extends AbstractCoverageITest {
     }
 
     private void verifyModifiedFilesCoverage(final CoverageBuildAction action, final CoverageBuildAction reference) {
-        assertThat(action.getAllValues(Baseline.MODIFIED_FILES)).contains(
-                Coverage.valueOf(LINE, "12/22"),
-                Coverage.valueOf(BRANCH, "1/2"),
-                new Value(LOC, 22));
+        assertThat(action.getAllValues(Baseline.MODIFIED_FILES))
+                .contains(Coverage.valueOf(LINE, "12/22"), Coverage.valueOf(BRANCH, "1/2"), new Value(LOC, 22));
         var affectedFiles = action.getResult().filterByModifiedFiles().getFiles();
-        assertThat(reference.getResult().filterByFileNames(affectedFiles).aggregateValues()).contains(
-                Coverage.valueOf(LINE, "17/34"),
-                Coverage.valueOf(BRANCH, "1/2"),
-                new Value(LOC, 34));
-        assertThat(action.getAllDeltas(Baseline.MODIFIED_FILES_DELTA)).contains(
-                getValue("LINE: 17:374"),
-                getValue("BRANCH: 0"),
-                getValue("LOC: -12"));
+        assertThat(reference.getResult().filterByFileNames(affectedFiles).aggregateValues())
+                .contains(Coverage.valueOf(LINE, "17/34"), Coverage.valueOf(BRANCH, "1/2"), new Value(LOC, 34));
+        assertThat(action.getAllDeltas(Baseline.MODIFIED_FILES_DELTA))
+                .contains(getValue("LINE: 17:374"), getValue("BRANCH: 0"), getValue("LOC: -12"));
     }
 
     private void verifyModifiedLinesCoverage(final CoverageBuildAction action) {
-        assertThat(action.getAllValues(Baseline.MODIFIED_LINES)).contains(
-                Coverage.valueOf(LINE, "1/2"));
-        assertThat(action.getAllDeltas(Baseline.MODIFIED_LINES_DELTA)).contains(
-                getValue("LINE: -1:22"));
+        assertThat(action.getAllValues(Baseline.MODIFIED_LINES)).contains(Coverage.valueOf(LINE, "1/2"));
+        assertThat(action.getAllDeltas(Baseline.MODIFIED_LINES_DELTA)).contains(getValue("LINE: -1:22"));
     }
 
     private void verifyIndirectCoverageChanges(final CoverageBuildAction action) {
@@ -260,10 +241,15 @@ class GitForensicsITest extends AbstractCoverageITest {
                 .filter(FileNode::hasModifiedLines)
                 .collect(Collectors.toList());
         assertThat(modifiedFiles).hasSize(4);
-        assertThat(modifiedFiles).extracting(FileNode::getName)
-                .containsExactlyInAnyOrder("MinerFactory.java", "RepositoryMinerStep.java",
-                        "SimpleReferenceRecorder.java", "CommitDecoratorFactory.java");
-        assertThat(modifiedFiles).flatExtracting(FileNode::getModifiedLines)
+        assertThat(modifiedFiles)
+                .extracting(FileNode::getName)
+                .containsExactlyInAnyOrder(
+                        "MinerFactory.java",
+                        "RepositoryMinerStep.java",
+                        "SimpleReferenceRecorder.java",
+                        "CommitDecoratorFactory.java");
+        assertThat(modifiedFiles)
+                .flatExtracting(FileNode::getModifiedLines)
                 .containsExactlyInAnyOrder(15, 17, 63, 68, 80, 90, 130);
     }
 
@@ -275,25 +261,28 @@ class GitForensicsITest extends AbstractCoverageITest {
      *         The build for that the coverage API should be called
      */
     private void verifyModifiedLinesCoverageApi(final Run<?, ?> build) {
-        var json = callJsonRemoteApi(build.getUrl() + "coverage/modified/api/json").getJSONObject();
-        assertThatJson(json).node("files").isEqualTo("["
-                + "{"
-                + "\"fullyQualifiedFileName\":\"io/jenkins/plugins/forensics/util/CommitDecoratorFactory.java\","
-                + "\"modifiedLinesBlocks\":["
-                + "{"
-                + "\"endLine\":68,"
-                + "\"startLine\":68,"
-                + "\"type\":\"MISSED\"}"
-                + "]},"
-                + "{"
-                + "\"fullyQualifiedFileName\":\"io/jenkins/plugins/forensics/miner/MinerFactory.java\","
-                + "\"modifiedLinesBlocks\":["
-                + "{"
-                + "\"endLine\":80,"
-                + "\"startLine\":80,"
-                + "\"type\":\"COVERED\""
-                + "}]"
-                + "}]");
+        var json =
+                callJsonRemoteApi(build.getUrl() + "coverage/modified/api/json").getJSONObject();
+        assertThatJson(json)
+                .node("files")
+                .isEqualTo("["
+                        + "{"
+                        + "\"fullyQualifiedFileName\":\"io/jenkins/plugins/forensics/util/CommitDecoratorFactory.java\","
+                        + "\"modifiedLinesBlocks\":["
+                        + "{"
+                        + "\"endLine\":68,"
+                        + "\"startLine\":68,"
+                        + "\"type\":\"MISSED\"}"
+                        + "]},"
+                        + "{"
+                        + "\"fullyQualifiedFileName\":\"io/jenkins/plugins/forensics/miner/MinerFactory.java\","
+                        + "\"modifiedLinesBlocks\":["
+                        + "{"
+                        + "\"endLine\":80,"
+                        + "\"startLine\":80,"
+                        + "\"type\":\"COVERED\""
+                        + "}]"
+                        + "}]");
     }
 
     /**
@@ -326,13 +315,20 @@ class GitForensicsITest extends AbstractCoverageITest {
      *
      * @return the created definition
      */
-    private FlowDefinition createPipelineForCommit(final String node, final String commit, final String fileName,
+    private FlowDefinition createPipelineForCommit(
+            final String node,
+            final String commit,
+            final String fileName,
             final SourceCodeRetention sourceCodeRetentionStrategy) {
         return createPipelineForCommit(node, commit, fileName, sourceCodeRetentionStrategy, StringUtils.EMPTY);
     }
 
-    private FlowDefinition createPipelineForCommit(final String node, final String commit, final String fileName,
-            final SourceCodeRetention sourceCodeRetentionStrategy, final String qualityGate) {
+    private FlowDefinition createPipelineForCommit(
+            final String node,
+            final String commit,
+            final String fileName,
+            final SourceCodeRetention sourceCodeRetentionStrategy,
+            final String qualityGate) {
         return createPipelineScript(node
                 + " {"
                 + "    checkout([$class: 'GitSCM', "
@@ -349,8 +345,11 @@ class GitForensicsITest extends AbstractCoverageITest {
     }
 
     private void configureGit(final FreeStyleProject project, final String commit) throws IOException {
-        var scm = new GitSCM(GitSCM.createRepoList(REPOSITORY, null),
-                Collections.singletonList(new BranchSpec(commit)), null, null,
+        var scm = new GitSCM(
+                GitSCM.createRepoList(REPOSITORY, null),
+                Collections.singletonList(new BranchSpec(commit)),
+                null,
+                null,
                 Collections.singletonList(new RelativeTargetDirectory("code-coverage-api")));
         project.setScm(scm);
     }

@@ -1,15 +1,9 @@
 package io.jenkins.plugins.coverage.metrics.source;
 
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.Strings;
-import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
-import org.jsoup.nodes.Element;
-import org.jsoup.parser.Parser;
-
 import edu.hm.hafner.coverage.FileNode;
 import edu.hm.hafner.util.FilteredLog;
-
+import hudson.FilePath;
+import hudson.model.Run;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -24,9 +18,12 @@ import java.util.SortedSet;
 import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
-
-import hudson.FilePath;
-import hudson.model.Run;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
+import org.jsoup.parser.Parser;
 
 /**
  * Facade to the source code file structure in Jenkins build folder. Access of those files should be done using an
@@ -38,6 +35,7 @@ import hudson.model.Run;
 public class SourceCodeFacade {
     /** Toplevel directory in the build folder of the controller that contains the zipped source files. */
     static final String COVERAGE_SOURCES_DIRECTORY = "coverage-sources";
+
     static final int MAX_FILENAME_LENGTH = 245; // Windows has limitations on long file names
     static final String ZIP_FILE_EXTENSION = ".zip";
 
@@ -83,8 +81,7 @@ public class SourceCodeFacade {
             var sourceFile = tempDir.resolve(actualPaintedSourceFileName).toFile();
 
             return Files.readString(sourceFile.toPath(), StandardCharsets.UTF_8);
-        }
-        finally {
+        } finally {
             unzippedSourcesDir.deleteRecursive();
         }
     }
@@ -143,8 +140,8 @@ public class SourceCodeFacade {
      * @throws InterruptedException
      *         in case the user terminated the job
      */
-    void copySourcesToBuildFolder(final Run<?, ?> build, final FilePath workspace, final String id,
-            final FilteredLog log)
+    void copySourcesToBuildFolder(
+            final Run<?, ?> build, final FilePath workspace, final String id, final FilteredLog log)
             throws InterruptedException {
         var zipName = getCoverageSourcesZip(id);
         var buildFolder = new FilePath(build.getRootDir()).child(COVERAGE_SOURCES_DIRECTORY);
@@ -156,11 +153,9 @@ public class SourceCodeFacade {
             log.logInfo("-> extracting...");
             buildZip.unzip(buildFolder);
             log.logInfo("-> done");
-        }
-        catch (IOException exception) {
+        } catch (IOException exception) {
             log.logException(exception, "Can't copy zipped sources from agent to controller");
-        }
-        finally {
+        } finally {
             delete(buildZip, log);
             delete(workspaceZip, log);
         }
@@ -177,14 +172,12 @@ public class SourceCodeFacade {
      * @throws InterruptedException
      *         if the user terminated the job
      */
-    private void delete(final FilePath file, final FilteredLog log)
-            throws InterruptedException {
+    private void delete(final FilePath file, final FilteredLog log) throws InterruptedException {
         try {
             if (file.exists()) {
                 file.delete();
             }
-        }
-        catch (IOException exception) {
+        } catch (IOException exception) {
             log.logException(exception, "Can't delete temporary file: '%s'", file);
         }
     }
@@ -223,8 +216,8 @@ public class SourceCodeFacade {
         lines.retainAll(fileNode.getModifiedLines());
         Set<String> linesAsText = lines.stream().map(String::valueOf).collect(Collectors.toSet());
         Document doc = Jsoup.parse(content, Parser.xmlParser());
-        int maxLine = Integer.parseInt(Objects.requireNonNull(
-                doc.select("tr").last()).select("a").text());
+        int maxLine = Integer.parseInt(
+                Objects.requireNonNull(doc.select("tr").last()).select("a").text());
         Map<String, Boolean> linesMapping = calculateLineMapping(lines, maxLine);
         var elements = doc.select("tr");
         for (Element element : elements) {
@@ -232,14 +225,12 @@ public class SourceCodeFacade {
             if (linesMapping.containsKey(line)) {
                 if (linesMapping.get(line)) {
                     changeCodeToSkipLine(element);
-                }
-                else if (!linesAsText.contains(line)) {
+                } else if (!linesAsText.contains(line)) {
                     element.removeClass(element.className());
                     element.addClass("noCover");
                     Objects.requireNonNull(element.select("td.hits").first()).text("");
                 }
-            }
-            else {
+            } else {
                 element.remove();
             }
         }
@@ -259,18 +250,17 @@ public class SourceCodeFacade {
     public String calculateIndirectCoverageChangesSourceCode(final String content, final FileNode fileNode) {
         Map<Integer, Integer> lines = fileNode.getIndirectCoverageChanges();
         Map<String, String> indirectCoverageChangesAsText = lines.entrySet().stream()
-                .collect(Collectors
-                        .toMap(entry -> String.valueOf(entry.getKey()), entry -> String.valueOf(entry.getValue())));
+                .collect(Collectors.toMap(
+                        entry -> String.valueOf(entry.getKey()), entry -> String.valueOf(entry.getValue())));
         Document doc = Jsoup.parse(content, Parser.xmlParser());
-        int maxLine = Integer.parseInt(Objects.requireNonNull(
-                doc.select("tr").last()).select("a").text());
+        int maxLine = Integer.parseInt(
+                Objects.requireNonNull(doc.select("tr").last()).select("a").text());
         Map<String, Boolean> linesMapping = calculateLineMapping(lines.keySet(), maxLine);
         doc.select("tr").forEach(element -> {
             var line = element.select("td > a").text();
             if (linesMapping.containsKey(line)) {
                 colorIndirectCoverageChangeLine(element, line, linesMapping, indirectCoverageChangesAsText);
-            }
-            else {
+            } else {
                 element.remove();
             }
         });
@@ -303,23 +293,23 @@ public class SourceCodeFacade {
      * @param indirectCoverageChangesAsText
      *         The indirect coverage changes mapping
      */
-    private void colorIndirectCoverageChangeLine(final Element element, final String line,
-            final Map<String, Boolean> linesMapping, final Map<String, String> indirectCoverageChangesAsText) {
+    private void colorIndirectCoverageChangeLine(
+            final Element element,
+            final String line,
+            final Map<String, Boolean> linesMapping,
+            final Map<String, String> indirectCoverageChangesAsText) {
         if (linesMapping.get(line)) {
             changeCodeToSkipLine(element);
-        }
-        else if (indirectCoverageChangesAsText.containsKey(line)) {
+        } else if (indirectCoverageChangesAsText.containsKey(line)) {
             element.removeClass(element.className());
             var hits = indirectCoverageChangesAsText.get(line);
             if (hits.startsWith("-")) {
                 element.addClass("coverNone");
-            }
-            else {
+            } else {
                 element.addClass("coverFull");
             }
             Objects.requireNonNull(element.select("td.hits").first()).text(hits);
-        }
-        else {
+        } else {
             element.removeClass(element.className());
             element.addClass("noCover");
             Objects.requireNonNull(element.select("td.hits").first()).text("");
