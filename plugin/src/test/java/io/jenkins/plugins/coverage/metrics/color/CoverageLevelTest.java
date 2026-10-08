@@ -1,12 +1,10 @@
 package io.jenkins.plugins.coverage.metrics.color;
 
-import org.junit.jupiter.api.Test;
-
-import java.awt.*;
+import static org.assertj.core.api.Assertions.*;
 
 import io.jenkins.plugins.coverage.metrics.color.ColorProvider.DisplayColors;
-
-import static org.assertj.core.api.Assertions.*;
+import java.awt.*;
+import org.junit.jupiter.api.Test;
 
 /**
  * Test class for {@link CoverageLevel}.
@@ -26,12 +24,16 @@ class CoverageLevelTest {
     @Test
     void shouldGetDisplayColorsOfCoveragePercentage() {
         Color blendedColor = ColorProvider.blendColors(
-                COLOR_PROVIDER.getDisplayColorsOf(CoverageLevel.LVL_60.getColorizationId()).getFillColor(),
-                COLOR_PROVIDER.getDisplayColorsOf(CoverageLevel.LVL_70.getColorizationId()).getFillColor());
+                COLOR_PROVIDER
+                        .getDisplayColorsOf(CoverageLevel.LVL_60.getColorizationId())
+                        .getFillColor(),
+                COLOR_PROVIDER
+                        .getDisplayColorsOf(CoverageLevel.LVL_70.getColorizationId())
+                        .getFillColor());
 
         assertThat(CoverageLevel.getDisplayColorsOfCoverageLevel(65.0, COLOR_PROVIDER))
-                .isEqualTo(new DisplayColors(COLOR_PROVIDER.getDisplayColorsOf(ColorId.BLACK).getFillColor(),
-                        blendedColor));
+                .isEqualTo(new DisplayColors(
+                        COLOR_PROVIDER.getDisplayColorsOf(ColorId.BLACK).getFillColor(), blendedColor));
         assertThat(CoverageLevel.getDisplayColorsOfCoverageLevel(96.0, COLOR_PROVIDER))
                 .isEqualTo(COLOR_PROVIDER.getDisplayColorsOf(ColorId.EXCELLENT));
         assertThat(CoverageLevel.getDisplayColorsOfCoverageLevel(50.0, COLOR_PROVIDER))

@@ -1,13 +1,12 @@
 package io.jenkins.plugins.coverage.metrics.color;
 
-import org.junit.jupiter.api.Test;
+import static io.jenkins.plugins.coverage.metrics.color.CoverageColorJenkinsId.*;
+import static org.assertj.core.api.Assertions.*;
 
 import java.awt.*;
 import java.util.HashMap;
 import java.util.Map;
-
-import static io.jenkins.plugins.coverage.metrics.color.CoverageColorJenkinsId.*;
-import static org.assertj.core.api.Assertions.*;
+import org.junit.jupiter.api.Test;
 
 /**
  * Test class for {@link ColorProviderFactory}.
@@ -33,10 +32,10 @@ class ColorProviderFactoryTest {
 
         for (CoverageColorPalette color : CoverageColorPalette.values()) {
             assertThat(colorProvider.containsColorId(color.getColorId())).isTrue();
-            if (color.getColorId() != ColorId.BLACK
-                    && color.getColorId() != ColorId.WHITE) { // skip set default color
+            if (color.getColorId() != ColorId.BLACK && color.getColorId() != ColorId.WHITE) { // skip set default color
                 assertThat(colorProvider.getDisplayColorsOf(color.getColorId()))
-                        .satisfies(displayColor -> assertThat(displayColor.getFillColor()).isEqualTo(TEST_COLOR));
+                        .satisfies(displayColor ->
+                                assertThat(displayColor.getFillColor()).isEqualTo(TEST_COLOR));
             }
         }
     }

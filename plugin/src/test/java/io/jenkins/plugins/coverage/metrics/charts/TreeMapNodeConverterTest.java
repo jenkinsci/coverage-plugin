@@ -1,20 +1,17 @@
 package io.jenkins.plugins.coverage.metrics.charts;
 
-import org.junit.jupiter.api.Test;
+import static org.assertj.core.api.Assertions.*;
 
 import edu.hm.hafner.coverage.Metric;
 import edu.hm.hafner.echarts.LabeledTreeMapNode;
-
-import java.util.List;
-import java.util.stream.Collectors;
-
 import io.jenkins.plugins.coverage.metrics.AbstractCoverageTest;
 import io.jenkins.plugins.coverage.metrics.color.ColorProvider;
 import io.jenkins.plugins.coverage.metrics.color.ColorProviderFactory;
 import io.jenkins.plugins.coverage.metrics.color.CoverageLevel;
 import io.jenkins.plugins.coverage.metrics.color.ThresholdColorProvider;
-
-import static org.assertj.core.api.Assertions.*;
+import java.util.List;
+import java.util.stream.Collectors;
+import org.junit.jupiter.api.Test;
 
 /**
  * Tests the class {@link TreeMapNodeConverter}.
@@ -38,14 +35,11 @@ class TreeMapNodeConverterTest extends AbstractCoverageTest {
         var overallCoveragePercentage = 100.0 * JACOCO_CODING_STYLE_COVERED / JACOCO_CODING_STYLE_TOTAL;
         assertThat(root.getItemStyle().getColor()).isEqualTo(getNodeColorAsRGBHex(overallCoveragePercentage));
 
-        assertThat(root.getChildren()).hasSize(1).element(0).satisfies(
-                node -> {
-                    assertThat(node.getName()).isEqualTo("edu.hm.hafner.util");
-                    assertThat(node.getValue()).contains(overallCoverage);
-                    assertThat(root.getItemStyle().getColor()).isEqualTo(
-                            getNodeColorAsRGBHex(overallCoveragePercentage));
-                }
-        );
+        assertThat(root.getChildren()).hasSize(1).element(0).satisfies(node -> {
+            assertThat(node.getName()).isEqualTo("edu.hm.hafner.util");
+            assertThat(node.getValue()).contains(overallCoverage);
+            assertThat(root.getItemStyle().getColor()).isEqualTo(getNodeColorAsRGBHex(overallCoveragePercentage));
+        });
     }
 
     @Test
@@ -55,8 +49,9 @@ class TreeMapNodeConverterTest extends AbstractCoverageTest {
         var root = new TreeMapNodeConverter().toTreeChartModel(tree, Metric.BRANCH, COLOR_PROVIDER);
 
         var nodes = aggregateChildren(root);
-        nodes.stream().filter(node -> node.getName().endsWith(".java")).forEach(node ->
-                assertThat(node.getValue()).hasSize(2));
+        nodes.stream()
+                .filter(node -> node.getName().endsWith(".java"))
+                .forEach(node -> assertThat(node.getValue()).hasSize(2));
     }
 
     @Test
@@ -65,14 +60,14 @@ class TreeMapNodeConverterTest extends AbstractCoverageTest {
 
         var greenThreshold = 100.0;
         var redThreshold = 0.0;
-        var root = new TreeMapNodeConverter().toThresholdTreeChartModel(tree, Metric.LINE,
-                greenThreshold, redThreshold, COLOR_PROVIDER);
+        var root = new TreeMapNodeConverter()
+                .toThresholdTreeChartModel(tree, Metric.LINE, greenThreshold, redThreshold, COLOR_PROVIDER);
 
         assertThat(root.getName()).isEqualTo("Java coding style");
 
         var overallCoveragePercentage = 100.0 * JACOCO_CODING_STYLE_COVERED / JACOCO_CODING_STYLE_TOTAL;
-        var expectedFillColor = ThresholdColorProvider.getFillColorAsHex(overallCoveragePercentage,
-                Metric.LINE.getTendency(), greenThreshold, redThreshold, COLOR_PROVIDER);
+        var expectedFillColor = ThresholdColorProvider.getFillColorAsHex(
+                overallCoveragePercentage, Metric.LINE.getTendency(), greenThreshold, redThreshold, COLOR_PROVIDER);
         assertThat(root.getItemStyle().getColor()).isEqualTo(expectedFillColor);
 
         var overallCoverage = String.valueOf(JACOCO_CODING_STYLE_TOTAL);
@@ -84,8 +79,8 @@ class TreeMapNodeConverterTest extends AbstractCoverageTest {
         var tree = readJacocoResult(PREFIX + JACOCO_ANALYSIS_MODEL_FILE);
 
         var plain = new TreeMapNodeConverter().toTreeChartModel(tree, Metric.BRANCH, COLOR_PROVIDER);
-        var threshold = new TreeMapNodeConverter().toThresholdTreeChartModel(tree, Metric.BRANCH,
-                100.0, 0.0, COLOR_PROVIDER);
+        var threshold =
+                new TreeMapNodeConverter().toThresholdTreeChartModel(tree, Metric.BRANCH, 100.0, 0.0, COLOR_PROVIDER);
 
         // same node count and same size ("value") independent of how the nodes end up being colored
         assertThat(aggregateChildren(threshold)).hasSameSizeAs(aggregateChildren(plain));
@@ -99,11 +94,11 @@ class TreeMapNodeConverterTest extends AbstractCoverageTest {
         // a green threshold below the worst possible value (0%) means every node, however covered, is fully green
         var root = new TreeMapNodeConverter().toThresholdTreeChartModel(tree, Metric.LINE, 0.0, -1.0, COLOR_PROVIDER);
 
-        var fullyGreen = ThresholdColorProvider.getFillColorAsHex(100.0, Metric.LINE.getTendency(), 0.0, -1.0,
-                COLOR_PROVIDER);
+        var fullyGreen =
+                ThresholdColorProvider.getFillColorAsHex(100.0, Metric.LINE.getTendency(), 0.0, -1.0, COLOR_PROVIDER);
         assertThat(root.getItemStyle().getColor()).isEqualTo(fullyGreen);
-        aggregateChildren(root).forEach(node ->
-                assertThat(node.getItemStyle().getColor()).isEqualTo(fullyGreen));
+        aggregateChildren(root)
+                .forEach(node -> assertThat(node.getItemStyle().getColor()).isEqualTo(fullyGreen));
     }
 
     private List<LabeledTreeMapNode> aggregateChildren(final LabeledTreeMapNode root) {
@@ -125,8 +120,7 @@ class TreeMapNodeConverterTest extends AbstractCoverageTest {
      * @return the fill color as a hex string
      */
     private String getNodeColorAsRGBHex(final Double coveredPercentage) {
-        return CoverageLevel
-                .getDisplayColorsOfCoverageLevel(coveredPercentage, COLOR_PROVIDER)
+        return CoverageLevel.getDisplayColorsOfCoverageLevel(coveredPercentage, COLOR_PROVIDER)
                 .getFillColorAsRGBHex();
     }
 }

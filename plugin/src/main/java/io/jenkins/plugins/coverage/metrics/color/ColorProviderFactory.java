@@ -1,5 +1,6 @@
 package io.jenkins.plugins.coverage.metrics.color;
 
+import io.jenkins.plugins.coverage.metrics.color.ColorProvider.DisplayColors;
 import java.awt.*;
 import java.util.Arrays;
 import java.util.Collection;
@@ -7,8 +8,6 @@ import java.util.EnumMap;
 import java.util.Map;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-
-import io.jenkins.plugins.coverage.metrics.color.ColorProvider.DisplayColors;
 
 /**
  * Provides factory methods for creating different {@link ColorProvider color providers}.
@@ -47,21 +46,29 @@ public final class ColorProviderFactory {
         }
         Map<ColorId, DisplayColors> colorMap = new EnumMap<>(ColorId.class);
         // TODO: use dynamic text color (not provided yet)
-        colorMap.put(ColorId.INSUFFICIENT,
+        colorMap.put(
+                ColorId.INSUFFICIENT,
                 createDisplayColor(colors.get(CoverageColorJenkinsId.RED.getJenkinsColorId()), "#ffffff"));
-        colorMap.put(ColorId.VERY_BAD,
+        colorMap.put(
+                ColorId.VERY_BAD,
                 createDisplayColor(colors.get(CoverageColorJenkinsId.LIGHT_RED.getJenkinsColorId()), "#ffffff"));
-        colorMap.put(ColorId.BAD,
+        colorMap.put(
+                ColorId.BAD,
                 createDisplayColor(colors.get(CoverageColorJenkinsId.ORANGE.getJenkinsColorId()), "#000000"));
-        colorMap.put(ColorId.INADEQUATE,
+        colorMap.put(
+                ColorId.INADEQUATE,
                 createDisplayColor(colors.get(CoverageColorJenkinsId.LIGHT_ORANGE.getJenkinsColorId()), "#000000"));
-        colorMap.put(ColorId.AVERAGE,
+        colorMap.put(
+                ColorId.AVERAGE,
                 createDisplayColor(colors.get(CoverageColorJenkinsId.YELLOW.getJenkinsColorId()), "#000000"));
-        colorMap.put(ColorId.GOOD,
+        colorMap.put(
+                ColorId.GOOD,
                 createDisplayColor(colors.get(CoverageColorJenkinsId.LIGHT_YELLOW.getJenkinsColorId()), "#000000"));
-        colorMap.put(ColorId.VERY_GOOD,
+        colorMap.put(
+                ColorId.VERY_GOOD,
                 createDisplayColor(colors.get(CoverageColorJenkinsId.LIGHT_GREEN.getJenkinsColorId()), "#000000"));
-        colorMap.put(ColorId.EXCELLENT,
+        colorMap.put(
+                ColorId.EXCELLENT,
                 createDisplayColor(colors.get(CoverageColorJenkinsId.GREEN.getJenkinsColorId()), "#ffffff"));
         colorMap.put(ColorId.BLACK, createDisplayColor(CoverageColorPalette.BLACK));
         colorMap.put(ColorId.WHITE, createDisplayColor(CoverageColorPalette.WHITE));

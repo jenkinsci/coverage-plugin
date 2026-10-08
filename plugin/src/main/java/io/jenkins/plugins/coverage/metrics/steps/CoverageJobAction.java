@@ -1,24 +1,20 @@
 package io.jenkins.plugins.coverage.metrics.steps;
 
-import org.apache.commons.lang3.StringUtils;
-
 import edu.hm.hafner.coverage.Metric;
 import edu.hm.hafner.coverage.Node;
 import edu.hm.hafner.coverage.Value;
 import edu.hm.hafner.echarts.line.LinesChartModel;
 import edu.hm.hafner.util.VisibleForTesting;
 import edu.umd.cs.findbugs.annotations.NonNull;
-
-import java.util.Collection;
-import java.util.List;
-import java.util.Optional;
-
 import hudson.model.Job;
-
 import io.jenkins.plugins.coverage.metrics.model.Baseline;
 import io.jenkins.plugins.echarts.ActionSelector;
 import io.jenkins.plugins.echarts.TrendChartJobAction;
 import io.jenkins.plugins.util.ValidationUtilities;
+import java.util.Collection;
+import java.util.List;
+import java.util.Optional;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * Project level action for the coverage results. A job action displays a link on the side panel of a job that refers to
@@ -79,7 +75,8 @@ public class CoverageJobAction extends TrendChartJobAction<CoverageBuildAction> 
         return Messages.Coverage_Trend_Name(name);
     }
 
-    @Override @NonNull
+    @Override
+    @NonNull
     public String getUrlName() {
         return id;
     }
@@ -106,7 +103,8 @@ public class CoverageJobAction extends TrendChartJobAction<CoverageBuildAction> 
                 .flatMap(Collection::stream)
                 .map(Value::getMetric)
                 .filter(m -> !TrendChartFactory.IGNORED_TREND_METRICS.contains(m))
-                .filter(m -> m.isCoverage() || latestAction.map(a -> !a.hasCoverage()).orElse(true))
+                .filter(m -> m.isCoverage()
+                        || latestAction.map(a -> !a.hasCoverage()).orElse(true))
                 .toList();
     }
 
@@ -115,15 +113,15 @@ public class CoverageJobAction extends TrendChartJobAction<CoverageBuildAction> 
         var latestAction = getLatestAction();
 
         return latestAction
-                .map(a -> new TrendChartFactory().createChartModel(configuration, a,
-                        TrendChartFactory.LEGACY_DEFAULT_TREND_METRICS))
+                .map(a -> new TrendChartFactory()
+                        .createChartModel(configuration, a, TrendChartFactory.LEGACY_DEFAULT_TREND_METRICS))
                 .orElse(EMPTY_CHART);
     }
 
     @Override
     public Optional<CoverageBuildAction> getLatestAction() {
-        return new ActionSelector<>(CoverageBuildAction.class,
-                action -> getUrlName().equals(action.getUrlName()))
+        return new ActionSelector<>(
+                        CoverageBuildAction.class, action -> getUrlName().equals(action.getUrlName()))
                 .findFirst(getOwner().getLastBuild());
     }
 }

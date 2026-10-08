@@ -1,19 +1,16 @@
 package io.jenkins.plugins.coverage.metrics;
 
-import org.junit.jupiter.api.BeforeAll;
-
 import edu.hm.hafner.coverage.FileNode;
 import edu.hm.hafner.coverage.Node;
-
-import java.util.EnumMap;
-import java.util.HashMap;
-import java.util.Map;
-
 import io.jenkins.plugins.coverage.metrics.steps.FileChangesProcessor;
 import io.jenkins.plugins.forensics.delta.Change;
 import io.jenkins.plugins.forensics.delta.ChangeEditType;
 import io.jenkins.plugins.forensics.delta.FileChanges;
 import io.jenkins.plugins.forensics.delta.FileEditType;
+import java.util.EnumMap;
+import java.util.HashMap;
+import java.util.Map;
+import org.junit.jupiter.api.BeforeAll;
 
 /**
  * Provides a coverage tree that consists of {@link FileNode}s with modified code lines and corresponding coverage
@@ -61,17 +58,21 @@ public abstract class AbstractModifiedFilesCoverageTest extends AbstractCoverage
         var insert3 = new Change(ChangeEditType.INSERT, 25, 25, 33, 36);
         var replace = new Change(ChangeEditType.REPLACE, 10, 11, 20, 22);
         var delete = new Change(ChangeEditType.DELETE, 16, 19, 26, 26);
-        var fileChanges = new FileChanges(TEST_FILE_MODIFIED_PATH, TEST_FILE_MODIFIED_PATH_OLD,
-                "test", FileEditType.RENAME, new EnumMap<>(ChangeEditType.class));
+        var fileChanges = new FileChanges(
+                TEST_FILE_MODIFIED_PATH,
+                TEST_FILE_MODIFIED_PATH_OLD,
+                "test",
+                FileEditType.RENAME,
+                new EnumMap<>(ChangeEditType.class));
         fileChanges.addChange(insert1);
         fileChanges.addChange(insert2);
         fileChanges.addChange(insert3);
         fileChanges.addChange(replace);
         fileChanges.addChange(delete);
         CODE_CHANGES.put(TEST_FILE_MODIFIED_PATH, fileChanges);
-        CODE_CHANGES.put(TEST_FILE_NOT_MODIFIED,
-                new FileChanges("empty", "empty", "", FileEditType.MODIFY,
-                        new EnumMap<>(ChangeEditType.class)));
+        CODE_CHANGES.put(
+                TEST_FILE_NOT_MODIFIED,
+                new FileChanges("empty", "empty", "", FileEditType.MODIFY, new EnumMap<>(ChangeEditType.class)));
         OLD_PATH_MAPPING.put(TEST_FILE_MODIFIED_PATH, TEST_FILE_MODIFIED_PATH_OLD);
     }
 

@@ -3,7 +3,6 @@ package io.jenkins.plugins.coverage.metrics.model;
 import edu.hm.hafner.coverage.Difference;
 import edu.hm.hafner.coverage.Metric;
 import edu.hm.hafner.coverage.Value;
-
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
