@@ -1,17 +1,15 @@
 package io.jenkins.plugins.coverage.metrics;
 
-import java.io.IOException;
-import java.util.List;
-import java.util.function.Consumer;
-
-import org.jenkinsci.plugins.workflow.job.WorkflowJob;
 import hudson.model.FreeStyleProject;
-
 import io.jenkins.plugins.coverage.metrics.steps.CoverageRecorder;
 import io.jenkins.plugins.coverage.metrics.steps.CoverageTool;
 import io.jenkins.plugins.coverage.metrics.steps.CoverageTool.Parser;
 import io.jenkins.plugins.forensics.reference.SimpleReferenceRecorder;
 import io.jenkins.plugins.util.IntegrationTestWithJenkinsPerSuite;
+import java.io.IOException;
+import java.util.List;
+import java.util.function.Consumer;
+import org.jenkinsci.plugins.workflow.job.WorkflowJob;
 
 /**
  * Provides some helper methods to create different job types that will record code coverage results.

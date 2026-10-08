@@ -1,10 +1,8 @@
 package io.jenkins.plugins.coverage.metrics.steps;
 
-import org.apache.commons.lang3.StringUtils;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.CsvSource;
-import org.junitpioneer.jupiter.DefaultLocale;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.entry;
+import static org.mockito.Mockito.*;
 
 import edu.hm.hafner.coverage.Coverage.CoverageBuilder;
 import edu.hm.hafner.coverage.Difference;
@@ -13,11 +11,7 @@ import edu.hm.hafner.coverage.ModuleNode;
 import edu.hm.hafner.coverage.Node;
 import edu.hm.hafner.coverage.Value;
 import edu.hm.hafner.coverage.parser.PitestParser;
-
-import java.util.List;
-
 import hudson.model.Run;
-
 import io.jenkins.plugins.checks.api.ChecksAnnotation;
 import io.jenkins.plugins.checks.api.ChecksAnnotation.ChecksAnnotationLevel;
 import io.jenkins.plugins.checks.api.ChecksConclusion;
@@ -29,10 +23,12 @@ import io.jenkins.plugins.coverage.metrics.AbstractCoverageTest;
 import io.jenkins.plugins.coverage.metrics.steps.CoverageRecorder.ChecksAnnotationScope;
 import io.jenkins.plugins.util.JenkinsFacade;
 import io.jenkins.plugins.util.QualityGateResult;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.entry;
-import static org.mockito.Mockito.*;
+import java.util.List;
+import org.apache.commons.lang3.StringUtils;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
+import org.junitpioneer.jupiter.DefaultLocale;
 
 @DefaultLocale("en")
 class CoverageChecksPublisherTest extends AbstractCoverageTest {
