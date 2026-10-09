@@ -1,26 +1,11 @@
 package io.jenkins.plugins.coverage.metrics.steps;
 
-import org.apache.commons.lang3.StringUtils;
-
 import edu.hm.hafner.coverage.CoverageParser;
 import edu.hm.hafner.coverage.CoverageParser.ProcessingMode;
 import edu.hm.hafner.coverage.Node;
 import edu.hm.hafner.coverage.registry.ParserRegistry;
 import edu.hm.hafner.util.VisibleForTesting;
 import edu.umd.cs.findbugs.annotations.CheckForNull;
-
-import java.io.Serial;
-import java.io.Serializable;
-import java.util.List;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
-import org.kohsuke.stapler.AncestorInPath;
-import org.kohsuke.stapler.DataBoundConstructor;
-import org.kohsuke.stapler.DataBoundSetter;
-import org.kohsuke.stapler.QueryParameter;
-import org.kohsuke.stapler.verb.POST;
-import org.jvnet.localizer.Localizable;
 import hudson.Extension;
 import hudson.model.BuildableItem;
 import hudson.model.Describable;
@@ -29,11 +14,22 @@ import hudson.model.Item;
 import hudson.util.FormValidation;
 import hudson.util.ListBoxModel;
 import hudson.util.ListBoxModel.Option;
-import jenkins.model.Jenkins;
-
 import io.jenkins.plugins.prism.SourceCodeRetention;
 import io.jenkins.plugins.util.JenkinsFacade;
 import io.jenkins.plugins.util.ValidationUtilities;
+import java.io.Serial;
+import java.io.Serializable;
+import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+import jenkins.model.Jenkins;
+import org.apache.commons.lang3.StringUtils;
+import org.jvnet.localizer.Localizable;
+import org.kohsuke.stapler.AncestorInPath;
+import org.kohsuke.stapler.DataBoundConstructor;
+import org.kohsuke.stapler.DataBoundSetter;
+import org.kohsuke.stapler.QueryParameter;
+import org.kohsuke.stapler.verb.POST;
 
 /**
  * A coverage tool that can produce a {@link Node coverage tree} by parsing a given report file.
@@ -44,6 +40,7 @@ import io.jenkins.plugins.util.ValidationUtilities;
 public class CoverageTool implements Describable<CoverageTool>, Serializable {
     @Serial
     private static final long serialVersionUID = -8612521458890553037L;
+
     private static final ValidationUtilities VALIDATION_UTILITIES = new ValidationUtilities();
 
     private JenkinsFacade jenkins = new JenkinsFacade();
@@ -173,8 +170,7 @@ public class CoverageTool implements Describable<CoverageTool>, Serializable {
          * @return the validation result
          */
         @POST
-        public FormValidation doCheckId(@AncestorInPath final BuildableItem project,
-                @QueryParameter final String id) {
+        public FormValidation doCheckId(@AncestorInPath final BuildableItem project, @QueryParameter final String id) {
             if (!new JenkinsFacade().hasPermission(Item.CONFIGURE, project)) {
                 return FormValidation.ok();
             }
@@ -215,46 +211,74 @@ public class CoverageTool implements Describable<CoverageTool>, Serializable {
      * Supported coverage parsers.
      */
     public enum Parser {
-        COBERTURA(Messages._Parser_Cobertura(), ParserType.COVERAGE,
+        COBERTURA(
+                Messages._Parser_Cobertura(),
+                ParserType.COVERAGE,
                 "**/cobertura.xml",
                 "symbol-footsteps-outline plugin-ionicons-api"),
-        CLOVER(Messages._Parser_Clover(), ParserType.COVERAGE,
+        CLOVER(
+                Messages._Parser_Clover(),
+                ParserType.COVERAGE,
                 "**/*clover*.xml,**/*Clover*.xml",
                 "symbol-footsteps-outline plugin-ionicons-api"),
-        GO_COV(Messages._Parser_GoCov(), ParserType.COVERAGE,
+        GO_COV(
+                Messages._Parser_GoCov(),
+                ParserType.COVERAGE,
                 "**/*coverage*.out,**/*coverage*.txt,**/cover.out",
                 "symbol-footsteps-outline plugin-ionicons-api"),
-        JACOCO(Messages._Parser_JaCoCo(), ParserType.COVERAGE,
+        JACOCO(
+                Messages._Parser_JaCoCo(),
+                ParserType.COVERAGE,
                 "**/jacoco.xml,**/jacocoTestReport.xml",
                 "symbol-footsteps-outline plugin-ionicons-api"),
-        JUNIT(Messages._Parser_Junit(), ParserType.TEST,
+        JUNIT(
+                Messages._Parser_Junit(),
+                ParserType.TEST,
                 "**/TEST-*.xml",
                 "symbol-solid/list-check plugin-font-awesome-api"),
-        LCOV(Messages._Parser_LCOV(), ParserType.COVERAGE,
+        LCOV(
+                Messages._Parser_LCOV(),
+                ParserType.COVERAGE,
                 "**/lcov.info",
                 "symbol-footsteps-outline plugin-ionicons-api"),
-        METRICS(Messages._Parser_Metrics(), ParserType.METRICS,
+        METRICS(
+                Messages._Parser_Metrics(),
+                ParserType.METRICS,
                 "**/metrics.xml",
                 "symbol-solid/scale-balanced plugin-font-awesome-api"),
-        NUNIT(Messages._Parser_Nunit(), ParserType.TEST,
+        NUNIT(
+                Messages._Parser_Nunit(),
+                ParserType.TEST,
                 "**/nunit.xml,**/TestResult.xml",
                 "symbol-solid/list-check plugin-font-awesome-api"),
-        OPENCOVER(Messages._Parser_OpenCover(), ParserType.COVERAGE,
+        OPENCOVER(
+                Messages._Parser_OpenCover(),
+                ParserType.COVERAGE,
                 "**/*opencover.xml",
                 "symbol-footsteps-outline plugin-ionicons-api"),
-        PIT(Messages._Parser_PIT(), ParserType.COVERAGE,
+        PIT(
+                Messages._Parser_PIT(),
+                ParserType.COVERAGE,
                 "**/mutations.xml",
                 "symbol-solid/virus-slash plugin-font-awesome-api"),
-        STRYKER(Messages._Parser_Stryker(), ParserType.COVERAGE,
+        STRYKER(
+                Messages._Parser_Stryker(),
+                ParserType.COVERAGE,
                 "**/mutation.json",
                 "symbol-solid/virus-slash plugin-font-awesome-api"),
-        TRACE32(Messages._Parser_TRACE32(), ParserType.COVERAGE,
+        TRACE32(
+                Messages._Parser_TRACE32(),
+                ParserType.COVERAGE,
                 "**/index.xml",
                 "symbol-footsteps-outline plugin-ionicons-api"),
-        VECTORCAST(Messages._Parser_VectorCAST(), ParserType.COVERAGE,
+        VECTORCAST(
+                Messages._Parser_VectorCAST(),
+                ParserType.COVERAGE,
                 "xml_data/cobertura/coverage_results*.xml",
                 "symbol-footsteps-outline plugin-ionicons-api"),
-        XUNIT(Messages._Parser_Xunit(), ParserType.TEST,
+        XUNIT(
+                Messages._Parser_Xunit(),
+                ParserType.TEST,
                 "**/xunit.xml,**/TestResult.xml",
                 "symbol-solid/list-check plugin-font-awesome-api");
 
@@ -263,8 +287,11 @@ public class CoverageTool implements Describable<CoverageTool>, Serializable {
         private final String defaultPattern;
         private final String icon;
 
-        Parser(final Localizable displayName, final ParserType parserType,
-                final String defaultPattern, final String icon) {
+        Parser(
+                final Localizable displayName,
+                final ParserType parserType,
+                final String defaultPattern,
+                final String icon) {
             this.displayName = displayName;
             this.parserType = parserType;
             this.defaultPattern = defaultPattern;

@@ -4,16 +4,13 @@ import edu.hm.hafner.coverage.Coverage;
 import edu.hm.hafner.coverage.FileNode;
 import edu.hm.hafner.coverage.Node;
 import edu.hm.hafner.coverage.Value;
-
+import io.jenkins.plugins.coverage.metrics.model.ElementFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.TreeMap;
-
 import org.kohsuke.stapler.export.Exported;
 import org.kohsuke.stapler.export.ExportedBean;
-
-import io.jenkins.plugins.coverage.metrics.model.ElementFormatter;
 
 /**
  * Remote API to list the whole-file coverage of the files with coverage relevant changes. Only modified files are

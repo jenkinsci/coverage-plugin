@@ -1,19 +1,16 @@
 package io.jenkins.plugins.coverage.metrics.source;
 
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.text.StringEscapeUtils;
+import static j2html.TagCreator.*;
 
 import edu.hm.hafner.coverage.FileNode;
-
+import io.jenkins.plugins.prism.Sanitizer;
 import java.io.Serial;
 import java.io.Serializable;
 import java.util.Arrays;
 import java.util.NavigableSet;
 import java.util.TreeSet;
-
-import io.jenkins.plugins.prism.Sanitizer;
-
-import static j2html.TagCreator.*;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.text.StringEscapeUtils;
 
 /**
  * Provides all required information for a {@link FileNode} so that its source code can be rendered together with the
@@ -51,15 +48,12 @@ class CoverageSourcePrinter implements Serializable {
 
     String renderLine(final int line, final String sourceCode) {
         var isPainted = isPainted(line);
-        return tr()
-                .withClasses(isPainted ? getColorClass(line) : UNDEFINED, getModifiedClass(line))
+        return tr().withClasses(isPainted ? getColorClass(line) : UNDEFINED, getModifiedClass(line))
                 .with(
                         td().withClass("line")
                                 .with(a().withName(String.valueOf(line)).withText(String.valueOf(line))),
-                        td().withClass("hits")
-                                .with(isPainted ? text(getSummaryColumn(line)) : text(StringUtils.EMPTY)),
-                        td().withClass("code")
-                                .with(rawHtml(SANITIZER.render(cleanupCode(sourceCode)))))
+                        td().withClass("hits").with(isPainted ? text(getSummaryColumn(line)) : text(StringUtils.EMPTY)),
+                        td().withClass("code").with(rawHtml(SANITIZER.render(cleanupCode(sourceCode)))))
                 .render();
     }
 
@@ -82,11 +76,9 @@ class CoverageSourcePrinter implements Serializable {
     String getColorClass(final int line) {
         if (getCovered(line) == 0) {
             return NO_COVERAGE;
-        }
-        else if (getMissed(line) == 0) {
+        } else if (getMissed(line) == 0) {
             return FULL_COVERAGE;
-        }
-        else {
+        } else {
             return PARTIAL_COVERAGE;
         }
     }
@@ -102,11 +94,9 @@ class CoverageSourcePrinter implements Serializable {
                 return "No branches covered";
             }
             return "Partially covered, branch coverage: %d/%d".formatted(covered, covered + missed);
-        }
-        else if (covered == 1) {
+        } else if (covered == 1) {
             return "Covered at least once";
-        }
-        else {
+        } else {
             return "Not covered";
         }
     }

@@ -2,19 +2,16 @@ package io.jenkins.plugins.coverage.metrics.restapi;
 
 import edu.hm.hafner.coverage.Metric;
 import edu.hm.hafner.coverage.Value;
-
-import java.util.Locale;
-import java.util.NavigableMap;
-import java.util.TreeMap;
-
-import org.kohsuke.stapler.export.Exported;
-import org.kohsuke.stapler.export.ExportedBean;
-
 import io.jenkins.plugins.coverage.metrics.model.Baseline;
 import io.jenkins.plugins.coverage.metrics.model.CoverageStatistics;
 import io.jenkins.plugins.coverage.metrics.model.ElementFormatter;
 import io.jenkins.plugins.util.QualityGateResult;
 import io.jenkins.plugins.util.QualityGateResult.QualityGateResultApi;
+import java.util.Locale;
+import java.util.NavigableMap;
+import java.util.TreeMap;
+import org.kohsuke.stapler.export.Exported;
+import org.kohsuke.stapler.export.ExportedBean;
 
 /**
  * Remote API to list the details of the coverage results.
@@ -38,7 +35,9 @@ public class CoverageApi {
      * @param referenceBuild
      *         the build referenced for comparison purposes.
      */
-    public CoverageApi(final CoverageStatistics statistics, final QualityGateResult qualityGateResult,
+    public CoverageApi(
+            final CoverageStatistics statistics,
+            final QualityGateResult qualityGateResult,
             final String referenceBuild) {
         this.statistics = statistics;
         this.qualityGateResult = qualityGateResult;
@@ -119,7 +118,8 @@ public class CoverageApi {
         var values = new TreeMap<String, String>();
 
         for (Metric metric : Metric.values()) {
-            statistics.getValue(baseline, metric)
+            statistics
+                    .getValue(baseline, metric)
                     .ifPresent(value -> values.put(metric.toTagName(), format(baseline, value)));
         }
 

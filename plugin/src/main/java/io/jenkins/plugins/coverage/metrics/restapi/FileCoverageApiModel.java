@@ -1,10 +1,8 @@
 package io.jenkins.plugins.coverage.metrics.restapi;
 
 import edu.hm.hafner.coverage.Node;
-
 import hudson.model.Api;
 import hudson.model.ModelObject;
-
 import io.jenkins.plugins.coverage.metrics.source.Messages;
 
 /**

@@ -1,7 +1,6 @@
 package io.jenkins.plugins.coverage.metrics.color;
 
 import edu.hm.hafner.coverage.Metric;
-
 import java.awt.*;
 
 /**
@@ -46,8 +45,12 @@ public final class ThresholdColorProvider {
      *
      * @return the interpolated fill color as a {@code #rrggbb} hex string
      */
-    public static String getFillColorAsHex(final double value, final Metric.MetricTendency tendency,
-            final double greenThreshold, final double redThreshold, final ColorProvider colorProvider) {
+    public static String getFillColorAsHex(
+            final double value,
+            final Metric.MetricTendency tendency,
+            final double greenThreshold,
+            final double redThreshold,
+            final ColorProvider colorProvider) {
         var sanitizedValue = sanitizeFinite(value, 0.0);
         var sanitizedGreenThreshold = sanitizeFinite(greenThreshold, 0.0);
         var sanitizedRedThreshold = sanitizeFinite(redThreshold, 0.0);
@@ -72,16 +75,18 @@ public final class ThresholdColorProvider {
         return relativeLuminance(color) > LUMINANCE_THRESHOLD ? "#000000" : "#ffffff";
     }
 
-    private static double computeRatio(final double value, final Metric.MetricTendency tendency,
-            final double greenThreshold, final double redThreshold) {
+    private static double computeRatio(
+            final double value,
+            final Metric.MetricTendency tendency,
+            final double greenThreshold,
+            final double redThreshold) {
         double numerator;
         double denominator;
         if (tendency == Metric.MetricTendency.LARGER_IS_BETTER) {
             // higher values are better: 0 at the red (worst) threshold, 1 at the green (best) threshold
             numerator = value - redThreshold;
             denominator = greenThreshold - redThreshold;
-        }
-        else {
+        } else {
             // lower values are better: 0 at the red (worst) threshold, 1 at the green (best) threshold
             numerator = redThreshold - value;
             denominator = redThreshold - greenThreshold;
