@@ -91,6 +91,7 @@ public class CoverageViewModel extends DefaultAsyncTableContentProvider implemen
 
     private static final String TREND_URL = "trend";
     private static final String TREEMAP_URL = "treemap";
+    private static final String SCATTER_URL = "scatter";
     private static final String FILES_URL = "table";
     private static final String LOG_VIEW_URL = "log";
 
@@ -671,6 +672,9 @@ public class CoverageViewModel extends DefaultAsyncTableContentProvider implemen
             }
             if (TREEMAP_URL.equals(link)) {
                 return new TreeMapModel(this);
+            }
+            if (SCATTER_URL.equals(link)) {
+                return new ScatterModel(this);
             }
             if (FILES_URL.equals(link)) {
                 return new FilesModel(this);
