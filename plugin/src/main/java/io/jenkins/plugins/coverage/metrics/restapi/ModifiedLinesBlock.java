@@ -1,7 +1,6 @@
 package io.jenkins.plugins.coverage.metrics.restapi;
 
 import java.util.Objects;
-
 import org.kohsuke.stapler.export.Exported;
 import org.kohsuke.stapler.export.ExportedBean;
 
@@ -52,7 +51,8 @@ public class ModifiedLinesBlock implements Comparable<ModifiedLinesBlock> {
             return false;
         }
         var that = (ModifiedLinesBlock) o;
-        return getStartLine() == that.getStartLine() && getEndLine() == that.getEndLine()
+        return getStartLine() == that.getStartLine()
+                && getEndLine() == that.getEndLine()
                 && getType() == that.getType();
     }
 

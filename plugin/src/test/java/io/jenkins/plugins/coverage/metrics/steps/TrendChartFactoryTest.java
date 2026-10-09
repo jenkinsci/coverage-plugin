@@ -1,10 +1,9 @@
 package io.jenkins.plugins.coverage.metrics.steps;
 
-import org.junit.jupiter.api.Test;
+import static org.assertj.core.api.Assertions.*;
 
 import edu.hm.hafner.coverage.Metric;
-
-import static org.assertj.core.api.Assertions.*;
+import org.junit.jupiter.api.Test;
 
 class TrendChartFactoryTest {
     @Test
@@ -18,7 +17,8 @@ class TrendChartFactoryTest {
                         "BRANCH": true
                     }
                 }
-                """, TrendChartFactory.DEFAULT_TREND_METRICS)).containsExactly(Metric.BRANCH);
+                """, TrendChartFactory.DEFAULT_TREND_METRICS))
+                .containsExactly(Metric.BRANCH);
         assertThat(jobAction.getVisibleMetrics("""
                 {
                     "metrics": {
@@ -26,7 +26,8 @@ class TrendChartFactoryTest {
                         "BRANCH": false
                     }
                 }
-                """, TrendChartFactory.DEFAULT_TREND_METRICS)).containsExactly(Metric.LINE);
+                """, TrendChartFactory.DEFAULT_TREND_METRICS))
+                .containsExactly(Metric.LINE);
         assertThat(jobAction.getVisibleMetrics("""
                 {
                     "metrics": {
@@ -34,7 +35,8 @@ class TrendChartFactoryTest {
                         "BRANCH": true
                     }
                 }
-                """, TrendChartFactory.DEFAULT_TREND_METRICS)).containsExactlyInAnyOrder(Metric.LINE, Metric.BRANCH);
+                """, TrendChartFactory.DEFAULT_TREND_METRICS))
+                .containsExactlyInAnyOrder(Metric.LINE, Metric.BRANCH);
         assertThat(jobAction.getVisibleMetrics("""
                 {
                     "metrics": {
@@ -42,27 +44,31 @@ class TrendChartFactoryTest {
                         "BRANCH": false
                     }
                 }
-                """, TrendChartFactory.DEFAULT_TREND_METRICS)).isEmpty();
+                """, TrendChartFactory.DEFAULT_TREND_METRICS))
+                .isEmpty();
         assertThat(jobAction.getVisibleMetrics("""
                 {
                     "metrics": {
                     }
                 }
-                """, TrendChartFactory.DEFAULT_TREND_METRICS)).isEqualTo(TrendChartFactory.DEFAULT_TREND_METRICS);
+                """, TrendChartFactory.DEFAULT_TREND_METRICS))
+                .isEqualTo(TrendChartFactory.DEFAULT_TREND_METRICS);
         assertThat(jobAction.getVisibleMetrics("""
                 {
                     "metrics": {
                         "LINE": 1.0
                     }
                 }
-                """, TrendChartFactory.DEFAULT_TREND_METRICS)).isEqualTo(TrendChartFactory.DEFAULT_TREND_METRICS);
+                """, TrendChartFactory.DEFAULT_TREND_METRICS))
+                .isEqualTo(TrendChartFactory.DEFAULT_TREND_METRICS);
         assertThat(jobAction.getVisibleMetrics("""
                 {
                     "metrics": {
                         "WRONG-METRIC": true
                     }
                 }
-                """, TrendChartFactory.DEFAULT_TREND_METRICS)).isEqualTo(TrendChartFactory.DEFAULT_TREND_METRICS);
+                """, TrendChartFactory.DEFAULT_TREND_METRICS))
+                .isEqualTo(TrendChartFactory.DEFAULT_TREND_METRICS);
         assertThat(jobAction.getVisibleMetrics("{}", TrendChartFactory.DEFAULT_TREND_METRICS))
                 .isEqualTo(TrendChartFactory.DEFAULT_TREND_METRICS);
         assertThat(jobAction.getVisibleMetrics("broken", TrendChartFactory.DEFAULT_TREND_METRICS))

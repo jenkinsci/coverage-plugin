@@ -1,20 +1,13 @@
 package io.jenkins.plugins.coverage.metrics.steps;
 
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.io.TempDir;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.ValueSource;
+import static net.javacrumbs.jsonunit.assertj.JsonAssertions.*;
+import static org.assertj.core.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
 import edu.hm.hafner.coverage.FileNode;
 import edu.hm.hafner.coverage.Metric;
 import edu.hm.hafner.util.FilteredLog;
-
-import java.nio.file.Path;
-import java.util.List;
-import java.util.NoSuchElementException;
-
 import hudson.model.Run;
-
 import io.jenkins.plugins.bootstrap5.MessagesViewModel;
 import io.jenkins.plugins.coverage.metrics.AbstractCoverageTest;
 import io.jenkins.plugins.coverage.metrics.model.Baseline;
@@ -25,10 +18,13 @@ import io.jenkins.plugins.coverage.metrics.steps.CoverageViewModel.UsePropertyFa
 import io.jenkins.plugins.prism.SourceCodeViewModel;
 import io.jenkins.plugins.util.QualityGateResult;
 import io.jenkins.plugins.util.QualityGateStatus;
-
-import static net.javacrumbs.jsonunit.assertj.JsonAssertions.*;
-import static org.assertj.core.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import java.nio.file.Path;
+import java.util.List;
+import java.util.NoSuchElementException;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 /**
  * Tests the class {@link RunTab}.
@@ -106,12 +102,10 @@ class RunTabTest extends AbstractCoverageTest {
 
     @Test
     void shouldThrowWhenNoActionMatchesTheRequestedUrlName() {
-        var build = CoverageMetricColumnTest.createBuildWithActions(
-                createAction("coverage", new QualityGateResult()));
+        var build = CoverageMetricColumnTest.createBuildWithActions(createAction("coverage", new QualityGateResult()));
         var tab = new RunTab(build);
 
-        assertThatExceptionOfType(NoSuchElementException.class)
-                .isThrownBy(() -> tab.getDynamic("does-not-exist"));
+        assertThatExceptionOfType(NoSuchElementException.class).isThrownBy(() -> tab.getDynamic("does-not-exist"));
     }
 
     @ParameterizedTest(name = "URL \"{0}\" is ignored")
@@ -135,31 +129,32 @@ class RunTabTest extends AbstractCoverageTest {
 
     @ParameterizedTest(name = "Run tab enabled: {0}")
     @ValueSource(booleans = {true, false})
-    void shouldResolveRemoteApiAndInfoUrlsIndependentOfRunTab(final boolean isRunTabEnabled,
-            @TempDir final Path buildFolder) {
+    void shouldResolveRemoteApiAndInfoUrlsIndependentOfRunTab(
+            final boolean isRunTabEnabled, @TempDir final Path buildFolder) {
         var viewModel = createViewModel(isRunTabEnabled, buildFolder);
 
         assertThat(viewModel.getDynamic("files")).isInstanceOf(FileCoverageApiModel.class);
         assertThat(viewModel.getDynamic("modified")).isInstanceOf(ModifiedLinesCoverageApiModel.class);
-        assertThat(viewModel.getDynamic("info")).isInstanceOfSatisfying(MessagesViewModel.class,
-                messages -> {
-                    assertThat(messages.getInfoMessages()).contains(INFO_MESSAGE);
-                    assertThat(messages.getErrorMessages()).contains(ERROR_MESSAGE);
-                });
+        assertThat(viewModel.getDynamic("info")).isInstanceOfSatisfying(MessagesViewModel.class, messages -> {
+            assertThat(messages.getInfoMessages()).contains(INFO_MESSAGE);
+            assertThat(messages.getErrorMessages()).contains(ERROR_MESSAGE);
+        });
     }
 
     @ParameterizedTest(name = "Run tab enabled: {0}")
     @ValueSource(booleans = {true, false})
-    void shouldResolveSourceFileByHashCodeIndependentOfRunTab(final boolean isRunTabEnabled,
-            @TempDir final Path buildFolder) {
+    void shouldResolveSourceFileByHashCodeIndependentOfRunTab(
+            final boolean isRunTabEnabled, @TempDir final Path buildFolder) {
         var viewModel = createViewModel(isRunTabEnabled, buildFolder);
         var fileNode = viewModel.getNode().getAllFileNodes().getFirst();
 
         try (var sourceCode = mockStatic(SourceCodeViewModel.class)) {
-            sourceCode.when(() -> SourceCodeViewModel.protectedSourceCodeView(any(), any(), anyString()))
+            sourceCode
+                    .when(() -> SourceCodeViewModel.protectedSourceCodeView(any(), any(), anyString()))
                     .thenAnswer(invocation -> invocation.getArgument(0));
 
-            assertThat(viewModel.getDynamic(String.valueOf(fileNode.getRelativePath().hashCode())))
+            assertThat(viewModel.getDynamic(
+                            String.valueOf(fileNode.getRelativePath().hashCode())))
                     .isInstanceOfSatisfying(SourceViewModel.class, view -> {
                         assertThat(view.getNode()).isSameAs(fileNode);
                         assertThat(view.getOwner()).isSameAs(viewModel.getOwner());
@@ -171,8 +166,7 @@ class RunTabTest extends AbstractCoverageTest {
 
     @ParameterizedTest(name = "Run tab enabled: {0}")
     @ValueSource(booleans = {true, false})
-    void shouldReturnNullForBrokenUrls(final boolean isRunTabEnabled,
-            @TempDir final Path buildFolder) {
+    void shouldReturnNullForBrokenUrls(final boolean isRunTabEnabled, @TempDir final Path buildFolder) {
         var viewModel = createViewModel(isRunTabEnabled, buildFolder);
 
         assertThat(viewModel.getDynamic("")).isNull();
@@ -270,11 +264,14 @@ class RunTabTest extends AbstractCoverageTest {
         var tree = model.getThresholdCoverageTree("line", 80.0, 60.0);
         assertThat(tree.getName()).isEqualTo("Java coding style");
         assertThat(tree.getValue()).contains(String.valueOf(JACOCO_CODING_STYLE_TOTAL));
-        assertThat(tree.getChildren()).hasSize(1).first()
+        assertThat(tree.getChildren())
+                .hasSize(1)
+                .first()
                 .satisfies(child -> assertThat(child.getName()).isEqualTo("edu.hm.hafner.util"));
 
-        assertThat(model.getMetricValueRange("line")).hasSize(2).satisfies(
-                range -> assertThat(range.getFirst()).isLessThanOrEqualTo(range.get(1)));
+        assertThat(model.getMetricValueRange("line"))
+                .hasSize(2)
+                .satisfies(range -> assertThat(range.getFirst()).isLessThanOrEqualTo(range.get(1)));
         assertThat(model.getMetricValueRange("mutation")).containsExactly(0.0, 100.0);
     }
 
@@ -296,7 +293,8 @@ class RunTabTest extends AbstractCoverageTest {
         var node = viewModel.getNode();
         assertThat(model.getTableModel(CoverageViewModel.ABSOLUTE_COVERAGE_TABLE_ID))
                 .isInstanceOf(CoverageTableModel.class)
-                .satisfies(table -> assertThat(table.getRows()).hasSize(node.getAllFileNodes().size()));
+                .satisfies(table -> assertThat(table.getRows())
+                        .hasSize(node.getAllFileNodes().size()));
         assertThat(model.getTableModel(CoverageViewModel.MODIFIED_LINES_COVERAGE_TABLE_ID))
                 .isInstanceOf(ModifiedLinesCoverageTableModel.class);
         assertThat(model.getTableModel(CoverageViewModel.INDIRECT_COVERAGE_TABLE_ID))
@@ -308,11 +306,14 @@ class RunTabTest extends AbstractCoverageTest {
         assertThat(model.getDynamic("does-not-exist")).isNull();
 
         try (var sourceCode = mockStatic(SourceCodeViewModel.class)) {
-            sourceCode.when(() -> SourceCodeViewModel.hasPermissionToViewSourceCode(any())).thenReturn(true);
+            sourceCode
+                    .when(() -> SourceCodeViewModel.hasPermissionToViewSourceCode(any()))
+                    .thenReturn(true);
 
             FileNode fileNode = node.getAllFileNodes().getFirst();
-            assertThat(model.getSourceCode(String.valueOf(fileNode.getRelativePath().hashCode()),
-                    CoverageViewModel.ABSOLUTE_COVERAGE_TABLE_ID))
+            assertThat(model.getSourceCode(
+                            String.valueOf(fileNode.getRelativePath().hashCode()),
+                            CoverageViewModel.ABSOLUTE_COVERAGE_TABLE_ID))
                     .as("No source code has been stored in the build folder")
                     .isEqualTo(Messages.Coverage_Not_Available());
         }
@@ -370,8 +371,22 @@ class RunTabTest extends AbstractCoverageTest {
         when(build.getDisplayName()).thenReturn("#" + BUILD_NUMBER);
         when(build.getRootDir()).thenReturn(buildFolder.toFile());
 
-        var action = new CoverageBuildAction(build, ID, "", "", node, new QualityGateResult(), log, "-",
-                List.of(), List.of(), List.of(), List.of(), List.of(), List.of(), false);
+        var action = new CoverageBuildAction(
+                build,
+                ID,
+                "",
+                "",
+                node,
+                new QualityGateResult(),
+                log,
+                "-",
+                List.of(),
+                List.of(),
+                List.of(),
+                List.of(),
+                List.of(),
+                List.of(),
+                false);
         when(build.getActions(CoverageBuildAction.class)).thenReturn(List.of(action));
 
         var usePropertyFacade = mock(UsePropertyFacade.class);
@@ -382,8 +397,21 @@ class RunTabTest extends AbstractCoverageTest {
 
     private CoverageBuildAction createAction(final String id, final QualityGateResult qualityGateResult) {
         var node = readJacocoResult(JACOCO_CODING_STYLE_FILE);
-        return new CoverageBuildAction(mock(Run.class), id, "", "", node, qualityGateResult,
-                new FilteredLog("Errors"), "-",
-                List.of(), List.of(), List.of(), List.of(), List.of(), List.of(), false);
+        return new CoverageBuildAction(
+                mock(Run.class),
+                id,
+                "",
+                "",
+                node,
+                qualityGateResult,
+                new FilteredLog("Errors"),
+                "-",
+                List.of(),
+                List.of(),
+                List.of(),
+                List.of(),
+                List.of(),
+                List.of(),
+                false);
     }
 }

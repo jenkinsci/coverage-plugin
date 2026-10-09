@@ -1,14 +1,12 @@
 package io.jenkins.plugins.coverage.metrics.steps;
 
-import org.junit.jupiter.api.Test;
-
-import hudson.model.Run;
-
-import io.jenkins.plugins.coverage.metrics.AbstractCoverageITest;
-import io.jenkins.plugins.coverage.metrics.steps.CoverageTool.Parser;
-
 import static io.jenkins.plugins.coverage.metrics.AbstractCoverageTest.*;
 import static org.assertj.core.api.Assertions.*;
+
+import hudson.model.Run;
+import io.jenkins.plugins.coverage.metrics.AbstractCoverageITest;
+import io.jenkins.plugins.coverage.metrics.steps.CoverageTool.Parser;
+import org.junit.jupiter.api.Test;
 
 /**
  * Integration tests with token macro plugin.
@@ -18,7 +16,8 @@ class CoverageTokenMacroITest extends AbstractCoverageITest {
     void shouldUseQualityGateInPipeline() {
         var project = createPipelineWithWorkspaceFiles(JACOCO_ANALYSIS_MODEL_FILE);
 
-        setPipelineScript(project,
+        setPipelineScript(
+                project,
                 "recordCoverage("
                         + "tools: [[parser: '" + Parser.JACOCO.name() + "', pattern: '**/*xml']])\n"
                         + "def lineCoverage = tm('${COVERAGE}')\n"
@@ -28,8 +27,7 @@ class CoverageTokenMacroITest extends AbstractCoverageITest {
                         + "echo '[lineCoverage=' + lineCoverage + ']' \n"
                         + "echo '[branchCoverage=' + branchCoverage + ']' \n"
                         + "echo '[delta=' + delta + ']' \n"
-                        + "echo '[na=' + na + ']' \n"
-        );
+                        + "echo '[na=' + na + ']' \n");
 
         Run<?, ?> build = buildSuccessfully(project);
 

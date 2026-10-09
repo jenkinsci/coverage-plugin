@@ -1,24 +1,20 @@
 package io.jenkins.plugins.coverage.metrics.model;
 
-import org.apache.commons.lang3.StringUtils;
-
 import edu.hm.hafner.coverage.Coverage;
 import edu.hm.hafner.coverage.Metric;
 import edu.hm.hafner.coverage.Percentage;
 import edu.hm.hafner.coverage.Value;
-
+import hudson.Functions;
+import hudson.util.ListBoxModel;
+import io.jenkins.plugins.coverage.metrics.color.ColorProvider.DisplayColors;
+import io.jenkins.plugins.coverage.metrics.color.ColorProviderFactory;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
-import hudson.Functions;
-import hudson.util.ListBoxModel;
-
-import io.jenkins.plugins.coverage.metrics.color.ColorProvider.DisplayColors;
-import io.jenkins.plugins.coverage.metrics.color.ColorProviderFactory;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * A localized formatter for coverages, metrics, baselines, etc.
@@ -125,18 +121,14 @@ public final class ElementFormatter {
     }
 
     private String formatAdditionalCoverageInformation(final Coverage coverage) {
-        if (coverage.getMetric() == Metric.MUTATION
-                || coverage.getMetric() == Metric.TEST_STRENGTH) {
-            return formatCoverage(coverage, Messages.Metric_MUTATION_Killed(),
-                    Messages.Metric_MUTATION_Survived());
+        if (coverage.getMetric() == Metric.MUTATION || coverage.getMetric() == Metric.TEST_STRENGTH) {
+            return formatCoverage(coverage, Messages.Metric_MUTATION_Killed(), Messages.Metric_MUTATION_Survived());
         }
-        return formatCoverage(coverage, Messages.Metric_Coverage_Covered(),
-                Messages.Metric_Coverage_Missed());
+        return formatCoverage(coverage, Messages.Metric_Coverage_Covered(), Messages.Metric_Coverage_Missed());
     }
 
     private static String formatCoverage(final Coverage coverage, final String coveredText, final String missedText) {
-        return "%s: %d - %s: %d".formatted(coveredText, coverage.getCovered(),
-                missedText, coverage.getMissed());
+        return "%s: %d - %s: %d".formatted(coveredText, coverage.getCovered(), missedText, coverage.getMissed());
     }
 
     /**
@@ -164,10 +156,8 @@ public final class ElementFormatter {
     public DisplayColors getDisplayColors(final Baseline baseline, final Value value) {
         var defaultColorProvider = ColorProviderFactory.createDefaultColorProvider();
         if (value instanceof Coverage coverage) {
-            return baseline.getDisplayColors(coverage.getCoveredPercentage().toDouble(),
-                    defaultColorProvider);
-        }
-        else {
+            return baseline.getDisplayColors(coverage.getCoveredPercentage().toDouble(), defaultColorProvider);
+        } else {
             return baseline.getDisplayColors(value.asDouble(), defaultColorProvider);
         }
     }
@@ -341,9 +331,7 @@ public final class ElementFormatter {
      * @return the sorted metric display names
      */
     public List<String> getSortedCoverageDisplayNames() {
-        return Metric.getCoverageMetrics().stream()
-                .map(this::getDisplayName)
-                .collect(Collectors.toList());
+        return Metric.getCoverageMetrics().stream().map(this::getDisplayName).collect(Collectors.toList());
     }
 
     /**

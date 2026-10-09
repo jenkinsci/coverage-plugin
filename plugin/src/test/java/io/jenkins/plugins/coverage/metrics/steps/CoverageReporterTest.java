@@ -1,18 +1,14 @@
 package io.jenkins.plugins.coverage.metrics.steps;
 
-import org.junit.jupiter.api.Test;
-
-import edu.hm.hafner.util.FilteredLog;
-
-import java.util.List;
-import java.util.Optional;
-
-import hudson.model.Run;
-
-import io.jenkins.plugins.forensics.reference.ReferenceFinder;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
+
+import edu.hm.hafner.util.FilteredLog;
+import hudson.model.Run;
+import io.jenkins.plugins.forensics.reference.ReferenceFinder;
+import java.util.List;
+import java.util.Optional;
+import org.junit.jupiter.api.Test;
 
 /**
  * Tests the class {@link CoverageReporter}.
@@ -35,23 +31,20 @@ class CoverageReporterTest {
 
         Run<?, ?> ownerBuild = mock(Run.class);
         when(ownerBuild.toString()).thenReturn("#42");
-        CoverageBuildAction adjustedAction = previousReferenceBuild.getActions(CoverageBuildAction.class).get(0);
+        CoverageBuildAction adjustedAction =
+                previousReferenceBuild.getActions(CoverageBuildAction.class).get(0);
         doReturn(ownerBuild).when(adjustedAction).getOwner();
 
         var referenceFinder = mock(ReferenceFinder.class);
-        when(referenceFinder.findReference(eq(currentBuild), eq(log)))
-                .thenReturn(Optional.of(selectedReferenceBuild));
+        when(referenceFinder.findReference(eq(currentBuild), eq(log))).thenReturn(Optional.of(selectedReferenceBuild));
 
         var reporter = createReporterWithReferenceFinder(referenceFinder);
         var action = reporter.getReferenceBuildAction(currentBuild, "coverage", log);
 
         assertThat(action).isPresent();
-        assertThat(action).get()
-                .extracting(CoverageBuildAction::getUrlName)
-                .isEqualTo("coverage");
+        assertThat(action).get().extracting(CoverageBuildAction::getUrlName).isEqualTo("coverage");
 
-        assertThat(log.getInfoMessages())
-                .contains("-> Reference build information adjusted to '#42'");
+        assertThat(log.getInfoMessages()).contains("-> Reference build information adjusted to '#42'");
     }
 
     @Test
@@ -61,19 +54,16 @@ class CoverageReporterTest {
         var log = new FilteredLog("Errors");
 
         var referenceFinder = mock(ReferenceFinder.class);
-        when(referenceFinder.findReference(eq(currentBuild), eq(log)))
-                .thenReturn(Optional.of(selectedReferenceBuild));
+        when(referenceFinder.findReference(eq(currentBuild), eq(log))).thenReturn(Optional.of(selectedReferenceBuild));
 
         var reporter = createReporterWithReferenceFinder(referenceFinder);
         var action = reporter.getReferenceBuildAction(currentBuild, "coverage", log);
 
         assertThat(action).isEmpty();
 
-        assertThat(log.getInfoMessages())
-                .contains("-> Reference build has no action for ID 'coverage'");
+        assertThat(log.getInfoMessages()).contains("-> Reference build has no action for ID 'coverage'");
 
-        assertThat(log.getInfoMessages())
-                .noneMatch(msg -> msg.startsWith("-> Reference build information adjusted"));
+        assertThat(log.getInfoMessages()).noneMatch(msg -> msg.startsWith("-> Reference build information adjusted"));
     }
 
     @Test
@@ -113,8 +103,7 @@ class CoverageReporterTest {
         CoverageBuildAction action = mock(CoverageBuildAction.class);
         when(action.getUrlName()).thenReturn(id);
 
-        when(build.getActions(CoverageBuildAction.class))
-                .thenReturn(List.of(action));
+        when(build.getActions(CoverageBuildAction.class)).thenReturn(List.of(action));
 
         return build;
     }
@@ -122,8 +111,7 @@ class CoverageReporterTest {
     private Run<?, ?> createBuildWithActionAndPreviousBuild(final String id, final Run<?, ?> previousBuild) {
         Run<?, ?> build = createBuildWithAction(id);
 
-        when(build.getPreviousBuild())
-                .thenAnswer(invocation -> previousBuild);
+        when(build.getPreviousBuild()).thenAnswer(invocation -> previousBuild);
 
         return build;
     }

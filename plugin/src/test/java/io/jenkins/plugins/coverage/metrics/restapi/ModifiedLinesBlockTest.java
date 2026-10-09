@@ -1,10 +1,9 @@
 package io.jenkins.plugins.coverage.metrics.restapi;
 
-import org.junit.jupiter.api.Test;
+import static org.assertj.core.api.Assertions.*;
 
 import nl.jqno.equalsverifier.EqualsVerifier;
-
-import static org.assertj.core.api.Assertions.*;
+import org.junit.jupiter.api.Test;
 
 /**
  * Tests {@link ModifiedLinesBlock}.

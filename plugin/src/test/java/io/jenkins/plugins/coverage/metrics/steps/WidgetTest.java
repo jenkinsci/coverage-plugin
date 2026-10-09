@@ -1,22 +1,18 @@
 package io.jenkins.plugins.coverage.metrics.steps;
 
-import org.junit.jupiter.api.Test;
+import static org.assertj.core.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
 import edu.hm.hafner.coverage.Coverage;
 import edu.hm.hafner.coverage.Metric;
 import edu.hm.hafner.util.FilteredLog;
-
-import java.util.List;
-
 import hudson.model.Run;
-
 import io.jenkins.plugins.coverage.metrics.AbstractCoverageTest;
 import io.jenkins.plugins.coverage.metrics.model.Baseline;
 import io.jenkins.plugins.util.QualityGateResult;
 import io.jenkins.plugins.util.QualityGateStatus;
-
-import static org.assertj.core.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import java.util.List;
+import org.junit.jupiter.api.Test;
 
 /**
  * Tests the class {@link Widget}.
@@ -88,8 +84,7 @@ class WidgetTest extends AbstractCoverageTest {
     @Test
     void shouldReturnEmptyOptionalAndNoBadgesWhenThereAreSeveralResults() {
         var widget = createWidget(
-                createAction("coverage", new QualityGateResult()),
-                createAction("mutation", new QualityGateResult()));
+                createAction("coverage", new QualityGateResult()), createAction("mutation", new QualityGateResult()));
 
         assertThat(widget.getSingleResult()).isEmpty();
         assertThat(widget.getSingleResultMetrics()).isEmpty();
@@ -104,14 +99,17 @@ class WidgetTest extends AbstractCoverageTest {
         var badges = widget.getSingleResultMetrics();
 
         // only the card metrics (see OverviewModel#isCardMetric) become badges, in natural metric order
-        assertThat(badges).extracting(Widget.MetricBadge::getLabel)
+        assertThat(badges)
+                .extracting(Widget.MetricBadge::getLabel)
                 .containsExactly(Metric.LINE.getLabel(), Metric.BRANCH.getLabel(), Metric.INSTRUCTION.getLabel());
 
-        var lineCoverage = (Coverage) action.getValueForMetric(Baseline.PROJECT, Metric.LINE).orElseThrow();
+        var lineCoverage = (Coverage)
+                action.getValueForMetric(Baseline.PROJECT, Metric.LINE).orElseThrow();
         var lineBadge = badges.get(0);
         assertThat(lineBadge.getReportId()).isEqualTo("coverage");
         assertThat(lineBadge.getValue()).isEqualTo(action.getFormatter().format(lineCoverage));
-        assertThat(lineBadge.getPercentage()).isEqualTo(lineCoverage.getCoveredPercentage().toDouble());
+        assertThat(lineBadge.getPercentage())
+                .isEqualTo(lineCoverage.getCoveredPercentage().toDouble());
         assertThat(lineBadge.getStyle()).contains("background-image: linear-gradient(90deg,");
         assertThat(lineBadge.getTooltip()).contains(Metric.LINE.getDisplayName());
     }
@@ -125,11 +123,23 @@ class WidgetTest extends AbstractCoverageTest {
         return new Widget(List.of(actions));
     }
 
-    private CoverageBuildAction createAction(final String id,
-            final QualityGateResult qualityGateResult) {
+    private CoverageBuildAction createAction(final String id, final QualityGateResult qualityGateResult) {
         var node = readJacocoResult(JACOCO_CODING_STYLE_FILE);
-        return new CoverageBuildAction(mock(Run.class), id, "", "", node, qualityGateResult,
-                new FilteredLog("Errors"), "-",
-                List.of(), List.of(), List.of(), List.of(), List.of(), List.of(), false);
+        return new CoverageBuildAction(
+                mock(Run.class),
+                id,
+                "",
+                "",
+                node,
+                qualityGateResult,
+                new FilteredLog("Errors"),
+                "-",
+                List.of(),
+                List.of(),
+                List.of(),
+                List.of(),
+                List.of(),
+                List.of(),
+                false);
     }
 }

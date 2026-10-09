@@ -1,15 +1,10 @@
 package io.jenkins.plugins.coverage.metrics.steps;
 
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.Strings;
-import org.apache.commons.lang3.math.Fraction;
-
 import com.thoughtworks.xstream.converters.Converter;
 import com.thoughtworks.xstream.converters.MarshallingContext;
 import com.thoughtworks.xstream.converters.UnmarshallingContext;
 import com.thoughtworks.xstream.io.HierarchicalStreamReader;
 import com.thoughtworks.xstream.io.HierarchicalStreamWriter;
-
 import edu.hm.hafner.coverage.ClassNode;
 import edu.hm.hafner.coverage.ContainerNode;
 import edu.hm.hafner.coverage.Coverage;
@@ -23,7 +18,9 @@ import edu.hm.hafner.coverage.Node;
 import edu.hm.hafner.coverage.PackageNode;
 import edu.hm.hafner.coverage.Value;
 import edu.hm.hafner.util.VisibleForTesting;
-
+import hudson.util.XStream2;
+import io.jenkins.plugins.util.AbstractXmlStream;
+import io.jenkins.plugins.util.QualityGateResult.QualityGateResultItem;
 import java.util.AbstractMap.SimpleEntry;
 import java.util.Arrays;
 import java.util.Map;
@@ -37,11 +34,9 @@ import java.util.TreeSet;
 import java.util.function.Function;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
-
-import hudson.util.XStream2;
-
-import io.jenkins.plugins.util.AbstractXmlStream;
-import io.jenkins.plugins.util.QualityGateResult.QualityGateResultItem;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
+import org.apache.commons.lang3.math.Fraction;
 
 /**
  * Configures the XML stream for the coverage tree, which consists of {@link Node}s.
@@ -50,9 +45,7 @@ class CoverageXmlStream extends AbstractXmlStream<Node> {
     private static final Collector<CharSequence, ?, String> ARRAY_JOINER = Collectors.joining(", ", "[", "]");
 
     private static String[] toArray(final String value) {
-        String cleanInput = Strings.CS.removeEnd(
-                Strings.CS.removeStart(
-                        StringUtils.deleteWhitespace(value), "["), "]");
+        String cleanInput = Strings.CS.removeEnd(Strings.CS.removeStart(StringUtils.deleteWhitespace(value), "["), "]");
 
         return StringUtils.split(cleanInput, ",");
     }
@@ -122,8 +115,8 @@ class CoverageXmlStream extends AbstractXmlStream<Node> {
      */
     static final class FractionConverter implements Converter {
         @Override
-        public void marshal(final Object source, final HierarchicalStreamWriter writer,
-                final MarshallingContext context) {
+        public void marshal(
+                final Object source, final HierarchicalStreamWriter writer, final MarshallingContext context) {
             writer.setValue(source instanceof Fraction f ? f.toProperString() : null);
         }
 
@@ -158,8 +151,8 @@ class CoverageXmlStream extends AbstractXmlStream<Node> {
 
             var deserialized = Fraction.getFraction(value);
             if (metric.isCoverage()) {
-                deserialized = deserialized.multiplyBy(
-                        Fraction.getFraction(100)); // previously stored not as percentage
+                deserialized =
+                        deserialized.multiplyBy(Fraction.getFraction(100)); // previously stored not as percentage
             }
             return entry(metric, new Difference(metric, deserialized));
         }
@@ -177,7 +170,9 @@ class CoverageXmlStream extends AbstractXmlStream<Node> {
         private final Function<T, String> marshaller;
         private final Function<String, Object> unmarshaller;
 
-        protected SimpleConverter(final Class<T> type, final Function<T, String> marshaller,
+        protected SimpleConverter(
+                final Class<T> type,
+                final Function<T, String> marshaller,
                 final Function<String, Object> unmarshaller) {
             this.type = type;
             this.marshaller = marshaller;
@@ -185,8 +180,8 @@ class CoverageXmlStream extends AbstractXmlStream<Node> {
         }
 
         @Override
-        public void marshal(final Object source, final HierarchicalStreamWriter writer,
-                final MarshallingContext context) {
+        public void marshal(
+                final Object source, final HierarchicalStreamWriter writer, final MarshallingContext context) {
             writer.setValue(type.isInstance(source) ? marshaller.apply(type.cast(source)) : null);
         }
 
@@ -214,16 +209,13 @@ class CoverageXmlStream extends AbstractXmlStream<Node> {
     abstract static class TreeMapConverter<K extends Comparable<K>, V> implements Converter {
         @Override
         @SuppressWarnings("unchecked")
-        public void marshal(final Object source, final HierarchicalStreamWriter writer,
-                final MarshallingContext context) {
+        public void marshal(
+                final Object source, final HierarchicalStreamWriter writer, final MarshallingContext context) {
             writer.setValue(source instanceof NavigableMap ? marshal((NavigableMap<K, V>) source) : null);
         }
 
         String marshal(final SortedMap<K, V> source) {
-            return source.entrySet()
-                    .stream()
-                    .map(createMapEntry())
-                    .collect(ARRAY_JOINER);
+            return source.entrySet().stream().map(createMapEntry()).collect(ARRAY_JOINER);
         }
 
         @Override
@@ -247,8 +239,7 @@ class CoverageXmlStream extends AbstractXmlStream<Node> {
                                 StringUtils.substringBefore(marshalledValue, ':'),
                                 StringUtils.substringAfter(marshalledValue, ':'));
                         map.put(entry.getKey(), entry.getValue());
-                    }
-                    catch (IllegalArgumentException exception) {
+                    } catch (IllegalArgumentException exception) {
                         // ignore
                     }
                 }
@@ -288,8 +279,8 @@ class CoverageXmlStream extends AbstractXmlStream<Node> {
     static final class IntegerSetConverter implements Converter {
         @SuppressWarnings("unchecked")
         @Override
-        public void marshal(final Object source, final HierarchicalStreamWriter writer,
-                final MarshallingContext context) {
+        public void marshal(
+                final Object source, final HierarchicalStreamWriter writer, final MarshallingContext context) {
             writer.setValue(source instanceof TreeSet ? marshal((TreeSet<Integer>) source) : null);
         }
 
@@ -298,8 +289,8 @@ class CoverageXmlStream extends AbstractXmlStream<Node> {
         }
 
         @Override
-        public NavigableSet<Integer> unmarshal(final HierarchicalStreamReader reader,
-                final UnmarshallingContext context) {
+        public NavigableSet<Integer> unmarshal(
+                final HierarchicalStreamReader reader, final UnmarshallingContext context) {
             return unmarshal(reader.getValue());
         }
 

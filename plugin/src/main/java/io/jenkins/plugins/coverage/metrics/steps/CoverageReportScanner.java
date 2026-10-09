@@ -1,13 +1,12 @@
 package io.jenkins.plugins.coverage.metrics.steps;
 
-import org.apache.commons.io.input.BOMInputStream;
-
 import edu.hm.hafner.coverage.CoverageParser.ProcessingMode;
 import edu.hm.hafner.coverage.ModuleNode;
 import edu.hm.hafner.util.FilteredLog;
 import edu.hm.hafner.util.PathUtil;
 import edu.hm.hafner.util.SecureXmlParserFactory.ParsingException;
-
+import io.jenkins.plugins.coverage.metrics.steps.CoverageTool.Parser;
+import io.jenkins.plugins.util.AgentFileVisitor;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Serial;
@@ -15,9 +14,7 @@ import java.nio.charset.Charset;
 import java.nio.file.Path;
 import java.util.Locale;
 import java.util.Optional;
-
-import io.jenkins.plugins.coverage.metrics.steps.CoverageTool.Parser;
-import io.jenkins.plugins.util.AgentFileVisitor;
+import org.apache.commons.io.input.BOMInputStream;
 
 /**
  * Scans the workspace for coverage reports that match a specified Ant file pattern and parse these files with the
@@ -49,8 +46,12 @@ public class CoverageReportScanner extends AgentFileVisitor<ModuleNode> {
      * @param processingMode
      *         determines whether to ignore errors
      */
-    public CoverageReportScanner(final Parser parser, final String filePattern, final String encoding,
-            final boolean followSymbolicLinks, final ProcessingMode processingMode) {
+    public CoverageReportScanner(
+            final Parser parser,
+            final String filePattern,
+            final String encoding,
+            final boolean followSymbolicLinks,
+            final ProcessingMode processingMode) {
         super(filePattern, encoding, followSymbolicLinks, true);
 
         this.parser = parser;
@@ -60,14 +61,16 @@ public class CoverageReportScanner extends AgentFileVisitor<ModuleNode> {
     @Override
     protected Optional<ModuleNode> processFile(final Path file, final Charset charset, final FilteredLog log) {
         var coverageParser = parser.createParser(processingMode);
-        try (var inputStream = BOMInputStream.builder().setFile(file.toFile()).setCharset(charset).get();
+        try (var inputStream = BOMInputStream.builder()
+                        .setFile(file.toFile())
+                        .setCharset(charset)
+                        .get();
                 var reader = new InputStreamReader(inputStream, charset)) {
             var node = coverageParser.parse(reader, file.toString(), log);
             log.logInfo("Successfully parsed file '%s'", PATH_UTIL.getAbsolutePath(file));
             node.aggregateValues().forEach(v -> log.logInfo("%s", v.getDetails(Locale.ENGLISH)));
             return Optional.of(node);
-        }
-        catch (IOException | ParsingException exception) {
+        } catch (IOException | ParsingException exception) {
             log.logException(exception, "Parsing of file '%s' failed due to an exception:", file);
             return Optional.empty();
         }

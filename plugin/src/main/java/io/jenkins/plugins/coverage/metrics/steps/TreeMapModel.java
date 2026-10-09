@@ -2,16 +2,13 @@ package io.jenkins.plugins.coverage.metrics.steps;
 
 import edu.hm.hafner.coverage.Metric;
 import edu.hm.hafner.echarts.LabeledTreeMapNode;
-
+import hudson.model.ModelObject;
+import hudson.model.Run;
+import io.jenkins.plugins.coverage.metrics.model.ElementFormatter;
 import java.util.List;
 import java.util.NavigableSet;
 import java.util.Set;
-
 import org.kohsuke.stapler.bind.JavaScriptMethod;
-import hudson.model.ModelObject;
-import hudson.model.Run;
-
-import io.jenkins.plugins.coverage.metrics.model.ElementFormatter;
 
 /**
  * Server side model that provides the data for the "Hierarchy" tab of the coverage details view. Shows a single tree
@@ -119,8 +116,8 @@ public class TreeMapModel implements ModelObject {
      */
     @JavaScriptMethod
     @SuppressWarnings("unused")
-    public LabeledTreeMapNode getThresholdCoverageTree(final String coverageMetric,
-            final double greenThreshold, final double redThreshold) {
+    public LabeledTreeMapNode getThresholdCoverageTree(
+            final String coverageMetric, final double greenThreshold, final double redThreshold) {
         return parent.getThresholdCoverageTree(coverageMetric, greenThreshold, redThreshold);
     }
 
