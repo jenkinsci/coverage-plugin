@@ -1,13 +1,12 @@
 package io.jenkins.plugins.coverage.metrics.steps;
 
-import java.util.Collection;
-import java.util.Locale;
-
 import io.jenkins.plugins.coverage.metrics.model.CoverageStatistics;
 import io.jenkins.plugins.coverage.metrics.model.ElementFormatter;
 import io.jenkins.plugins.util.QualityGateEvaluator;
 import io.jenkins.plugins.util.QualityGateResult;
 import io.jenkins.plugins.util.QualityGateStatus;
+import java.util.Collection;
+import java.util.Locale;
 
 /**
  * Evaluates a given set of quality gates.
@@ -18,8 +17,8 @@ class CoverageQualityGateEvaluator extends QualityGateEvaluator<CoverageQualityG
     private static final ElementFormatter FORMATTER = new ElementFormatter();
     private final CoverageStatistics statistics;
 
-    CoverageQualityGateEvaluator(final Collection<? extends CoverageQualityGate> qualityGates,
-            final CoverageStatistics statistics) {
+    CoverageQualityGateEvaluator(
+            final Collection<? extends CoverageQualityGate> qualityGates, final CoverageStatistics statistics) {
         super(qualityGates);
 
         this.statistics = statistics;
@@ -27,15 +26,15 @@ class CoverageQualityGateEvaluator extends QualityGateEvaluator<CoverageQualityG
 
     @Override
     protected void evaluate(final CoverageQualityGate qualityGate, final QualityGateResult result) {
-        var possibleValue = statistics.getValue(qualityGate.getBaseline(), qualityGate.getMetric(),
-                qualityGate.getAggregation());
+        var possibleValue =
+                statistics.getValue(qualityGate.getBaseline(), qualityGate.getMetric(), qualityGate.getAggregation());
         if (possibleValue.isPresent()) {
             var actualValue = possibleValue.get();
-            var status = actualValue.isOutOfValidRange(
-                    qualityGate.getThreshold()) ? qualityGate.getStatus() : QualityGateStatus.PASSED;
+            var status = actualValue.isOutOfValidRange(qualityGate.getThreshold())
+                    ? qualityGate.getStatus()
+                    : QualityGateStatus.PASSED;
             result.add(qualityGate, status, FORMATTER.format(actualValue, Locale.ENGLISH));
-        }
-        else {
+        } else {
             result.add(qualityGate, QualityGateStatus.INACTIVE, "n/a");
         }
     }

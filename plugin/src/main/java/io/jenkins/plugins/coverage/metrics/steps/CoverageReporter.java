@@ -8,17 +8,10 @@ import edu.hm.hafner.coverage.MetricAggregation;
 import edu.hm.hafner.coverage.Node;
 import edu.hm.hafner.coverage.Value;
 import edu.hm.hafner.util.FilteredLog;
-
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-
 import edu.hm.hafner.util.VisibleForTesting;
 import hudson.FilePath;
 import hudson.model.Run;
 import hudson.model.TaskListener;
-
 import io.jenkins.plugins.coverage.metrics.model.CoverageStatistics;
 import io.jenkins.plugins.coverage.metrics.source.SourceCodePainter;
 import io.jenkins.plugins.forensics.delta.Delta;
@@ -26,6 +19,10 @@ import io.jenkins.plugins.forensics.delta.FileChanges;
 import io.jenkins.plugins.forensics.reference.ReferenceFinder;
 import io.jenkins.plugins.prism.SourceCodeRetention;
 import io.jenkins.plugins.util.ResultHandler;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 
 /**
  * Transforms the old model to the new model and invokes all steps that work on the new model. Currently, only the
@@ -38,24 +35,53 @@ public class CoverageReporter {
     private static final Map<MetricAggregation, List<Value>> EMPTY_AGGREGATION = Map.of();
 
     @SuppressWarnings({"checkstyle:ParameterNumber", "checkstyle:JavaNCSS"})
-    CoverageBuildAction publishAction(final String id, final String optionalName, final String icon,
+    CoverageBuildAction publishAction(
+            final String id,
+            final String optionalName,
+            final String icon,
             final Node rootNode,
-            final Run<?, ?> build, final FilePath workspace, final TaskListener listener,
-            final List<CoverageQualityGate> qualityGates, final String scm, final String sourceCodeEncoding,
-            final SourceCodeRetention sourceCodeRetention, final ResultHandler notifier,
-            final FilteredLog log) throws InterruptedException {
+            final Run<?, ?> build,
+            final FilePath workspace,
+            final TaskListener listener,
+            final List<CoverageQualityGate> qualityGates,
+            final String scm,
+            final String sourceCodeEncoding,
+            final SourceCodeRetention sourceCodeRetention,
+            final ResultHandler notifier,
+            final FilteredLog log)
+            throws InterruptedException {
         Optional<CoverageBuildAction> possibleReferenceResult = getReferenceBuildAction(build, id, log);
 
         CoverageBuildAction action;
         if (possibleReferenceResult.isPresent()) {
-            action = computeCoverageBasedOnReferenceBuild(id, optionalName, icon, rootNode, build, workspace,
-                    qualityGates, sourceCodeEncoding, sourceCodeRetention, notifier, possibleReferenceResult.get(),
-                    scm, listener, log);
-        }
-        else {
-            action = computeActionWithoutHistory(id, optionalName, icon, rootNode, build, workspace, qualityGates,
+            action = computeCoverageBasedOnReferenceBuild(
+                    id,
+                    optionalName,
+                    icon,
+                    rootNode,
+                    build,
+                    workspace,
+                    qualityGates,
                     sourceCodeEncoding,
-                    sourceCodeRetention, notifier, log);
+                    sourceCodeRetention,
+                    notifier,
+                    possibleReferenceResult.get(),
+                    scm,
+                    listener,
+                    log);
+        } else {
+            action = computeActionWithoutHistory(
+                    id,
+                    optionalName,
+                    icon,
+                    rootNode,
+                    build,
+                    workspace,
+                    qualityGates,
+                    sourceCodeEncoding,
+                    sourceCodeRetention,
+                    notifier,
+                    log);
         }
 
         build.addAction(action);
@@ -64,30 +90,58 @@ public class CoverageReporter {
 
     @SuppressWarnings("checkstyle:ParameterNumber")
     private CoverageBuildAction computeActionWithoutHistory(
-            final String id, final String optionalName, final String icon,
-            final Node rootNode, final Run<?, ?> build, final FilePath workspace,
-            final List<CoverageQualityGate> qualityGates, final String sourceCodeEncoding,
-            final SourceCodeRetention sourceCodeRetention, final ResultHandler notifier,
-            final FilteredLog log) throws InterruptedException {
-        var statistics = new CoverageStatistics(CoverageStatistics.aggregateValues(rootNode),
-                List.of(), EMPTY_AGGREGATION, List.<Difference>of(), EMPTY_AGGREGATION, List.of());
+            final String id,
+            final String optionalName,
+            final String icon,
+            final Node rootNode,
+            final Run<?, ?> build,
+            final FilePath workspace,
+            final List<CoverageQualityGate> qualityGates,
+            final String sourceCodeEncoding,
+            final SourceCodeRetention sourceCodeRetention,
+            final ResultHandler notifier,
+            final FilteredLog log)
+            throws InterruptedException {
+        var statistics = new CoverageStatistics(
+                CoverageStatistics.aggregateValues(rootNode),
+                List.of(),
+                EMPTY_AGGREGATION,
+                List.<Difference>of(),
+                EMPTY_AGGREGATION,
+                List.of());
         var evaluator = new CoverageQualityGateEvaluator(qualityGates, statistics);
         var qualityGateStatus = evaluator.evaluate(notifier, log);
 
-        paintSourceFiles(build, workspace, sourceCodeEncoding, sourceCodeRetention, id, rootNode,
-                rootNode.getAllFileNodes(), log);
+        paintSourceFiles(
+                build,
+                workspace,
+                sourceCodeEncoding,
+                sourceCodeRetention,
+                id,
+                rootNode,
+                rootNode.getAllFileNodes(),
+                log);
 
         return new CoverageBuildAction(build, id, optionalName, icon, rootNode, qualityGateStatus, log);
     }
 
     @SuppressWarnings("checkstyle:ParameterNumber")
     private CoverageBuildAction computeCoverageBasedOnReferenceBuild(
-            final String id, final String optionalName, final String icon,
-            final Node rootNode, final Run<?, ?> build, final FilePath workspace,
-            final List<CoverageQualityGate> qualityGates, final String sourceCodeEncoding,
-            final SourceCodeRetention sourceCodeRetention, final ResultHandler notifier,
-            final CoverageBuildAction referenceAction, final String scm,
-            final TaskListener listener, final FilteredLog log) throws InterruptedException {
+            final String id,
+            final String optionalName,
+            final String icon,
+            final Node rootNode,
+            final Run<?, ?> build,
+            final FilePath workspace,
+            final List<CoverageQualityGate> qualityGates,
+            final String sourceCodeEncoding,
+            final SourceCodeRetention sourceCodeRetention,
+            final ResultHandler notifier,
+            final CoverageBuildAction referenceAction,
+            final String scm,
+            final TaskListener listener,
+            final FilteredLog log)
+            throws InterruptedException {
         log.logInfo("Calculating the code delta...");
         var codeDeltaCalculator = new CodeDeltaCalculator(build, workspace, listener, scm);
         Optional<Delta> delta = codeDeltaCalculator.calculateCodeDeltaToReference(referenceAction.getOwner(), log);
@@ -108,8 +162,7 @@ public class CoverageReporter {
             modifiedFilesDelta = modifiedFilesCoverageRoot.computeDelta(
                     referenceRoot.filterByFileNames(modifiedFilesCoverageRoot.getFiles()));
             modifiedLinesDelta = modifiedLinesCoverageRoot.computeDelta(modifiedFilesCoverageRoot);
-        }
-        else {
+        } else {
             modifiedLinesDelta = List.of();
             modifiedFilesAggregation = EMPTY_AGGREGATION;
             modifiedFilesDelta = List.of();
@@ -125,18 +178,33 @@ public class CoverageReporter {
         var modifiedLinesValues = getTotalValues(modifiedLinesAggregation);
         var modifiedFilesValues = getTotalValues(modifiedFilesAggregation);
 
-        var statistics = new CoverageStatistics(overallAggregation, overallDelta,
-                modifiedLinesAggregation, modifiedLinesDelta, modifiedFilesAggregation, modifiedFilesDelta);
+        var statistics = new CoverageStatistics(
+                overallAggregation,
+                overallDelta,
+                modifiedLinesAggregation,
+                modifiedLinesDelta,
+                modifiedFilesAggregation,
+                modifiedFilesDelta);
         var evaluator = new CoverageQualityGateEvaluator(qualityGates, statistics);
         var qualityGateResult = evaluator.evaluate(notifier, log);
 
         var filesToStore = computePaintedFiles(rootNode, sourceCodeRetention, log, modifiedLinesCoverageRoot);
         paintSourceFiles(build, workspace, sourceCodeEncoding, sourceCodeRetention, id, rootNode, filesToStore, log);
 
-        return new CoverageBuildAction(build, id, optionalName, icon, rootNode, qualityGateResult, log,
-                referenceAction.getOwner().getExternalizableId(), overallDelta,
-                modifiedLinesValues, modifiedLinesDelta,
-                modifiedFilesValues, modifiedFilesDelta,
+        return new CoverageBuildAction(
+                build,
+                id,
+                optionalName,
+                icon,
+                rootNode,
+                qualityGateResult,
+                log,
+                referenceAction.getOwner().getExternalizableId(),
+                overallDelta,
+                modifiedLinesValues,
+                modifiedLinesDelta,
+                modifiedFilesValues,
+                modifiedFilesDelta,
                 rootNode.filterByIndirectChanges().aggregateValues());
     }
 
@@ -144,32 +212,45 @@ public class CoverageReporter {
         return aggregatedValues.getOrDefault(MetricAggregation.getDefault(), List.of());
     }
 
-    private List<FileNode> computePaintedFiles(final Node rootNode, final SourceCodeRetention sourceCodeRetention,
-            final FilteredLog log, final Node modifiedLinesCoverageRoot) {
+    private List<FileNode> computePaintedFiles(
+            final Node rootNode,
+            final SourceCodeRetention sourceCodeRetention,
+            final FilteredLog log,
+            final Node modifiedLinesCoverageRoot) {
         List<FileNode> filesToStore;
         if (sourceCodeRetention == SourceCodeRetention.MODIFIED) {
             filesToStore = modifiedLinesCoverageRoot.getAllFileNodes();
             log.logInfo("-> Selecting %d modified files for source code painting", filesToStore.size());
-        }
-        else {
+        } else {
             filesToStore = rootNode.getAllFileNodes();
         }
         return filesToStore;
     }
 
     @SuppressWarnings("checkstyle:ParameterNumber")
-    private void paintSourceFiles(final Run<?, ?> build, final FilePath workspace, final String sourceCodeEncoding,
-            final SourceCodeRetention sourceCodeRetention, final String id, final Node rootNode,
-            final List<FileNode> filesToStore, final FilteredLog log) throws InterruptedException {
+    private void paintSourceFiles(
+            final Run<?, ?> build,
+            final FilePath workspace,
+            final String sourceCodeEncoding,
+            final SourceCodeRetention sourceCodeRetention,
+            final String id,
+            final Node rootNode,
+            final List<FileNode> filesToStore,
+            final FilteredLog log)
+            throws InterruptedException {
         log.logInfo("Executing source code painting...");
         var sourceCodePainter = new SourceCodePainter(build, workspace, id);
-        sourceCodePainter.processSourceCodePainting(rootNode, filesToStore,
-                sourceCodeEncoding, sourceCodeRetention, log);
+        sourceCodePainter.processSourceCodePainting(
+                rootNode, filesToStore, sourceCodeEncoding, sourceCodeRetention, log);
         log.logInfo("Finished coverage processing - adding the action to the build...");
     }
 
-    private void createDeltaReports(final Node rootNode, final FilteredLog log, final Node referenceRoot,
-            final CodeDeltaCalculator codeDeltaCalculator, final Delta delta) {
+    private void createDeltaReports(
+            final Node rootNode,
+            final FilteredLog log,
+            final Node referenceRoot,
+            final CodeDeltaCalculator codeDeltaCalculator,
+            final Delta delta) {
         var fileChangesProcessor = new FileChangesProcessor();
 
         try {
@@ -182,13 +263,11 @@ public class CoverageReporter {
             fileChangesProcessor.attachChangedCodeLines(rootNode, mappedChanges);
 
             log.logInfo("Obtaining indirect coverage changes...");
-            fileChangesProcessor.attachIndirectCoveragesChanges(rootNode, referenceRoot,
-                    mappedChanges, oldPathMapping);
+            fileChangesProcessor.attachIndirectCoveragesChanges(rootNode, referenceRoot, mappedChanges, oldPathMapping);
 
             log.logInfo("Obtaining coverage delta for files...");
             fileChangesProcessor.attachFileCoverageDeltas(rootNode, referenceRoot, oldPathMapping);
-        }
-        catch (IllegalStateException exception) {
+        } catch (IllegalStateException exception) {
             log.logError("An error occurred while processing code and coverage changes:");
             log.logError("-> Message: " + exception.getMessage());
             log.logError("-> Skipping calculating modified lines coverage, modified files coverage"
@@ -209,8 +288,8 @@ public class CoverageReporter {
         return value instanceof Coverage coverage && coverage.isSet();
     }
 
-    Optional<CoverageBuildAction> getReferenceBuildAction(final Run<?, ?> build, final String id,
-            final FilteredLog log) {
+    Optional<CoverageBuildAction> getReferenceBuildAction(
+            final Run<?, ?> build, final String id, final FilteredLog log) {
         log.logInfo("Obtaining result action of reference build");
 
         var referenceFinder = createReferenceFinder();
@@ -225,8 +304,8 @@ public class CoverageReporter {
                 log.logInfo("-> Reference build has no action for ID '%s'", id);
                 possibleResult = Optional.ofNullable(referenceBuild.getPreviousBuild())
                         .flatMap(previousBuild -> findActionInBuildHistory(id, previousBuild));
-                possibleResult.ifPresent(action ->
-                        log.logInfo("-> Reference build information adjusted to '%s'", action.getOwner()));
+                possibleResult.ifPresent(
+                        action -> log.logInfo("-> Reference build information adjusted to '%s'", action.getOwner()));
             }
             return possibleResult;
         }

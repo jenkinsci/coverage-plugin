@@ -5,7 +5,6 @@ import edu.hm.hafner.coverage.Metric;
 import edu.hm.hafner.coverage.MetricAggregation;
 import edu.hm.hafner.coverage.Node;
 import edu.hm.hafner.coverage.Value;
-
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
@@ -78,9 +77,13 @@ public class CoverageStatistics {
             final List<? extends Difference> modifiedLinesDeltaMapping,
             final List<? extends Value> modifiedFilesValueMapping,
             final List<? extends Difference> modifiedFilesDeltaMapping) {
-        this(asTotal(projectValueMapping), projectDeltaMapping,
-                asTotal(modifiedLinesValueMapping), modifiedLinesDeltaMapping,
-                asTotal(modifiedFilesValueMapping), modifiedFilesDeltaMapping);
+        this(
+                asTotal(projectValueMapping),
+                projectDeltaMapping,
+                asTotal(modifiedLinesValueMapping),
+                modifiedLinesDeltaMapping,
+                asTotal(modifiedFilesValueMapping),
+                modifiedFilesDeltaMapping);
     }
 
     /**
@@ -142,8 +145,7 @@ public class CoverageStatistics {
      *
      * @return the value, if available
      */
-    public Optional<Value> getValue(final Baseline baseline, final Metric metric,
-            final MetricAggregation aggregation) {
+    public Optional<Value> getValue(final Baseline baseline, final Metric metric, final MetricAggregation aggregation) {
         if (baseline == Baseline.PROJECT) {
             return findValue(metric, aggregation, projectValueMapping);
         }
@@ -166,7 +168,9 @@ public class CoverageStatistics {
         throw new NoSuchElementException("No such baseline: " + baseline);
     }
 
-    private Optional<Value> findValue(final Metric metric, final MetricAggregation aggregation,
+    private Optional<Value> findValue(
+            final Metric metric,
+            final MetricAggregation aggregation,
             final Map<MetricAggregation, List<Value>> valueMapping) {
         return Value.findValue(metric, valueMapping.getOrDefault(aggregation, List.of()));
     }
