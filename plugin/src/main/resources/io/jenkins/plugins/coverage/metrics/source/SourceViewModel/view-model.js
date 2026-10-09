@@ -69,8 +69,9 @@
     }
 
     // O(n) pass over the table's current rows: groups directly adjacent rows that share the same
-    // coverage status into a block, tags each block's first row (for the label) with its text, and
-    // builds a row -> block-rows map for O(1) lookup on hover.
+    // coverage status into a block, tags each block's first row (for the label) when the renderer
+    // has not already supplied a more detailed label, and builds a row -> block-rows map for O(1)
+    // lookup on hover.
     function indexBlocks(table) {
         const isMutationTable = table.querySelector('tr.mutation') !== null;
         const labels = isMutationTable ? MUTATION_LABELS : LABELS;
@@ -89,7 +90,9 @@
             if (status !== previousStatus) {
                 currentBlockRows = [];
                 row.classList.add(BLOCK_FIRST_CLASS);
-                row.setAttribute('data-block-label', labels[status]);
+                if (!row.hasAttribute('data-block-label')) {
+                    row.setAttribute('data-block-label', labels[status]);
+                }
             }
             currentBlockRows.push(row);
             rowToBlockRows.set(row, currentBlockRows);
@@ -105,30 +108,44 @@
         });
     }
 
-    // The line-number column's width (and so the left offset the hits column must stick to) varies
-    // with the file's line count (more digits for larger files). Measured after each (re-)render
-    // rather than hard-coded, and exposed as a CSS custom property so view-model.css can use it for
-    // position: sticky -- see the "Keep the line-number and hits columns visible" comment there.
-    function updateStickyOffset(table) {
-        const line = table.querySelector('td.line');
-        if (line) {
-            table.style.setProperty('--source-line-col-width', line.getBoundingClientRect().width + 'px');
-            table.querySelectorAll('tr').forEach(function (row) {
-                const lineCell = row.querySelector('td.line');
-                let offset = lineCell ? lineCell.getBoundingClientRect().width : 0;
-                row.querySelectorAll('td.hits').forEach(function (cell) {
-                    cell.style.setProperty('--source-metric-col-left', offset + 'px');
-                    offset += cell.getBoundingClientRect().width;
-                });
-            });
+    // Metric columns have one width per table, so measure the header once and publish the offsets
+    // as table-level custom properties. Keeping all layout reads before the writes avoids a forced
+    // reflow for every source row after an AJAX refresh.
+    function updateStickyOffsets(table) {
+        const header = table.querySelector('tr');
+        if (!header) {
+            return;
         }
+
+        const line = header.querySelector('td.line');
+        const metricCells = Array.prototype.slice.call(header.querySelectorAll('td.hits'), 0, 3);
+        if (!line || metricCells.length === 0) {
+            return;
+        }
+
+        const lineWidth = line.getBoundingClientRect().width;
+        const metricWidths = metricCells.map(function (cell) {
+            return cell.getBoundingClientRect().width;
+        });
+
+        let offset = lineWidth;
+        metricWidths.forEach(function (width, index) {
+            table.style.setProperty('--source-metric-col-left-' + (index + 1), offset + 'px');
+            offset += width;
+        });
     }
 
     function initTable(table) {
         let rowToBlockRows = indexBlocks(table);
         let hoveredRows = null;
-        updateStickyOffset(table);
+        updateStickyOffsets(table);
         const scrollParent = getScrollParent(table);
+
+        if (typeof ResizeObserver === 'function') {
+            new ResizeObserver(function () {
+                updateStickyOffsets(table);
+            }).observe(table);
+        }
 
         // The block label ("Uncovered code" etc.) is a real <td>, appended to the hovered block's
         // first row on hover and detached again afterwards -- see showLabel/hideLabel, and the two
@@ -202,7 +219,7 @@
             hoveredRows = null;
             hideLabel();
             rowToBlockRows = indexBlocks(table);
-            updateStickyOffset(table);
+            updateStickyOffsets(table);
         }).observe(table, {childList: true, subtree: true});
 
         table.addEventListener('mouseover', function (event) {

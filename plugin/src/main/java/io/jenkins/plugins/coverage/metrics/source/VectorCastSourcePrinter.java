@@ -56,8 +56,10 @@ public class VectorCastSourcePrinter extends CoverageSourcePrinter {
      *
      */
     private String getTr(final int line, final String sourceCode, final boolean isPainted, final String third, final String fouth) {
+        var coverageSummary = isPainted ? getTooltip(line) : StringUtils.EMPTY;
         var trData = tr()
-                .withClasses(isPainted ? getColorClass(line) : UNDEFINED, getModifiedClass(line));
+                .withClasses(isPainted ? getColorClass(line) : UNDEFINED, getModifiedClass(line))
+                .condAttr(!coverageSummary.isEmpty(), "data-block-label", coverageSummary);
 
         trData.with(
                 td().withClass("line").with(a().withName(String.valueOf(line)).withText(String.valueOf(line))),
@@ -74,16 +76,14 @@ public class VectorCastSourcePrinter extends CoverageSourcePrinter {
                     getMetricColorClass(getMcdcPairCovered(line), getMcdcPairMissed(line))));
         }
 
-        trData.with(td().withClass("code")
-                .condAttr(isPainted, "tooltip", isPainted ? getTooltip(line) : StringUtils.EMPTY)
-                .with(rawHtml(SANITIZER.render(cleanupCode(sourceCode)))));
+        trData.with(td().withClass("code").with(rawHtml(SANITIZER.render(cleanupCode(sourceCode)))));
 
         return trData.render();
     }
 
     private ContainerTag createMetricCell(final String summary, final String tooltip, final boolean isPainted, final String colorClass) {
         return td().withClasses("hits", isPainted ? colorClass : UNDEFINED)
-                .condAttr(isPainted && !tooltip.isEmpty(), "tooltip", tooltip)
+                .condAttr(isPainted && !tooltip.isEmpty(), "data-html-tooltip", tooltip)
                 .with(isPainted ? text(summary) : text(StringUtils.EMPTY));
     }
 

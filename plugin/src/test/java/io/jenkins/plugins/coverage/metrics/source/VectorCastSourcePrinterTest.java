@@ -75,10 +75,13 @@ class VectorCastSourcePrinterTest {
         var printer = new VectorCastSourcePrinter(file);
         var row = printer.renderLine(1, "if (check()) {}");
 
-        XmlAssert.assertThat(row).nodesByXPath("/tr/td[3]").extractingAttribute("tooltip")
+        XmlAssert.assertThat(row).nodesByXPath("/tr/td[3]").extractingAttribute("data-html-tooltip")
                 .containsExactly(callTooltip);
-        XmlAssert.assertThat(row).nodesByXPath("/tr/td[4]").extractingAttribute("tooltip")
+        XmlAssert.assertThat(row).nodesByXPath("/tr/td[4]").extractingAttribute("data-html-tooltip")
                 .containsExactly(pairTooltip);
+        XmlAssert.assertThat(row).nodesByXPath("/tr").extractingAttribute("data-block-label")
+                .containsExactly(printer.getTooltip(1));
+        XmlAssert.assertThat(row).nodesByXPath("/tr/td[5]/@data-html-tooltip").hasSize(0);
         assertThat(printer.getTooltip(1)).contains(callTooltip, pairTooltip);
     }
 
@@ -100,7 +103,7 @@ class VectorCastSourcePrinterTest {
                     .extractingText().containsExactly("", "");
             XmlAssert.assertThat(row).nodesByXPath("/tr/td[3] | /tr/td[4]")
                     .extractingAttribute("class").containsExactly("hits noCover", "hits noCover");
-            XmlAssert.assertThat(row).nodesByXPath("/tr/td[3]/@tooltip | /tr/td[4]/@tooltip").hasSize(0);
+            XmlAssert.assertThat(row).nodesByXPath("/tr/td[3]/@data-html-tooltip | /tr/td[4]/@data-html-tooltip").hasSize(0);
         }
     }
 }

@@ -593,6 +593,7 @@
                     }
                     else {
                         sourceView.html(sourceCode);
+                        // The AJAX response creates new tooltip elements; initialize Jenkins behaviors for this subtree.
                         Behaviour.applySubtree(sourceView[0], true);
                     }
                 });
