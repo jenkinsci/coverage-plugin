@@ -1,18 +1,14 @@
 package io.jenkins.plugins.coverage;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebElement;
 
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.stream.Collectors;
-
-/**
- * Area that represents the file coverage table in a {@link CoverageReport} page.
- */
+/** Area that represents the file coverage table in a {@link CoverageReport} page. */
 @SuppressFBWarnings("EI")
 public class FileCoverageTable {
     private static final String ID_OF_FILE_COVERAGE_TABLE = "coverage-table";
@@ -27,8 +23,7 @@ public class FileCoverageTable {
 
         tableElement = coverageReport.waitFor(
                 By.xpath("//table[@id='" + ID_OF_FILE_COVERAGE_TABLE + "' and @isloaded='true']"));
-        headers = tableElement.findElements(By.xpath(".//thead/tr/th"))
-                .stream()
+        headers = tableElement.findElements(By.xpath(".//thead/tr/th")).stream()
                 .map(WebElement::getText)
                 .collect(Collectors.toList());
         tableInfo = coverageReport.find(By.id(ID_OF_FILE_COVERAGE_TABLE + "_info"));
@@ -36,9 +31,7 @@ public class FileCoverageTable {
         updateTableRows();
     }
 
-    /**
-     * Updates the table rows. E.g. if they are changed by toggling a details-row.
-     */
+    /** Updates the table rows. E.g. if they are changed by toggling a details-row. */
     public final void updateTableRows() {
         tableRows.clear();
 
@@ -50,9 +43,7 @@ public class FileCoverageTable {
      * Creates the concrete table row as an object of the matching sub-class of {@link FileCoverageTableRow}. This row
      * contains the specialized column mapping of the corresponding issues table.
      *
-     * @param row
-     *         the WebElement representing the specific row
-     *
+     * @param row the WebElement representing the specific row
      * @return the table row
      */
     protected FileCoverageTableRow createRow(final WebElement row) {
@@ -63,9 +54,7 @@ public class FileCoverageTable {
      * Returns the table row at the given index. This row instance contains the specialized column mapping of the
      * corresponding issues table.
      *
-     * @param rowIndex
-     *         the number of the row to be returned
-     *
+     * @param rowIndex the number of the row to be returned
      * @return the row
      * @see #createRow(WebElement)
      */
@@ -112,12 +101,11 @@ public class FileCoverageTable {
     /**
      * Performs a click on the page button to open the page of the table.
      *
-     * @param pageNumber
-     *         the number representing the page to open
+     * @param pageNumber the number representing the page to open
      */
     public void openTablePage(final int pageNumber) {
-        var webElement = coverageReport.find(
-                By.xpath("//a[@class='page-link' and @data-dt-idx='" + (pageNumber - 1) + "']"));
+        var webElement =
+                coverageReport.find(By.xpath("//a[@class='page-link' and @data-dt-idx='" + (pageNumber - 1) + "']"));
         webElement.click();
 
         coverageReport.waitFor(By.xpath("//a[@class='page-link' and @data-dt-idx='" + (pageNumber - 1)
@@ -137,9 +125,7 @@ public class FileCoverageTable {
         return Integer.parseInt(StringUtils.substringBefore(total, " "));
     }
 
-    /**
-     * Enum representing the headers which should be present in a {@link FileCoverageTable}.
-     */
+    /** Enum representing the headers which should be present in a {@link FileCoverageTable}. */
     public enum Header {
         PACKAGE("Package"),
         FILE("File"),

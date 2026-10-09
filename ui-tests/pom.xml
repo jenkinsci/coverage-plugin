@@ -1,12 +1,12 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
     <groupId>edu.hm.hafner</groupId>
     <artifactId>codingstyle-pom</artifactId>
     <version>7.5.0</version>
-    <relativePath/>
+    <relativePath />
   </parent>
 
   <groupId>io.jenkins.plugins</groupId>
@@ -30,17 +30,17 @@
   <dependencyManagement>
     <dependencies>
       <dependency>
-        <groupId>org.jenkins-ci.main</groupId>
-        <artifactId>jenkins-core</artifactId>
-        <version>${jenkins.version}</version>
-      </dependency>
-      <dependency>
         <!-- ClassNotFoundException if omitted -->
         <groupId>io.netty</groupId>
         <artifactId>netty-bom</artifactId>
         <version>4.2.18.Final</version>
         <type>pom</type>
         <scope>import</scope>
+      </dependency>
+      <dependency>
+        <groupId>org.jenkins-ci.main</groupId>
+        <artifactId>jenkins-core</artifactId>
+        <version>${jenkins.version}</version>
       </dependency>
     </dependencies>
   </dependencyManagement>
@@ -58,6 +58,12 @@
       <scope>test</scope>
     </dependency>
     <dependency>
+      <groupId>net.javacrumbs.json-unit</groupId>
+      <artifactId>json-unit-assertj</artifactId>
+      <version>${json-unit-assertj.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
       <groupId>org.apache.httpcomponents</groupId>
       <artifactId>httpclient</artifactId>
       <version>4.5.14</version>
@@ -66,12 +72,6 @@
     <dependency>
       <groupId>org.junit.vintage</groupId>
       <artifactId>junit-vintage-engine</artifactId>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>net.javacrumbs.json-unit</groupId>
-      <artifactId>json-unit-assertj</artifactId>
-      <version>${json-unit-assertj.version}</version>
       <scope>test</scope>
     </dependency>
   </dependencies>
@@ -140,10 +140,10 @@
         <executions>
           <execution>
             <id>copy-resources</id>
-            <phase>process-resources</phase>
             <goals>
               <goal>copy-resources</goal>
             </goals>
+            <phase>process-resources</phase>
             <configuration>
               <outputDirectory>../plugin/target/test-classes/test-dependencies</outputDirectory>
               <resources>
@@ -186,10 +186,10 @@
         <executions>
           <execution>
             <id>show-profiles</id>
-            <phase>compile</phase>
             <goals>
               <goal>active-profiles</goal>
             </goals>
+            <phase>compile</phase>
           </execution>
         </executions>
       </plugin>
@@ -245,6 +245,9 @@
     </profile>
     <profile>
       <id>ui-tests-locally</id>
+      <properties>
+        <maven.test.skip>false</maven.test.skip>
+      </properties>
       <build>
         <plugins>
           <plugin>
@@ -269,9 +272,6 @@
           </plugin>
         </plugins>
       </build>
-      <properties>
-        <maven.test.skip>false</maven.test.skip>
-      </properties>
     </profile>
   </profiles>
 

@@ -1,21 +1,17 @@
 package io.jenkins.plugins.coverage;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import org.jenkinsci.test.acceptance.po.Build;
+import org.jenkinsci.test.acceptance.po.PageObject;
 import org.openqa.selenium.By;
 import org.openqa.selenium.NoSuchElementException;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import org.jenkinsci.test.acceptance.po.Build;
-import org.jenkinsci.test.acceptance.po.PageObject;
-
-/**
- * {@link PageObject} representing the coverage summary on the build page of a job.
- */
+/** {@link PageObject} representing the coverage summary on the build page of a job. */
 public final class CoverageSummary extends PageObject {
     private final WebElement coverageReportLink;
     private final WebElement referenceBuild;
@@ -26,10 +22,8 @@ public final class CoverageSummary extends PageObject {
     /**
      * Creates a new page object representing the coverage summary on the build page of a job.
      *
-     * @param parent
-     *         a finished build configured with a static analysis tool
-     * @param id
-     *         the type of the result page (e.g. simian, checkstyle, cpd, etc.)
+     * @param parent a finished build configured with a static analysis tool
+     * @param id the type of the result page (e.g. simian, checkstyle, cpd, etc.)
      */
     public CoverageSummary(final Build parent, final String id) {
         super(parent, parent.url(id));
@@ -65,7 +59,8 @@ public final class CoverageSummary extends PageObject {
         for (WebElement result : this.coverage) {
             var message = result.getText();
             var type = message.substring(0, message.indexOf(':')).trim();
-            double value = Double.parseDouble(message.substring(message.indexOf(':') + 1, message.indexOf('%')).trim());
+            double value = Double.parseDouble(message.substring(message.indexOf(':') + 1, message.indexOf('%'))
+                    .trim());
             coverageMapping.put(type, value);
         }
         return coverageMapping;
@@ -80,7 +75,8 @@ public final class CoverageSummary extends PageObject {
         List<Double> changes = new ArrayList<>();
         for (WebElement result : this.coverageChanges) {
             var message = result.getText();
-            double value = Double.parseDouble(message.substring(1, message.indexOf('%')).trim());
+            double value = Double.parseDouble(
+                    message.substring(1, message.indexOf('%')).trim());
             changes.add(value);
         }
         return changes;
@@ -124,18 +120,14 @@ public final class CoverageSummary extends PageObject {
     /**
      * Returns whether the summary is displayed or not.
      *
-     * @param pageObject
-     *         the page object that shows the build
-     * @param elementId
-     *         the id of the summary element
-     *
+     * @param pageObject the page object that shows the build
+     * @param elementId the id of the summary element
      * @return {@code true} if the summary is displayed, {@code false} otherwise
      */
     public static boolean isSummaryDisplayed(final WebDriver pageObject, final String elementId) {
         try {
             return pageObject.findElement(By.id(elementId)).isDisplayed();
-        }
-        catch (NoSuchElementException exception) {
+        } catch (NoSuchElementException exception) {
             return false;
         }
     }

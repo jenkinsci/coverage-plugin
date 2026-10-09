@@ -2,19 +2,15 @@ package io.jenkins.plugins.coverage.publisher.threshold;
 
 import io.jenkins.plugins.coverage.publisher.CoveragePublisher;
 
-/**
- * Global Threshold used in {@code CoveragePublisher}.
- */
+/** Global Threshold used in {@code CoveragePublisher}. */
 public class GlobalThreshold extends AbstractThreshold {
     private final CoveragePublisher coveragePublisher;
 
     /**
      * Constructor of a GlobalThreshold in {@code CoveragePublisher}.
      *
-     * @param coveragePublisher
-     *         of threshold
-     * @param path
-     *         to threshold
+     * @param coveragePublisher of threshold
+     * @param path to threshold
      */
     public GlobalThreshold(final CoveragePublisher coveragePublisher, final String path) {
         super(coveragePublisher, path);
@@ -24,25 +20,20 @@ public class GlobalThreshold extends AbstractThreshold {
     /**
      * Setter for target of Threshold using {@link GlobalThresholdTarget}.
      *
-     * @param globalThresholdTarget
-     *         of threshold
+     * @param globalThresholdTarget of threshold
      */
     public void setThresholdTarget(final GlobalThresholdTarget globalThresholdTarget) {
         ensureAdvancedOptionsIsActivated();
         this.getThresholdTarget().select(globalThresholdTarget.getValue());
     }
 
-    /**
-     * Ensures advanced options are activated so that values can be set.
-     */
+    /** Ensures advanced options are activated so that values can be set. */
     @Override
     void ensureAdvancedOptionsIsActivated() {
         this.coveragePublisher.ensureAdvancedOptionsIsActivated();
     }
 
-    /**
-     * Enum for Options of {@link GlobalThreshold}.
-     */
+    /** Enum for Options of {@link GlobalThreshold}. */
     public enum GlobalThresholdTarget {
         AGGREGATED_REPORT("Aggregated Report"),
         REPORT("Report"),
@@ -60,6 +51,7 @@ public class GlobalThreshold extends AbstractThreshold {
 
         /**
          * Constructor of enum.
+         *
          * @param value is value-attribute of option-tag.
          */
         GlobalThresholdTarget(final String value) {
@@ -68,6 +60,7 @@ public class GlobalThreshold extends AbstractThreshold {
 
         /**
          * Get value of option-tag which should be selected.
+         *
          * @return value of option-tag to select.
          */
         public String getValue() {

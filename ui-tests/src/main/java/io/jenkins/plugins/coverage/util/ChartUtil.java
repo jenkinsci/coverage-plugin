@@ -1,15 +1,11 @@
 package io.jenkins.plugins.coverage.util;
 
+import java.util.Objects;
+import org.jenkinsci.test.acceptance.po.PageObject;
 import org.openqa.selenium.By;
 import org.openqa.selenium.NoSuchElementException;
 
-import java.util.Objects;
-
-import org.jenkinsci.test.acceptance.po.PageObject;
-
-/**
- * Charts are displayed one multiple PageObjects. This util provides some helper methods to deal with charts.
- */
+/** Charts are displayed one multiple PageObjects. This util provides some helper methods to deal with charts. */
 @SuppressWarnings("hideutilityclassconstructor")
 // TODO: Move this code to ATH so we can reuse it from other plugins
 public final class ChartUtil {
@@ -18,41 +14,39 @@ public final class ChartUtil {
     /**
      * Returns a chart's data by its id.
      *
-     * @param pageObject
-     *         which contains chart
-     * @param elementId
-     *         of chart
-     *
+     * @param pageObject which contains chart
+     * @param elementId of chart
      * @return data as json
      */
     public static String getChartDataById(final PageObject pageObject, final String elementId) {
         if (isChartDisplayedByElementId(pageObject, elementId)) {
-            return Objects.toString(getEchartsOptionsOf(pageObject, "document.getElementById(\"%s\")".formatted(elementId)));
+            return Objects.toString(
+                    getEchartsOptionsOf(pageObject, "document.getElementById(\"%s\")".formatted(elementId)));
         }
         return null; // FIXME?
     }
 
     private static Object getEchartsOptionsOf(final PageObject pageObject, final String selector) {
-        var script = String.format("delete(window.Array.prototype.toJSON) %n"
-                        + "return JSON.stringify(echarts.getInstanceByDom(%s)).getOption())", selector);
+        var script = String.format(
+                "delete(window.Array.prototype.toJSON) %n"
+                        + "return JSON.stringify(echarts.getInstanceByDom(%s)).getOption())",
+                selector);
         return pageObject.executeScript(script);
     }
 
     /**
      * Returns data of only chart with given tool attribute value on page.
      *
-     * @param pageObject
-     *         which contains only one chart with given tool attribute value
-     * @param toolAttribute
-     *         value in div tag of chart
-     *
+     * @param pageObject which contains only one chart with given tool attribute value
+     * @param toolAttribute value in div tag of chart
      * @return data as json
      */
-    public static String getDataOfOnlyChartOnPageWithGivenToolAttribute(final PageObject pageObject,
-            final String toolAttribute) {
+    public static String getDataOfOnlyChartOnPageWithGivenToolAttribute(
+            final PageObject pageObject, final String toolAttribute) {
         if (isChartDisplayedByDivToolAttribute(pageObject, toolAttribute)) {
             for (int i = 0; i < MAX_ATTEMPTS; i++) {
-                Object result = getEchartsOptionsOf(pageObject, "document.querySelector(\"div [tool='%s']\")".formatted(toolAttribute));
+                Object result = getEchartsOptionsOf(
+                        pageObject, "document.querySelector(\"div [tool='%s']\")".formatted(toolAttribute));
 
                 if (result != null) {
                     return result.toString();
@@ -66,19 +60,15 @@ public final class ChartUtil {
     /**
      * Returns if chart is displayed.
      *
-     * @param pageObject
-     *         which contains chart
-     * @param elementId
-     *         of chart
-     *
+     * @param pageObject which contains chart
+     * @param elementId of chart
      * @return if chart is displayed
      */
     public static boolean isChartDisplayedByElementId(final PageObject pageObject, final String elementId) {
         try {
             var chart = pageObject.find(By.id(elementId));
             return chart != null && chart.isDisplayed();
-        }
-        catch (NoSuchElementException exception) {
+        } catch (NoSuchElementException exception) {
             return false;
         }
     }
@@ -86,19 +76,15 @@ public final class ChartUtil {
     /**
      * Returns if a chart with given tool attribute in div tag is displayed.
      *
-     * @param pageObject
-     *         which contains chart
-     * @param toolAttribute
-     *         of div tag of chart
-     *
+     * @param pageObject which contains chart
+     * @param toolAttribute of div tag of chart
      * @return if chart is displayed
      */
     public static boolean isChartDisplayedByDivToolAttribute(final PageObject pageObject, final String toolAttribute) {
         try {
             var chart = pageObject.find(By.cssSelector("div[tool='" + toolAttribute + "']"));
             return chart != null && chart.isDisplayed();
-        }
-        catch (NoSuchElementException exception) {
+        } catch (NoSuchElementException exception) {
             return false;
         }
     }

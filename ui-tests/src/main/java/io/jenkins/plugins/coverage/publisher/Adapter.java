@@ -1,15 +1,12 @@
 package io.jenkins.plugins.coverage.publisher;
 
+import io.jenkins.plugins.coverage.publisher.threshold.AdapterThreshold;
+import io.jenkins.plugins.coverage.publisher.threshold.AdapterThreshold.AdapterThresholdTarget;
 import org.jenkinsci.test.acceptance.po.Control;
 import org.jenkinsci.test.acceptance.po.PageArea;
 import org.jenkinsci.test.acceptance.po.PageAreaImpl;
 
-import io.jenkins.plugins.coverage.publisher.threshold.AdapterThreshold;
-import io.jenkins.plugins.coverage.publisher.threshold.AdapterThreshold.AdapterThresholdTarget;
-
-/**
- * Adapter which can be added in the configuration of the {@link CoveragePublisher} of a FreeStyle Project.
- */
+/** Adapter which can be added in the configuration of the {@link CoveragePublisher} of a FreeStyle Project. */
 public final class Adapter extends PageAreaImpl {
     private final Control reportFilePath = control("path");
     private final Control threshold = control("repeatable-add");
@@ -21,10 +18,8 @@ public final class Adapter extends PageAreaImpl {
     /**
      * Constructor to create {@link Adapter} for {@link CoveragePublisher}.
      *
-     * @param reportPublisher
-     *         which should be created, f. e. jacoco or cobertura
-     * @param path
-     *         of parent page
+     * @param reportPublisher which should be created, f. e. jacoco or cobertura
+     * @param path of parent page
      */
     public Adapter(final PageArea reportPublisher, final String path) {
         super(reportPublisher, path);
@@ -33,8 +28,7 @@ public final class Adapter extends PageAreaImpl {
     /**
      * Setter for path of report file.
      *
-     * @param reportFilePath
-     *         path to report file.
+     * @param reportFilePath path to report file.
      */
     public void setReportFilePath(final String reportFilePath) {
         this.reportFilePath.set(reportFilePath);
@@ -43,8 +37,7 @@ public final class Adapter extends PageAreaImpl {
     /**
      * Setter for merging to one report.
      *
-     * @param mergeReports
-     *         boolean for merging to one report
+     * @param mergeReports boolean for merging to one report
      */
     public void setMergeToOneReport(final boolean mergeReports) {
         ensureAdvancedOptionsIsActivated();
@@ -53,6 +46,7 @@ public final class Adapter extends PageAreaImpl {
 
     /**
      * Adds empty {@link AdapterThreshold}.
+     *
      * @return new Threshold to Adapter
      */
     public AdapterThreshold createThresholdsPageArea() {
@@ -63,14 +57,18 @@ public final class Adapter extends PageAreaImpl {
 
     /**
      * Adds {@link AdapterThreshold} with values.
+     *
      * @param thresholdTarget value using {@link AdapterThresholdTarget}
      * @param unhealthyThreshold value to be set
      * @param unstableThreshold value to be set
      * @param failUnhealthy value for setting if build should fail on unhealthy
      * @return threshold
      */
-    public AdapterThreshold createThresholdsPageArea(final AdapterThresholdTarget thresholdTarget, final double unhealthyThreshold,
-            final double unstableThreshold, final boolean failUnhealthy) {
+    public AdapterThreshold createThresholdsPageArea(
+            final AdapterThresholdTarget thresholdTarget,
+            final double unhealthyThreshold,
+            final double unstableThreshold,
+            final boolean failUnhealthy) {
         ensureAdvancedOptionsIsActivated();
         var path = createPageArea("thresholds", this.threshold::click);
         var adapterThreshold = new AdapterThreshold(this, path);
@@ -81,18 +79,14 @@ public final class Adapter extends PageAreaImpl {
         return adapterThreshold;
     }
 
-    /**
-     * Activates advanced options to use setters of {@link Adapter}.
-     */
+    /** Activates advanced options to use setters of {@link Adapter}. */
     public void ensureAdvancedOptionsIsActivated() {
         if (advancedOptions.exists()) {
             advancedOptions.click();
         }
     }
 
-    /**
-     * Removes adapter.
-     */
+    /** Removes adapter. */
     public void deleteAdapter() {
         this.delete.click();
     }

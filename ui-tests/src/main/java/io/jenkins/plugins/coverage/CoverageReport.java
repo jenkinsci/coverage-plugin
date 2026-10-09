@@ -1,21 +1,17 @@
 package io.jenkins.plugins.coverage;
 
+import static io.jenkins.plugins.coverage.util.ChartUtil.*;
+
+import java.util.NoSuchElementException;
 import org.apache.commons.lang3.StringUtils;
 import org.hamcrest.CoreMatchers;
 import org.hamcrest.MatcherAssert;
+import org.jenkinsci.test.acceptance.po.Build;
+import org.jenkinsci.test.acceptance.po.PageObject;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebElement;
 
-import java.util.NoSuchElementException;
-
-import org.jenkinsci.test.acceptance.po.Build;
-import org.jenkinsci.test.acceptance.po.PageObject;
-
-import static io.jenkins.plugins.coverage.util.ChartUtil.*;
-
-/**
- * {@link PageObject} representing the Coverage Report.
- */
+/** {@link PageObject} representing the Coverage Report. */
 public class CoverageReport extends PageObject {
     private static final String RELATIVE_PATH_BUILD_TO_REPORT = "coverage";
 
@@ -31,8 +27,7 @@ public class CoverageReport extends PageObject {
     /**
      * Constructor to create CoverageReport-PageObject out of a build.
      *
-     * @param parent
-     *         build of wanted CoverageReport.
+     * @param parent build of wanted CoverageReport.
      */
     public CoverageReport(final Build parent) {
         super(parent, parent.url(RELATIVE_PATH_BUILD_TO_REPORT));
@@ -69,31 +64,27 @@ public class CoverageReport extends PageObject {
         return openFileCoverageTable();
     }
 
-    /**
-     * Ensures the tab is 'File Overview'/FileCoverageTable is active.
-     */
+    /** Ensures the tab is 'File Overview'/FileCoverageTable is active. */
     private void ensureCoverageTableTabIsActive() {
         if (getActiveTab() != Tab.FILE_OVERVIEW) {
             openTabCoverageTable();
         }
     }
 
-    /**
-     * Ensures the tab is 'Package Overview'/CoverageTree is active.
-     */
+    /** Ensures the tab is 'Package Overview'/CoverageTree is active. */
     private void ensureCoverageTreeTabIsActive() {
         if (getActiveTab() != Tab.PACKAGE_OVERVIEW) {
             openTabCoverageTree();
         }
     }
 
-    /**
-     * Ensures CoverageReport Page is opened.
-     */
+    /** Ensures CoverageReport Page is opened. */
     private void ensureCoverageReportPageIsOpen() {
-        MatcherAssert.assertThat("coverage report page was not opened", this.driver.getCurrentUrl(),
-                CoreMatchers.anyOf(CoreMatchers.containsString(this.url.toString()),
-                        CoreMatchers.containsString(this.url + "/")));
+        MatcherAssert.assertThat(
+                "coverage report page was not opened",
+                this.driver.getCurrentUrl(),
+                CoreMatchers.anyOf(
+                        CoreMatchers.containsString(this.url.toString()), CoreMatchers.containsString(this.url + "/")));
     }
 
     /**
@@ -136,12 +127,9 @@ public class CoverageReport extends PageObject {
     /**
      * Opens the specified tab.
      *
-     * @param reportToggleId
-     *         The ID of the report view toggle which opens the required report view
-     * @param tabNavId
-     *         The ID of the navigation bar that redirects to the tab to be selected
-     * @param tab
-     *         The tab that should be selected
+     * @param reportToggleId The ID of the report view toggle which opens the required report view
+     * @param tabNavId The ID of the navigation bar that redirects to the tab to be selected
+     * @param tab The tab that should be selected
      */
     private void openTab(final String reportToggleId, final String tabNavId, final Tab tab) {
         toggleReportView(reportToggleId);
@@ -152,8 +140,7 @@ public class CoverageReport extends PageObject {
     /**
      * Toggles the report view using the passed ID.
      *
-     * @param id
-     *         The ID of the toggle button to be used
+     * @param id The ID of the toggle button to be used
      */
     private void toggleReportView(final String id) {
         var viewToggleElement = getElement(By.id(id));
@@ -173,9 +160,7 @@ public class CoverageReport extends PageObject {
     /**
      * Returns whether the right source file content is displayed depending on the availability of the source file.
      *
-     * @param sourceFileAvailable
-     *         {@code true} whether the source file is available and should be displayed
-     *
+     * @param sourceFileAvailable {@code true} whether the source file is available and should be displayed
      * @return {@code true} whether the expected source file content is displayed
      */
     public boolean isExpectedSourceFileContentDisplayed(final boolean sourceFileAvailable) {
@@ -183,20 +168,16 @@ public class CoverageReport extends PageObject {
             WebElement fileTable;
             if (sourceFileAvailable) {
                 fileTable = getElement(By.id("source-file"));
-            }
-            else {
+            } else {
                 fileTable = getElement(By.id("source-file-unavailable"));
             }
             return fileTable != null && fileTable.isDisplayed();
-        }
-        catch (NoSuchElementException exception) {
+        } catch (NoSuchElementException exception) {
             return false;
         }
     }
 
-    /**
-     * Tabs of File Coverage Overview Table.
-     */
+    /** Tabs of File Coverage Overview Table. */
     public enum Tab {
         PACKAGE_OVERVIEW("coverageTree"),
         FILE_OVERVIEW("coverageTable");

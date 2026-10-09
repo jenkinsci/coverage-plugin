@@ -1,13 +1,10 @@
 package io.jenkins.plugins.coverage;
 
+import java.util.List;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebElement;
 
-import java.util.List;
-
-/**
- * Representation of a table row in {@link FileCoverageTable}.
- */
+/** Representation of a table row in {@link FileCoverageTable}. */
 public class FileCoverageTableRow {
     private static final int PACKAGE = 0;
     private static final int FILE = 1;
@@ -83,12 +80,8 @@ public class FileCoverageTableRow {
         return getRow().findElements(By.tagName("td"));
     }
 
-    /**
-     * Opens the source code of the file that is represented by this row.
-     */
+    /** Opens the source code of the file that is represented by this row. */
     public void openSourceCode() {
-        this.row.findElements(By.tagName("td"))
-                .get(1)
-                .click();
+        this.row.findElements(By.tagName("td")).get(1).click();
     }
 }

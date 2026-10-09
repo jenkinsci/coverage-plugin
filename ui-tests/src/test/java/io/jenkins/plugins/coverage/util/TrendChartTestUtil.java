@@ -1,9 +1,9 @@
 package io.jenkins.plugins.coverage.util;
 
+import static net.javacrumbs.jsonunit.assertj.JsonAssertions.*;
+
 import io.jenkins.plugins.coverage.CoverageReport;
 import io.jenkins.plugins.coverage.MainPanel;
-
-import static net.javacrumbs.jsonunit.assertj.JsonAssertions.*;
 
 /**
  * Due to Coverage TrendChart is displayed twice, in ({@link CoverageReport} and {@link MainPanel}, this helper class
@@ -21,62 +21,49 @@ public final class TrendChartTestUtil {
      * Verifies if a specific generated TrendChart has the correct build numbers in its axis and the right coverage
      * values for its builds.
      *
-     * @param trendChart
-     *         from coverage report
-     * @param firstBuildInChartNumber
-     *         first buildnumber displayed in TrendChart
-     * @param lastBuildInChartNumber
-     *         last buildnumber displayed in TrendChart
+     * @param trendChart from coverage report
+     * @param firstBuildInChartNumber first buildnumber displayed in TrendChart
+     * @param lastBuildInChartNumber last buildnumber displayed in TrendChart
      */
-    public static void verifyTrendChart(final String trendChart, final int firstBuildInChartNumber,
-            final int lastBuildInChartNumber) {
+    public static void verifyTrendChart(
+            final String trendChart, final int firstBuildInChartNumber, final int lastBuildInChartNumber) {
         assertThatJson(trendChart)
                 .inPath("$.xAxis[*].data[*]")
                 .isArray()
                 .contains("#" + firstBuildInChartNumber)
                 .contains("#" + lastBuildInChartNumber);
 
-        assertThatJson(trendChart)
-                .node("series")
-                .isArray()
-                .hasSize(2);
+        assertThatJson(trendChart).node("series").isArray().hasSize(2);
 
         assertThatJson(trendChart)
                 .and(
                         a -> a.node("series[0].name").isEqualTo(LINE_COVERAGE),
-                        a -> a.node("series[0].data").isArray()
+                        a -> a.node("series[0].data")
+                                .isArray()
                                 .containsExactly(FIRST_LINE_COVERAGE, SECOND_LINE_COVERAGE),
                         a -> a.node("series[1].name").isEqualTo(BRANCH_COVERAGE),
-                        a -> a.node("series[1].data").isArray()
-                                .containsExactly(FIRST_BRANCH_COVERAGE, SECOND_BRANCH_COVERAGE)
-                );
+                        a -> a.node("series[1].data")
+                                .isArray()
+                                .containsExactly(FIRST_BRANCH_COVERAGE, SECOND_BRANCH_COVERAGE));
     }
 
     /**
-     * Verifies if a generated TrendChart has the correct number of builds in its axis and the right coverage
-     * values for its builds.
+     * Verifies if a generated TrendChart has the correct number of builds in its axis and the right coverage values for
+     * its builds.
      *
-     * @param trendChart
-     *         which should only contain one record
+     * @param trendChart which should only contain one record
      */
     public static void verifyTrendChartContainsOnlyOneRecord(final String trendChart) {
-        assertThatJson(trendChart)
-                .inPath("$.xAxis[*].data[*]")
-                .isArray()
-                .contains("#" + 1);
+        assertThatJson(trendChart).inPath("$.xAxis[*].data[*]").isArray().contains("#" + 1);
 
-        assertThatJson(trendChart)
-                .node("series")
-                .isArray()
-                .hasSize(2);
+        assertThatJson(trendChart).node("series").isArray().hasSize(2);
 
         assertThatJson(trendChart)
                 .and(
                         a -> a.node("series[0].name").isEqualTo(LINE_COVERAGE),
                         a -> a.node("series[0].data").isArray().containsExactly(FIRST_LINE_COVERAGE),
                         a -> a.node("series[1].name").isEqualTo(BRANCH_COVERAGE),
-                        a -> a.node("series[1].data").isArray().contains(FIRST_BRANCH_COVERAGE)
-                );
+                        a -> a.node("series[1].data").isArray().contains(FIRST_BRANCH_COVERAGE));
     }
 
     private TrendChartTestUtil() {
