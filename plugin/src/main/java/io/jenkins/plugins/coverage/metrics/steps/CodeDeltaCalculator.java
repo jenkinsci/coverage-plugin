@@ -2,13 +2,7 @@ package io.jenkins.plugins.coverage.metrics.steps;
 
 import edu.hm.hafner.coverage.Node;
 import edu.hm.hafner.util.FilteredLog;
-import hudson.FilePath;
-import hudson.model.Run;
-import hudson.model.TaskListener;
-import io.jenkins.plugins.forensics.delta.Delta;
-import io.jenkins.plugins.forensics.delta.DeltaCalculatorFactory;
-import io.jenkins.plugins.forensics.delta.FileChanges;
-import io.jenkins.plugins.forensics.delta.FileEditType;
+
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -21,6 +15,15 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import one.util.streamex.StreamEx;
+
+import hudson.FilePath;
+import hudson.model.Run;
+import hudson.model.TaskListener;
+
+import io.jenkins.plugins.forensics.delta.Delta;
+import io.jenkins.plugins.forensics.delta.DeltaCalculatorFactory;
+import io.jenkins.plugins.forensics.delta.FileChanges;
+import io.jenkins.plugins.forensics.delta.FileEditType;
 
 /**
  * Calculates the code delta between a Jenkins build and a reference build.
@@ -58,8 +61,8 @@ class CodeDeltaCalculator {
      * @param scm
      *         The selected SCM
      */
-    CodeDeltaCalculator(
-            final Run<?, ?> build, final FilePath workspace, final TaskListener listener, final String scm) {
+    CodeDeltaCalculator(final Run<?, ?> build, final FilePath workspace,
+            final TaskListener listener, final String scm) {
         this.build = build;
         this.workspace = workspace;
         this.listener = listener;
@@ -77,7 +80,8 @@ class CodeDeltaCalculator {
      * @return the {@link Delta code delta} as Optional if existent, else an empty Optional
      */
     Optional<Delta> calculateCodeDeltaToReference(final Run<?, ?> referenceBuild, final FilteredLog log) {
-        return DeltaCalculatorFactory.findDeltaCalculator(scm, build, workspace, listener, log)
+        return DeltaCalculatorFactory
+                .findDeltaCalculator(scm, build, workspace, listener, log)
                 .calculateDelta(build, referenceBuild, log);
     }
 
@@ -122,8 +126,8 @@ class CodeDeltaCalculator {
 
         return changes.stream()
                 .filter(change -> reportPaths.contains(pathMapping.get(change.getFileName())))
-                .collect(
-                        Collectors.toMap(fileChange -> pathMapping.get(fileChange.getFileName()), Function.identity()));
+                .collect(Collectors.toMap(
+                        fileChange -> pathMapping.get(fileChange.getFileName()), Function.identity()));
     }
 
     /**
@@ -146,18 +150,17 @@ class CodeDeltaCalculator {
      * @throws IllegalStateException
      *         if the SCM path mapping is ambiguous
      */
-    Map<String, String> createOldPathMapping(
-            final Node root, final Node referenceRoot, final Map<String, FileChanges> changes, final FilteredLog log)
+    Map<String, String> createOldPathMapping(final Node root, final Node referenceRoot,
+            final Map<String, FileChanges> changes, final FilteredLog log)
             throws IllegalStateException {
         Set<String> oldReportPaths = new HashSet<>(referenceRoot.getFiles());
         // mapping between reference and current file paths which initially contains the SCM paths with renamings
         Map<String, String> oldPathMapping = changes.entrySet().stream()
                 .filter(entry -> FileEditType.RENAME == entry.getValue().getFileEditType())
-                .collect(Collectors.toMap(
-                        Entry::getKey, entry -> entry.getValue().getOldFileName()));
+                .collect(Collectors.toMap(Entry::getKey, entry -> entry.getValue().getOldFileName()));
         // the SCM paths and the coverage report paths from the reference
-        Map<String, String> oldScmToOldReportPathMapping =
-                getScmToReportPathMapping(oldPathMapping.values(), oldReportPaths);
+        Map<String, String> oldScmToOldReportPathMapping
+                = getScmToReportPathMapping(oldPathMapping.values(), oldReportPaths);
 
         // replacing the old SCM paths with the old report paths
         Set<String> newReportPathsWithRename = oldPathMapping.keySet();
@@ -219,8 +222,9 @@ class CodeDeltaCalculator {
      */
     private void verifyScmToReportPathMapping(final Map<String, String> pathMapping, final FilteredLog log)
             throws IllegalStateException {
-        List<String> notEmptyValues =
-                pathMapping.values().stream().filter(path -> !path.isEmpty()).collect(Collectors.toList());
+        List<String> notEmptyValues = pathMapping.values().stream()
+                .filter(path -> !path.isEmpty())
+                .collect(Collectors.toList());
         if (notEmptyValues.size() != new HashSet<>(notEmptyValues).size()) {
             throw new IllegalStateException(AMBIGUOUS_PATHS_ERROR);
         }
@@ -266,8 +270,9 @@ class CodeDeltaCalculator {
      */
     static void verifyOldPathMapping(final Map<String, String> oldPathMapping, final FilteredLog log)
             throws IllegalStateException {
-        Set<String> duplicates =
-                StreamEx.of(oldPathMapping.values()).distinct(2).collect(Collectors.toSet());
+        Set<String> duplicates = StreamEx.of(oldPathMapping.values())
+                .distinct(2)
+                .collect(Collectors.toSet());
 
         Map<String, String> duplicateEntries = oldPathMapping.entrySet().stream()
                 .filter(entry -> duplicates.contains(entry.getValue()))

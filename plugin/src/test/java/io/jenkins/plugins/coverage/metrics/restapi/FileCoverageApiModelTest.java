@@ -1,9 +1,10 @@
 package io.jenkins.plugins.coverage.metrics.restapi;
 
-import static org.assertj.core.api.Assertions.*;
+import org.junit.jupiter.api.Test;
 
 import edu.hm.hafner.coverage.ModuleNode;
-import org.junit.jupiter.api.Test;
+
+import static org.assertj.core.api.Assertions.*;
 
 /**
  * Tests {@link FileCoverageApiModel}.

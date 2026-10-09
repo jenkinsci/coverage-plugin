@@ -1,9 +1,10 @@
 package io.jenkins.plugins.coverage.metrics.steps;
 
-import static edu.hm.hafner.coverage.Metric.*;
-import static org.assertj.core.api.BDDAssertions.*;
-import static org.mockito.Mockito.*;
-import static org.xmlunit.assertj.XmlAssert.assertThat;
+import org.apache.commons.lang3.StringUtils;
+import org.junit.jupiter.api.Test;
+import org.junitpioneer.jupiter.Issue;
+import org.xmlunit.builder.Input;
+import org.xmlunit.builder.Input.Builder;
 
 import edu.hm.hafner.coverage.Difference;
 import edu.hm.hafner.coverage.FileNode;
@@ -13,15 +14,7 @@ import edu.hm.hafner.coverage.Value;
 import edu.hm.hafner.coverage.parser.JacocoParser;
 import edu.hm.hafner.util.FilteredLog;
 import edu.hm.hafner.util.SerializableTest;
-import hudson.XmlFile;
-import hudson.model.FreeStyleBuild;
-import hudson.util.XStream2;
-import io.jenkins.plugins.coverage.metrics.Assertions;
-import io.jenkins.plugins.coverage.metrics.model.Baseline;
-import io.jenkins.plugins.coverage.metrics.steps.CoverageXmlStream.IntegerLineMapConverter;
-import io.jenkins.plugins.coverage.metrics.steps.CoverageXmlStream.IntegerSetConverter;
-import io.jenkins.plugins.coverage.metrics.steps.CoverageXmlStream.MetricFractionMapConverter;
-import io.jenkins.plugins.util.QualityGateResult;
+
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
@@ -34,11 +27,22 @@ import java.util.NavigableSet;
 import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
-import org.apache.commons.lang3.StringUtils;
-import org.junit.jupiter.api.Test;
-import org.junitpioneer.jupiter.Issue;
-import org.xmlunit.builder.Input;
-import org.xmlunit.builder.Input.Builder;
+
+import hudson.XmlFile;
+import hudson.model.FreeStyleBuild;
+import hudson.util.XStream2;
+
+import io.jenkins.plugins.coverage.metrics.Assertions;
+import io.jenkins.plugins.coverage.metrics.model.Baseline;
+import io.jenkins.plugins.coverage.metrics.steps.CoverageXmlStream.IntegerLineMapConverter;
+import io.jenkins.plugins.coverage.metrics.steps.CoverageXmlStream.IntegerSetConverter;
+import io.jenkins.plugins.coverage.metrics.steps.CoverageXmlStream.MetricFractionMapConverter;
+import io.jenkins.plugins.util.QualityGateResult;
+
+import static edu.hm.hafner.coverage.Metric.*;
+import static org.assertj.core.api.BDDAssertions.*;
+import static org.mockito.Mockito.*;
+import static org.xmlunit.assertj.XmlAssert.assertThat;
 
 /**
  * Tests the class {@link CoverageXmlStream}.
@@ -60,11 +64,8 @@ class CoverageXmlStreamITest extends SerializableTest<Node> {
     }
 
     private Node parseJacocoReport(final String fileName) {
-        return new JacocoParser()
-                .parse(
-                        new InputStreamReader(asInputStream(fileName), StandardCharsets.UTF_8),
-                        fileName,
-                        new FilteredLog("Errors"));
+        return new JacocoParser().parse(new InputStreamReader(asInputStream(fileName),
+                StandardCharsets.UTF_8), fileName, new FilteredLog("Errors"));
     }
 
     @Test
@@ -75,23 +76,15 @@ class CoverageXmlStreamITest extends SerializableTest<Node> {
         var xmlFile = new XmlFile(stream, file.toFile());
         var restored = xmlFile.read();
 
-        assertThat(restored)
-                .isInstanceOfSatisfying(
-                        CoverageBuildAction.class,
-                        a -> Assertions.assertThat(a.getAllValues(Baseline.PROJECT))
-                                .map(v -> v.getDetails(Locale.ENGLISH))
-                                .containsExactlyInAnyOrder(
-                                        "Module Coverage: 100.00% (1/1)",
-                                        "Package Coverage: 75.00% (3/4)",
-                                        "File Coverage: 100.00% (32/32)",
-                                        "Class Coverage: 94.23% (49/52)",
-                                        "Method Coverage: 95.79% (569/594)",
-                                        "Line Coverage: 96.35% (2164/2246)",
-                                        "Branch Coverage: 92.92% (932/1003)",
-                                        "Instruction Coverage: 96.44% (10534/10923)",
-                                        "Number of Tests: 305",
-                                        "Lines of Code: 2246",
-                                        "Cyclomatic Complexity: 1105"));
+        assertThat(restored).isInstanceOfSatisfying(CoverageBuildAction.class,
+                a -> Assertions.assertThat(a.getAllValues(Baseline.PROJECT))
+                        .map(v -> v.getDetails(Locale.ENGLISH))
+                        .containsExactlyInAnyOrder("Module Coverage: 100.00% (1/1)",
+                                "Package Coverage: 75.00% (3/4)", "File Coverage: 100.00% (32/32)",
+                                "Class Coverage: 94.23% (49/52)", "Method Coverage: 95.79% (569/594)",
+                                "Line Coverage: 96.35% (2164/2246)", "Branch Coverage: 92.92% (932/1003)",
+                                "Instruction Coverage: 96.44% (10534/10923)",
+                                "Number of Tests: 305", "Lines of Code: 2246", "Cyclomatic Complexity: 1105"));
     }
 
     @Test
@@ -106,21 +99,15 @@ class CoverageXmlStreamITest extends SerializableTest<Node> {
         Assertions.assertThat(restored).usingRecursiveComparison().isEqualTo(convertedNode);
 
         var xml = Input.from(saved);
-        assertThat(xml)
-                .nodesByXPath("//file[./name = 'TreeStringBuilder.java']/values/*")
-                .hasSize(4)
-                .extractingText()
+        assertThat(xml).nodesByXPath("//file[./name = 'TreeStringBuilder.java']/values/*")
+                .hasSize(4).extractingText()
                 .containsExactly("INSTRUCTION: 229/233", "BRANCH: 17/18", "LINE: 51/53", "CYCLOMATIC_COMPLEXITY: 23");
-        assertThat(xml)
-                .nodesByXPath("//file[./name = 'TreeStringBuilder.java']/coveredPerLine")
-                .hasSize(1)
-                .extractingText()
+        assertThat(xml).nodesByXPath("//file[./name = 'TreeStringBuilder.java']/coveredPerLine")
+                .hasSize(1).extractingText()
                 .containsExactly(
                         "[19: 1, 20: 1, 31: 1, 43: 1, 50: 1, 51: 1, 54: 1, 57: 1, 61: 0, 62: 0, 70: 1, 72: 1, 73: 1, 74: 1, 85: 2, 86: 1, 89: 1, 90: 2, 91: 1, 92: 2, 93: 2, 95: 1, 96: 1, 97: 1, 100: 1, 101: 1, 103: 1, 106: 1, 109: 1, 112: 1, 113: 1, 114: 1, 115: 1, 117: 1, 125: 2, 126: 1, 128: 1, 140: 1, 142: 1, 143: 1, 144: 1, 146: 1, 160: 1, 162: 2, 163: 2, 164: 1, 167: 1, 177: 1, 178: 2, 179: 1, 180: 1, 181: 1, 184: 1]");
-        assertThat(xml)
-                .nodesByXPath("//file[./name = 'TreeStringBuilder.java']/missedPerLine")
-                .hasSize(1)
-                .extractingText()
+        assertThat(xml).nodesByXPath("//file[./name = 'TreeStringBuilder.java']/missedPerLine")
+                .hasSize(1).extractingText()
                 .containsExactly(
                         "[19: 0, 20: 0, 31: 0, 43: 0, 50: 0, 51: 0, 54: 0, 57: 0, 61: 1, 62: 1, 70: 0, 72: 0, 73: 0, 74: 0, 85: 0, 86: 0, 89: 0, 90: 0, 91: 0, 92: 0, 93: 0, 95: 0, 96: 0, 97: 0, 100: 0, 101: 0, 103: 0, 106: 0, 109: 0, 112: 0, 113: 1, 114: 0, 115: 0, 117: 0, 125: 0, 126: 0, 128: 0, 140: 0, 142: 0, 143: 0, 144: 0, 146: 0, 160: 0, 162: 0, 163: 0, 164: 0, 167: 0, 177: 0, 178: 0, 179: 0, 180: 0, 181: 0, 184: 0]");
     }
@@ -130,8 +117,7 @@ class CoverageXmlStreamITest extends SerializableTest<Node> {
      * columns of the file tables will vanish as soon as the coverage tree has been restored from disk (i.e., after a
      * restart of Jenkins or after the cached tree has been garbage collected).
      */
-    @Test
-    @Issue("https://github.com/jenkinsci/coverage-plugin/issues/643")
+    @Test @Issue("https://github.com/jenkinsci/coverage-plugin/issues/643")
     void shouldSaveAndRestoreFileCoverageDeltas() {
         Path saved = createTempFile();
         var tree = createTreeWithFileCoverageDeltas();
@@ -141,12 +127,11 @@ class CoverageXmlStreamITest extends SerializableTest<Node> {
         var xmlStream = new CoverageXmlStream();
         xmlStream.write(saved, tree);
 
-        assertThat(Input.from(saved))
-                .nodesByXPath("//file[./name = '" + MODIFIED_FILE + "']/coverageDelta")
-                .hasSize(1)
-                .extractingText()
-                .containsExactly("[FILE: Δ0, CLASS: Δ0, METHOD: Δ-40:3, LINE: Δ100:39, BRANCH: Δ25:2, "
-                        + "INSTRUCTION: Δ1000:111, LOC: Δ4, CYCLOMATIC_COMPLEXITY: Δ2]");
+        assertThat(Input.from(saved)).nodesByXPath("//file[./name = '" + MODIFIED_FILE + "']/coverageDelta")
+                .hasSize(1).extractingText()
+                .containsExactly(
+                        "[FILE: Δ0, CLASS: Δ0, METHOD: Δ-40:3, LINE: Δ100:39, BRANCH: Δ25:2, "
+                                + "INSTRUCTION: Δ1000:111, LOC: Δ4, CYCLOMATIC_COMPLEXITY: Δ2]");
 
         assertThatDeltasOfModifiedFileAreCorrect(xmlStream.read(saved));
     }
@@ -173,8 +158,8 @@ class CoverageXmlStreamITest extends SerializableTest<Node> {
         var reference = parseJacocoReport("file-changes-test-before.xml");
         var tree = parseJacocoReport("file-changes-test-after.xml");
 
-        new FileChangesProcessor()
-                .attachFileCoverageDeltas(tree, reference, Map.of(MODIFIED_FILE_PATH, MODIFIED_FILE_PATH_OLD));
+        new FileChangesProcessor().attachFileCoverageDeltas(tree, reference,
+                Map.of(MODIFIED_FILE_PATH, MODIFIED_FILE_PATH_OLD));
 
         return tree;
     }
@@ -193,12 +178,9 @@ class CoverageXmlStreamITest extends SerializableTest<Node> {
         file.write(buildAction);
 
         var xml = Input.from(saved);
-        assertThat(xml)
-                .nodesByXPath("//" + ACTION_QUALIFIED_NAME + "/projectValues/*")
-                .hasSize(10)
-                .extractingText()
-                .containsExactly(
-                        "MODULE: 1/1",
+        assertThat(xml).nodesByXPath("//" + ACTION_QUALIFIED_NAME + "/projectValues/*")
+                .hasSize(10).extractingText()
+                .containsExactly("MODULE: 1/1",
                         "PACKAGE: 1/1",
                         "FILE: 7/8",
                         "CLASS: 15/16",
@@ -209,12 +191,9 @@ class CoverageXmlStreamITest extends SerializableTest<Node> {
                         "LOC: 323",
                         "CYCLOMATIC_COMPLEXITY: 160");
 
-        assertThat(xml)
-                .nodesByXPath("//" + ACTION_QUALIFIED_NAME + "/projectValues/coverage")
-                .hasSize(8)
-                .extractingText()
-                .containsExactly(
-                        "MODULE: 1/1",
+        assertThat(xml).nodesByXPath("//" + ACTION_QUALIFIED_NAME + "/projectValues/coverage")
+                .hasSize(8).extractingText()
+                .containsExactly("MODULE: 1/1",
                         "PACKAGE: 1/1",
                         "FILE: 7/8",
                         "CLASS: 15/16",
@@ -232,40 +211,28 @@ class CoverageXmlStreamITest extends SerializableTest<Node> {
         assertThatValuesAreCorrectlyStored(xml, "indirectCoverageChanges");
 
         var action = file.read();
-        assertThat(action)
-                .isNotNull()
+        assertThat(action).isNotNull()
                 .isInstanceOfSatisfying(CoverageBuildAction.class, this::assertThatActionIsCorrectlyDeserialized);
     }
 
     private void assertThatDifferencesAreCorrectlyStored(final Builder xml, final String name) {
-        assertThat(xml)
-                .nodesByXPath("//" + ACTION_QUALIFIED_NAME + "/" + name + "/*")
-                .hasSize(4)
-                .extractingText()
+        assertThat(xml).nodesByXPath("//" + ACTION_QUALIFIED_NAME + "/" + name + "/*")
+                .hasSize(4).extractingText()
                 .containsExactly("LINE: Δ10", "BRANCH: Δ-10", "LOC: Δ-50", "CYCLOMATIC_COMPLEXITY: Δ50");
     }
 
     private void assertThatValuesAreCorrectlyStored(final Builder xml, final String name) {
-        assertThat(xml)
-                .nodesByXPath("//" + ACTION_QUALIFIED_NAME + "/" + name + "/*")
-                .hasSize(4)
-                .extractingText()
+        assertThat(xml).nodesByXPath("//" + ACTION_QUALIFIED_NAME + "/" + name + "/*")
+                .hasSize(4).extractingText()
                 .containsExactly("LINE: 3/4", "BRANCH: 2/2", "MODULE: 1/1", "LOC: 123");
     }
 
     private void assertThatActionIsCorrectlyDeserialized(final CoverageBuildAction action) {
         Assertions.assertThat(serializeValues(action.getAllValues(Baseline.PROJECT)))
-                .containsExactly(
-                        "MODULE: 1/1",
-                        "PACKAGE: 1/1",
-                        "FILE: 7/8",
-                        "CLASS: 15/16",
-                        "METHOD: 97/102",
-                        "LINE: 294/323",
-                        "BRANCH: 109/116",
-                        "INSTRUCTION: 1260/1350",
-                        "LOC: 323",
-                        "CYCLOMATIC_COMPLEXITY: 160");
+                .containsExactly("MODULE: 1/1", "PACKAGE: 1/1", "FILE: 7/8", "CLASS: 15/16",
+                        "METHOD: 97/102", "LINE: 294/323", "BRANCH: 109/116", "INSTRUCTION: 1260/1350",
+                        "LOC: 323", "CYCLOMATIC_COMPLEXITY: 160"
+                );
 
         assertThatValuesAreCorrectlyDeserialized(action, Baseline.MODIFIED_FILES);
         assertThatValuesAreCorrectlyDeserialized(action, Baseline.MODIFIED_LINES);
@@ -275,19 +242,22 @@ class CoverageXmlStreamITest extends SerializableTest<Node> {
         assertThatDifferencesAreCorrectlyDeserialized(action, Baseline.MODIFIED_LINES_DELTA);
     }
 
-    private void assertThatValuesAreCorrectlyDeserialized(final CoverageBuildAction action, final Baseline baseline) {
+    private void assertThatValuesAreCorrectlyDeserialized(final CoverageBuildAction action,
+            final Baseline baseline) {
         Assertions.assertThat(serializeValues(action.getAllValues(baseline)))
                 .containsExactly("MODULE: 1/1", "LINE: 3/4", "BRANCH: 2/2", "LOC: 123");
     }
 
-    private void assertThatDifferencesAreCorrectlyDeserialized(
-            final CoverageBuildAction action, final Baseline baseline) {
+    private void assertThatDifferencesAreCorrectlyDeserialized(final CoverageBuildAction action,
+            final Baseline baseline) {
         Assertions.assertThat(serializeValues(action.getAllDeltas(baseline)))
                 .containsExactly("LINE: Δ10", "BRANCH: Δ-10", "LOC: Δ-50", "CYCLOMATIC_COMPLEXITY: Δ50");
     }
 
     private static List<String> serializeValues(final List<? extends Value> values) {
-        return values.stream().map(Value::serialize).collect(Collectors.toList());
+        return values.stream()
+                .map(Value::serialize)
+                .collect(Collectors.toList());
     }
 
     @Test
@@ -313,11 +283,12 @@ class CoverageXmlStreamITest extends SerializableTest<Node> {
         Assertions.assertThat(converter.unmarshal("[BRANCH: 50/100]"))
                 .containsExactly(entry(BRANCH, new Difference(BRANCH, 50, 1)));
         Assertions.assertThat(converter.unmarshal("[LINE: 3/4, BRANCH: -50/100]"))
-                .containsExactly(entry(LINE, new Difference(LINE, 75)), entry(BRANCH, new Difference(BRANCH, -50)));
+                .containsExactly(
+                        entry(LINE, new Difference(LINE, 75)),
+                        entry(BRANCH, new Difference(BRANCH, -50)));
     }
 
-    @Test
-    @Issue("https://github.com/jenkinsci/coverage-plugin/issues/643")
+    @Test @Issue("https://github.com/jenkinsci/coverage-plugin/issues/643")
     void shouldConvertDeltaMap2String() {
         NavigableMap<Metric, Value> map = new TreeMap<>();
 
@@ -331,8 +302,7 @@ class CoverageXmlStreamITest extends SerializableTest<Node> {
         assertThat(converter.marshal(map)).isEqualTo("[LINE: Δ10, BRANCH: Δ25:2, LOC: Δ-16]");
     }
 
-    @Test
-    @Issue("https://github.com/jenkinsci/coverage-plugin/issues/643")
+    @Test @Issue("https://github.com/jenkinsci/coverage-plugin/issues/643")
     void shouldConvertString2DeltaMap() {
         var converter = new MetricFractionMapConverter();
 
@@ -345,8 +315,7 @@ class CoverageXmlStreamITest extends SerializableTest<Node> {
                         entry(LOC, new Difference(LOC, -16)));
     }
 
-    @Test
-    @Issue("https://github.com/jenkinsci/coverage-plugin/issues/643")
+    @Test @Issue("https://github.com/jenkinsci/coverage-plugin/issues/643")
     void shouldRoundTripDeltaMap() {
         NavigableMap<Metric, Value> map = new TreeMap<>();
 
@@ -359,7 +328,8 @@ class CoverageXmlStreamITest extends SerializableTest<Node> {
 
         var converter = new MetricFractionMapConverter();
 
-        Assertions.assertThat(converter.unmarshal(converter.marshal(map))).containsExactlyInAnyOrderEntriesOf(map);
+        Assertions.assertThat(converter.unmarshal(converter.marshal(map)))
+                .containsExactlyInAnyOrderEntriesOf(map);
     }
 
     @Test
@@ -413,21 +383,12 @@ class CoverageXmlStreamITest extends SerializableTest<Node> {
     CoverageBuildAction createAction() {
         var tree = createSerializable();
 
-        return new CoverageBuildAction(
-                mock(FreeStyleBuild.class),
-                CoverageRecorder.DEFAULT_ID,
-                StringUtils.EMPTY,
-                StringUtils.EMPTY,
-                tree,
-                new QualityGateResult(),
-                new FilteredLog("Test"),
-                "-",
-                createDifferences(),
-                createCoverages(),
-                createDifferences(),
-                createCoverages(),
-                createDifferences(),
-                createCoverages(),
+        return new CoverageBuildAction(mock(FreeStyleBuild.class),
+                CoverageRecorder.DEFAULT_ID, StringUtils.EMPTY, StringUtils.EMPTY,
+                tree, new QualityGateResult(), new FilteredLog("Test"), "-",
+                createDifferences(), createCoverages(),
+                createDifferences(), createCoverages(),
+                createDifferences(), createCoverages(),
                 false);
     }
 
@@ -444,6 +405,7 @@ class CoverageXmlStreamITest extends SerializableTest<Node> {
                 Value.valueOf("LINE: 3/4"),
                 Value.valueOf("BRANCH: 2/2"),
                 Value.valueOf("MODULE: 1/1"),
-                Value.valueOf("LOC: 123"));
+                Value.valueOf("LOC: 123")
+        );
     }
 }

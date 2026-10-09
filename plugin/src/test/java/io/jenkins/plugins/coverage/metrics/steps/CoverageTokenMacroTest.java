@@ -1,17 +1,21 @@
 package io.jenkins.plugins.coverage.metrics.steps;
 
-import static org.assertj.core.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import org.junit.jupiter.api.Test;
 
 import edu.hm.hafner.coverage.Metric;
+
+import java.util.List;
+
 import hudson.FilePath;
 import hudson.model.AbstractBuild;
 import hudson.model.Run;
 import hudson.model.TaskListener;
+
 import io.jenkins.plugins.coverage.metrics.AbstractCoverageTest;
 import io.jenkins.plugins.coverage.metrics.model.Baseline;
-import java.util.List;
-import org.junit.jupiter.api.Test;
+
+import static org.assertj.core.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
 class CoverageTokenMacroTest extends AbstractCoverageTest {
     @Test
@@ -19,8 +23,7 @@ class CoverageTokenMacroTest extends AbstractCoverageTest {
         var macro = new CoverageTokenMacro();
 
         assertThat(evaluate(macro, mock(Run.class))).isEqualTo("n/a");
-        assertThat(macro.evaluate(mock(AbstractBuild.class), TaskListener.NULL, "coverage"))
-                .isEqualTo("n/a");
+        assertThat(macro.evaluate(mock(AbstractBuild.class), TaskListener.NULL, "coverage")).isEqualTo("n/a");
         assertThat(macro.acceptsMacroName(CoverageTokenMacro.COVERAGE)).isTrue();
     }
 

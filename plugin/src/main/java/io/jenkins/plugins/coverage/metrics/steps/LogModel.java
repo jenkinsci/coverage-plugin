@@ -1,10 +1,13 @@
 package io.jenkins.plugins.coverage.metrics.steps;
 
 import edu.hm.hafner.util.FilteredLog;
+
+import java.util.List;
+
 import hudson.model.ModelObject;
 import hudson.model.Run;
+
 import io.jenkins.plugins.coverage.metrics.model.ElementFormatter;
-import java.util.List;
 
 /**
  * Server side model that provides the data for the "Info" tab of the coverage details view. Shows the informational

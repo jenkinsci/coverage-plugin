@@ -1,30 +1,34 @@
 package io.jenkins.plugins.coverage.metrics.source;
 
-import static io.jenkins.plugins.prism.SourceCodeRetention.*;
-import static org.assertj.core.api.Assertions.*;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import edu.hm.hafner.coverage.Coverage.CoverageBuilder;
 import edu.hm.hafner.coverage.FileNode;
 import edu.hm.hafner.coverage.Metric;
 import edu.hm.hafner.coverage.Node;
 import edu.hm.hafner.util.PathUtil;
+
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Path;
+import java.util.List;
+import java.util.Optional;
+
+import org.jenkinsci.plugins.workflow.cps.CpsFlowDefinition;
+import org.jenkinsci.plugins.workflow.job.WorkflowJob;
 import hudson.model.Run;
+
 import io.jenkins.plugins.coverage.metrics.AbstractCoverageITest;
 import io.jenkins.plugins.coverage.metrics.model.Baseline;
 import io.jenkins.plugins.coverage.metrics.steps.CoverageBuildAction;
 import io.jenkins.plugins.prism.PermittedSourceCodeDirectory;
 import io.jenkins.plugins.prism.PrismConfiguration;
 import io.jenkins.plugins.prism.SourceCodeRetention;
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Path;
-import java.util.List;
-import java.util.Optional;
-import org.jenkinsci.plugins.workflow.cps.CpsFlowDefinition;
-import org.jenkinsci.plugins.workflow.job.WorkflowJob;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.ValueSource;
+
+import static io.jenkins.plugins.prism.SourceCodeRetention.*;
+import static org.assertj.core.api.Assertions.*;
 
 /**
  * Verifies the source code copying and rendering on agents.
@@ -32,16 +36,13 @@ import org.junit.jupiter.params.provider.ValueSource;
  * @author Ullrich Hafner
  */
 abstract class SourceCodeITest extends AbstractCoverageITest {
-    private static final String ACU_COBOL_PARSER =
-            "<tr class=\"coverFull\"><td class=\"line\"><a name=\"27\">27</a></td><td class=\"hits\">1</td><td class=\"code\">\u00a0\u00a0\u00a0\u00a0\u00a0\u00a0\u00a0\u00a0super(ACU_COBOL_WARNING_PATTERN);</td></tr>";
-    private static final String PATH_UTIL =
-            "<tr class=\"coverFull\"><td class=\"line\"><a name=\"20\">20</a></td><td class=\"hits\">1</td><td class=\"code\">public\u00a0class\u00a0PathUtil\u00a0{<!-- --></td></tr>";
+    private static final String ACU_COBOL_PARSER = "<tr class=\"coverFull\"><td class=\"line\"><a name=\"27\">27</a></td><td class=\"hits\">1</td><td class=\"code\">\u00a0\u00a0\u00a0\u00a0\u00a0\u00a0\u00a0\u00a0super(ACU_COBOL_WARNING_PATTERN);</td></tr>";
+    private static final String PATH_UTIL = "<tr class=\"coverFull\"><td class=\"line\"><a name=\"20\">20</a></td><td class=\"hits\">1</td><td class=\"code\">public\u00a0class\u00a0PathUtil\u00a0{<!-- --></td></tr>";
     private static final String NO_SOURCE_CODE = "N/A";
     static final String ACU_COBOL_PARSER_FILE_NAME = "AcuCobolParser.java";
     static final String ACU_COBOL_PARSER_SOURCE_FILE = ACU_COBOL_PARSER_FILE_NAME + ".txt";
     static final String ACU_COBOL_PARSER_PACKAGE_PATH = "edu/hm/hafner/analysis/parser/";
-    private static final String ACU_COBOL_PARSER_SOURCE_FILE_PATH =
-            ACU_COBOL_PARSER_PACKAGE_PATH + ACU_COBOL_PARSER_FILE_NAME;
+    private static final String ACU_COBOL_PARSER_SOURCE_FILE_PATH = ACU_COBOL_PARSER_PACKAGE_PATH + ACU_COBOL_PARSER_FILE_NAME;
     private static final String ACU_COBOL_PARSER_COVERAGE_REPORT = "jacoco-acu-cobol-parser.xml";
     private static final String PATH_UTIL_COVERAGE_REPORT = "jacoco-path-util.xml";
     static final String PATH_UTIL_FILE_NAME = "PathUtil.java";
@@ -69,7 +70,8 @@ abstract class SourceCodeITest extends AbstractCoverageITest {
         PrismConfiguration.getInstance().setSourceDirectories(List.of(new PermittedSourceCodeDirectory(directory)));
 
         Run<?, ?> externalDirectory = runCoverageWithSourceCode(directory, false);
-        assertThat(getConsoleLog(externalDirectory)).contains("Searching for source code files in:", "-> " + directory);
+        assertThat(getConsoleLog(externalDirectory))
+                .contains("Searching for source code files in:", "-> " + directory);
     }
 
     @Test
@@ -91,9 +93,8 @@ abstract class SourceCodeITest extends AbstractCoverageITest {
         assertThat(getConsoleLog(firstBuild))
                 .contains("-> finished resolving of absolute paths (found: 0, not found: 1)")
                 .contains("-> finished painting (0 files have been painted, 1 files failed)")
-                .contains(
-                        "[-ERROR-] Removing non-workspace source directory '%s' - it has not been approved in Jenkins' global configuration."
-                                .formatted(sourceDirectory))
+                .contains("[-ERROR-] Removing non-workspace source directory '%s' - it has not been approved in Jenkins' global configuration.".formatted(
+                        sourceDirectory))
                 .contains("- Source file '" + ACU_COBOL_PARSER_SOURCE_FILE_PATH + "' not found");
         localAgent.setLabelString("<null>");
     }
@@ -114,10 +115,9 @@ abstract class SourceCodeITest extends AbstractCoverageITest {
 
         String requestedSourceFolder;
         if (useAbsolutePath) {
-            requestedSourceFolder = new PathUtil()
-                    .getAbsolutePath(
-                            getAgentWorkspace(localAgent, job).child(sourceDir).getRemote());
-        } else {
+            requestedSourceFolder = new PathUtil().getAbsolutePath(getAgentWorkspace(localAgent, job).child(sourceDir).getRemote());
+        }
+        else {
             requestedSourceFolder = sourceDir;
         }
         job.setDefinition(createPipelineWithSourceCode(EVERY_BUILD, requestedSourceFolder));
@@ -133,18 +133,14 @@ abstract class SourceCodeITest extends AbstractCoverageITest {
 
         job.setDefinition(createPipelineWithSourceCode(LAST_BUILD, sourceDir));
         Run<?, ?> thirdBuild = buildSuccessfully(job);
-        verifySourceCodeInBuild(sourceDir, thirdBuild, ACU_COBOL_PARSER, PATH_UTIL); // should be still available
-        verifySourceCodeInBuild(
-                sourceDir, secondBuild, ACU_COBOL_PARSER, NO_SOURCE_CODE); // PathUtil should be deleted now
-        verifySourceCodeInBuild(
-                sourceDir, firstBuild, ACU_COBOL_PARSER, NO_SOURCE_CODE); // PathUtil should be deleted now
+        verifySourceCodeInBuild(sourceDir, thirdBuild, ACU_COBOL_PARSER, PATH_UTIL);  // should be still available
+        verifySourceCodeInBuild(sourceDir, secondBuild, ACU_COBOL_PARSER, NO_SOURCE_CODE); // PathUtil should be deleted now
+        verifySourceCodeInBuild(sourceDir, firstBuild, ACU_COBOL_PARSER, NO_SOURCE_CODE); // PathUtil should be deleted now
 
         job.setDefinition(createPipelineWithSourceCode(NEVER, sourceDir));
         Run<?, ?> lastBuild = buildSuccessfully(job);
-        verifySourceCodeInBuild(
-                sourceDir, lastBuild, ACU_COBOL_PARSER, NO_SOURCE_CODE); // PathUtil should be deleted now
-        verifySourceCodeInBuild(
-                sourceDir, thirdBuild, ACU_COBOL_PARSER, NO_SOURCE_CODE); // PathUtil should be deleted now
+        verifySourceCodeInBuild(sourceDir, lastBuild, ACU_COBOL_PARSER, NO_SOURCE_CODE); // PathUtil should be deleted now
+        verifySourceCodeInBuild(sourceDir, thirdBuild, ACU_COBOL_PARSER, NO_SOURCE_CODE); // PathUtil should be deleted now
         verifySourceCodeInBuild(sourceDir, firstBuild, ACU_COBOL_PARSER, NO_SOURCE_CODE);
         verifySourceCodeInBuild(sourceDir, secondBuild, ACU_COBOL_PARSER, NO_SOURCE_CODE);
 
@@ -155,13 +151,12 @@ abstract class SourceCodeITest extends AbstractCoverageITest {
     }
 
     private void copyReports(final hudson.model.Node localAgent, final WorkflowJob job) {
-        copySingleFileToAgentWorkspace(
-                localAgent, job, ACU_COBOL_PARSER_COVERAGE_REPORT, ACU_COBOL_PARSER_COVERAGE_REPORT);
+        copySingleFileToAgentWorkspace(localAgent, job, ACU_COBOL_PARSER_COVERAGE_REPORT, ACU_COBOL_PARSER_COVERAGE_REPORT);
         copySingleFileToAgentWorkspace(localAgent, job, PATH_UTIL_COVERAGE_REPORT, PATH_UTIL_COVERAGE_REPORT);
     }
 
-    private CpsFlowDefinition createPipelineWithSourceCode(
-            final SourceCodeRetention sourceCodeRetention, final String sourceDirectory) {
+    private CpsFlowDefinition createPipelineWithSourceCode(final SourceCodeRetention sourceCodeRetention,
+            final String sourceDirectory) {
         return createPipelineScript("node ('coverage-agent') {"
                 + "    recordCoverage "
                 + "         tools: [[parser: 'JACOCO', pattern: '" + ACU_COBOL_PARSER_COVERAGE_REPORT + "']], \n"
@@ -176,48 +171,31 @@ abstract class SourceCodeITest extends AbstractCoverageITest {
                 + "}");
     }
 
-    private void verifySourceCodeInBuild(
-            final String pathPrefix,
-            final Run<?, ?> build,
-            final String acuCobolParserSourceCodeSnippet,
+    private void verifySourceCodeInBuild(final String pathPrefix, final Run<?, ?> build, final String acuCobolParserSourceCodeSnippet,
             final String pathUtilSourceCodeSnippet) {
         List<CoverageBuildAction> actions = build.getActions(CoverageBuildAction.class);
         var builder = new CoverageBuilder().withMetric(Metric.LINE).withMissed(0);
-        assertThat(actions)
-                .hasSize(2)
-                .satisfiesExactly(
-                        action -> {
-                            assertThat(action.getAllValues(Baseline.PROJECT))
-                                    .contains(builder.withCovered(8).build());
-                            var relativePath = getRelativePath(pathPrefix, ACU_COBOL_PARSER_SOURCE_FILE_PATH);
-                            Optional<Node> fileNode = action.getResult().find(Metric.FILE, relativePath);
-                            assertThat(fileNode)
-                                    .isNotEmpty()
-                                    .get()
-                                    .isInstanceOfSatisfying(
-                                            FileNode.class,
-                                            node -> assertThat(node.getRelativePath())
-                                                    .isEqualTo(relativePath));
-                            assertThat(action.getTarget()
-                                            .getSourceCode(String.valueOf(relativePath.hashCode()), "coverage-table"))
-                                    .contains(acuCobolParserSourceCodeSnippet);
-                        },
-                        action -> {
-                            assertThat(action.getAllValues(Baseline.PROJECT))
-                                    .contains(builder.withCovered(43).build());
-                            var relativePath = getRelativePath(pathPrefix, PATH_UTIL_SOURCE_FILE_PATH);
-                            Optional<Node> fileNode = action.getResult().find(Metric.FILE, relativePath);
-                            assertThat(fileNode)
-                                    .isNotEmpty()
-                                    .get()
-                                    .isInstanceOfSatisfying(
-                                            FileNode.class,
-                                            node -> assertThat(node.getRelativePath())
-                                                    .isEqualTo(relativePath));
-                            assertThat(action.getTarget()
-                                            .getSourceCode(String.valueOf(relativePath.hashCode()), "coverage-table"))
-                                    .contains(pathUtilSourceCodeSnippet);
-                        });
+        assertThat(actions).hasSize(2).satisfiesExactly(
+                action -> {
+                    assertThat(action.getAllValues(Baseline.PROJECT)).contains(builder.withCovered(8).build());
+                    var relativePath = getRelativePath(pathPrefix, ACU_COBOL_PARSER_SOURCE_FILE_PATH);
+                    Optional<Node> fileNode = action.getResult().find(Metric.FILE, relativePath);
+                    assertThat(fileNode).isNotEmpty().get()
+                            .isInstanceOfSatisfying(FileNode.class,
+                                    node -> assertThat(node.getRelativePath()).isEqualTo(relativePath));
+                    assertThat(action.getTarget().getSourceCode(String.valueOf(relativePath.hashCode()), "coverage-table"))
+                            .contains(acuCobolParserSourceCodeSnippet);
+                },
+                action -> {
+                    assertThat(action.getAllValues(Baseline.PROJECT)).contains(builder.withCovered(43).build());
+                    var relativePath = getRelativePath(pathPrefix, PATH_UTIL_SOURCE_FILE_PATH);
+                    Optional<Node> fileNode = action.getResult().find(Metric.FILE, relativePath);
+                    assertThat(fileNode).isNotEmpty().get()
+                            .isInstanceOfSatisfying(FileNode.class,
+                                    node -> assertThat(node.getRelativePath()).isEqualTo(relativePath));
+                    assertThat(action.getTarget().getSourceCode(String.valueOf(relativePath.hashCode()), "coverage-table"))
+                            .contains(pathUtilSourceCodeSnippet);
+                });
     }
 
     private String getRelativePath(final String path, final String filePath) {
@@ -227,7 +205,8 @@ abstract class SourceCodeITest extends AbstractCoverageITest {
     String createDestinationPath(final String sourceDirectory, final String packagePath, final String fileName) {
         if (sourceDirectory.isEmpty()) {
             return packagePath + fileName;
-        } else {
+        }
+        else {
             return sourceDirectory + "/" + packagePath + fileName;
         }
     }

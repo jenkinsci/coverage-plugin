@@ -10,7 +10,11 @@ import edu.hm.hafner.echarts.ItemStyle;
 import edu.hm.hafner.echarts.Label;
 import edu.hm.hafner.echarts.LabeledTreeMapNode;
 import edu.hm.hafner.echarts.TreeMapNode;
+
+import java.util.Optional;
+
 import hudson.Functions;
+
 import io.jenkins.plugins.coverage.metrics.color.ColorProvider;
 import io.jenkins.plugins.coverage.metrics.color.ColorProvider.DisplayColors;
 import io.jenkins.plugins.coverage.metrics.color.ColorProviderFactory;
@@ -18,7 +22,6 @@ import io.jenkins.plugins.coverage.metrics.color.CoverageLevel;
 import io.jenkins.plugins.coverage.metrics.color.ThresholdColorProvider;
 import io.jenkins.plugins.coverage.metrics.model.ElementFormatter;
 import io.jenkins.plugins.echarts.JenkinsPalette;
-import java.util.Optional;
 
 /**
  * Converts a tree of {@link Node coverage nodes} to a corresponding tree of
@@ -41,11 +44,10 @@ public class TreeMapNodeConverter {
      *
      * @return the converted tree map representation
      */
-    public LabeledTreeMapNode toTreeChartModel(
-            final Node node, final Metric metric, final ColorProvider colorProvider) {
+    public LabeledTreeMapNode toTreeChartModel(final Node node, final Metric metric, final ColorProvider colorProvider) {
         var tree = mergePackages(node);
-        var root =
-                toTreeMapNode(tree, metric, colorProvider).orElse(new LabeledTreeMapNode(getId(node), node.getName()));
+        var root = toTreeMapNode(tree, metric, colorProvider)
+                .orElse(new LabeledTreeMapNode(getId(node), node.getName()));
         for (LabeledTreeMapNode child : root.getChildren()) {
             child.collapseEmptyPackages();
         }
@@ -57,7 +59,8 @@ public class TreeMapNodeConverter {
         var id = node.getName();
         if (node.isRoot()) {
             return id;
-        } else {
+        }
+        else {
             return getId(node.getParent()) + '/' + id;
         }
     }
@@ -88,8 +91,8 @@ public class TreeMapNodeConverter {
         return child.getMetric() == Metric.MODULE || child.getMetric() == Metric.CONTAINER;
     }
 
-    private Optional<LabeledTreeMapNode> toTreeMapNode(
-            final Node node, final Metric metric, final ColorProvider colorProvider) {
+    private Optional<LabeledTreeMapNode> toTreeMapNode(final Node node, final Metric metric,
+            final ColorProvider colorProvider) {
         var value = node.getValue(metric);
         if (value.isPresent()) {
             var rootValue = value.get();
@@ -102,8 +105,8 @@ public class TreeMapNodeConverter {
         return Optional.empty();
     }
 
-    private LabeledTreeMapNode createCoverageTree(
-            final Coverage coverage, final ColorProvider colorProvider, final Node node, final Metric metric) {
+    private LabeledTreeMapNode createCoverageTree(final Coverage coverage, final ColorProvider colorProvider,
+            final Node node, final Metric metric) {
         DisplayColors colors = CoverageLevel.getDisplayColorsOfCoverageLevel(coverage.asDouble(), colorProvider);
 
         var lineColor = colors.getLineColorAsRGBHex();
@@ -126,19 +129,14 @@ public class TreeMapNodeConverter {
         return treeNode;
     }
 
-    private LabeledTreeMapNode createTreeNode(
-            final Coverage coverage, final Node node, final ItemStyle itemStyle, final Label label) {
-        return new LabeledTreeMapNode(
-                getId(node),
-                node.getName(),
-                itemStyle,
-                label,
-                label,
-                String.valueOf(coverage.getTotal()),
-                FORMATTER.getTooltip(coverage));
+    private LabeledTreeMapNode createTreeNode(final Coverage coverage, final Node node,
+            final ItemStyle itemStyle, final Label label) {
+        return new LabeledTreeMapNode(getId(node), node.getName(), itemStyle, label, label,
+                String.valueOf(coverage.getTotal()), FORMATTER.getTooltip(coverage));
     }
 
-    private LabeledTreeMapNode createMetricsTree(final Value value, final Node node, final Metric metric) {
+    private LabeledTreeMapNode createMetricsTree(final Value value, final Node node,
+            final Metric metric) {
         var label = new Label(true, JenkinsPalette.BLACK.normal());
 
         String fillColor = metric == Metric.TESTS ? JenkinsPalette.GREEN.light() : JenkinsPalette.ORANGE.normal();
@@ -146,7 +144,8 @@ public class TreeMapNodeConverter {
             return createValueNode(value, node, new ItemStyle(fillColor), label);
         }
 
-        var treeNode = createValueNode(value, node, new ItemStyle(fillColor, fillColor, 4), label);
+        var treeNode = createValueNode(value, node,
+                new ItemStyle(fillColor, fillColor, 4), label);
 
         node.getChildren().stream()
                 .map(n -> toTreeMapNode(n, metric, ColorProviderFactory.createDefaultColorProvider()))
@@ -156,16 +155,10 @@ public class TreeMapNodeConverter {
         return treeNode;
     }
 
-    private LabeledTreeMapNode createValueNode(
-            final Value value, final Node node, final ItemStyle itemStyle, final Label label) {
-        return new LabeledTreeMapNode(
-                getId(node),
-                node.getName(),
-                itemStyle,
-                label,
-                label,
-                value.asText(Functions.getCurrentLocale()),
-                FORMATTER.getTooltip(value));
+    private LabeledTreeMapNode createValueNode(final Value value, final Node node,
+            final ItemStyle itemStyle, final Label label) {
+        return new LabeledTreeMapNode(getId(node), node.getName(), itemStyle, label, label,
+                value.asText(Functions.getCurrentLocale()), FORMATTER.getTooltip(value));
     }
 
     /**
@@ -189,12 +182,8 @@ public class TreeMapNodeConverter {
      *
      * @return the converted tree map representation
      */
-    public LabeledTreeMapNode toThresholdTreeChartModel(
-            final Node node,
-            final Metric metric,
-            final double greenThreshold,
-            final double redThreshold,
-            final ColorProvider colorProvider) {
+    public LabeledTreeMapNode toThresholdTreeChartModel(final Node node, final Metric metric,
+            final double greenThreshold, final double redThreshold, final ColorProvider colorProvider) {
         var tree = mergePackages(node);
         var root = toThresholdTreeMapNode(tree, metric, greenThreshold, redThreshold, colorProvider)
                 .orElse(new LabeledTreeMapNode(getId(node), node.getName()));
@@ -205,12 +194,8 @@ public class TreeMapNodeConverter {
         return root;
     }
 
-    private Optional<LabeledTreeMapNode> toThresholdTreeMapNode(
-            final Node node,
-            final Metric metric,
-            final double greenThreshold,
-            final double redThreshold,
-            final ColorProvider colorProvider) {
+    private Optional<LabeledTreeMapNode> toThresholdTreeMapNode(final Node node, final Metric metric,
+            final double greenThreshold, final double redThreshold, final ColorProvider colorProvider) {
         var value = node.getValue(metric);
         if (value.isPresent()) {
             return Optional.of(
@@ -220,15 +205,10 @@ public class TreeMapNodeConverter {
         return Optional.empty();
     }
 
-    private LabeledTreeMapNode createThresholdTree(
-            final Value value,
-            final Node node,
-            final Metric metric,
-            final double greenThreshold,
-            final double redThreshold,
-            final ColorProvider colorProvider) {
-        var fillColor = ThresholdColorProvider.getFillColorAsHex(
-                value.asDouble(), metric.getTendency(), greenThreshold, redThreshold, colorProvider);
+    private LabeledTreeMapNode createThresholdTree(final Value value, final Node node, final Metric metric,
+            final double greenThreshold, final double redThreshold, final ColorProvider colorProvider) {
+        var fillColor = ThresholdColorProvider.getFillColorAsHex(value.asDouble(), metric.getTendency(),
+                greenThreshold, redThreshold, colorProvider);
         var textColor = ThresholdColorProvider.getTextColorAsHex(fillColor);
         var label = new Label(true, textColor);
 
@@ -237,18 +217,20 @@ public class TreeMapNodeConverter {
         if (value instanceof Coverage coverage) {
             sizeValue = String.valueOf(coverage.getTotal());
             tooltip = FORMATTER.getTooltip(coverage);
-        } else {
+        }
+        else {
             sizeValue = value.asText(Functions.getCurrentLocale());
             tooltip = FORMATTER.getTooltip(value);
         }
 
         if (node instanceof FileNode) { // stop recursion and create a colored leaf
-            return new LabeledTreeMapNode(
-                    getId(node), node.getName(), new ItemStyle(fillColor), label, label, sizeValue, tooltip);
+            return new LabeledTreeMapNode(getId(node), node.getName(), new ItemStyle(fillColor), label, label,
+                    sizeValue, tooltip);
         }
 
         var boldFill = new ItemStyle(fillColor, fillColor, 4);
-        var treeNode = new LabeledTreeMapNode(getId(node), node.getName(), boldFill, label, label, sizeValue, tooltip);
+        var treeNode = new LabeledTreeMapNode(getId(node), node.getName(), boldFill, label, label,
+                sizeValue, tooltip);
 
         node.getChildren().stream()
                 .map(n -> toThresholdTreeMapNode(n, metric, greenThreshold, redThreshold, colorProvider))

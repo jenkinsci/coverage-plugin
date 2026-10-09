@@ -1,10 +1,12 @@
 package io.jenkins.plugins.coverage.metrics.color;
 
-import static org.assertj.core.api.Assertions.*;
+import org.junit.jupiter.api.Test;
+
+import java.awt.*;
 
 import io.jenkins.plugins.coverage.metrics.color.ColorProvider.DisplayColors;
-import java.awt.*;
-import org.junit.jupiter.api.Test;
+
+import static org.assertj.core.api.Assertions.*;
 
 /**
  * Test class for {@link CoverageChangeLevel}.
@@ -25,19 +27,11 @@ class CoverageChangeLevelTest {
     void shouldGetDisplayColorsOfCoveragePercentage() {
         var blendedLineColor = COLOR_PROVIDER.getDisplayColorsOf(ColorId.BLACK).getFillColor();
         Color blendedColorIncreased = ColorProvider.blendColors(
-                COLOR_PROVIDER
-                        .getDisplayColorsOf(CoverageChangeLevel.INCREASE_2.getColorizationId())
-                        .getFillColor(),
-                COLOR_PROVIDER
-                        .getDisplayColorsOf(CoverageChangeLevel.EQUALS.getColorizationId())
-                        .getFillColor());
+                COLOR_PROVIDER.getDisplayColorsOf(CoverageChangeLevel.INCREASE_2.getColorizationId()).getFillColor(),
+                COLOR_PROVIDER.getDisplayColorsOf(CoverageChangeLevel.EQUALS.getColorizationId()).getFillColor());
         Color blendedColorDecreased = ColorProvider.blendColors(
-                COLOR_PROVIDER
-                        .getDisplayColorsOf(CoverageChangeLevel.DECREASE_2.getColorizationId())
-                        .getFillColor(),
-                COLOR_PROVIDER
-                        .getDisplayColorsOf(CoverageChangeLevel.EQUALS.getColorizationId())
-                        .getFillColor());
+                COLOR_PROVIDER.getDisplayColorsOf(CoverageChangeLevel.DECREASE_2.getColorizationId()).getFillColor(),
+                COLOR_PROVIDER.getDisplayColorsOf(CoverageChangeLevel.EQUALS.getColorizationId()).getFillColor());
 
         assertThat(CoverageChangeLevel.getDisplayColorsOfCoverageChange(1.0, COLOR_PROVIDER))
                 .isEqualTo(new DisplayColors(blendedLineColor, blendedColorIncreased));

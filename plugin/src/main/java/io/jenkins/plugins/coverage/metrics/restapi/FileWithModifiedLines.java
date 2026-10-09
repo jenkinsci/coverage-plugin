@@ -2,6 +2,7 @@ package io.jenkins.plugins.coverage.metrics.restapi;
 
 import java.util.Objects;
 import java.util.SortedSet;
+
 import org.kohsuke.stapler.export.Exported;
 import org.kohsuke.stapler.export.ExportedBean;
 
@@ -14,8 +15,8 @@ public class FileWithModifiedLines {
     private final String fullyQualifiedFileName;
     private final SortedSet<ModifiedLinesBlock> modifiedLinesBlocks;
 
-    FileWithModifiedLines(
-            final String fullyQualifiedFileName, final SortedSet<ModifiedLinesBlock> modifiedLinesBlocks) {
+    FileWithModifiedLines(final String fullyQualifiedFileName,
+            final SortedSet<ModifiedLinesBlock> modifiedLinesBlocks) {
         this.fullyQualifiedFileName = fullyQualifiedFileName;
         this.modifiedLinesBlocks = modifiedLinesBlocks;
     }

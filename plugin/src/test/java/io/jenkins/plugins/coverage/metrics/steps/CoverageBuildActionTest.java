@@ -1,7 +1,10 @@
 package io.jenkins.plugins.coverage.metrics.steps;
 
-import static org.assertj.core.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.math.Fraction;
+import org.junit.jupiter.api.Test;
+import org.junitpioneer.jupiter.DefaultLocale;
+import org.junitpioneer.jupiter.Issue;
 
 import edu.hm.hafner.coverage.Coverage.CoverageBuilder;
 import edu.hm.hafner.coverage.Difference;
@@ -10,18 +13,19 @@ import edu.hm.hafner.coverage.ModuleNode;
 import edu.hm.hafner.coverage.Node;
 import edu.hm.hafner.coverage.Value;
 import edu.hm.hafner.util.FilteredLog;
-import hudson.model.FreeStyleBuild;
-import io.jenkins.plugins.coverage.metrics.model.Baseline;
-import io.jenkins.plugins.util.QualityGateResult;
-import io.jenkins.plugins.util.QualityGateStatus;
+
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.math.Fraction;
-import org.junit.jupiter.api.Test;
-import org.junitpioneer.jupiter.DefaultLocale;
-import org.junitpioneer.jupiter.Issue;
+
+import hudson.model.FreeStyleBuild;
+
+import io.jenkins.plugins.coverage.metrics.model.Baseline;
+import io.jenkins.plugins.util.QualityGateResult;
+import io.jenkins.plugins.util.QualityGateStatus;
+
+import static org.assertj.core.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
 /**
  * Tests the class {@link CoverageBuildAction}.
@@ -34,15 +38,9 @@ class CoverageBuildActionTest {
     @Issue("SECURITY-3611")
     void shouldValidateInAction() {
         String evilId = "javascript:alert(1)";
-        assertThatIllegalArgumentException()
-                .isThrownBy(() -> new CoverageBuildAction(
-                        mock(FreeStyleBuild.class),
-                        evilId,
-                        "name",
-                        "icon",
-                        new ModuleNode("root"),
-                        new QualityGateResult(QualityGateStatus.ERROR),
-                        new FilteredLog()))
+        assertThatIllegalArgumentException().isThrownBy(() ->
+                        new CoverageBuildAction(mock(FreeStyleBuild.class), evilId, "name", "icon",
+                                new ModuleNode("root"), new QualityGateResult(QualityGateStatus.ERROR), new FilteredLog()))
                 .withMessageContaining("An ID must match the regexp pattern");
     }
 
@@ -51,16 +49,8 @@ class CoverageBuildActionTest {
         var module = new ModuleNode("module");
 
         var coverageBuilder = new CoverageBuilder();
-        var percent50 = coverageBuilder
-                .withMetric(Metric.BRANCH)
-                .withCovered(1)
-                .withMissed(1)
-                .build();
-        var percent80 = coverageBuilder
-                .withMetric(Metric.LINE)
-                .withCovered(8)
-                .withMissed(2)
-                .build();
+        var percent50 = coverageBuilder.withMetric(Metric.BRANCH).withCovered(1).withMissed(1).build();
+        var percent80 = coverageBuilder.withMetric(Metric.LINE).withCovered(8).withMissed(2).build();
 
         module.addValue(percent50);
         module.addValue(percent80);
@@ -70,27 +60,11 @@ class CoverageBuildActionTest {
         var deltas = List.of(lineDelta, branchDelta);
 
         var coverages = List.of(percent50, percent80);
-        var action = spy(new CoverageBuildAction(
-                mock(FreeStyleBuild.class),
-                CoverageRecorder.DEFAULT_ID,
-                StringUtils.EMPTY,
-                StringUtils.EMPTY,
-                module,
-                new QualityGateResult(),
-                createLog(),
-                "-",
-                deltas,
-                coverages,
-                deltas,
-                coverages,
-                deltas,
-                coverages,
-                false));
+        var action = spy(new CoverageBuildAction(mock(FreeStyleBuild.class), CoverageRecorder.DEFAULT_ID,
+                StringUtils.EMPTY, StringUtils.EMPTY, module, new QualityGateResult(),
+                createLog(), "-", deltas, coverages, deltas, coverages, deltas, coverages, false));
 
-        when(action.getResult())
-                .thenThrow(
-                        new IllegalStateException(
-                                "Result should not be accessed with getResult() when getting a coverage metric that is persisted in the build"));
+        when(action.getResult()).thenThrow(new IllegalStateException("Result should not be accessed with getResult() when getting a coverage metric that is persisted in the build"));
 
         assertThat(action.getReferenceBuild()).isEmpty();
 
@@ -115,22 +89,9 @@ class CoverageBuildActionTest {
     }
 
     private static CoverageBuildAction createEmptyAction(final Node module) {
-        return new CoverageBuildAction(
-                mock(FreeStyleBuild.class),
-                CoverageRecorder.DEFAULT_ID,
-                StringUtils.EMPTY,
-                StringUtils.EMPTY,
-                module,
-                new QualityGateResult(),
-                createLog(),
-                "-",
-                List.of(),
-                List.of(),
-                List.of(),
-                List.of(),
-                List.of(),
-                List.of(),
-                false);
+        return new CoverageBuildAction(mock(FreeStyleBuild.class), CoverageRecorder.DEFAULT_ID,
+                StringUtils.EMPTY, StringUtils.EMPTY, module, new QualityGateResult(), createLog(), "-",
+                List.of(), List.of(), List.of(), List.of(), List.of(), List.of(), false);
     }
 
     private static FilteredLog createLog() {
@@ -182,11 +143,7 @@ class CoverageBuildActionTest {
         var module = new ModuleNode("module");
 
         var coverageBuilder = new CoverageBuilder();
-        var percent = coverageBuilder
-                .withMetric(Metric.LINE)
-                .withCovered(1)
-                .withMissed(1)
-                .build();
+        var percent = coverageBuilder.withMetric(Metric.LINE).withCovered(1).withMissed(1).build();
 
         module.addValue(percent);
 
@@ -194,21 +151,9 @@ class CoverageBuildActionTest {
 
         var sortedDeltas = new ArrayList<>(deltas);
         sortedDeltas.sort(Comparator.comparing(Value::getMetric));
-        return spy(new CoverageBuildAction(
-                mock(FreeStyleBuild.class),
-                CoverageRecorder.DEFAULT_ID,
-                StringUtils.EMPTY,
-                StringUtils.EMPTY,
-                module,
-                new QualityGateResult(),
-                createLog(),
-                "-",
-                sortedDeltas,
-                coverages,
-                sortedDeltas,
-                coverages,
-                sortedDeltas,
-                coverages,
-                false));
+        return spy(new CoverageBuildAction(mock(FreeStyleBuild.class), CoverageRecorder.DEFAULT_ID,
+                StringUtils.EMPTY, StringUtils.EMPTY, module, new QualityGateResult(),
+                createLog(), "-", sortedDeltas, coverages,
+                sortedDeltas, coverages, sortedDeltas, coverages, false));
     }
 }

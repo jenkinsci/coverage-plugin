@@ -3,6 +3,7 @@ package io.jenkins.plugins.coverage.metrics.restapi;
 import java.util.NavigableMap;
 import java.util.Objects;
 import java.util.TreeMap;
+
 import org.kohsuke.stapler.export.Exported;
 import org.kohsuke.stapler.export.ExportedBean;
 

@@ -1,6 +1,6 @@
 package io.jenkins.plugins.coverage.metrics.steps;
 
-import static hudson.model.Run.*;
+import org.apache.commons.lang3.StringUtils;
 
 import edu.hm.hafner.coverage.Difference;
 import edu.hm.hafner.coverage.Metric;
@@ -10,20 +10,7 @@ import edu.hm.hafner.util.FilteredLog;
 import edu.hm.hafner.util.VisibleForTesting;
 import edu.umd.cs.findbugs.annotations.NonNull;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-import hudson.Functions;
-import hudson.model.Run;
-import hudson.util.XStream2;
-import io.jenkins.plugins.coverage.metrics.model.Baseline;
-import io.jenkins.plugins.coverage.metrics.model.CoverageStatistics;
-import io.jenkins.plugins.coverage.metrics.model.ElementFormatter;
-import io.jenkins.plugins.coverage.metrics.steps.CoverageXmlStream.MetricFractionMapConverter;
-import io.jenkins.plugins.forensics.reference.ReferenceBuild;
-import io.jenkins.plugins.util.AbstractXmlStream;
-import io.jenkins.plugins.util.BuildAction;
-import io.jenkins.plugins.util.JenkinsFacade;
-import io.jenkins.plugins.util.JobAction;
-import io.jenkins.plugins.util.QualityGateResult;
-import io.jenkins.plugins.util.ValidationUtilities;
+
 import java.io.Serial;
 import java.util.ArrayList;
 import java.util.List;
@@ -36,9 +23,26 @@ import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import org.apache.commons.lang3.StringUtils;
-import org.kohsuke.stapler.StaplerProxy;
 import tools.jackson.databind.ObjectMapper;
+
+import org.kohsuke.stapler.StaplerProxy;
+import hudson.Functions;
+import hudson.model.Run;
+import hudson.util.XStream2;
+
+import io.jenkins.plugins.coverage.metrics.model.Baseline;
+import io.jenkins.plugins.coverage.metrics.model.CoverageStatistics;
+import io.jenkins.plugins.coverage.metrics.model.ElementFormatter;
+import io.jenkins.plugins.coverage.metrics.steps.CoverageXmlStream.MetricFractionMapConverter;
+import io.jenkins.plugins.forensics.reference.ReferenceBuild;
+import io.jenkins.plugins.util.AbstractXmlStream;
+import io.jenkins.plugins.util.BuildAction;
+import io.jenkins.plugins.util.JenkinsFacade;
+import io.jenkins.plugins.util.JobAction;
+import io.jenkins.plugins.util.QualityGateResult;
+import io.jenkins.plugins.util.ValidationUtilities;
+
+import static hudson.model.Run.*;
 
 /**
  * Controls the life cycle of the coverage results in a job. This action persists the results of a build and displays a
@@ -47,13 +51,7 @@ import tools.jackson.databind.ObjectMapper;
  *
  * @author Ullrich Hafner
  */
-@SuppressWarnings({
-    "PMD.GodClass",
-    "PMD.CyclomaticComplexity",
-    "PMD.CouplingBetweenObjects",
-    "checkstyle:ClassDataAbstractionCoupling",
-    "checkstyle:ClassFanOutComplexity"
-})
+@SuppressWarnings({"PMD.GodClass", "PMD.CyclomaticComplexity", "PMD.CouplingBetweenObjects", "checkstyle:ClassDataAbstractionCoupling", "checkstyle:ClassFanOutComplexity"})
 public final class CoverageBuildAction extends BuildAction<Node> implements StaplerProxy {
     @Serial
     private static final long serialVersionUID = -6023811049340671399L;
@@ -82,7 +80,6 @@ public final class CoverageBuildAction extends BuildAction<Node> implements Stap
     @SuppressWarnings("MismatchedQueryAndUpdateOfCollection")
     @SuppressFBWarnings(value = "NP_NONNULL_FIELD_NOT_INITIALIZED_IN_CONSTRUCTOR", justification = "Not used anymore")
     private transient NavigableMap<Metric, Difference> difference;
-
     @SuppressWarnings("serial")
     private /* almost final */ List<Difference> differences; // since 2.0.0
 
@@ -94,7 +91,6 @@ public final class CoverageBuildAction extends BuildAction<Node> implements Stap
     @SuppressWarnings("MismatchedQueryAndUpdateOfCollection")
     @SuppressFBWarnings(value = "NP_NONNULL_FIELD_NOT_INITIALIZED_IN_CONSTRUCTOR", justification = "Not used anymore")
     private transient NavigableMap<Metric, Difference> modifiedLinesCoverageDifference;
-
     @SuppressWarnings("serial")
     private /* almost final */ List<Difference> modifiedLinesDifferences; // since 2.0.0
 
@@ -106,7 +102,6 @@ public final class CoverageBuildAction extends BuildAction<Node> implements Stap
     @SuppressWarnings("MismatchedQueryAndUpdateOfCollection")
     @SuppressFBWarnings(value = "NP_NONNULL_FIELD_NOT_INITIALIZED_IN_CONSTRUCTOR", justification = "Not used anymore")
     private transient NavigableMap<Metric, Difference> modifiedFilesCoverageDifference;
-
     @SuppressWarnings("serial")
     private /* almost final */ List<Difference> modifiedFilesDifferences; // since 2.0.0
 
@@ -148,29 +143,10 @@ public final class CoverageBuildAction extends BuildAction<Node> implements Stap
      * @param log
      *         the logging statements of the recording step
      */
-    public CoverageBuildAction(
-            final Run<?, ?> owner,
-            final String id,
-            final String optionalName,
-            final String icon,
-            final Node result,
-            final QualityGateResult qualityGateResult,
-            final FilteredLog log) {
-        this(
-                owner,
-                id,
-                optionalName,
-                icon,
-                result,
-                qualityGateResult,
-                log,
-                NO_REFERENCE_BUILD,
-                NO_VALUES,
-                NO_VALUES,
-                NO_VALUES,
-                NO_VALUES,
-                NO_VALUES,
-                NO_VALUES);
+    public CoverageBuildAction(final Run<?, ?> owner, final String id, final String optionalName, final String icon,
+            final Node result, final QualityGateResult qualityGateResult, final FilteredLog log) {
+        this(owner, id, optionalName, icon, result, qualityGateResult, log,
+                NO_REFERENCE_BUILD, NO_VALUES, NO_VALUES, NO_VALUES, NO_VALUES, NO_VALUES, NO_VALUES);
     }
 
     /**
@@ -206,14 +182,8 @@ public final class CoverageBuildAction extends BuildAction<Node> implements Stap
      *         the indirect coverage changes of the associated change request with respect to the reference build
      */
     @SuppressWarnings("checkstyle:ParameterNumber")
-    public CoverageBuildAction(
-            final Run<?, ?> owner,
-            final String id,
-            final String optionalName,
-            final String icon,
-            final Node result,
-            final QualityGateResult qualityGateResult,
-            final FilteredLog log,
+    public CoverageBuildAction(final Run<?, ?> owner, final String id, final String optionalName, final String icon,
+            final Node result, final QualityGateResult qualityGateResult, final FilteredLog log,
             final String referenceBuildId,
             final List<? extends Difference> delta,
             final List<? extends Value> modifiedLinesCoverage,
@@ -221,34 +191,17 @@ public final class CoverageBuildAction extends BuildAction<Node> implements Stap
             final List<? extends Value> modifiedFilesCoverage,
             final List<? extends Difference> modifiedFilesCoverageDifference,
             final List<? extends Value> indirectCoverageChanges) {
-        this(
-                owner,
-                id,
-                optionalName,
-                icon,
-                result,
-                qualityGateResult,
-                log,
-                referenceBuildId,
-                delta,
+        this(owner, id, optionalName, icon, result, qualityGateResult, log, referenceBuildId, delta,
                 modifiedLinesCoverage,
-                modifiedLinesCoverageDifference,
-                modifiedFilesCoverage,
-                modifiedFilesCoverageDifference,
+                modifiedLinesCoverageDifference, modifiedFilesCoverage, modifiedFilesCoverageDifference,
                 indirectCoverageChanges,
                 true);
     }
 
     @VisibleForTesting
     @SuppressWarnings("checkstyle:ParameterNumber")
-    CoverageBuildAction(
-            final Run<?, ?> owner,
-            final String id,
-            final String name,
-            final String icon,
-            final Node result,
-            final QualityGateResult qualityGateResult,
-            final FilteredLog log,
+    CoverageBuildAction(final Run<?, ?> owner, final String id, final String name, final String icon,
+            final Node result, final QualityGateResult qualityGateResult, final FilteredLog log,
             final String referenceBuildId,
             final List<? extends Difference> differences,
             final List<? extends Value> modifiedLinesCoverage,
@@ -337,13 +290,8 @@ public final class CoverageBuildAction extends BuildAction<Node> implements Stap
     }
 
     public CoverageStatistics getStatistics() {
-        return new CoverageStatistics(
-                projectValues,
-                differences,
-                modifiedLinesCoverage,
-                modifiedLinesDifferences,
-                modifiedFilesCoverage,
-                modifiedFilesDifferences);
+        return new CoverageStatistics(projectValues, differences, modifiedLinesCoverage, modifiedLinesDifferences,
+                modifiedFilesCoverage, modifiedFilesDifferences);
     }
 
     /**
@@ -407,7 +355,8 @@ public final class CoverageBuildAction extends BuildAction<Node> implements Stap
     public String getTitle(final Baseline baseline) {
         if (hasDelta(baseline)) {
             return getDeltaBaseline(baseline).getTitle();
-        } else {
+        }
+        else {
             return baseline.getTitle();
         }
     }
@@ -440,9 +389,11 @@ public final class CoverageBuildAction extends BuildAction<Node> implements Stap
     public List<Difference> getAllDeltas(final Baseline baseline) {
         if (baseline == Baseline.PROJECT_DELTA) {
             return differences;
-        } else if (baseline == Baseline.MODIFIED_LINES_DELTA) {
+        }
+        else if (baseline == Baseline.MODIFIED_LINES_DELTA) {
             return modifiedLinesDifferences;
-        } else if (baseline == Baseline.MODIFIED_FILES_DELTA) {
+        }
+        else if (baseline == Baseline.MODIFIED_FILES_DELTA) {
             return modifiedFilesDifferences;
         }
         throw new NoSuchElementException("No delta baseline: " + baseline);
@@ -500,13 +451,17 @@ public final class CoverageBuildAction extends BuildAction<Node> implements Stap
         Stream<? extends Value> stream;
         if (baseline == Baseline.PROJECT) {
             stream = projectValues.stream();
-        } else if (baseline == Baseline.MODIFIED_LINES) {
+        }
+        else if (baseline == Baseline.MODIFIED_LINES) {
             stream = modifiedLinesCoverage.stream();
-        } else if (baseline == Baseline.MODIFIED_FILES) {
+        }
+        else if (baseline == Baseline.MODIFIED_FILES) {
             stream = modifiedFilesCoverage.stream();
-        } else if (baseline == Baseline.INDIRECT) {
+        }
+        else if (baseline == Baseline.INDIRECT) {
             stream = indirectCoverageChanges.stream();
-        } else {
+        }
+        else {
             throw new NoSuchElementException("No such baseline: " + baseline);
         }
         return stream.sorted();
@@ -602,7 +557,8 @@ public final class CoverageBuildAction extends BuildAction<Node> implements Stap
      * @return {@code true} if a value is available for the specified metric, {@code false} otherwise
      */
     public boolean hasValue(final Baseline baseline, final Metric metric) {
-        return getAllValues(baseline).stream().anyMatch(v -> v.getMetric() == metric);
+        return getAllValues(baseline).stream()
+                .anyMatch(v -> v.getMetric() == metric);
     }
 
     /**
@@ -639,12 +595,10 @@ public final class CoverageBuildAction extends BuildAction<Node> implements Stap
             return FORMATTER.formatDelta(metric, findDelta(metric, differences).get(), currentLocale);
         }
         if (baseline == Baseline.MODIFIED_LINES && hasDelta(baseline, metric)) {
-            return FORMATTER.formatDelta(
-                    metric, findDelta(metric, modifiedLinesDifferences).get(), currentLocale);
+            return FORMATTER.formatDelta(metric, findDelta(metric, modifiedLinesDifferences).get(), currentLocale);
         }
         if (baseline == Baseline.MODIFIED_FILES && hasDelta(baseline, metric)) {
-            return FORMATTER.formatDelta(
-                    metric, findDelta(metric, modifiedFilesDifferences).get(), currentLocale);
+            return FORMATTER.formatDelta(metric, findDelta(metric, modifiedFilesDifferences).get(), currentLocale);
         }
         return Messages.Coverage_Not_Available();
     }
@@ -668,7 +622,8 @@ public final class CoverageBuildAction extends BuildAction<Node> implements Stap
             if (-0.001 < deltaValue && deltaValue < 0.001) {
                 // for var(--text-color)
                 return 0;
-            } else {
+            }
+            else {
                 // for var(--red or --green)
                 return deltaValue;
             }
@@ -684,22 +639,16 @@ public final class CoverageBuildAction extends BuildAction<Node> implements Stap
     @VisibleForTesting
     NavigableSet<Metric> getMetricsForSummary() {
         // TODO: establish a useful order
-        return new TreeSet<>(Set.of(
-                // code coverage
-                Metric.LINE,
-                Metric.BRANCH,
-                // mutation coverage
-                Metric.MUTATION,
-                Metric.TEST_STRENGTH,
-                // software metrics
-                Metric.LOC,
-                Metric.NCSS,
-                Metric.TESTS,
-                Metric.CYCLOMATIC_COMPLEXITY,
-                Metric.COGNITIVE_COMPLEXITY,
-                Metric.NPATH_COMPLEXITY,
-                Metric.MCDC_PAIR,
-                Metric.FUNCTION_CALL));
+        return new TreeSet<>(
+                Set.of(
+                        // code coverage
+                        Metric.LINE, Metric.BRANCH,
+                        // mutation coverage
+                        Metric.MUTATION, Metric.TEST_STRENGTH,
+                        // software metrics
+                        Metric.LOC, Metric.NCSS, Metric.TESTS,
+                        Metric.CYCLOMATIC_COMPLEXITY, Metric.COGNITIVE_COMPLEXITY, Metric.NPATH_COMPLEXITY,
+                        Metric.MCDC_PAIR, Metric.FUNCTION_CALL));
     }
 
     /**
@@ -742,45 +691,26 @@ public final class CoverageBuildAction extends BuildAction<Node> implements Stap
 
     @Override
     public CoverageViewModel getTarget() {
-        return new CoverageViewModel(
-                getOwner(),
-                getUrlName(),
-                name,
-                getResult(),
-                getStatistics(),
-                getQualityGateResult(),
-                getReferenceBuildLink(),
-                log,
-                this::createCoverageModel,
-                this::createMetricsModel);
+        return new CoverageViewModel(getOwner(), getUrlName(), name, getResult(),
+                getStatistics(), getQualityGateResult(), getReferenceBuildLink(), log,
+                this::createCoverageModel, this::createMetricsModel);
     }
 
     @VisibleForTesting
     CoverageViewModel getTarget(final CoverageViewModel.UsePropertyFacade usePropertyFacade) {
-        return new CoverageViewModel(
-                getOwner(),
-                getUrlName(),
-                name,
-                getResult(),
-                getStatistics(),
-                getQualityGateResult(),
-                getReferenceBuildLink(),
-                log,
-                this::createCoverageModel,
-                this::createMetricsModel,
-                usePropertyFacade);
+        return new CoverageViewModel(getOwner(), getUrlName(), name, getResult(),
+                getStatistics(), getQualityGateResult(), getReferenceBuildLink(), log,
+                this::createCoverageModel, this::createMetricsModel, usePropertyFacade);
     }
 
     private String createCoverageModel(final String configuration) {
-        return new ObjectMapper()
-                .writeValueAsString(new TrendChartFactory()
-                        .createChartModel(configuration, this, TrendChartFactory.LEGACY_DEFAULT_TREND_METRICS));
+        return new ObjectMapper().writeValueAsString(new TrendChartFactory().createChartModel(configuration, this,
+                TrendChartFactory.LEGACY_DEFAULT_TREND_METRICS));
     }
 
     private String createMetricsModel(final String configuration) {
-        return new ObjectMapper()
-                .writeValueAsString(new TrendChartFactory()
-                        .createMetricsModel(configuration, this, TrendChartFactory.LEGACY_DEFAULT_TREND_METRICS));
+        return new ObjectMapper().writeValueAsString(new TrendChartFactory().createMetricsModel(configuration, this,
+                TrendChartFactory.LEGACY_DEFAULT_TREND_METRICS));
     }
 
     @NonNull

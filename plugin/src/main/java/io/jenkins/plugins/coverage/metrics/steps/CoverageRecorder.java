@@ -1,5 +1,7 @@
 package io.jenkins.plugins.coverage.metrics.steps;
 
+import org.apache.commons.lang3.StringUtils;
+
 import edu.hm.hafner.coverage.ClassNode;
 import edu.hm.hafner.coverage.ContainerNode;
 import edu.hm.hafner.coverage.CoverageParser.ProcessingMode;
@@ -10,6 +12,24 @@ import edu.hm.hafner.util.FilteredLog;
 import edu.hm.hafner.util.TreeStringBuilder;
 import edu.umd.cs.findbugs.annotations.CheckForNull;
 import edu.umd.cs.findbugs.annotations.NonNull;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.EnumMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import org.kohsuke.stapler.AncestorInPath;
+import org.kohsuke.stapler.DataBoundConstructor;
+import org.kohsuke.stapler.DataBoundSetter;
+import org.kohsuke.stapler.QueryParameter;
+import org.kohsuke.stapler.verb.POST;
+import org.jenkinsci.Symbol;
 import hudson.Extension;
 import hudson.FilePath;
 import hudson.Launcher;
@@ -30,6 +50,8 @@ import hudson.util.ComboBoxModel;
 import hudson.util.FormValidation;
 import hudson.util.FormValidation.Kind;
 import hudson.util.ListBoxModel;
+import jenkins.model.Jenkins;
+
 import io.jenkins.plugins.checks.steps.ChecksInfo;
 import io.jenkins.plugins.coverage.metrics.steps.CoverageTool.Parser;
 import io.jenkins.plugins.coverage.metrics.steps.CoverageTool.ParserType;
@@ -42,24 +64,6 @@ import io.jenkins.plugins.util.LogHandler;
 import io.jenkins.plugins.util.ResultHandler;
 import io.jenkins.plugins.util.RunResultHandler;
 import io.jenkins.plugins.util.ValidationUtilities;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.EnumMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
-import java.util.stream.Collectors;
-import jenkins.model.Jenkins;
-import org.apache.commons.lang3.StringUtils;
-import org.jenkinsci.Symbol;
-import org.kohsuke.stapler.AncestorInPath;
-import org.kohsuke.stapler.DataBoundConstructor;
-import org.kohsuke.stapler.DataBoundSetter;
-import org.kohsuke.stapler.QueryParameter;
-import org.kohsuke.stapler.verb.POST;
 
 /**
  * A pipeline {@code Step} or Freestyle or Maven {@link Recorder} that reads and parses coverage results in a build and
@@ -72,13 +76,7 @@ import org.kohsuke.stapler.verb.POST;
  *
  * @author Ullrich Hafner
  */
-@SuppressWarnings({
-    "PMD.GodClass",
-    "PMD.CouplingBetweenObjects",
-    "PMD.TooManyFields",
-    "checkstyle:ClassFanOutComplexity",
-    "checkstyle:ClassDataAbstractionCoupling"
-})
+@SuppressWarnings({"PMD.GodClass", "PMD.CouplingBetweenObjects", "PMD.TooManyFields", "checkstyle:ClassFanOutComplexity", "checkstyle:ClassDataAbstractionCoupling"})
 public class CoverageRecorder extends Recorder {
     static final String CHECKS_DEFAULT_NAME = "Code Coverage";
 
@@ -102,7 +100,6 @@ public class CoverageRecorder extends Recorder {
     private String sourceCodeEncoding = StringUtils.EMPTY;
     private Set<SourceCodeDirectory> sourceDirectories = new HashSet<>();
     private SourceCodeRetention sourceCodeRetention = SourceCodeRetention.LAST_BUILD;
-
     @CheckForNull
     private ChecksInfo checksInfo;
 
@@ -224,7 +221,8 @@ public class CoverageRecorder extends Recorder {
     }
 
     public String getChecksName() {
-        return StringUtils.defaultIfBlank(checksName, StringUtils.defaultIfBlank(getName(), CHECKS_DEFAULT_NAME));
+        return StringUtils.defaultIfBlank(checksName,
+                StringUtils.defaultIfBlank(getName(), CHECKS_DEFAULT_NAME));
     }
 
     /**
@@ -338,8 +336,9 @@ public class CoverageRecorder extends Recorder {
     }
 
     private Set<String> getSourceDirectoriesPaths() {
-        Set<String> paths =
-                sourceDirectories.stream().map(SourceCodeDirectory::getPath).collect(Collectors.toSet());
+        Set<String> paths = sourceDirectories.stream()
+                .map(SourceCodeDirectory::getPath)
+                .collect(Collectors.toSet());
         paths.add("src/main/java");
         return paths;
     }
@@ -393,12 +392,8 @@ public class CoverageRecorder extends Recorder {
         return true;
     }
 
-    void perform(
-            final Run<?, ?> run,
-            final FilePath workspace,
-            final TaskListener taskListener,
-            final ResultHandler resultHandler)
-            throws InterruptedException {
+    void perform(final Run<?, ?> run, final FilePath workspace, final TaskListener taskListener,
+            final ResultHandler resultHandler) throws InterruptedException {
         var overallResult = run.getResult();
         var logHandler = new LogHandler(taskListener, "Coverage");
         if (enabledForFailure || overallResult == null || overallResult.isBetterOrEqualTo(Result.UNSTABLE)) {
@@ -410,23 +405,20 @@ public class CoverageRecorder extends Recorder {
                 failStage(resultHandler, logHandler, log, validation.getLocalizedMessage());
             }
             if (tools.isEmpty()) {
-                failStage(resultHandler, logHandler, log, "No tools defined that will record the coverage files");
-            } else {
+                failStage(resultHandler, logHandler, log,
+                        "No tools defined that will record the coverage files");
+            }
+            else {
                 perform(run, workspace, taskListener, resultHandler, log, logHandler);
             }
-        } else {
+        }
+        else {
             logHandler.log("Skipping execution of coverage recorder since overall result is '%s'", overallResult);
         }
     }
 
-    private void perform(
-            final Run<?, ?> run,
-            final FilePath workspace,
-            final TaskListener taskListener,
-            final ResultHandler resultHandler,
-            final FilteredLog log,
-            final LogHandler logHandler)
-            throws InterruptedException {
+    private void perform(final Run<?, ?> run, final FilePath workspace, final TaskListener taskListener,
+            final ResultHandler resultHandler, final FilteredLog log, final LogHandler logHandler) throws InterruptedException {
         var results = recordCoverageResults(run, workspace, resultHandler, log, logHandler);
         var aggregatedResult = aggregateResults(log, results);
 
@@ -439,33 +431,20 @@ public class CoverageRecorder extends Recorder {
             resolveAbsolutePaths(aggregatedResult, workspace, sources, log);
             logHandler.log(log);
 
-            var action = reporter.publishAction(
-                    getActualId(),
-                    getName(),
-                    getIcon(),
-                    aggregatedResult,
-                    run,
-                    workspace,
-                    taskListener,
-                    getQualityGates(),
-                    getScm(),
-                    getSourceCodeEncoding(),
-                    getSourceCodeRetention(),
-                    resultHandler,
-                    log);
+            var action = reporter.publishAction(getActualId(), getName(), getIcon(), aggregatedResult, run,
+                    workspace, taskListener, getQualityGates(), getScm(),
+                    getSourceCodeEncoding(), getSourceCodeRetention(), resultHandler, log);
 
             if (!skipPublishingChecks) {
-                var checksPublisher = new CoverageChecksPublisher(
-                        action, aggregatedResult, getChecksName(), getChecksAnnotationScope(), checksInfo);
+                var checksPublisher = new CoverageChecksPublisher(action, aggregatedResult, getChecksName(), getChecksAnnotationScope(), checksInfo);
                 checksPublisher.publishCoverageReport(taskListener);
             }
         }
         logHandler.log(log);
     }
 
-    private void resolveAbsolutePaths(
-            final Node rootNode, final FilePath workspace, final Set<String> sources, final FilteredLog log)
-            throws InterruptedException {
+    private void resolveAbsolutePaths(final Node rootNode, final FilePath workspace, final Set<String> sources,
+            final FilteredLog log) throws InterruptedException {
         log.logInfo("Resolving source code files...");
         var pathMapping = new PathResolver().resolvePaths(rootNode.getFiles(), sources, workspace, log);
 
@@ -495,31 +474,23 @@ public class CoverageRecorder extends Recorder {
         return ICON;
     }
 
-    private static void failStage(
-            final ResultHandler resultHandler,
-            final LogHandler logHandler,
-            final FilteredLog log,
-            final String message) {
+    private static void failStage(final ResultHandler resultHandler, final LogHandler logHandler,
+            final FilteredLog log, final String message) {
         log.logError(message);
         resultHandler.publishResult(Result.FAILURE, message);
         logHandler.log(log);
     }
 
-    private Map<Parser, List<ModuleNode>> recordCoverageResults(
-            final Run<?, ?> run,
-            final FilePath workspace,
-            final ResultHandler resultHandler,
-            final FilteredLog log,
-            final LogHandler logHandler)
-            throws InterruptedException {
+    private Map<Parser, List<ModuleNode>> recordCoverageResults(final Run<?, ?> run, final FilePath workspace,
+            final ResultHandler resultHandler, final FilteredLog log, final LogHandler logHandler) throws InterruptedException {
         Map<Parser, List<ModuleNode>> results = new EnumMap<>(Parser.class);
 
         for (CoverageTool tool : tools) {
             var parser = tool.getParser();
             log.logInfo("Creating parser for %s", tool.getDisplayName());
             if (StringUtils.isBlank(tool.getPattern())) {
-                log.logInfo(
-                        "Using default pattern '%s' since user defined pattern is not set", parser.getDefaultPattern());
+                log.logInfo("Using default pattern '%s' since user defined pattern is not set",
+                        parser.getDefaultPattern());
             }
 
             var expandedPattern = expandPattern(run, tool.getActualPattern());
@@ -528,8 +499,9 @@ public class CoverageRecorder extends Recorder {
             }
 
             try {
-                FileVisitorResult<ModuleNode> result = workspace.act(new CoverageReportScanner(
-                        parser, expandedPattern, "UTF-8", !isSkipSymbolicLinks(), ignoreErrors()));
+                FileVisitorResult<ModuleNode> result = workspace.act(
+                        new CoverageReportScanner(parser, expandedPattern, "UTF-8", !isSkipSymbolicLinks(),
+                                ignoreErrors()));
                 log.merge(result.getLog());
 
                 var coverageResults = result.getResults();
@@ -538,12 +510,14 @@ public class CoverageRecorder extends Recorder {
                         var errorMessage = "Failing build due to some errors during recording of the coverage";
                         log.logInfo(errorMessage);
                         resultHandler.publishResult(Result.FAILURE, errorMessage);
-                    } else {
+                    }
+                    else {
                         log.logInfo("Ignore errors and continue processing");
                     }
                 }
                 results.put(tool.getParser(), coverageResults);
-            } catch (IOException exception) {
+            }
+            catch (IOException exception) {
                 log.logException(exception, "Exception while parsing with tool " + tool);
             }
 
@@ -558,20 +532,24 @@ public class CoverageRecorder extends Recorder {
             log.logError("No coverage results were found! Configuration error?");
 
             return new ModuleNode("Empty");
-        } else {
-            var testCases = results.entrySet().stream()
+        }
+        else {
+            var testCases = results.entrySet()
+                    .stream()
                     .filter(entry -> entry.getKey().getParserType() == ParserType.TEST)
                     .map(Entry::getValue)
                     .flatMap(Collection::stream)
                     .map(Node::getAllClassNodes)
                     .flatMap(Collection::stream)
                     .collect(Collectors.toList());
-            var coverageNodes = results.entrySet().stream()
+            var coverageNodes = results.entrySet()
+                    .stream()
                     .filter(entry -> entry.getKey().getParserType() == ParserType.COVERAGE)
                     .map(Entry::getValue)
                     .flatMap(Collection::stream)
                     .collect(Collectors.toList());
-            var metricsNodes = results.entrySet().stream()
+            var metricsNodes = results.entrySet()
+                    .stream()
                     .filter(entry -> entry.getKey().getParserType() == ParserType.METRICS)
                     .map(Entry::getValue)
                     .flatMap(Collection::stream)
@@ -605,10 +583,8 @@ public class CoverageRecorder extends Recorder {
     private void mapTests(final ClassNode classNode, final Node coverageTree) {
         var normalizedPackageName = PackageNode.normalizePackageName(classNode.getPackageName());
 
-        coverageTree
-                .findPackage(normalizedPackageName)
-                .orElseGet(() -> createPackage(coverageTree, normalizedPackageName))
-                .addChild(classNode);
+        coverageTree.findPackage(normalizedPackageName)
+                .orElseGet(() -> createPackage(coverageTree, normalizedPackageName)).addChild(classNode);
     }
 
     private PackageNode createPackage(final Node coverageTree, final String normalizedPackageName) {
@@ -629,8 +605,10 @@ public class CoverageRecorder extends Recorder {
         try {
             var environmentResolver = new EnvironmentResolver();
 
-            return environmentResolver.expandEnvironmentVariables(run.getEnvironment(TaskListener.NULL), actualPattern);
-        } catch (IOException | InterruptedException ignore) {
+            return environmentResolver.expandEnvironmentVariables(
+                    run.getEnvironment(TaskListener.NULL), actualPattern);
+        }
+        catch (IOException | InterruptedException ignore) {
             return actualPattern; // fallback, no expansion
         }
     }
@@ -718,8 +696,8 @@ public class CoverageRecorder extends Recorder {
          */
         @POST
         @SuppressWarnings("unused") // used by Stapler view data binding
-        public FormValidation doCheckSourceCodeEncoding(
-                @AncestorInPath final BuildableItem project, @QueryParameter final String sourceCodeEncoding) {
+        public FormValidation doCheckSourceCodeEncoding(@AncestorInPath final BuildableItem project,
+                @QueryParameter final String sourceCodeEncoding) {
             if (!JENKINS.hasPermission(Item.CONFIGURE, project)) {
                 return FormValidation.ok();
             }
@@ -738,7 +716,8 @@ public class CoverageRecorder extends Recorder {
          * @return the validation result
          */
         @POST
-        public FormValidation doCheckId(@AncestorInPath final BuildableItem project, @QueryParameter final String id) {
+        public FormValidation doCheckId(@AncestorInPath final BuildableItem project,
+                @QueryParameter final String id) {
             if (!JENKINS.hasPermission(Item.CONFIGURE, project)) {
                 return FormValidation.ok();
             }

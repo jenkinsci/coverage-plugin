@@ -1,21 +1,24 @@
 package io.jenkins.plugins.coverage.metrics.steps;
 
+import org.apache.commons.lang3.StringUtils;
+import org.junit.jupiter.api.Test;
+
+import edu.hm.hafner.coverage.Metric;
+import edu.hm.hafner.coverage.Value;
+
+import java.io.IOException;
+import java.util.List;
+
+import org.kohsuke.stapler.StaplerRequest2;
+import org.kohsuke.stapler.StaplerResponse2;
+import hudson.model.FreeStyleBuild;
+import hudson.model.FreeStyleProject;
+import hudson.model.Job;
+
 import static io.jenkins.plugins.coverage.metrics.AbstractCoverageTest.*;
 import static net.javacrumbs.jsonunit.assertj.JsonAssertions.*;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
-
-import edu.hm.hafner.coverage.Metric;
-import edu.hm.hafner.coverage.Value;
-import hudson.model.FreeStyleBuild;
-import hudson.model.FreeStyleProject;
-import hudson.model.Job;
-import java.io.IOException;
-import java.util.List;
-import org.apache.commons.lang3.StringUtils;
-import org.junit.jupiter.api.Test;
-import org.kohsuke.stapler.StaplerRequest2;
-import org.kohsuke.stapler.StaplerResponse2;
 
 /**
  * Tests the class {@link CoverageJobAction}.
@@ -29,9 +32,9 @@ class CoverageJobActionTest {
     void shouldFailBrokenUrl() {
         var illegalUrl = "javascript:alert(document.domain)";
 
-        assertThatIllegalArgumentException()
-                .isThrownBy(() ->
-                        new CoverageJobAction(mock(Job.class), illegalUrl, "Coverage Results", StringUtils.EMPTY));
+        assertThatIllegalArgumentException().isThrownBy(
+                () -> new CoverageJobAction(mock(Job.class), illegalUrl, "Coverage Results", StringUtils.EMPTY)
+        );
 
         var good = new CoverageJobAction(mock(Job.class), "validUrl", "Coverage Results", StringUtils.EMPTY);
 
@@ -39,7 +42,8 @@ class CoverageJobActionTest {
 
         good.setId(illegalUrl);
 
-        assertThatIllegalArgumentException().isThrownBy(good::readResolve);
+        assertThatIllegalArgumentException()
+                .isThrownBy(good::readResolve);
     }
 
     @Test
@@ -118,8 +122,9 @@ class CoverageJobActionTest {
         CoverageBuildAction action = mock(CoverageBuildAction.class);
         when(action.getOwner()).thenAnswer(i -> build);
         when(action.getUrlName()).thenReturn(URL);
-        when(action.getAllValues(any()))
-                .thenReturn(List.of(Value.nullObject(Metric.LINE), Value.nullObject(Metric.BRANCH)));
+        when(action.getAllValues(any())).thenReturn(List.of(
+                Value.nullObject(Metric.LINE),
+                Value.nullObject(Metric.BRANCH)));
         return action;
     }
 }

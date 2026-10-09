@@ -5,9 +5,11 @@ import edu.hm.hafner.echarts.BuildResult;
 import edu.hm.hafner.echarts.ChartModelConfiguration;
 import edu.hm.hafner.echarts.JacksonFacade;
 import edu.hm.hafner.echarts.line.LinesChartModel;
+
+import java.util.Set;
+
 import io.jenkins.plugins.coverage.metrics.model.CoverageStatistics;
 import io.jenkins.plugins.echarts.JenkinsPalette;
-import java.util.Set;
 
 /**
  * Builds the Java side model for a trend chart showing the metrics of a project. The number of builds to consider is
@@ -31,8 +33,8 @@ public class MetricsTrendChart extends TrendChart {
     }
 
     @Override
-    public LinesChartModel create(
-            final Iterable<BuildResult<CoverageStatistics>> results, final ChartModelConfiguration configuration) {
+    public LinesChartModel create(final Iterable<BuildResult<CoverageStatistics>> results,
+            final ChartModelConfiguration configuration) {
         var dataSet = new CoverageSeriesBuilder().createDataSet(configuration, results);
 
         var model = new LinesChartModel(dataSet);
@@ -40,12 +42,8 @@ public class MetricsTrendChart extends TrendChart {
             int colorIndex = 0;
             for (var tag : dataSet.getDataSetIds()) {
                 Metric metric = Metric.fromTag(tag);
-                addSeriesIfAvailable(
-                        dataSet,
-                        model,
-                        metric.getDisplayName(),
-                        tag,
-                        JenkinsPalette.chartColor(colorIndex).normal());
+                addSeriesIfAvailable(dataSet, model, metric.getDisplayName(),
+                        tag, JenkinsPalette.chartColor(colorIndex).normal());
                 colorIndex++;
             }
 

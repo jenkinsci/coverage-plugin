@@ -1,9 +1,13 @@
 package io.jenkins.plugins.coverage.metrics.source;
 
-import static org.assertj.core.api.Assertions.*;
+import org.jsoup.Jsoup;
+import org.jsoup.parser.Parser;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 import edu.hm.hafner.coverage.FileNode;
 import edu.hm.hafner.util.ResourceTest;
+
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -12,10 +16,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
-import org.jsoup.Jsoup;
-import org.jsoup.parser.Parser;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.io.TempDir;
+
+import static org.assertj.core.api.Assertions.*;
 
 /**
  * Test class for {@link SourceCodeFacade}.
@@ -43,12 +45,14 @@ class SourceCodeFacadeTest extends ResourceTest {
         Files.createDirectories(sourceFolder);
         createZippedSource(sourceFolder, path, html);
 
-        assertThat(sourceCodeFacade.read(temporaryDirectory.toFile(), id, path)).isEqualTo(html);
+        assertThat(sourceCodeFacade.read(temporaryDirectory.toFile(), id, path))
+                .isEqualTo(html);
     }
 
     @Test
     void shouldUseIdSpecificTransferArchiveName() {
-        assertThat(SourceCodeFacade.getCoverageSourcesZip("jacoco-unit")).isEqualTo("coverage-sources-jacoco-unit.zip");
+        assertThat(SourceCodeFacade.getCoverageSourcesZip("jacoco-unit"))
+                .isEqualTo("coverage-sources-jacoco-unit.zip");
         assertThat(SourceCodeFacade.getCoverageSourcesZip("jacoco-ui"))
                 .isNotEqualTo(SourceCodeFacade.getCoverageSourcesZip("jacoco-unit"));
         assertThat(SourceCodeFacade.getCoverageSourcesZip("weird/id name"))
@@ -61,8 +65,7 @@ class SourceCodeFacadeTest extends ResourceTest {
         var originalHtml = readHtml(WHOLE_SOURCE_CODE);
         var node = createFileCoverageNode();
 
-        var requiredHtml = Jsoup.parse(readHtml(MODIFIED_LINES_COVERAGE_SOURCE_CODE), Parser.xmlParser())
-                .html();
+        var requiredHtml = Jsoup.parse(readHtml(MODIFIED_LINES_COVERAGE_SOURCE_CODE), Parser.xmlParser()).html();
 
         var modifiedLinesCoverageHtml = sourceCodeFacade.calculateModifiedLinesCoverageSourceCode(originalHtml, node);
         assertThat(modifiedLinesCoverageHtml).isEqualTo(requiredHtml);
@@ -74,8 +77,7 @@ class SourceCodeFacadeTest extends ResourceTest {
         var originalHtml = readHtml(WHOLE_SOURCE_CODE);
         var node = createFileCoverageNode();
 
-        var requiredHtml = Jsoup.parse(readHtml(INDIRECT_COVERAGE_SOURCE_CODE), Parser.xmlParser())
-                .html();
+        var requiredHtml = Jsoup.parse(readHtml(INDIRECT_COVERAGE_SOURCE_CODE), Parser.xmlParser()).html();
 
         var modifiedLinesCoverageHtml = sourceCodeFacade.calculateIndirectCoverageChangesSourceCode(originalHtml, node);
         assertThat(modifiedLinesCoverageHtml).isEqualTo(requiredHtml);

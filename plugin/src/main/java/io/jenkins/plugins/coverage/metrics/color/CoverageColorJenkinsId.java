@@ -31,6 +31,8 @@ public enum CoverageColorJenkinsId {
     }
 
     public static Set<String> getAll() {
-        return Arrays.stream(values()).map(id -> id.jenkinsColorId).collect(Collectors.toSet());
+        return Arrays.stream(values())
+                .map(id -> id.jenkinsColorId)
+                .collect(Collectors.toSet());
     }
 }

@@ -2,13 +2,7 @@ package io.jenkins.plugins.coverage.metrics.steps;
 
 import edu.hm.hafner.util.FilteredLog;
 import edu.hm.hafner.util.PathUtil;
-import hudson.FilePath;
-import hudson.remoting.VirtualChannel;
-import io.jenkins.plugins.prism.FilePermissionEnforcer;
-import io.jenkins.plugins.prism.PermittedSourceCodeDirectory;
-import io.jenkins.plugins.prism.PrismConfiguration;
-import io.jenkins.plugins.prism.SourceDirectoryFilter;
-import io.jenkins.plugins.util.RemoteResultWrapper;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.Serial;
@@ -22,7 +16,16 @@ import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+
+import hudson.FilePath;
+import hudson.remoting.VirtualChannel;
 import jenkins.MasterToSlaveFileCallable;
+
+import io.jenkins.plugins.prism.FilePermissionEnforcer;
+import io.jenkins.plugins.prism.PermittedSourceCodeDirectory;
+import io.jenkins.plugins.prism.PrismConfiguration;
+import io.jenkins.plugins.prism.SourceDirectoryFilter;
+import io.jenkins.plugins.util.RemoteResultWrapper;
 
 /**
  * Resolves source code files on the agent using the stored paths of the coverage reports. Since these paths are
@@ -46,14 +49,13 @@ public class PathResolver {
      *
      * @return the resolved paths as mapping of relative to absolute paths
      */
-    public Map<String, String> resolvePaths(
-            final Set<String> relativePaths,
+    public Map<String, String> resolvePaths(final Set<String> relativePaths,
             final Set<String> requestedSourceDirectories,
-            final FilePath workspace,
-            final FilteredLog log)
-            throws InterruptedException {
+            final FilePath workspace, final FilteredLog log) throws InterruptedException {
         try {
-            Set<String> permittedSourceDirectories = PrismConfiguration.getInstance().getSourceDirectories().stream()
+            Set<String> permittedSourceDirectories = PrismConfiguration.getInstance()
+                    .getSourceDirectories()
+                    .stream()
                     .map(PermittedSourceCodeDirectory::getPath)
                     .collect(Collectors.toSet());
 
@@ -61,7 +63,8 @@ public class PathResolver {
             var agentLog = workspace.act(resolver);
             log.merge(agentLog);
             return agentLog.getResult();
-        } catch (IOException exception) {
+        }
+        catch (IOException exception) {
             log.logException(exception, "Can't resolve source files on agent");
         }
         return Collections.emptyMap();
@@ -76,15 +79,12 @@ public class PathResolver {
     static class AgentPathResolver extends MasterToSlaveFileCallable<RemoteResultWrapper<HashMap<String, String>>> {
         @Serial
         private static final long serialVersionUID = 3966282357309568323L;
-
         private static final PathUtil PATH_UTIL = new PathUtil();
 
         @SuppressWarnings("serial")
         private final Set<String> relativePaths;
-
         @SuppressWarnings("serial")
         private final Set<String> permittedSourceDirectories;
-
         @SuppressWarnings("serial")
         private final Set<String> requestedSourceDirectories;
 
@@ -98,8 +98,7 @@ public class PathResolver {
          * @param requestedSourceDirectories
          *         the requested relative and absolute source directories (in the step configuration)
          */
-        AgentPathResolver(
-                final Set<String> relativePaths,
+        AgentPathResolver(final Set<String> relativePaths,
                 final Set<String> permittedSourceDirectories,
                 final Set<String> requestedSourceDirectories) {
             super();
@@ -117,11 +116,11 @@ public class PathResolver {
             Set<String> sourceDirectories = filterSourceDirectories(workspaceFile, log);
             if (sourceDirectories.isEmpty()) {
                 log.logInfo("Searching for source code files in root of workspace '%s'", workspaceFile);
-            } else if (sourceDirectories.size() == 1) {
-                log.logInfo(
-                        "Searching for source code files in '%s'",
-                        sourceDirectories.iterator().next());
-            } else {
+            }
+            else if (sourceDirectories.size() == 1) {
+                log.logInfo("Searching for source code files in '%s'", sourceDirectories.iterator().next());
+            }
+            else {
                 log.logInfo("Searching for source code files in:", workspaceFile);
                 sourceDirectories.forEach(dir -> log.logInfo("-> %s", dir));
             }
@@ -130,37 +129,33 @@ public class PathResolver {
             var mapping = relativePaths.stream()
                     .map(path -> new SimpleEntry<>(path, locateSource(path, workspace, sourceDirectories, log)))
                     .filter(entry -> entry.getValue().isPresent())
-                    .collect(Collectors.toMap(
-                            Entry::getKey, entry -> entry.getValue().get()));
+                    .collect(Collectors.toMap(Entry::getKey, entry -> entry.getValue().get()));
 
             if (mapping.size() == relativePaths.size()) {
                 log.logInfo("-> resolved absolute paths for all %d source files", mapping.size());
-            } else {
-                log.logInfo(
-                        "-> finished resolving of absolute paths (found: %d, not found: %d)",
+            }
+            else {
+                log.logInfo("-> finished resolving of absolute paths (found: %d, not found: %d)",
                         mapping.size(), relativePaths.size() - mapping.size());
             }
 
-            var changedFileMapping = mapping.entrySet().stream()
+            var changedFileMapping = mapping.entrySet()
+                    .stream()
                     .filter(entry -> !entry.getKey().equals(entry.getValue()))
                     .collect(Collectors.toMap(Entry::getKey, Entry::getValue));
-            var result = new RemoteResultWrapper<>(
-                    new HashMap<>(changedFileMapping), "Errors during source path resolving:");
+            var result = new RemoteResultWrapper<>(new HashMap<>(changedFileMapping), "Errors during source path resolving:");
             result.merge(log);
             return result;
         }
 
         private Set<String> filterSourceDirectories(final File workspace, final FilteredLog log) {
             var filter = new SourceDirectoryFilter();
-            return filter.getPermittedSourceDirectories(
-                    workspace.getAbsolutePath(), permittedSourceDirectories, requestedSourceDirectories, log);
+            return filter.getPermittedSourceDirectories(workspace.getAbsolutePath(),
+                    permittedSourceDirectories, requestedSourceDirectories, log);
         }
 
-        private Optional<String> locateSource(
-                final String relativePath,
-                final FilePath workspace,
-                final Set<String> sourceSearchDirectories,
-                final FilteredLog log) {
+        private Optional<String> locateSource(final String relativePath, final FilePath workspace,
+                final Set<String> sourceSearchDirectories, final FilteredLog log) {
             try {
                 var absolutePath = new FilePath(new File(relativePath));
                 if (absolutePath.exists()) {
@@ -180,28 +175,26 @@ public class PathResolver {
                 }
 
                 log.logError("- Source file '%s' not found", relativePath);
-            } catch (InvalidPathException | IOException | InterruptedException exception) {
+            }
+            catch (InvalidPathException | IOException | InterruptedException exception) {
                 log.logException(exception, "No valid path in coverage node: '%s'", relativePath);
             }
             return Optional.empty();
         }
 
-        private Optional<String> enforcePermissionFor(
-                final FilePath absolutePath,
-                final FilePath workspace,
-                final Set<String> sourceDirectories,
-                final FilteredLog log) {
+        private Optional<String> enforcePermissionFor(final FilePath absolutePath, final FilePath workspace,
+                final Set<String> sourceDirectories, final FilteredLog log) {
             var enforcer = new FilePermissionEnforcer();
             var fileName = absolutePath.getRemote();
             if (enforcer.isInWorkspace(fileName, workspace, sourceDirectories)) {
                 if (isWithinWorkspace(fileName, workspace)) {
                     return Optional.of(PATH_UTIL.getRelativePath(workspace.getRemote(), fileName));
-                } else {
+                }
+                else {
                     return Optional.of(PATH_UTIL.getAbsolutePath(fileName));
                 }
             }
-            log.logError(
-                    "- Skipping resolving of file: %s (not part of workspace or permitted source code folders)",
+            log.logError("- Skipping resolving of file: %s (not part of workspace or permitted source code folders)",
                     fileName);
             return Optional.empty();
         }

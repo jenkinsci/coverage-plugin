@@ -1,9 +1,10 @@
 package io.jenkins.plugins.coverage.metrics.source;
 
-import static j2html.TagCreator.*;
+import org.apache.commons.lang3.StringUtils;
 
 import edu.hm.hafner.coverage.FileNode;
 import edu.hm.hafner.coverage.Mutation;
+
 import j2html.tags.ContainerTag;
 import j2html.tags.UnescapedText;
 import java.io.Serial;
@@ -13,7 +14,8 @@ import java.util.Map.Entry;
 import java.util.NavigableMap;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
-import org.apache.commons.lang3.StringUtils;
+
+import static j2html.TagCreator.*;
 
 /**
  * Provides all required information for a {@link FileNode} so that its source code can be rendered together with the
@@ -40,7 +42,8 @@ final class MutationSourcePrinter extends CoverageSourcePrinter {
         for (Mutation mutation : file.getMutations()) {
             if (mutation.hasSurvived()) {
                 survivedPerLine[findIndexOfLine(mutation.getLine())]++;
-            } else if (mutation.isKilled()) {
+            }
+            else if (mutation.isKilled()) {
                 killedPerLine[findIndexOfLine(mutation.getLine())]++;
             }
         }
@@ -55,16 +58,18 @@ final class MutationSourcePrinter extends CoverageSourcePrinter {
     }
 
     private String createInfo(final List<Mutation> allMutations) {
-        var killedContainer = listMutations(allMutations, Mutation::isKilled, "Killed Mutations:");
-        var survivedContainer = listMutations(allMutations, Mutation::hasSurvived, "Survived Mutations:");
+        var killedContainer = listMutations(allMutations,
+                Mutation::isKilled, "Killed Mutations:");
+        var survivedContainer = listMutations(allMutations,
+                Mutation::hasSurvived, "Survived Mutations:");
         if (killedContainer.getNumChildren() == 0 && survivedContainer.getNumChildren() == 0) {
             return "Not covered";
         }
         return div().with(killedContainer, survivedContainer).render();
     }
 
-    private ContainerTag listMutations(
-            final List<Mutation> allMutations, final Predicate<Mutation> predicate, final String title) {
+    private ContainerTag listMutations(final List<Mutation> allMutations,
+            final Predicate<Mutation> predicate, final String title) {
         var filtered = div();
         var killed = asBulletPoints(allMutations, predicate);
         if (!killed.isEmpty()) {
@@ -74,9 +79,8 @@ final class MutationSourcePrinter extends CoverageSourcePrinter {
     }
 
     private List<ContainerTag> asBulletPoints(final List<Mutation> mutations, final Predicate<Mutation> predicate) {
-        return mutations.stream()
-                .filter(predicate)
-                .map(mutation -> li().withText("%s (%s)".formatted(mutation.getDescription(), mutation.getMutator())))
+        return mutations.stream().filter(predicate).map(mutation ->
+                li().withText("%s (%s)".formatted(mutation.getDescription(), mutation.getMutator())))
                 .collect(Collectors.toList());
     }
 
@@ -111,17 +115,17 @@ final class MutationSourcePrinter extends CoverageSourcePrinter {
     @Override
     String renderLine(final int line, final String sourceCode) {
         var isPainted = isPainted(line);
-        return tr().withClasses(isPainted ? getColorClass(line) : UNDEFINED, getModifiedClass(line))
+        return tr()
+                .withClasses(isPainted ? getColorClass(line) : UNDEFINED, getModifiedClass(line))
                 .with(
                         td().withClass("line")
                                 .with(a().withName(String.valueOf(line)).withText(String.valueOf(line))),
                         td().withClass("hits")
-                                .condAttr(
-                                        isPainted,
-                                        "data-html-tooltip",
+                                .condAttr(isPainted, "data-html-tooltip",
                                         isPainted ? getTooltip(line) : StringUtils.EMPTY)
                                 .with(isPainted ? text(getSummaryColumn(line)) : text(StringUtils.EMPTY)),
-                        td().withClass("code").with(rawHtml(SANITIZER.render(cleanupCode(sourceCode)))))
+                        td().withClass("code")
+                                .with(rawHtml(SANITIZER.render(cleanupCode(sourceCode)))))
                 .render();
     }
 
@@ -132,9 +136,11 @@ final class MutationSourcePrinter extends CoverageSourcePrinter {
         }
         if (getKilled(line) == 0) {
             return NO_COVERAGE;
-        } else if (getSurvived(line) == 0) {
+        }
+        else if (getSurvived(line) == 0) {
             return FULL_COVERAGE;
-        } else {
+        }
+        else {
             return PARTIAL_COVERAGE;
         }
     }

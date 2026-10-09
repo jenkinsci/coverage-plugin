@@ -1,18 +1,11 @@
 package io.jenkins.plugins.coverage.metrics.steps;
 
-import static io.jenkins.plugins.coverage.metrics.steps.CodeDeltaCalculator.*;
-import static org.assertj.core.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import org.junit.jupiter.api.Test;
 
 import edu.hm.hafner.coverage.FileNode;
 import edu.hm.hafner.coverage.Node;
 import edu.hm.hafner.util.FilteredLog;
-import hudson.FilePath;
-import hudson.model.Run;
-import hudson.model.TaskListener;
-import io.jenkins.plugins.forensics.delta.Delta;
-import io.jenkins.plugins.forensics.delta.FileChanges;
-import io.jenkins.plugins.forensics.delta.FileEditType;
+
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -22,7 +15,18 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-import org.junit.jupiter.api.Test;
+
+import hudson.FilePath;
+import hudson.model.Run;
+import hudson.model.TaskListener;
+
+import io.jenkins.plugins.forensics.delta.Delta;
+import io.jenkins.plugins.forensics.delta.FileChanges;
+import io.jenkins.plugins.forensics.delta.FileEditType;
+
+import static io.jenkins.plugins.coverage.metrics.steps.CodeDeltaCalculator.*;
+import static org.assertj.core.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
 /**
  * Test class for {@link CodeDeltaCalculator}.
@@ -39,7 +43,8 @@ class CodeDeltaCalculatorTest {
     private static final String OLD_REPORT_PATH_RENAME =
             Path.of("example", "Test.java").toString();
 
-    private static final String REPORT_PATH_ADD_1 = Path.of("test", "Test.java").toString();
+    private static final String REPORT_PATH_ADD_1 =
+            Path.of("test", "Test.java").toString();
     private static final String REPORT_PATH_ADD_2 =
             Path.of("package", "example", "test", "Test.java").toString();
     private static final String REPORT_PATH_MODIFY =
@@ -47,7 +52,8 @@ class CodeDeltaCalculatorTest {
     private static final String REPORT_PATH_RENAME =
             Path.of("example", "Test_Renamed.java").toString();
 
-    private static final String SCM_PATH_ADD_1 = Path.of("test", "Test.java").toString();
+    private static final String SCM_PATH_ADD_1 =
+            Path.of("test", "Test.java").toString();
     private static final String SCM_PATH_ADD_2 =
             Path.of("src", "package", "example", "test", "Test.java").toString();
     private static final String SCM_PATH_MODIFY =
@@ -68,7 +74,8 @@ class CodeDeltaCalculatorTest {
                         allChanges.get(SCM_PATH_ADD_1),
                         allChanges.get(SCM_PATH_ADD_2),
                         allChanges.get(SCM_PATH_MODIFY),
-                        allChanges.get(SCM_PATH_RENAME));
+                        allChanges.get(SCM_PATH_RENAME)
+                );
     }
 
     @Test
@@ -76,8 +83,8 @@ class CodeDeltaCalculatorTest {
         var codeDeltaCalculator = createCodeDeltaCalculator();
         var delta = createDeltaWithStubbedFileChanges();
         Set<FileChanges> changes = codeDeltaCalculator.getCoverageRelevantChanges(delta);
-        Map<String, FileChanges> changesMap =
-                changes.stream().collect(Collectors.toMap(FileChanges::getFileName, Function.identity()));
+        Map<String, FileChanges> changesMap = changes.stream()
+                .collect(Collectors.toMap(FileChanges::getFileName, Function.identity()));
         var tree = createStubbedCoverageTree();
         var log = createFilteredLog();
 
@@ -98,8 +105,7 @@ class CodeDeltaCalculatorTest {
         var log = createFilteredLog();
         Set<FileChanges> noChanges = new HashSet<>();
 
-        assertThat(codeDeltaCalculator.mapScmChangesToReportPaths(noChanges, tree, log))
-                .isEmpty();
+        assertThat(codeDeltaCalculator.mapScmChangesToReportPaths(noChanges, tree, log)).isEmpty();
     }
 
     @Test
@@ -149,10 +155,10 @@ class CodeDeltaCalculatorTest {
         Map<String, FileChanges> changes = new HashMap<>();
         changes.put(REPORT_PATH_RENAME, createFileChanges(SCM_PATH_RENAME, OLD_SCM_PATH_RENAME, FileEditType.RENAME));
 
-        assertThat(codeDeltaCalculator.createOldPathMapping(tree, referenceTree, changes, log))
-                .isEmpty();
-        assertThat(log.getInfoMessages())
-                .contains(EMPTY_OLD_PATHS_WARNING + System.lineSeparator() + REPORT_PATH_RENAME);
+        assertThat(codeDeltaCalculator.createOldPathMapping(tree, referenceTree, changes, log)).isEmpty();
+        assertThat(log.getInfoMessages()).contains(
+                EMPTY_OLD_PATHS_WARNING + System.lineSeparator() + REPORT_PATH_RENAME
+        );
     }
 
     // checks the functionality to prevent exceptions in case of false calculated code deltas
@@ -166,15 +172,14 @@ class CodeDeltaCalculatorTest {
         // two changes with the same former path
         Map<String, FileChanges> changes = new HashMap<>();
         changes.put(REPORT_PATH_RENAME, createFileChanges(SCM_PATH_RENAME, OLD_SCM_PATH_RENAME, FileEditType.RENAME));
-        changes.put(
-                REPORT_PATH_MODIFY, createFileChanges(REPORT_PATH_MODIFY, OLD_SCM_PATH_RENAME, FileEditType.RENAME));
+        changes.put(REPORT_PATH_MODIFY, createFileChanges(REPORT_PATH_MODIFY, OLD_SCM_PATH_RENAME, FileEditType.RENAME));
 
         assertThatThrownBy(() -> codeDeltaCalculator.createOldPathMapping(tree, referenceTree, changes, log))
                 .isInstanceOf(IllegalStateException.class)
                 .hasMessageStartingWith(CODE_DELTA_TO_COVERAGE_DATA_MISMATCH_ERROR_TEMPLATE)
                 .hasMessageContainingAll(
-                        "new: '%s' - former: '%s',".formatted(REPORT_PATH_RENAME, OLD_REPORT_PATH_RENAME),
-                        "new: '%s' - former: '%s'".formatted(REPORT_PATH_MODIFY, OLD_REPORT_PATH_RENAME));
+                "new: '%s' - former: '%s',".formatted(REPORT_PATH_RENAME, OLD_REPORT_PATH_RENAME),
+                "new: '%s' - former: '%s'".formatted(REPORT_PATH_MODIFY, OLD_REPORT_PATH_RENAME));
     }
 
     /**
@@ -183,7 +188,8 @@ class CodeDeltaCalculatorTest {
      * @return the created instance
      */
     private CodeDeltaCalculator createCodeDeltaCalculator() {
-        return new CodeDeltaCalculator(mock(Run.class), mock(FilePath.class), mock(TaskListener.class), "");
+        return new CodeDeltaCalculator(mock(Run.class), mock(FilePath.class),
+                mock(TaskListener.class), "");
     }
 
     private Delta createDeltaWithStubbedFileChanges() {
@@ -234,8 +240,8 @@ class CodeDeltaCalculatorTest {
      *
      * @return the created mock
      */
-    private FileChanges createFileChanges(
-            final String filePath, final String oldFilePath, final FileEditType fileEditType) {
+    private FileChanges createFileChanges(final String filePath, final String oldFilePath,
+            final FileEditType fileEditType) {
         FileChanges change = mock(FileChanges.class);
         when(change.getFileEditType()).thenReturn(fileEditType);
         when(change.getFileName()).thenReturn(filePath);
@@ -260,8 +266,7 @@ class CodeDeltaCalculatorTest {
         when(renameFile.getRelativePath()).thenReturn(REPORT_PATH_RENAME);
         Node root = mock(Node.class);
         when(root.getAllFileNodes()).thenReturn(Arrays.asList(addFile1, addFile2, modifyFile, renameFile));
-        var files =
-                root.getAllFileNodes().stream().map(FileNode::getRelativePath).collect(Collectors.toSet());
+        var files = root.getAllFileNodes().stream().map(FileNode::getRelativePath).collect(Collectors.toSet());
         when(root.getFiles()).thenReturn(files);
 
         return root;
@@ -280,8 +285,7 @@ class CodeDeltaCalculatorTest {
         when(renameFile.getRelativePath()).thenReturn(OLD_REPORT_PATH_RENAME);
         Node root = mock(Node.class);
         when(root.getAllFileNodes()).thenReturn(Arrays.asList(renameFile, modifyFile));
-        var files =
-                root.getAllFileNodes().stream().map(FileNode::getRelativePath).collect(Collectors.toSet());
+        var files = root.getAllFileNodes().stream().map(FileNode::getRelativePath).collect(Collectors.toSet());
         when(root.getFiles()).thenReturn(files);
 
         return root;

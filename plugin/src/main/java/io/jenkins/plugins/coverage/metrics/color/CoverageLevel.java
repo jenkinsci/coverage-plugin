@@ -1,6 +1,7 @@
 package io.jenkins.plugins.coverage.metrics.color;
 
 import edu.umd.cs.findbugs.annotations.NonNull;
+
 import io.jenkins.plugins.coverage.metrics.color.ColorProvider.DisplayColors;
 
 /**
@@ -38,8 +39,8 @@ public enum CoverageLevel {
      *
      * @return the display colors
      */
-    public static DisplayColors getDisplayColorsOfCoverageLevel(
-            final double coveragePercentage, @NonNull final ColorProvider colorProvider) {
+    public static DisplayColors getDisplayColorsOfCoverageLevel(final double coveragePercentage,
+            @NonNull final ColorProvider colorProvider) {
         if (coveragePercentage >= 0) {
             return getBlendedColors(coveragePercentage, colorProvider);
         }
@@ -56,8 +57,8 @@ public enum CoverageLevel {
      *
      * @return the blended display colors
      */
-    private static DisplayColors getBlendedColors(
-            final double coveragePercentage, @NonNull final ColorProvider colorProvider) {
+    private static DisplayColors getBlendedColors(final double coveragePercentage,
+            @NonNull final ColorProvider colorProvider) {
         for (int i = 0; i < values().length - 1; i++) {
             var level = values()[i];
             if (coveragePercentage >= level.level) {
@@ -71,7 +72,9 @@ public enum CoverageLevel {
                 var upperLevel = values()[i - 1];
                 double distanceUpper = upperLevel.level - coveragePercentage;
                 return colorProvider.getBlendedDisplayColors(
-                        distanceLevel, distanceUpper, upperLevel.colorizationId, level.colorizationId);
+                        distanceLevel, distanceUpper,
+                        upperLevel.colorizationId,
+                        level.colorizationId);
             }
         }
         return colorProvider.getDisplayColorsOf(NA.colorizationId);

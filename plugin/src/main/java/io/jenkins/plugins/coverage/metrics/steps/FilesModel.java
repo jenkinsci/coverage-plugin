@@ -1,12 +1,14 @@
 package io.jenkins.plugins.coverage.metrics.steps;
 
 import edu.umd.cs.findbugs.annotations.CheckForNull;
+
+import org.kohsuke.stapler.bind.JavaScriptMethod;
 import hudson.model.ModelObject;
 import hudson.model.Run;
+
 import io.jenkins.plugins.coverage.metrics.model.ElementFormatter;
 import io.jenkins.plugins.datatables.DefaultAsyncTableContentProvider;
 import io.jenkins.plugins.datatables.TableModel;
-import org.kohsuke.stapler.bind.JavaScriptMethod;
 
 /**
  * Server side model that provides the data for the "Files" tab of the coverage details view. Shows the coverage

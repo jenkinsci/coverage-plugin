@@ -3,17 +3,20 @@ package io.jenkins.plugins.coverage.metrics.steps;
 import edu.hm.hafner.coverage.Metric;
 import edu.hm.hafner.coverage.MetricAggregation;
 import edu.hm.hafner.util.VisibleForTesting;
+
+import java.io.Serial;
+
+import org.kohsuke.stapler.DataBoundConstructor;
+import org.kohsuke.stapler.DataBoundSetter;
+import org.kohsuke.stapler.verb.POST;
 import hudson.Extension;
 import hudson.util.ListBoxModel;
+import jenkins.model.Jenkins;
+
 import io.jenkins.plugins.coverage.metrics.model.Baseline;
 import io.jenkins.plugins.coverage.metrics.model.ElementFormatter;
 import io.jenkins.plugins.util.JenkinsFacade;
 import io.jenkins.plugins.util.QualityGate;
-import java.io.Serial;
-import jenkins.model.Jenkins;
-import org.kohsuke.stapler.DataBoundConstructor;
-import org.kohsuke.stapler.DataBoundSetter;
-import org.kohsuke.stapler.verb.POST;
 
 /**
  * Defines a quality gate based on a specific threshold of code coverage in the current build. After a build has been
@@ -54,11 +57,8 @@ public class CoverageQualityGate extends QualityGate {
         this.metric = metric;
     }
 
-    CoverageQualityGate(
-            final double threshold,
-            final Metric metric,
-            final Baseline baseline,
-            final QualityGateCriticality criticality,
+    CoverageQualityGate(final double threshold, final Metric metric,
+            final Baseline baseline, final QualityGateCriticality criticality,
             final MetricAggregation aggregation) {
         this(metric, threshold);
 
@@ -98,13 +98,11 @@ public class CoverageQualityGate extends QualityGate {
     @Override
     public String getName() {
         if (aggregation == MetricAggregation.getDefault()) {
-            return "%s - %s".formatted(FORMATTER.getDisplayName(getBaseline()), FORMATTER.getDisplayName(getMetric()));
+            return "%s - %s".formatted(FORMATTER.getDisplayName(getBaseline()),
+                    FORMATTER.getDisplayName(getMetric()));
         }
-        return "%s - %s (%s)"
-                .formatted(
-                        FORMATTER.getDisplayName(getBaseline()),
-                        FORMATTER.getDisplayName(getMetric()),
-                        FORMATTER.getDisplayName(aggregation));
+        return "%s - %s (%s)".formatted(FORMATTER.getDisplayName(getBaseline()),
+                FORMATTER.getDisplayName(getMetric()), FORMATTER.getDisplayName(aggregation));
     }
 
     public Metric getMetric() {

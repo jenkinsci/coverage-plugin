@@ -1,13 +1,16 @@
 package io.jenkins.plugins.coverage.metrics.steps;
 
-import static org.assertj.core.api.Assertions.*;
+import org.junit.jupiter.api.Test;
 
 import edu.hm.hafner.coverage.Difference;
 import edu.hm.hafner.coverage.FileNode;
 import edu.hm.hafner.coverage.Metric;
-import io.jenkins.plugins.coverage.metrics.AbstractModifiedFilesCoverageTest;
+
 import java.util.AbstractMap.SimpleEntry;
-import org.junit.jupiter.api.Test;
+
+import io.jenkins.plugins.coverage.metrics.AbstractModifiedFilesCoverageTest;
+
+import static org.assertj.core.api.Assertions.*;
 
 /**
  * Test class for {@link FileChangesProcessor}.
@@ -19,30 +22,24 @@ class FileChangesProcessorTest extends AbstractModifiedFilesCoverageTest {
     void shouldAttachChangedCodeLines() {
         var tree = createCoverageTree();
 
-        assertThat(tree.findByHashCode(
-                        Metric.FILE, getPathOfFileWithModifiedLines().hashCode()))
+        assertThat(tree.findByHashCode(Metric.FILE, getPathOfFileWithModifiedLines().hashCode()))
                 .isNotEmpty()
                 .satisfies(node -> assertThat(node.get())
-                        .isInstanceOfSatisfying(
-                                FileNode.class,
-                                f -> assertThat(f.getModifiedLines())
-                                        .containsExactly(
-                                                5, 6, 7, 8, 9, 14, 15, 16, 17, 18, 20, 21, 22, 33, 34, 35, 36)));
-        assertThat(tree.findByHashCode(
-                        Metric.FILE, getNameOfFileWithoutModifiedLines().hashCode()))
+                        .isInstanceOfSatisfying(FileNode.class, f -> assertThat(f.getModifiedLines())
+                                .containsExactly(
+                                        5, 6, 7, 8, 9, 14, 15, 16, 17, 18, 20, 21, 22, 33, 34, 35, 36)));
+        assertThat(tree.findByHashCode(Metric.FILE, getNameOfFileWithoutModifiedLines().hashCode()))
                 .isNotEmpty()
                 .satisfies(node -> assertThat(node.get())
-                        .isInstanceOfSatisfying(
-                                FileNode.class,
-                                f -> assertThat(f.getModifiedLines()).isEmpty()));
+                        .isInstanceOfSatisfying(FileNode.class, f -> assertThat(f.getModifiedLines())
+                                .isEmpty()));
     }
 
     @Test
     void shouldAttachFileCoverageDelta() {
         var tree = createCoverageTree();
 
-        assertThat(tree.findByHashCode(
-                        Metric.FILE, getPathOfFileWithModifiedLines().hashCode()))
+        assertThat(tree.findByHashCode(Metric.FILE, getPathOfFileWithModifiedLines().hashCode()))
                 .isNotEmpty()
                 .satisfies(node -> {
                     assertThat(node.get()).isInstanceOf(FileNode.class);
@@ -54,15 +51,16 @@ class FileChangesProcessorTest extends AbstractModifiedFilesCoverageTest {
     void shouldAttachIndirectCoverageChanges() {
         var tree = createCoverageTree();
 
-        assertThat(tree.findByHashCode(
-                        Metric.FILE, getPathOfFileWithModifiedLines().hashCode()))
+        assertThat(tree.findByHashCode(Metric.FILE, getPathOfFileWithModifiedLines().hashCode()))
                 .isNotEmpty()
                 .satisfies(node -> {
                     assertThat(node.get()).isInstanceOf(FileNode.class);
                     var file = (FileNode) node.get();
-                    assertThat(file.getIndirectCoverageChanges())
-                            .containsExactly(
-                                    new SimpleEntry<>(11, -1), new SimpleEntry<>(29, -1), new SimpleEntry<>(31, 1));
+                    assertThat(file.getIndirectCoverageChanges()).containsExactly(
+                            new SimpleEntry<>(11, -1),
+                            new SimpleEntry<>(29, -1),
+                            new SimpleEntry<>(31, 1)
+                    );
                 });
     }
 

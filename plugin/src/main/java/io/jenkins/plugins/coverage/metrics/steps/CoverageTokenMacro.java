@@ -1,16 +1,20 @@
 package io.jenkins.plugins.coverage.metrics.steps;
 
+import org.apache.commons.lang3.StringUtils;
+
 import edu.hm.hafner.coverage.Metric;
+
+import java.util.function.Predicate;
+
+import org.jenkinsci.plugins.tokenmacro.DataBoundTokenMacro;
+import org.jenkinsci.plugins.variant.OptionalExtension;
 import hudson.FilePath;
 import hudson.model.AbstractBuild;
 import hudson.model.Run;
 import hudson.model.TaskListener;
+
 import io.jenkins.plugins.coverage.metrics.model.Baseline;
 import io.jenkins.plugins.coverage.metrics.model.ElementFormatter;
-import java.util.function.Predicate;
-import org.apache.commons.lang3.StringUtils;
-import org.jenkinsci.plugins.tokenmacro.DataBoundTokenMacro;
-import org.jenkinsci.plugins.variant.OptionalExtension;
 
 /**
  * Provides a token that evaluates the number of issues.
@@ -65,14 +69,14 @@ public class CoverageTokenMacro extends DataBoundTokenMacro {
     }
 
     @Override
-    public String evaluate(
-            final AbstractBuild<?, ?> abstractBuild, final TaskListener taskListener, final String macroName) {
+    public String evaluate(final AbstractBuild<?, ?> abstractBuild, final TaskListener taskListener,
+            final String macroName) {
         return extractCoverageFromBuild(abstractBuild);
     }
 
     @Override
-    public String evaluate(
-            final Run<?, ?> run, final FilePath workspace, final TaskListener listener, final String macroName) {
+    public String evaluate(final Run<?, ?> run, final FilePath workspace, final TaskListener listener,
+            final String macroName) {
         return extractCoverageFromBuild(run);
     }
 
@@ -93,7 +97,8 @@ public class CoverageTokenMacro extends DataBoundTokenMacro {
     private Predicate<CoverageBuildAction> createIdFilter() {
         if (StringUtils.isBlank(id)) {
             return jobAction -> true;
-        } else {
+        }
+        else {
             return jobAction -> jobAction.getUrlName().equals(id);
         }
     }

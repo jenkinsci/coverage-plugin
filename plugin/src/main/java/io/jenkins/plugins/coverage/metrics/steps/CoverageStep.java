@@ -1,9 +1,29 @@
 package io.jenkins.plugins.coverage.metrics.steps;
 
-import static io.jenkins.plugins.coverage.metrics.steps.CoverageRecorder.*;
+import org.apache.commons.lang3.StringUtils;
 
 import edu.umd.cs.findbugs.annotations.CheckForNull;
 import edu.umd.cs.findbugs.annotations.NonNull;
+
+import java.io.IOException;
+import java.io.Serial;
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import org.kohsuke.stapler.AncestorInPath;
+import org.kohsuke.stapler.DataBoundConstructor;
+import org.kohsuke.stapler.DataBoundSetter;
+import org.kohsuke.stapler.QueryParameter;
+import org.kohsuke.stapler.verb.POST;
+import org.jenkinsci.plugins.workflow.graph.FlowNode;
+import org.jenkinsci.plugins.workflow.steps.Step;
+import org.jenkinsci.plugins.workflow.steps.StepContext;
+import org.jenkinsci.plugins.workflow.steps.StepDescriptor;
+import org.jenkinsci.plugins.workflow.steps.StepExecution;
 import hudson.Extension;
 import hudson.FilePath;
 import hudson.model.BuildableItem;
@@ -14,32 +34,16 @@ import hudson.tools.ToolDescriptor;
 import hudson.util.ComboBoxModel;
 import hudson.util.FormValidation;
 import hudson.util.ListBoxModel;
+import jenkins.model.Jenkins;
+
 import io.jenkins.plugins.checks.steps.ChecksInfo;
 import io.jenkins.plugins.prism.SourceCodeDirectory;
 import io.jenkins.plugins.prism.SourceCodeRetention;
 import io.jenkins.plugins.util.AbstractExecution;
 import io.jenkins.plugins.util.JenkinsFacade;
 import io.jenkins.plugins.util.ValidationUtilities;
-import java.io.IOException;
-import java.io.Serial;
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import jenkins.model.Jenkins;
-import org.apache.commons.lang3.StringUtils;
-import org.jenkinsci.plugins.workflow.graph.FlowNode;
-import org.jenkinsci.plugins.workflow.steps.Step;
-import org.jenkinsci.plugins.workflow.steps.StepContext;
-import org.jenkinsci.plugins.workflow.steps.StepDescriptor;
-import org.jenkinsci.plugins.workflow.steps.StepExecution;
-import org.kohsuke.stapler.AncestorInPath;
-import org.kohsuke.stapler.DataBoundConstructor;
-import org.kohsuke.stapler.DataBoundSetter;
-import org.kohsuke.stapler.QueryParameter;
-import org.kohsuke.stapler.verb.POST;
+
+import static io.jenkins.plugins.coverage.metrics.steps.CoverageRecorder.*;
 
 /**
  * A pipeline {@code Step} that reads and parses coverage results in a build and adds the results to the persisted build
@@ -52,19 +56,16 @@ import org.kohsuke.stapler.verb.POST;
 public class CoverageStep extends Step implements Serializable {
     @Serial
     private static final long serialVersionUID = 34386077204781270L;
-
     private static final ValidationUtilities VALIDATION_UTILITIES = new ValidationUtilities();
 
     @SuppressWarnings("serial")
     private List<CoverageTool> tools = new ArrayList<>();
-
     @SuppressWarnings("serial")
     private List<CoverageQualityGate> qualityGates = new ArrayList<>();
-
     private String id = StringUtils.EMPTY;
     private String name = StringUtils.EMPTY;
     private boolean skipPublishingChecks = false;
-    private String checksName = StringUtils.EMPTY;
+    private String checksName =  StringUtils.EMPTY;
     private ChecksAnnotationScope checksAnnotationScope = ChecksAnnotationScope.MODIFIED_LINES;
     private boolean ignoreParsingErrors = false;
     private boolean failOnError = false;
@@ -72,10 +73,8 @@ public class CoverageStep extends Step implements Serializable {
     private boolean skipSymbolicLinks = false;
     private String scm = StringUtils.EMPTY;
     private String sourceCodeEncoding = StringUtils.EMPTY;
-
     @SuppressWarnings("serial")
     private Set<SourceCodeDirectory> sourceDirectories = new HashSet<>();
-
     private SourceCodeRetention sourceCodeRetention = SourceCodeRetention.LAST_BUILD;
 
     /**
@@ -339,7 +338,6 @@ public class CoverageStep extends Step implements Serializable {
     static class Execution extends AbstractExecution<Void> {
         @Serial
         private static final long serialVersionUID = -2840020502160375407L;
-
         private static final Void UNUSED = null;
 
         private final CoverageStep step;
@@ -437,6 +435,7 @@ public class CoverageStep extends Step implements Serializable {
             return new ListBoxModel();
         }
 
+
         /**
          * Returns a model with all available charsets.
          *
@@ -463,8 +462,8 @@ public class CoverageStep extends Step implements Serializable {
          */
         @POST
         @SuppressWarnings("unused") // used by Stapler view data binding
-        public FormValidation doCheckSourceCodeEncoding(
-                @AncestorInPath final BuildableItem project, @QueryParameter final String sourceCodeEncoding) {
+        public FormValidation doCheckSourceCodeEncoding(@AncestorInPath final BuildableItem project,
+                @QueryParameter final String sourceCodeEncoding) {
             if (!JENKINS.hasPermission(Item.CONFIGURE, project)) {
                 return FormValidation.ok();
             }
@@ -483,7 +482,8 @@ public class CoverageStep extends Step implements Serializable {
          * @return the validation result
          */
         @POST
-        public FormValidation doCheckId(@AncestorInPath final BuildableItem project, @QueryParameter final String id) {
+        public FormValidation doCheckId(@AncestorInPath final BuildableItem project,
+                @QueryParameter final String id) {
             if (!JENKINS.hasPermission(Item.CONFIGURE, project)) {
                 return FormValidation.ok();
             }

@@ -8,10 +8,12 @@ import edu.hm.hafner.echarts.line.LineSeries.FilledMode;
 import edu.hm.hafner.echarts.line.LineSeries.StackedMode;
 import edu.hm.hafner.echarts.line.LinesChartModel;
 import edu.hm.hafner.echarts.line.LinesDataSet;
-import io.jenkins.plugins.coverage.metrics.model.CoverageStatistics;
+
 import java.util.Arrays;
 import java.util.Set;
 import java.util.stream.Collectors;
+
+import io.jenkins.plugins.coverage.metrics.model.CoverageStatistics;
 
 /**
  * Builds the Java side model for a trend chart. The number of builds to consider is controlled by a
@@ -21,8 +23,7 @@ import java.util.stream.Collectors;
  * @author Ullrich Hafner
  */
 public abstract class TrendChart {
-    private static final Set<Metric> ALL_METRICS =
-            Arrays.stream(Metric.values()).collect(Collectors.toSet());
+    private static final Set<Metric> ALL_METRICS = Arrays.stream(Metric.values()).collect(Collectors.toSet());
 
     /**
      * Create a trend chart instance for coverage or software metrics.
@@ -54,29 +55,25 @@ public abstract class TrendChart {
      *
      * @return the chart model, ready to be serialized to JSON
      */
-    public abstract LinesChartModel create(
-            Iterable<BuildResult<CoverageStatistics>> results, ChartModelConfiguration configuration);
+    public abstract LinesChartModel create(Iterable<BuildResult<CoverageStatistics>> results,
+            ChartModelConfiguration configuration);
 
-    void addSeriesIfAvailable(
-            final LinesDataSet dataSet,
-            final LinesChartModel model,
-            final String name,
-            final String seriesId,
-            final String color) {
+    void addSeriesIfAvailable(final LinesDataSet dataSet, final LinesChartModel model,
+                   final String name, final String seriesId, final String color) {
         if (dataSet.containsSeries(seriesId) && isVisible(seriesId)) {
-            var branchSeries =
-                    new LineSeries(name, color, StackedMode.SEPARATE_LINES, filledMode, dataSet.getSeries(seriesId));
+            var branchSeries = new LineSeries(name,
+                    color, StackedMode.SEPARATE_LINES, filledMode, dataSet.getSeries(seriesId));
 
             model.addSeries(branchSeries);
         }
     }
 
-    void addSeriesIfAvailable(
-            final LinesDataSet dataSet, final LinesChartModel model, final Metric metric, final String color) {
+    void addSeriesIfAvailable(final LinesDataSet dataSet, final LinesChartModel model,
+                   final Metric metric, final String color) {
         var tagName = metric.toTagName();
         if (dataSet.containsSeries(tagName) && isVisible(tagName)) {
-            var branchSeries = new LineSeries(
-                    metric.getDisplayName(), color, StackedMode.SEPARATE_LINES, filledMode, dataSet.getSeries(tagName));
+            var branchSeries = new LineSeries(metric.getDisplayName(),
+                    color, StackedMode.SEPARATE_LINES, filledMode, dataSet.getSeries(tagName));
 
             model.addSeries(branchSeries);
         }

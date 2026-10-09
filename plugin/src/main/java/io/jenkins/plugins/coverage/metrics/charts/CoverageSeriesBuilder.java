@@ -2,10 +2,12 @@ package io.jenkins.plugins.coverage.metrics.charts;
 
 import edu.hm.hafner.coverage.Metric;
 import edu.hm.hafner.echarts.line.SeriesBuilder;
-import io.jenkins.plugins.coverage.metrics.model.CoverageStatistics;
+
 import java.util.Arrays;
 import java.util.Map;
 import java.util.stream.Collectors;
+
+import io.jenkins.plugins.coverage.metrics.model.CoverageStatistics;
 
 /**
  * Builds one x-axis point for the series of a line chart showing the coverage metrics of a project.

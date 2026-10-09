@@ -1,7 +1,10 @@
 package io.jenkins.plugins.coverage.metrics.steps;
 
-import static org.assertj.core.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import org.apache.commons.lang3.StringUtils;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
+import org.junitpioneer.jupiter.DefaultLocale;
 
 import edu.hm.hafner.coverage.Coverage.CoverageBuilder;
 import edu.hm.hafner.coverage.Difference;
@@ -10,7 +13,11 @@ import edu.hm.hafner.coverage.ModuleNode;
 import edu.hm.hafner.coverage.Node;
 import edu.hm.hafner.coverage.Value;
 import edu.hm.hafner.coverage.parser.PitestParser;
+
+import java.util.List;
+
 import hudson.model.Run;
+
 import io.jenkins.plugins.checks.api.ChecksAnnotation.ChecksAnnotationLevel;
 import io.jenkins.plugins.checks.api.ChecksConclusion;
 import io.jenkins.plugins.checks.api.ChecksDetails;
@@ -21,12 +28,9 @@ import io.jenkins.plugins.coverage.metrics.AbstractCoverageTest;
 import io.jenkins.plugins.coverage.metrics.steps.CoverageRecorder.ChecksAnnotationScope;
 import io.jenkins.plugins.util.JenkinsFacade;
 import io.jenkins.plugins.util.QualityGateResult;
-import java.util.List;
-import org.apache.commons.lang3.StringUtils;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.CsvSource;
-import org.junitpioneer.jupiter.DefaultLocale;
+
+import static org.assertj.core.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
 @DefaultLocale("en")
 class CoverageChecksPublisherTest extends AbstractCoverageTest {
@@ -41,32 +45,22 @@ class CoverageChecksPublisherTest extends AbstractCoverageTest {
     void shouldShowQualityGateDetails() {
         var result = readJacocoResult("jacoco-codingstyle.xml");
 
-        var publisher = new CoverageChecksPublisher(
-                createActionWithoutDelta(result, CoverageQualityGateEvaluatorTest.createQualityGateResult()),
-                result,
-                REPORT_NAME,
-                ChecksAnnotationScope.SKIP,
-                NO_CHECKS_INFO,
-                createJenkins());
+        var publisher = new CoverageChecksPublisher(createActionWithoutDelta(result,
+                CoverageQualityGateEvaluatorTest.createQualityGateResult()), result, REPORT_NAME,
+                ChecksAnnotationScope.SKIP, NO_CHECKS_INFO, createJenkins());
 
         var checkDetails = publisher.extractChecksDetails();
 
         var expectedQualityGateSummary = toString("coverage-publisher-quality-gate.checks-expected-result");
-        assertThat(checkDetails.getOutput())
-                .isPresent()
-                .get()
-                .satisfies(output -> assertThat(output.getSummary())
-                        .isPresent()
+        assertThat(checkDetails.getOutput()).isPresent().get().satisfies(output ->
+                assertThat(output.getSummary()).isPresent()
                         .get()
                         .asString()
                         .containsIgnoringWhitespaces(expectedQualityGateSummary));
 
         var expectedOverview = toString("coverage-publisher-overview.checks-expected-result");
-        assertThat(checkDetails.getOutput())
-                .isPresent()
-                .get()
-                .satisfies(output -> assertThat(output.getSummary())
-                        .isPresent()
+        assertThat(checkDetails.getOutput()).isPresent().get().satisfies(output ->
+                assertThat(output.getSummary()).isPresent()
                         .get()
                         .asString()
                         .containsIgnoringWhitespaces(expectedOverview));
@@ -82,13 +76,8 @@ class CoverageChecksPublisherTest extends AbstractCoverageTest {
         var name = "name";
         when(checksInfo.getName()).thenReturn(name);
 
-        var publisher = new CoverageChecksPublisher(
-                createActionWithoutDelta(result),
-                result,
-                REPORT_NAME,
-                ChecksAnnotationScope.SKIP,
-                checksInfo,
-                createJenkins());
+        var publisher = new CoverageChecksPublisher(createActionWithoutDelta(result), result, REPORT_NAME,
+                ChecksAnnotationScope.SKIP, checksInfo, createJenkins());
 
         var checkDetails = publisher.extractChecksDetails();
         assertThat(checkDetails.getName()).contains(name);
@@ -99,13 +88,8 @@ class CoverageChecksPublisherTest extends AbstractCoverageTest {
     void shouldShowProjectBaselineForJaCoCo() {
         var result = readJacocoResult("jacoco-codingstyle.xml");
 
-        var publisher = new CoverageChecksPublisher(
-                createActionWithoutDelta(result),
-                result,
-                REPORT_NAME,
-                ChecksAnnotationScope.SKIP,
-                NO_CHECKS_INFO,
-                createJenkins());
+        var publisher = new CoverageChecksPublisher(createActionWithoutDelta(result), result, REPORT_NAME,
+                ChecksAnnotationScope.SKIP, NO_CHECKS_INFO, createJenkins());
 
         assertThatTitleIs(publisher, "Line Coverage: 91.02%, Branch Coverage: 93.97%");
     }
@@ -114,13 +98,8 @@ class CoverageChecksPublisherTest extends AbstractCoverageTest {
     void shouldShowProjectBaselineForPit() {
         var result = readResult("mutations.xml", new PitestParser());
 
-        var publisher = new CoverageChecksPublisher(
-                createActionWithoutDelta(result),
-                result,
-                REPORT_NAME,
-                ChecksAnnotationScope.SKIP,
-                NO_CHECKS_INFO,
-                createJenkins());
+        var publisher = new CoverageChecksPublisher(createActionWithoutDelta(result), result, REPORT_NAME,
+                ChecksAnnotationScope.SKIP, NO_CHECKS_INFO, createJenkins());
 
         assertThatTitleIs(publisher, "Line Coverage: 93.84%, Mutation Coverage: 90.24%");
     }
@@ -130,29 +109,21 @@ class CoverageChecksPublisherTest extends AbstractCoverageTest {
     void shouldCreateChecksReportPit(final ChecksAnnotationScope scope, final int expectedAnnotations) {
         var result = readResult("mutations.xml", new PitestParser());
 
-        var publisher = new CoverageChecksPublisher(
-                createCoverageBuildAction(result), result, REPORT_NAME, scope, NO_CHECKS_INFO, createJenkins());
+        var publisher = new CoverageChecksPublisher(createCoverageBuildAction(result), result, REPORT_NAME,
+                scope, NO_CHECKS_INFO, createJenkins());
 
-        assertThat(publisher.extractChecksDetails().getOutput())
-                .isPresent()
-                .get()
-                .satisfies(output -> {
-                    assertSummary(output, "coverage-publisher-summary.checks-expected-result-pit");
-                    assertMutationAnnotations(output, expectedAnnotations);
-                });
+        assertThat(publisher.extractChecksDetails().getOutput()).isPresent().get().satisfies(output -> {
+            assertSummary(output, "coverage-publisher-summary.checks-expected-result-pit");
+            assertMutationAnnotations(output, expectedAnnotations);
+        });
     }
 
     @Test
     void shouldShowOnlyMeasuredMetricsInChecksTableForPit() {
         var result = readResult("mutations.xml", new PitestParser());
 
-        var publisher = new CoverageChecksPublisher(
-                createCoverageBuildAction(result),
-                result,
-                REPORT_NAME,
-                ChecksAnnotationScope.SKIP,
-                NO_CHECKS_INFO,
-                createJenkins());
+        var publisher = new CoverageChecksPublisher(createCoverageBuildAction(result), result, REPORT_NAME,
+                ChecksAnnotationScope.SKIP, NO_CHECKS_INFO, createJenkins());
 
         var checkDetails = publisher.extractChecksDetails();
 
@@ -160,10 +131,7 @@ class CoverageChecksPublisherTest extends AbstractCoverageTest {
     }
 
     private void assertPitCoverageTableColumns(final ChecksOutput output) {
-        assertThat(output.getText())
-                .isPresent()
-                .get()
-                .asString()
+        assertThat(output.getText()).isPresent().get().asString()
                 .as("PIT coverage table should not contain Branch Coverage column")
                 .doesNotContain("Branch Coverage")
                 .as("PIT coverage table should not contain Instruction Coverage column")
@@ -179,58 +147,44 @@ class CoverageChecksPublisherTest extends AbstractCoverageTest {
     private void assertMutationAnnotations(final ChecksOutput output, final int expectedAnnotations) {
         assertThat(output.getChecksAnnotations()).hasSize(expectedAnnotations);
         if (expectedAnnotations == 1) {
-            assertThat(output.getChecksAnnotations()).satisfiesExactly(annotation -> {
-                assertThat(annotation.getTitle()).contains("Mutation survived");
-                assertThat(annotation.getAnnotationLevel()).isEqualTo(ChecksAnnotationLevel.WARNING);
-                assertThat(annotation.getRawDetails())
-                        .contains(
-                                "Survived mutations:\n"
-                                        + "- Replaced integer addition with subtraction (org.pitest.mutationtest.engine.gregor.mutators.MathMutator)");
-                assertThat(annotation.getPath()).contains("edu/hm/hafner/coverage/parser/CoberturaParser.java");
-                assertThat(annotation.getMessage()).contains("One mutation survived in line 251 (MathMutator)");
-                assertThat(annotation.getStartLine()).isPresent().contains(251);
-                assertThat(annotation.getEndLine()).isPresent().contains(251);
-            });
+            assertThat(output.getChecksAnnotations()).satisfiesExactly(
+                    annotation -> {
+                        assertThat(annotation.getTitle()).contains("Mutation survived");
+                        assertThat(annotation.getAnnotationLevel()).isEqualTo(ChecksAnnotationLevel.WARNING);
+                        assertThat(annotation.getRawDetails()).contains("Survived mutations:\n"
+                                + "- Replaced integer addition with subtraction (org.pitest.mutationtest.engine.gregor.mutators.MathMutator)");
+                        assertThat(annotation.getPath()).contains("edu/hm/hafner/coverage/parser/CoberturaParser.java");
+                        assertThat(annotation.getMessage()).contains("One mutation survived in line 251 (MathMutator)");
+                        assertThat(annotation.getStartLine()).isPresent().contains(251);
+                        assertThat(annotation.getEndLine()).isPresent().contains(251);
+                    });
         }
     }
 
     protected void assertThatTitleIs(final CoverageChecksPublisher publisher, final String expectedTitle) {
         var checkDetails = publisher.extractChecksDetails();
-        assertThat(checkDetails.getOutput())
-                .isPresent()
-                .get()
-                .satisfies(output -> assertThat(output.getTitle()).isPresent().contains(expectedTitle));
+        assertThat(checkDetails.getOutput()).isPresent().get().satisfies(output ->
+                assertThat(output.getTitle()).isPresent().contains(expectedTitle));
     }
 
     @Test
     void shouldShowMeasuredMetricsInChecksTableForJaCoCo() {
         var result = readJacocoResult("jacoco-codingstyle.xml");
 
-        var publisher = new CoverageChecksPublisher(
-                createActionWithoutDelta(result),
-                result,
-                REPORT_NAME,
-                ChecksAnnotationScope.SKIP,
-                NO_CHECKS_INFO,
-                createJenkins());
+        var publisher = new CoverageChecksPublisher(createActionWithoutDelta(result), result, REPORT_NAME,
+                ChecksAnnotationScope.SKIP, NO_CHECKS_INFO, createJenkins());
 
         var checkDetails = publisher.extractChecksDetails();
 
-        assertThat(checkDetails.getOutput())
-                .isPresent()
-                .get()
-                .satisfies(output -> assertThat(output.getText())
-                        .isPresent()
-                        .get()
-                        .asString()
+        assertThat(checkDetails.getOutput()).isPresent().get().satisfies(output ->
+                assertThat(output.getText()).isPresent().get().asString()
                         .as("JaCoCo coverage table should contain Branch Coverage column since JaCoCo measures it")
                         .contains("Branch Coverage")
                         .as("JaCoCo coverage table should contain Instruction Coverage column since JaCoCo measures it")
                         .contains("Instruction Coverage")
                         .as("JaCoCo coverage table should contain Line Coverage column")
                         .contains("Line Coverage")
-                        .as(
-                                "JaCoCo coverage table should not contain Test Strength column since JaCoCo does not measure mutations")
+                        .as("JaCoCo coverage table should not contain Test Strength column since JaCoCo does not measure mutations")
                         .doesNotContain("Test Strength"));
     }
 
@@ -239,16 +193,15 @@ class CoverageChecksPublisherTest extends AbstractCoverageTest {
     void shouldCreateChecksReportJaCoCo(final ChecksAnnotationScope scope, final int expectedAnnotations) {
         var result = readJacocoResult("jacoco-codingstyle.xml");
 
-        var publisher = new CoverageChecksPublisher(
-                createCoverageBuildAction(result), result, REPORT_NAME, scope, NO_CHECKS_INFO, createJenkins());
+        var publisher = new CoverageChecksPublisher(createCoverageBuildAction(result), result, REPORT_NAME, scope,
+                NO_CHECKS_INFO, createJenkins());
 
         var checkDetails = publisher.extractChecksDetails();
 
         assertThat(checkDetails.getName()).isPresent().contains(REPORT_NAME);
         assertThat(checkDetails.getStatus()).isEqualTo(ChecksStatus.COMPLETED);
         assertThat(checkDetails.getConclusion()).isEqualTo(ChecksConclusion.SUCCESS);
-        assertThat(checkDetails.getDetailsURL())
-                .isPresent()
+        assertThat(checkDetails.getDetailsURL()).isPresent()
                 .contains("http://127.0.0.1:8080/job/pipeline-coding-style/job/5/coverage");
         assertThatDetailsAreCorrect(checkDetails, expectedAnnotations);
     }
@@ -257,26 +210,15 @@ class CoverageChecksPublisherTest extends AbstractCoverageTest {
     void shouldRenderPositiveDeltasInGreenAndNegativeDeltasInRed() {
         var result = readJacocoResult("jacoco-codingstyle.xml");
 
-        var publisher = new CoverageChecksPublisher(
-                createCoverageBuildAction(result),
-                result,
-                REPORT_NAME,
-                ChecksAnnotationScope.SKIP,
-                NO_CHECKS_INFO,
-                createJenkins());
+        var publisher = new CoverageChecksPublisher(createCoverageBuildAction(result), result, REPORT_NAME,
+                ChecksAnnotationScope.SKIP, NO_CHECKS_INFO, createJenkins());
 
         var output = publisher.extractChecksDetails().getOutput();
         assertThat(output).isPresent().get().satisfies(checksOutput -> {
-            assertThat(checksOutput.getSummary())
-                    .isPresent()
-                    .get()
-                    .asString()
+            assertThat(checksOutput.getSummary()).isPresent().get().asString()
                     .contains("Line Coverage: 91.02% (294/323) $\\color{green}{\\textsf{(+50.00\\%)}}$")
                     .doesNotContain("- Delta:");
-            assertThat(checksOutput.getText())
-                    .isPresent()
-                    .get()
-                    .asString()
+            assertThat(checksOutput.getText()).isPresent().get().asString()
                     .contains("$\\color{green}{\\textsf{(+50.00\\%)}}$") // line coverage delta
                     .contains("$\\color{red}{\\textsf{(-50.00\\%)}}$") // package coverage delta
                     .contains("$\\textsf{(±0\\%)}$") // module coverage has no delta at all
@@ -288,13 +230,8 @@ class CoverageChecksPublisherTest extends AbstractCoverageTest {
     void shouldNotRenderDeltasIfThereIsNoReferenceBuild() {
         var result = readJacocoResult("jacoco-codingstyle.xml");
 
-        var publisher = new CoverageChecksPublisher(
-                createActionWithoutDelta(result),
-                result,
-                REPORT_NAME,
-                ChecksAnnotationScope.SKIP,
-                NO_CHECKS_INFO,
-                createJenkins());
+        var publisher = new CoverageChecksPublisher(createActionWithoutDelta(result), result, REPORT_NAME,
+                ChecksAnnotationScope.SKIP, NO_CHECKS_INFO, createJenkins());
 
         var output = publisher.extractChecksDetails().getOutput();
         assertThat(output).isPresent().get().satisfies(checksOutput -> {
@@ -308,21 +245,11 @@ class CoverageChecksPublisherTest extends AbstractCoverageTest {
     void shouldShowPerfectSuffixForFullyCoveredMetrics(final Metric metric, final String displayName) {
         var result = createResultWithCoverage(metric, 10, 0);
 
-        var publisher = new CoverageChecksPublisher(
-                createActionWithoutDelta(result),
-                result,
-                REPORT_NAME,
-                ChecksAnnotationScope.SKIP,
-                NO_CHECKS_INFO,
-                createJenkins());
+        var publisher = new CoverageChecksPublisher(createActionWithoutDelta(result), result, REPORT_NAME,
+                ChecksAnnotationScope.SKIP, NO_CHECKS_INFO, createJenkins());
 
-        assertThat(publisher.extractChecksDetails().getOutput())
-                .isPresent()
-                .get()
-                .satisfies(output -> assertThat(output.getSummary())
-                        .isPresent()
-                        .get()
-                        .asString()
+        assertThat(publisher.extractChecksDetails().getOutput()).isPresent().get().satisfies(output ->
+                assertThat(output.getSummary()).isPresent().get().asString()
                         .contains("* %s: 100.00%% (10/10) - perfect :tada:".formatted(displayName)));
     }
 
@@ -331,21 +258,11 @@ class CoverageChecksPublisherTest extends AbstractCoverageTest {
     void shouldNotShowPerfectSuffixIfItemsAreMissed(final Metric metric, final String displayName) {
         var result = createResultWithCoverage(metric, 9, 1);
 
-        var publisher = new CoverageChecksPublisher(
-                createActionWithoutDelta(result),
-                result,
-                REPORT_NAME,
-                ChecksAnnotationScope.SKIP,
-                NO_CHECKS_INFO,
-                createJenkins());
+        var publisher = new CoverageChecksPublisher(createActionWithoutDelta(result), result, REPORT_NAME,
+                ChecksAnnotationScope.SKIP, NO_CHECKS_INFO, createJenkins());
 
-        assertThat(publisher.extractChecksDetails().getOutput())
-                .isPresent()
-                .get()
-                .satisfies(output -> assertThat(output.getSummary())
-                        .isPresent()
-                        .get()
-                        .asString()
+        assertThat(publisher.extractChecksDetails().getOutput()).isPresent().get().satisfies(output ->
+                assertThat(output.getSummary()).isPresent().get().asString()
                         .contains("* %s: 90.00%% (9/10)".formatted(displayName))
                         .doesNotContain("perfect"));
     }
@@ -354,21 +271,11 @@ class CoverageChecksPublisherTest extends AbstractCoverageTest {
     void shouldNotShowPerfectSuffixForOtherFullyCoveredMetrics() {
         var result = createResultWithCoverage(Metric.BRANCH, 10, 0);
 
-        var publisher = new CoverageChecksPublisher(
-                createActionWithoutDelta(result),
-                result,
-                REPORT_NAME,
-                ChecksAnnotationScope.SKIP,
-                NO_CHECKS_INFO,
-                createJenkins());
+        var publisher = new CoverageChecksPublisher(createActionWithoutDelta(result), result, REPORT_NAME,
+                ChecksAnnotationScope.SKIP, NO_CHECKS_INFO, createJenkins());
 
-        assertThat(publisher.extractChecksDetails().getOutput())
-                .isPresent()
-                .get()
-                .satisfies(output -> assertThat(output.getSummary())
-                        .isPresent()
-                        .get()
-                        .asString()
+        assertThat(publisher.extractChecksDetails().getOutput()).isPresent().get().satisfies(output ->
+                assertThat(output.getSummary()).isPresent().get().asString()
                         .contains("* Branch Coverage: 100.00% (10/10)")
                         .doesNotContain("perfect"));
     }
@@ -378,47 +285,28 @@ class CoverageChecksPublisherTest extends AbstractCoverageTest {
         var result = readJacocoResult("jacoco-codingstyle.xml");
         result.findFile("TreeStringBuilder.java").ifPresent(file -> file.addModifiedLines(61, 62, 113));
 
-        var perfectCoverage =
-                new CoverageBuilder(Metric.LINE).withCovered(2).withMissed(0).build();
+        var perfectCoverage = new CoverageBuilder(Metric.LINE).withCovered(2).withMissed(0).build();
         var run = mock(Run.class);
         when(run.getUrl()).thenReturn(BUILD_LINK);
-        var action = new CoverageBuildAction(
-                run,
-                COVERAGE_ID,
-                REPORT_NAME,
-                StringUtils.EMPTY,
-                result,
-                new QualityGateResult(),
-                null,
-                "refId",
+        var action = new CoverageBuildAction(run, COVERAGE_ID, REPORT_NAME, StringUtils.EMPTY, result,
+                new QualityGateResult(), null, "refId",
                 List.of(getValue("LINE: 50")),
-                List.of(perfectCoverage),
-                List.of(getValue("LINE: 50")),
-                List.of(perfectCoverage),
-                List.of(getValue("LINE: 50")),
-                List.of(perfectCoverage),
-                false);
+                List.of(perfectCoverage), List.of(getValue("LINE: 50")),
+                List.of(perfectCoverage), List.of(getValue("LINE: 50")),
+                List.of(perfectCoverage), false);
 
-        var publisher = new CoverageChecksPublisher(
-                action, result, REPORT_NAME, ChecksAnnotationScope.SKIP, NO_CHECKS_INFO, createJenkins());
+        var publisher = new CoverageChecksPublisher(action, result, REPORT_NAME,
+                ChecksAnnotationScope.SKIP, NO_CHECKS_INFO, createJenkins());
 
-        assertThat(publisher.extractChecksDetails().getOutput())
-                .isPresent()
-                .get()
-                .satisfies(output -> assertThat(output.getSummary())
-                        .isPresent()
-                        .get()
-                        .asString()
+        assertThat(publisher.extractChecksDetails().getOutput()).isPresent().get().satisfies(output ->
+                assertThat(output.getSummary()).isPresent().get().asString()
                         .contains("Line Coverage: 100.00% (2/2) "
                                 + "$\\color{green}{\\textsf{(+50.00\\%)}}$ - perfect :tada:"));
     }
 
     private Node createResultWithCoverage(final Metric metric, final int covered, final int missed) {
         var module = new ModuleNode("Module");
-        module.addValue(new CoverageBuilder(metric)
-                .withCovered(covered)
-                .withMissed(missed)
-                .build());
+        module.addValue(new CoverageBuilder(metric).withCovered(covered).withMissed(missed).build());
         return module;
     }
 
@@ -426,32 +314,22 @@ class CoverageChecksPublisherTest extends AbstractCoverageTest {
     void shouldShowVectorCastQualityGateDetails() {
         var result = readVectorCastResult("vectorcast-statement-mcdc-fcc.xml");
 
-        var publisher = new CoverageChecksPublisher(
-                createActionWithoutDelta(result, CoverageQualityGateEvaluatorTest.createQualityGateResult()),
-                result,
-                REPORT_NAME,
-                ChecksAnnotationScope.SKIP,
-                NO_CHECKS_INFO,
-                createJenkins());
+        var publisher = new CoverageChecksPublisher(createActionWithoutDelta(result,
+                CoverageQualityGateEvaluatorTest.createQualityGateResult()), result, REPORT_NAME,
+                ChecksAnnotationScope.SKIP, NO_CHECKS_INFO, createJenkins());
 
         var checkDetails = publisher.extractChecksDetails();
 
         var expectedQualityGateSummary = toString("vectorcast-coverage-publisher-quality-gate.checks-expected-result");
-        assertThat(checkDetails.getOutput())
-                .isPresent()
-                .get()
-                .satisfies(output -> assertThat(output.getSummary())
-                        .isPresent()
+        assertThat(checkDetails.getOutput()).isPresent().get().satisfies(output ->
+                assertThat(output.getSummary()).isPresent()
                         .get()
                         .asString()
                         .containsIgnoringWhitespaces(expectedQualityGateSummary));
 
         var expectedOverview = toString("vectorcast-coverage-publisher-quality-gate-overview.checks-expected-result");
-        assertThat(checkDetails.getOutput())
-                .isPresent()
-                .get()
-                .satisfies(output -> assertThat(output.getSummary())
-                        .isPresent()
+        assertThat(checkDetails.getOutput()).isPresent().get().satisfies(output ->
+                assertThat(output.getSummary()).isPresent()
                         .get()
                         .asString()
                         .containsIgnoringWhitespaces(expectedOverview));
@@ -461,13 +339,8 @@ class CoverageChecksPublisherTest extends AbstractCoverageTest {
     void shouldShowProjectBaselineForVectorCast() {
         var result = readVectorCastResult("vectorcast-statement-mcdc-fcc.xml");
 
-        var publisher = new CoverageChecksPublisher(
-                createActionWithoutDelta(result),
-                result,
-                REPORT_NAME,
-                ChecksAnnotationScope.SKIP,
-                NO_CHECKS_INFO,
-                createJenkins());
+        var publisher = new CoverageChecksPublisher(createActionWithoutDelta(result), result, REPORT_NAME,
+                ChecksAnnotationScope.SKIP, NO_CHECKS_INFO, createJenkins());
 
         assertThatTitleIs(publisher, "Line Coverage: 79.93%, Branch Coverage: 66.18%");
     }
@@ -475,9 +348,7 @@ class CoverageChecksPublisherTest extends AbstractCoverageTest {
     @ParameterizedTest(name = "should create checks (scope = {0}, expected annotations = {1})")
     @CsvSource({"SKIP, 0", "ALL_LINES, 6", "MODIFIED_LINES, 0"})
     void shouldCreateChecksReportStatementBranch(final ChecksAnnotationScope scope, final int expectedAnnotations) {
-        shouldCreateChecksReport(
-                scope,
-                expectedAnnotations,
+        shouldCreateChecksReport(scope, expectedAnnotations,
                 "vectorcast-statement-branch.xml",
                 "vectorcast-coverage-publisher-s+b-details.checks-expected-result",
                 "vectorcast-coverage-publisher-s+b-overview.checks-expected-result");
@@ -486,9 +357,7 @@ class CoverageChecksPublisherTest extends AbstractCoverageTest {
     @ParameterizedTest(name = "should create checks (scope = {0}, expected annotations = {1})")
     @CsvSource({"SKIP, 0", "ALL_LINES, 8", "MODIFIED_LINES, 0"})
     void shouldCreateChecksReportStatementMcdc(final ChecksAnnotationScope scope, final int expectedAnnotations) {
-        shouldCreateChecksReport(
-                scope,
-                expectedAnnotations,
+        shouldCreateChecksReport(scope, expectedAnnotations,
                 "vectorcast-statement-mcdc.xml",
                 "vectorcast-coverage-publisher-s+mcdc-details.checks-expected-result",
                 "vectorcast-coverage-publisher-s+mcdc-overview.checks-expected-result");
@@ -496,43 +365,33 @@ class CoverageChecksPublisherTest extends AbstractCoverageTest {
 
     @ParameterizedTest(name = "should create checks (scope = {0}, expected annotations = {1})")
     @CsvSource({"SKIP, 0", "ALL_LINES, 59", "MODIFIED_LINES, 0"})
-    void shouldCreateChecksReportStatementMcdcFunctionCall(
-            final ChecksAnnotationScope scope, final int expectedAnnotations) {
-        shouldCreateChecksReport(
-                scope,
-                expectedAnnotations,
+    void shouldCreateChecksReportStatementMcdcFunctionCall(final ChecksAnnotationScope scope,
+            final int expectedAnnotations) {
+        shouldCreateChecksReport(scope, expectedAnnotations,
                 "vectorcast-statement-mcdc-fcc.xml",
                 "vectorcast-coverage-publisher-s+mcdc+fcc-details.checks-expected-result",
                 "vectorcast-coverage-publisher-s+mcdc+fcc-overview.checks-expected-result");
     }
 
-    void shouldCreateChecksReport(
-            final ChecksAnnotationScope scope,
-            final int expectedAnnotations,
-            final String inFile,
-            final String checkDetailsFile,
-            final String checkOverviewFile) {
+    void shouldCreateChecksReport(final ChecksAnnotationScope scope, final int expectedAnnotations,
+            final String inFile, final String checkDetailsFile, final String checkOverviewFile) {
         var result = readVectorCastResult(inFile);
 
-        var publisher = new CoverageChecksPublisher(
-                createCoverageBuildAction(result), result, REPORT_NAME, scope, NO_CHECKS_INFO, createJenkins());
+        var publisher = new CoverageChecksPublisher(createCoverageBuildAction(result), result, REPORT_NAME, scope,
+                NO_CHECKS_INFO, createJenkins());
 
         var checkDetails = publisher.extractChecksDetails();
 
         assertThat(checkDetails.getName()).isPresent().contains(REPORT_NAME);
         assertThat(checkDetails.getStatus()).isEqualTo(ChecksStatus.COMPLETED);
         assertThat(checkDetails.getConclusion()).isEqualTo(ChecksConclusion.SUCCESS);
-        assertThat(checkDetails.getDetailsURL())
-                .isPresent()
+        assertThat(checkDetails.getDetailsURL()).isPresent()
                 .contains("http://127.0.0.1:8080/job/pipeline-coding-style/job/5/coverage");
         assertThatDetailsAreCorrect(checkDetails, expectedAnnotations, checkDetailsFile, checkOverviewFile);
     }
 
-    private void assertThatDetailsAreCorrect(
-            final ChecksDetails checkDetails,
-            final int expectedAnnotations,
-            final String checkDetailsFile,
-            final String checkOverviewFile) {
+    private void assertThatDetailsAreCorrect(final ChecksDetails checkDetails, final int expectedAnnotations,
+            final String checkDetailsFile, final String checkOverviewFile) {
         assertThat(checkDetails.getOutput()).isPresent().get().satisfies(output -> {
             assertThat(output.getTitle()).isPresent().contains("Line Coverage: 50.00% (+50.00%)");
             var expectedDetails = toString(checkDetailsFile);
@@ -553,84 +412,73 @@ class CoverageChecksPublisherTest extends AbstractCoverageTest {
     }
 
     protected void assertSummary(final ChecksOutput checksOutput, final String fileName) {
-        assertThat(checksOutput.getSummary())
-                .isPresent()
+        assertThat(checksOutput.getSummary()).isPresent()
                 .get()
-                .asString()
-                .isEqualToNormalizingWhitespace(toString(fileName));
+                .asString().isEqualToNormalizingWhitespace(toString(fileName));
     }
 
     protected void assertChecksAnnotations(final ChecksOutput checksOutput, final int expectedAnnotations) {
         if (expectedAnnotations == ANNOTATIONS_COUNT_FOR_MODIFIED) {
-            assertThat(checksOutput.getChecksAnnotations())
-                    .hasSize(expectedAnnotations)
-                    .satisfiesExactly(
-                            annotation -> {
-                                assertThat(annotation.getTitle()).contains("Not covered line");
-                                assertThat(annotation.getAnnotationLevel()).isEqualTo(ChecksAnnotationLevel.WARNING);
-                                assertThat(annotation.getPath()).contains("edu/hm/hafner/util/TreeStringBuilder.java");
-                                assertThat(annotation.getMessage()).contains("Lines 61-62 are not covered by tests");
-                                assertThat(annotation.getStartLine())
-                                        .isPresent()
-                                        .contains(61);
-                                assertThat(annotation.getEndLine()).isPresent().contains(62);
-                            },
-                            annotation -> {
-                                assertThat(annotation.getTitle()).contains("Partially covered line");
-                                assertThat(annotation.getAnnotationLevel()).isEqualTo(ChecksAnnotationLevel.WARNING);
-                                assertThat(annotation.getPath()).contains("edu/hm/hafner/util/TreeStringBuilder.java");
-                                assertThat(annotation.getMessage())
-                                        .contains("Line 113 is only partially covered, one branch is missing");
-                                assertThat(annotation.getStartLine())
-                                        .isPresent()
-                                        .contains(113);
-                                assertThat(annotation.getEndLine()).isPresent().contains(113);
-                            });
-        } else {
+            assertThat(checksOutput.getChecksAnnotations()).hasSize(expectedAnnotations).satisfiesExactly(
+                    annotation -> {
+                        assertThat(annotation.getTitle()).contains("Not covered line");
+                        assertThat(annotation.getAnnotationLevel()).isEqualTo(ChecksAnnotationLevel.WARNING);
+                        assertThat(annotation.getPath()).contains("edu/hm/hafner/util/TreeStringBuilder.java");
+                        assertThat(annotation.getMessage()).contains("Lines 61-62 are not covered by tests");
+                        assertThat(annotation.getStartLine()).isPresent().contains(61);
+                        assertThat(annotation.getEndLine()).isPresent().contains(62);
+                    },
+                    annotation -> {
+                        assertThat(annotation.getTitle()).contains("Partially covered line");
+                        assertThat(annotation.getAnnotationLevel()).isEqualTo(ChecksAnnotationLevel.WARNING);
+                        assertThat(annotation.getPath()).contains("edu/hm/hafner/util/TreeStringBuilder.java");
+                        assertThat(annotation.getMessage()).contains(
+                                "Line 113 is only partially covered, one branch is missing");
+                        assertThat(annotation.getStartLine()).isPresent().contains(113);
+                        assertThat(annotation.getEndLine()).isPresent().contains(113);
+                    });
+        }
+        else {
             assertThat(checksOutput.getChecksAnnotations()).hasSize(expectedAnnotations);
         }
     }
 
     protected JenkinsFacade createJenkins() {
         JenkinsFacade jenkinsFacade = mock(JenkinsFacade.class);
-        when(jenkinsFacade.getAbsoluteUrl(BUILD_LINK, COVERAGE_ID))
-                .thenReturn(JENKINS_BASE_URL + "/" + BUILD_LINK + "/" + COVERAGE_ID);
+        when(jenkinsFacade.getAbsoluteUrl(BUILD_LINK, COVERAGE_ID)).thenReturn(
+                JENKINS_BASE_URL + "/" + BUILD_LINK + "/" + COVERAGE_ID);
         return jenkinsFacade;
     }
 
     protected CoverageBuildAction createCoverageBuildAction(final Node result) {
-        var testCoverage =
-                new CoverageBuilder(Metric.LINE).withCovered(1).withMissed(1).build();
+        var testCoverage = new CoverageBuilder(Metric.LINE)
+                .withCovered(1)
+                .withMissed(1)
+                .build();
 
         var run = mock(Run.class);
         when(run.getUrl()).thenReturn(BUILD_LINK);
 
-        result.findFile("TreeStringBuilder.java").ifPresent(file -> {
-            assertThat(file.getMissedLines()).contains(61, 62);
-            assertThat(file.getPartiallyCoveredLines()).contains(entry(113, 1));
-            file.addModifiedLines(61, 62, 113);
-        });
-        result.findFile("CoberturaParser.java").ifPresent(file -> {
-            assertThat(file.getSurvivedMutationsPerLine()).containsKey(251);
-            file.addModifiedLines(251);
-        });
+        result.findFile("TreeStringBuilder.java")
+                .ifPresent(file -> {
+                    assertThat(file.getMissedLines()).contains(61, 62);
+                    assertThat(file.getPartiallyCoveredLines()).contains(entry(113, 1));
+                    file.addModifiedLines(61, 62, 113);
+                });
+        result.findFile("CoberturaParser.java")
+                .ifPresent(file -> {
+                    assertThat(file.getSurvivedMutationsPerLine()).containsKey(251);
+                    file.addModifiedLines(251);
+                });
 
-        return new CoverageBuildAction(
-                run,
-                COVERAGE_ID,
-                REPORT_NAME,
-                StringUtils.EMPTY,
-                result,
-                new QualityGateResult(),
-                null,
-                "refId",
-                List.of(getValue("LINE: 50"), getValue("MODULE: 0"), getValue("PACKAGE: -50")),
-                List.of(testCoverage),
-                List.of(getValue("LINE: 50")),
-                List.of(testCoverage),
-                List.of(getValue("LINE: 50")),
-                List.of(testCoverage),
-                false);
+        return new CoverageBuildAction(run, COVERAGE_ID, REPORT_NAME, StringUtils.EMPTY, result,
+                new QualityGateResult(), null, "refId",
+                List.of(getValue("LINE: 50"),
+                        getValue("MODULE: 0"),
+                        getValue("PACKAGE: -50")),
+                List.of(testCoverage), List.of(getValue("LINE: 50")),
+                List.of(testCoverage), List.of(getValue("LINE: 50")),
+                List.of(testCoverage), false);
     }
 
     private Difference getValue(final String stringRepresentation) {
@@ -645,21 +493,8 @@ class CoverageChecksPublisherTest extends AbstractCoverageTest {
         var run = mock(Run.class);
         when(run.getUrl()).thenReturn(BUILD_LINK);
 
-        return new CoverageBuildAction(
-                run,
-                COVERAGE_ID,
-                REPORT_NAME,
-                StringUtils.EMPTY,
-                result,
-                qualityGateResult,
-                null,
-                "refId",
-                List.of(),
-                List.of(),
-                List.of(),
-                List.of(),
-                List.of(),
-                List.of(),
-                false);
+        return new CoverageBuildAction(run, COVERAGE_ID, REPORT_NAME, StringUtils.EMPTY, result,
+                qualityGateResult, null, "refId",
+                List.of(), List.of(), List.of(), List.of(), List.of(), List.of(), false);
     }
 }

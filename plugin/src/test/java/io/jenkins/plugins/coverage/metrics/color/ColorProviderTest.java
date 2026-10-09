@@ -1,11 +1,12 @@
 package io.jenkins.plugins.coverage.metrics.color;
 
-import static io.jenkins.plugins.coverage.metrics.color.ColorProvider.*;
-import static org.assertj.core.api.Assertions.*;
+import org.junit.jupiter.api.Test;
 
 import java.awt.*;
 import nl.jqno.equalsverifier.EqualsVerifier;
-import org.junit.jupiter.api.Test;
+
+import static io.jenkins.plugins.coverage.metrics.color.ColorProvider.*;
+import static org.assertj.core.api.Assertions.*;
 
 /**
  * Test class for {@link ColorProvider}.
@@ -38,7 +39,8 @@ class ColorProviderTest {
                 .isEqualTo(DEFAULT_COLOR);
         assertThat(colorProvider.getBlendedDisplayColors(1, 1, ColorId.EXCELLENT, null))
                 .isEqualTo(DEFAULT_COLOR);
-        assertThat(colorProvider.getBlendedDisplayColors(1, 1, null, null)).isEqualTo(DEFAULT_COLOR);
+        assertThat(colorProvider.getBlendedDisplayColors(1, 1, null, null))
+                .isEqualTo(DEFAULT_COLOR);
         assertThat(colorProvider.getBlendedDisplayColors(2, 1, ColorId.BLACK, ColorId.WHITE))
                 .isEqualTo(new DisplayColors(new Color(0xFFFFFF), new Color(0x555555)));
         assertThat(colorProvider.getBlendedDisplayColors(1, 2, ColorId.BLACK, ColorId.WHITE))
@@ -84,7 +86,9 @@ class ColorProviderTest {
 
     @Test
     void shouldObeyEqualsContractForDisplayColors() {
-        EqualsVerifier.forClass(DisplayColors.class).usingGetClass().verify();
+        EqualsVerifier.forClass(DisplayColors.class)
+                .usingGetClass()
+                .verify();
     }
 
     private ColorProvider createDefaultColorProvider() {

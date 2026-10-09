@@ -1,25 +1,30 @@
 package io.jenkins.plugins.coverage.metrics.restapi;
 
-import static net.javacrumbs.jsonunit.assertj.JsonAssertions.*;
-import static org.assertj.core.api.Assertions.*;
+import org.junit.jupiter.api.Test;
 
 import edu.hm.hafner.coverage.FileNode;
 import edu.hm.hafner.coverage.PackageNode;
 import edu.hm.hafner.util.LineRange;
-import io.jenkins.plugins.coverage.metrics.AbstractModifiedFilesCoverageTest;
+
 import java.io.IOException;
 import java.io.StringWriter;
 import java.util.SortedSet;
 import java.util.TreeSet;
-import org.junit.jupiter.api.Test;
+
 import org.kohsuke.stapler.export.ExportConfig;
 import org.kohsuke.stapler.export.Flavor;
 import org.kohsuke.stapler.export.Model;
 import org.kohsuke.stapler.export.ModelBuilder;
 
+import io.jenkins.plugins.coverage.metrics.AbstractModifiedFilesCoverageTest;
+
+import static net.javacrumbs.jsonunit.assertj.JsonAssertions.*;
+import static org.assertj.core.api.Assertions.*;
+
 /**
  * Tests {@link ModifiedLinesCoverageApi}.
  */
+
 class ModifiedLinesCoverageApiTest extends AbstractModifiedFilesCoverageTest {
     /**
      * Test to assert that all modified lines and their respective coverage types are correctly extracted from the
@@ -31,8 +36,8 @@ class ModifiedLinesCoverageApiTest extends AbstractModifiedFilesCoverageTest {
         var modifiedLineCoverageApi = new ModifiedLinesCoverageApi(node);
         var filesWithChangedLines = modifiedLineCoverageApi.getFilesWithModifiedLines();
 
-        var expectedLineBlocks =
-                createListOfModifiedLines(LineCoverageType.COVERED, new LineRange(15, 16), new LineRange(21, 22));
+        var expectedLineBlocks = createListOfModifiedLines(LineCoverageType.COVERED,
+                new LineRange(15, 16), new LineRange(21, 22));
         expectedLineBlocks.addAll(createListOfModifiedLines(LineCoverageType.MISSED, new LineRange(35, 36)));
         expectedLineBlocks.addAll(createListOfModifiedLines(LineCoverageType.PARTIALLY_COVERED, new LineRange(20, 20)));
         var expectedFileWithChangedLines = new FileWithModifiedLines("test/example/Test1.java", expectedLineBlocks);
@@ -110,8 +115,8 @@ class ModifiedLinesCoverageApiTest extends AbstractModifiedFilesCoverageTest {
      *
      * @return the list {@link ModifiedLinesBlock} objects, sharing a {@link LineCoverageType}.
      */
-    private SortedSet<ModifiedLinesBlock> createListOfModifiedLines(
-            final LineCoverageType type, final LineRange... ranges) {
+    private SortedSet<ModifiedLinesBlock> createListOfModifiedLines(final LineCoverageType type,
+            final LineRange... ranges) {
         var modifiedLinesBlocks = new TreeSet<ModifiedLinesBlock>();
         for (LineRange range : ranges) {
             var block = new ModifiedLinesBlock(range.getStart(), range.getEnd(), type);

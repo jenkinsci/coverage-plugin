@@ -1,10 +1,12 @@
 package io.jenkins.plugins.coverage.metrics.source;
 
-import static j2html.TagCreator.*;
+import org.apache.commons.lang3.StringUtils;
 
 import edu.hm.hafner.coverage.FileNode;
+
 import java.io.Serial;
-import org.apache.commons.lang3.StringUtils;
+
+import static j2html.TagCreator.*;
 
 /**
  * Provides all required information for a {@link FileNode} so that its source code can be rendered together with the
@@ -51,14 +53,15 @@ public class VectorCastSourcePrinter extends CoverageSourcePrinter {
      * @return string for the html row
      *
      */
-    private String getTr(
-            final int line, final String sourceCode, final boolean isPainted, final String third, final String fouth) {
-        var trData = tr().withClasses(isPainted ? getColorClass(line) : UNDEFINED, getModifiedClass(line))
+    private String getTr(final int line, final String sourceCode, final boolean isPainted, final String third, final String fouth) {
+        var trData = tr()
+                .withClasses(isPainted ? getColorClass(line) : UNDEFINED, getModifiedClass(line))
                 .condAttr(isPainted, "data-html-tooltip", isPainted ? getTooltip(line) : StringUtils.EMPTY);
 
         trData.with(
                 td().withClass("line").with(a().withName(String.valueOf(line)).withText(String.valueOf(line))),
-                td().withClass("hits").with(isPainted ? text(getSummaryColumn(line)) : text(StringUtils.EMPTY)));
+                td().withClass("hits").with(isPainted ? text(getSummaryColumn(line)) : text(StringUtils.EMPTY))
+        );
 
         if (!third.equals(StringUtils.EMPTY)) {
             trData.with(td().withClass("hits").with(isPainted ? text(third) : text(StringUtils.EMPTY)));
@@ -129,7 +132,7 @@ public class VectorCastSourcePrinter extends CoverageSourcePrinter {
     String renderLine(final int line, final String sourceCode) {
         var isPainted = isPainted(line);
         var hasMcdc = hasAnyMcdcPairCoverage();
-        var hasFc = hasAnyFunctionCallCoverage();
+        var hasFc   = hasAnyFunctionCallCoverage();
 
         String trString;
 
@@ -143,8 +146,7 @@ public class VectorCastSourcePrinter extends CoverageSourcePrinter {
         }
         // If this file only has Line, St/Br, FunctionCall and MCDC
         else if (hasMcdc && hasFc) {
-            trString = getTr(
-                    line, sourceCode, isPainted, getFunctionCallSummaryColumn(line), getMcdcPairSummaryColumn(line));
+            trString = getTr(line, sourceCode, isPainted, getFunctionCallSummaryColumn(line), getMcdcPairSummaryColumn(line));
         }
         // If this file only has Line and St/Br
         else {
@@ -179,14 +181,13 @@ public class VectorCastSourcePrinter extends CoverageSourcePrinter {
      *
      */
     private String getColumnHeader(final String third, final String fourth) {
-        return tr().withClass(UNDEFINED)
-                .with(
-                        td().withClass("line").with(text("Line")),
-                        td().withClass("line").with(text("St/Br")),
-                        td().withClass("line").with(text(third)),
-                        td().withClass("line").with(text(fourth)),
-                        td().withClass("line").with(text(NBSP)))
-                .render();
+        return tr().withClass(UNDEFINED).with(
+                td().withClass("line").with(text("Line")),
+                td().withClass("line").with(text("St/Br")),
+                td().withClass("line").with(text(third)),
+                td().withClass("line").with(text(fourth)),
+                td().withClass("line").with(text(NBSP))
+            ).render();
     }
 
     /**
@@ -198,7 +199,7 @@ public class VectorCastSourcePrinter extends CoverageSourcePrinter {
     @Override
     String getColumnHeader() {
         var hasMcdc = hasAnyMcdcPairCoverage();
-        var hasFc = hasAnyFunctionCallCoverage();
+        var hasFc   = hasAnyFunctionCallCoverage();
         String trString;
 
         // If this file only has Line, St/Br, and FunctionCall
@@ -216,12 +217,11 @@ public class VectorCastSourcePrinter extends CoverageSourcePrinter {
         // If this file only has Line and St/Br
         else {
             // this is the original metrics so maybe don't print header?
-            trString = tr().withClass(UNDEFINED)
-                    .with(
-                            td().withClass("line").with(text("Line ")),
-                            td().withClass("line").with(text("St/Br")),
-                            td().withClass("line").with(rawHtml(NBSP)))
-                    .render();
+            trString = tr().withClass(UNDEFINED).with(
+                td().withClass("line").with(text("Line ")),
+                td().withClass("line").with(text("St/Br")),
+                td().withClass("line").with(rawHtml(NBSP))
+            ).render();
         }
 
         return trString;
@@ -240,9 +240,11 @@ public class VectorCastSourcePrinter extends CoverageSourcePrinter {
     String getColorClass(final int line) {
         if (getCovered(line) == 0 && getMcdcPairCovered(line) == 0 && getFunctionCallCovered(line) == 0) {
             return NO_COVERAGE;
-        } else if (getMissed(line) == 0 && getMcdcPairMissed(line) == 0 && getFunctionCallMissed(line) == 0) {
+        }
+        else if (getMissed(line) == 0 && getMcdcPairMissed(line) == 0 && getFunctionCallMissed(line) == 0) {
             return FULL_COVERAGE;
-        } else {
+        }
+        else {
             return PARTIAL_COVERAGE;
         }
     }
@@ -258,7 +260,7 @@ public class VectorCastSourcePrinter extends CoverageSourcePrinter {
      */
     private String getMcdcPairTooltip(final int line) {
         var mcdcPairCovered = getMcdcPairCovered(line);
-        var mcdcPairMissed = getMcdcPairMissed(line);
+        var mcdcPairMissed  = getMcdcPairMissed(line);
 
         return getTooltip(mcdcPairCovered, mcdcPairMissed, false, "MC/DC pairs");
     }
@@ -272,9 +274,10 @@ public class VectorCastSourcePrinter extends CoverageSourcePrinter {
      * @return the function call tooltip
      *
      */
+
     private String getFunctionCallTooltip(final int line) {
         var functionCallCovered = getFunctionCallCovered(line);
-        var functionCallMissed = getFunctionCallMissed(line);
+        var functionCallMissed  = getFunctionCallMissed(line);
 
         return getTooltip(functionCallCovered, functionCallMissed, true, "Function calls");
     }
@@ -303,10 +306,12 @@ public class VectorCastSourcePrinter extends CoverageSourcePrinter {
         if (covered + missed > 1) {
             if (missed == 0) {
                 tooltip = "All %s covered: %d/%d".formatted(description, covered, covered + missed);
-            } else {
+            }
+            else {
                 tooltip = "%s partially covered: %d/%d".formatted(description, covered, covered + missed);
             }
-        } else if (checkAny && covered == 1) {
+        }
+        else if (checkAny && covered == 1)  {
             tooltip = "%s covered".formatted(description);
         }
 

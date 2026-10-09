@@ -1,6 +1,7 @@
 package io.jenkins.plugins.coverage.metrics.color;
 
 import edu.umd.cs.findbugs.annotations.NonNull;
+
 import java.awt.*;
 import java.util.EnumMap;
 import java.util.Map;
@@ -35,7 +36,8 @@ public class ColorProvider {
     ColorProvider(final Map<ColorId, DisplayColors> colorMapping) {
         if (colorMapping.isEmpty()) {
             availableColors = new EnumMap<>(ColorId.class);
-        } else {
+        }
+        else {
             availableColors = new EnumMap<>(colorMapping);
         }
     }
@@ -68,8 +70,8 @@ public class ColorProvider {
      *
      * @return the blended color
      */
-    public static Color blendWeightedColors(
-            @NonNull final Color color1, @NonNull final Color color2, final double weight1, final double weight2) {
+    public static Color blendWeightedColors(@NonNull final Color color1, @NonNull final Color color2,
+            final double weight1, final double weight2) {
         if (weight1 >= 0 && weight2 >= 0) {
             final double total = weight1 + weight2;
             final int r = (int) ((color1.getRed() * weight1 + color2.getRed() * weight2) / total);
@@ -148,19 +150,20 @@ public class ColorProvider {
      *
      * @return the blended display colors or the {@link #DEFAULT_COLOR} if one color has not been found
      */
-    public DisplayColors getBlendedDisplayColors(
-            final double weightFirst, final double weightSecond, final ColorId first, final ColorId second) {
+    public DisplayColors getBlendedDisplayColors(final double weightFirst, final double weightSecond,
+            final ColorId first, final ColorId second) {
         if (containsColorId(first) && containsColorId(second)) {
             var firstColor = getDisplayColorsOf(first);
             var secondColor = getDisplayColorsOf(second);
             Color lineColor;
             if (weightFirst > weightSecond) {
                 lineColor = firstColor.lineColor;
-            } else {
+            }
+            else {
                 lineColor = secondColor.lineColor;
             }
-            Color fillColor =
-                    blendWeightedColors(firstColor.fillColor, secondColor.fillColor, weightFirst, weightSecond);
+            Color fillColor = blendWeightedColors(firstColor.fillColor, secondColor.fillColor, weightFirst,
+                    weightSecond);
             return new DisplayColors(lineColor, fillColor);
         }
         return DEFAULT_COLOR;

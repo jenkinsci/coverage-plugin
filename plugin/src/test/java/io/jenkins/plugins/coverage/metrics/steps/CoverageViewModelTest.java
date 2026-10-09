@@ -1,27 +1,31 @@
 package io.jenkins.plugins.coverage.metrics.steps;
 
-import static io.jenkins.plugins.coverage.metrics.steps.CoverageViewModel.*;
-import static net.javacrumbs.jsonunit.assertj.JsonAssertions.*;
-import static org.assertj.core.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import org.apache.commons.lang3.StringUtils;
+import org.junit.jupiter.api.Test;
+import org.junitpioneer.jupiter.DefaultLocale;
+import org.junitpioneer.jupiter.Issue;
 
 import edu.hm.hafner.coverage.FileNode;
 import edu.hm.hafner.coverage.ModuleNode;
 import edu.hm.hafner.coverage.Node;
 import edu.hm.hafner.util.FilteredLog;
+
+import java.util.List;
+import java.util.NoSuchElementException;
+import java.util.function.Function;
+
 import hudson.model.Run;
+
 import io.jenkins.plugins.bootstrap5.MessagesViewModel;
 import io.jenkins.plugins.coverage.metrics.AbstractCoverageTest;
 import io.jenkins.plugins.coverage.metrics.restapi.FileCoverageApiModel;
 import io.jenkins.plugins.coverage.metrics.steps.CoverageTableModel.CoverageRow;
 import io.jenkins.plugins.util.QualityGateResult;
-import java.util.List;
-import java.util.NoSuchElementException;
-import java.util.function.Function;
-import org.apache.commons.lang3.StringUtils;
-import org.junit.jupiter.api.Test;
-import org.junitpioneer.jupiter.DefaultLocale;
-import org.junitpioneer.jupiter.Issue;
+
+import static io.jenkins.plugins.coverage.metrics.steps.CoverageViewModel.*;
+import static net.javacrumbs.jsonunit.assertj.JsonAssertions.*;
+import static org.assertj.core.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
 /**
  * Tests the class {@link CoverageViewModel}.
@@ -51,41 +55,30 @@ class CoverageViewModelTest extends AbstractCoverageTest {
         assertThatJson(overview).node("covered").isArray().containsExactlyElementsOf(expectedCovered);
         assertThatJson(overview).node("missed").isArray().containsExactlyElementsOf(expectedMissed);
 
-        assertThat(model.getTableModel(ABSOLUTE_COVERAGE_TABLE_ID).getRows())
-                .anySatisfy(row -> assertThat(row)
-                        .isInstanceOfSatisfying(
-                                CoverageRow.class,
-                                coverageRow -> assertThat(
-                                                coverageRow.getFileName().getDisplay())
-                                        .contains(
-                                                "title=\"edu/hm/hafner/util/",
-                                                "data-bs-toggle=\"tooltip\" data-bs-placement=\"top\"")));
+        assertThat(model.getTableModel(ABSOLUTE_COVERAGE_TABLE_ID).getRows()).anySatisfy(
+                row -> assertThat(row).isInstanceOfSatisfying(CoverageRow.class,
+                        coverageRow -> assertThat(coverageRow.getFileName().getDisplay())
+                                .contains("title=\"edu/hm/hafner/util/",
+                                        "data-bs-toggle=\"tooltip\" data-bs-placement=\"top\""))
+        );
 
-        assertThat(model.getTableRows(ABSOLUTE_COVERAGE_TABLE_ID))
-                .startsWith("[{\"branchCoverage\":{\"display\":\"<div ");
+        assertThat(model.getTableRows(ABSOLUTE_COVERAGE_TABLE_ID)).startsWith("[{\"branchCoverage\":{\"display\":\"<div ");
     }
 
-    @Test
-    @DefaultLocale("fr")
-    @Issue("https://github.com/jenkinsci/coverage-plugin/issues/733")
+    @Test @DefaultLocale("fr") @Issue("https://github.com/jenkinsci/coverage-plugin/issues/733")
     void shouldUseEnglishLocalWhenRenderingNumbers() {
         var model = createModelFromCodingStyleReport();
 
-        assertThat(model.getTableModel(ABSOLUTE_COVERAGE_TABLE_ID).getRows())
-                .anySatisfy(
-                        row -> assertThat(row)
-                                .isInstanceOfSatisfying(
-                                        CoverageRow.class,
-                                        coverageRow -> assertThat(coverageRow
-                                                        .getLineCoverage()
-                                                        .getDisplay())
-                                                .contains(
-                                                        "linear-gradient(90deg, #FFCC0050 80.000000%, transparent 80.000000%")));
+        assertThat(model.getTableModel(ABSOLUTE_COVERAGE_TABLE_ID).getRows()).anySatisfy(
+                row -> assertThat(row).isInstanceOfSatisfying(CoverageRow.class,
+                        coverageRow -> assertThat(coverageRow.getLineCoverage().getDisplay())
+                                .contains("linear-gradient(90deg, #FFCC0050 80.000000%, transparent 80.000000%"))
+        );
     }
 
     private static void ensureValidPercentages(final List<Double> percentages) {
-        assertThat(percentages)
-                .allSatisfy(d -> assertThat(d).isLessThanOrEqualTo(100.0).isGreaterThanOrEqualTo(0.0));
+        assertThat(percentages).allSatisfy(d ->
+                assertThat(d).isLessThanOrEqualTo(100.0).isGreaterThanOrEqualTo(0.0));
     }
 
     @Test
@@ -114,12 +107,13 @@ class CoverageViewModelTest extends AbstractCoverageTest {
     @Test
     void shouldProvideRightTableModelById() {
         var model = createModelFromCodingStyleReport();
-        assertThat(model.getTableModel(MODIFIED_LINES_COVERAGE_TABLE_ID))
-                .isInstanceOf(ModifiedLinesCoverageTableModel.class);
+        assertThat(model.getTableModel(MODIFIED_LINES_COVERAGE_TABLE_ID)).isInstanceOf(
+                ModifiedLinesCoverageTableModel.class);
         assertThat(model.getTableModel(INDIRECT_COVERAGE_TABLE_ID)).isInstanceOf(IndirectCoverageChangesTable.class);
         assertThat(model.getTableModel(ABSOLUTE_COVERAGE_TABLE_ID)).isInstanceOf(CoverageTableModel.class);
 
-        assertThatExceptionOfType(NoSuchElementException.class).isThrownBy(() -> model.getTableModel("wrong-id"));
+        assertThatExceptionOfType(NoSuchElementException.class)
+                .isThrownBy(() -> model.getTableModel("wrong-id"));
     }
 
     @Test
@@ -135,16 +129,8 @@ class CoverageViewModelTest extends AbstractCoverageTest {
     }
 
     private CoverageViewModel createModel(final Node node) {
-        return new CoverageViewModel(
-                mock(Run.class),
-                "id",
-                StringUtils.EMPTY,
-                node,
-                createStatistics(),
-                new QualityGateResult(),
-                "-",
-                new FilteredLog("Errors"),
-                Function.identity(),
-                Function.identity());
+        return new CoverageViewModel(mock(Run.class), "id", StringUtils.EMPTY,
+                node, createStatistics(), new QualityGateResult(), "-", new FilteredLog("Errors"),
+                Function.identity(), Function.identity());
     }
 }

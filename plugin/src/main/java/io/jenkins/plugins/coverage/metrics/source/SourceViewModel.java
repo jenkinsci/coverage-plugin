@@ -1,10 +1,13 @@
 package io.jenkins.plugins.coverage.metrics.source;
 
+import org.apache.commons.lang3.exception.ExceptionUtils;
+
 import edu.hm.hafner.coverage.FileNode;
+
+import java.io.IOException;
+
 import hudson.model.ModelObject;
 import hudson.model.Run;
-import java.io.IOException;
-import org.apache.commons.lang3.exception.ExceptionUtils;
 
 /**
  * Server side model that provides the data for the source code view of the coverage results. The layout of the
@@ -51,9 +54,9 @@ public class SourceViewModel implements ModelObject {
     @SuppressWarnings("unused") // Called by jelly view
     public String getSourceFileContent() {
         try {
-            return SOURCE_CODE_FACADE.read(
-                    getOwner().getRootDir(), id, getNode().getRelativePath());
-        } catch (IOException | InterruptedException exception) {
+            return SOURCE_CODE_FACADE.read(getOwner().getRootDir(), id, getNode().getRelativePath());
+        }
+        catch (IOException | InterruptedException exception) {
             return ExceptionUtils.getStackTrace(exception);
         }
     }

@@ -1,7 +1,8 @@
 package io.jenkins.plugins.coverage.metrics.restapi;
 
-import nl.jqno.equalsverifier.EqualsVerifier;
 import org.junit.jupiter.api.Test;
+
+import nl.jqno.equalsverifier.EqualsVerifier;
 
 /**
  * Tests {@link FileCoverage}.

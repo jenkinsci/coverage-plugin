@@ -2,12 +2,14 @@ package io.jenkins.plugins.coverage.metrics.restapi;
 
 import edu.hm.hafner.coverage.FileNode;
 import edu.hm.hafner.coverage.Node;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+
 import org.kohsuke.stapler.export.Exported;
 import org.kohsuke.stapler.export.ExportedBean;
 
@@ -45,8 +47,8 @@ public class ModifiedLinesCoverageApi {
                     .collect(Collectors.toList());
 
             var missedLines = filterByModifiedLines(modifiedLines, fileNode.getMissedLines());
-            var partiallyCoveredLines = filterByModifiedLines(
-                    modifiedLines, fileNode.getPartiallyCoveredLines().keySet());
+            var partiallyCoveredLines =
+                    filterByModifiedLines(modifiedLines, fileNode.getPartiallyCoveredLines().keySet());
             var coveredLines = fileNode.getLinesWithCoverage().stream()
                     .filter(line -> fileNode.getMissedOfLine(line) == 0)
                     .filter(modifiedLines::contains)
@@ -58,8 +60,8 @@ public class ModifiedLinesCoverageApi {
                     calculateModifiedLineBlocks(coveredLines, modifiedLinesWithoutCoverage, LineCoverageType.COVERED));
             modifiedLinesBlocks.addAll(
                     calculateModifiedLineBlocks(missedLines, modifiedLinesWithoutCoverage, LineCoverageType.MISSED));
-            modifiedLinesBlocks.addAll(calculateModifiedLineBlocks(
-                    partiallyCoveredLines, modifiedLinesWithoutCoverage, LineCoverageType.PARTIALLY_COVERED));
+            modifiedLinesBlocks.addAll(calculateModifiedLineBlocks(partiallyCoveredLines, modifiedLinesWithoutCoverage,
+                    LineCoverageType.PARTIALLY_COVERED));
 
             var changedFile = new FileWithModifiedLines(fileNode.getRelativePath(), modifiedLinesBlocks);
             result.add(changedFile);
@@ -78,8 +80,8 @@ public class ModifiedLinesCoverageApi {
      *
      * @return the filtered lines
      */
-    private List<Integer> filterByModifiedLines(
-            final Collection<Integer> modifiedLines, final Collection<Integer> lines) {
+    private List<Integer> filterByModifiedLines(final Collection<Integer> modifiedLines,
+            final Collection<Integer> lines) {
         return lines.stream().filter(modifiedLines::contains).collect(Collectors.toList());
     }
 
@@ -98,10 +100,8 @@ public class ModifiedLinesCoverageApi {
      *
      * @return the list of {@link ModifiedLinesBlock}
      */
-    private List<ModifiedLinesBlock> calculateModifiedLineBlocks(
-            final List<Integer> modifiedLines,
-            final List<Integer> modifiedLinesWithoutCoverage,
-            final LineCoverageType type) {
+    private List<ModifiedLinesBlock> calculateModifiedLineBlocks(final List<Integer> modifiedLines,
+            final List<Integer> modifiedLinesWithoutCoverage, final LineCoverageType type) {
         var modifiedLinesBlocks = new ArrayList<ModifiedLinesBlock>();
         if (modifiedLines.isEmpty()) {
             return modifiedLinesBlocks;
@@ -111,7 +111,8 @@ public class ModifiedLinesCoverageApi {
         int last = start;
         if (modifiedLines.size() > 1) {
             for (int line : modifiedLines.subList(1, modifiedLines.size())) {
-                if (line > last + 1 && hasAnyLinesWithCoverageBetween(last, line, modifiedLinesWithoutCoverage)) {
+                if (line > last + 1
+                        && hasAnyLinesWithCoverageBetween(last, line, modifiedLinesWithoutCoverage)) {
                     var modifiedLinesBlock = new ModifiedLinesBlock(start, last, type);
                     modifiedLinesBlocks.add(modifiedLinesBlock);
                     start = line;
@@ -139,8 +140,8 @@ public class ModifiedLinesCoverageApi {
      * @return {@code true} whether there are any lines within the given line range that contains coverage information,
      *         else {@code false}
      */
-    private boolean hasAnyLinesWithCoverageBetween(
-            final int start, final int end, final List<Integer> modifiedLinesWithoutCoverage) {
+    private boolean hasAnyLinesWithCoverageBetween(final int start, final int end,
+            final List<Integer> modifiedLinesWithoutCoverage) {
         return IntStream.range(start + 1, end).anyMatch(line -> !modifiedLinesWithoutCoverage.contains(line));
     }
 }

@@ -1,6 +1,7 @@
 package io.jenkins.plugins.coverage.metrics.color;
 
 import edu.umd.cs.findbugs.annotations.NonNull;
+
 import io.jenkins.plugins.coverage.metrics.color.ColorProvider.DisplayColors;
 
 /**
@@ -37,8 +38,8 @@ public enum CoverageChangeLevel {
      *
      * @return the display colors
      */
-    public static DisplayColors getDisplayColorsOfCoverageChange(
-            final double coverageDifference, @NonNull final ColorProvider colorProvider) {
+    public static DisplayColors getDisplayColorsOfCoverageChange(final double coverageDifference,
+            @NonNull final ColorProvider colorProvider) {
         for (int i = 0; i < values().length - 1; i++) {
             var level = values()[i];
             if (coverageDifference >= level.change) {
@@ -52,7 +53,9 @@ public enum CoverageChangeLevel {
                 var upperLevel = values()[i - 1];
                 double distanceUpper = upperLevel.change - coverageDifference;
                 return colorProvider.getBlendedDisplayColors(
-                        distanceLevel, distanceUpper, upperLevel.colorizationId, level.colorizationId);
+                        distanceLevel, distanceUpper,
+                        upperLevel.colorizationId,
+                        level.colorizationId);
             }
         }
         return colorProvider.getDisplayColorsOf(NA.colorizationId);

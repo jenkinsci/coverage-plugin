@@ -4,6 +4,15 @@ import edu.hm.hafner.coverage.Metric;
 import edu.hm.hafner.coverage.Value;
 import edu.hm.hafner.util.VisibleForTesting;
 import edu.umd.cs.findbugs.annotations.NonNull;
+
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
+
+import org.kohsuke.stapler.DataBoundConstructor;
+import org.kohsuke.stapler.DataBoundSetter;
+import org.kohsuke.stapler.verb.POST;
+import org.jenkinsci.Symbol;
 import hudson.Extension;
 import hudson.Functions;
 import hudson.model.Job;
@@ -11,20 +20,14 @@ import hudson.model.Run;
 import hudson.util.ListBoxModel;
 import hudson.views.ListViewColumn;
 import hudson.views.ListViewColumnDescriptor;
+import jenkins.model.GlobalConfiguration;
+import jenkins.model.Jenkins;
+
 import io.jenkins.plugins.coverage.metrics.color.ColorProvider;
 import io.jenkins.plugins.coverage.metrics.color.ColorProvider.DisplayColors;
 import io.jenkins.plugins.coverage.metrics.model.Baseline;
 import io.jenkins.plugins.coverage.metrics.model.ElementFormatter;
 import io.jenkins.plugins.util.JenkinsFacade;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
-import jenkins.model.GlobalConfiguration;
-import jenkins.model.Jenkins;
-import org.jenkinsci.Symbol;
-import org.kohsuke.stapler.DataBoundConstructor;
-import org.kohsuke.stapler.DataBoundSetter;
-import org.kohsuke.stapler.verb.POST;
 
 /**
  * Dashboard column model which represents coverage metrics of different coverage types.
@@ -235,8 +238,7 @@ public class CoverageMetricColumn extends ListViewColumn {
      */
     private boolean hasCoverageAction(final Job<?, ?> job) {
         Run<?, ?> lastCompletedBuild = job.getLastCompletedBuild();
-        return lastCompletedBuild != null
-                && !lastCompletedBuild.getActions(CoverageBuildAction.class).isEmpty();
+        return lastCompletedBuild != null && !lastCompletedBuild.getActions(CoverageBuildAction.class).isEmpty();
     }
 
     private static CoverageAppearanceConfiguration getConfiguration(final JenkinsFacade jenkins) {
@@ -247,8 +249,7 @@ public class CoverageMetricColumn extends ListViewColumn {
     /**
      * Descriptor of the column.
      */
-    @Extension
-    @Symbol("coverageTotalsColumn")
+    @Extension @Symbol("coverageTotalsColumn")
     public static class CoverageMetricColumnDescriptor extends ListViewColumnDescriptor {
         private final JenkinsFacade jenkins;
 
