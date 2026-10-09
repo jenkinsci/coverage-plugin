@@ -230,6 +230,21 @@ public class CoverageViewModel extends DefaultAsyncTableContentProvider implemen
     }
 
     /**
+     * Returns all software metrics (i.e., all non-coverage value metrics) that are available in the report and that
+     * can be visualized in a tree map. In contrast to {@link #getTreeMetrics()}, this is not restricted to a fixed
+     * selection of metrics.
+     *
+     * @return the available software metrics
+     */
+    @SuppressWarnings("unused")
+    public NavigableSet<Metric> getSoftwareTreeMetrics() {
+        var valueMetrics = node.getValueMetrics();
+        valueMetrics.removeIf(Metric::isCoverage);
+        valueMetrics.removeIf(Metric::isContainer);
+        return valueMetrics;
+    }
+
+    /**
      * Returns the metrics that are available for the trend chart.
      *
      * @return the available metrics
@@ -425,7 +440,7 @@ public class CoverageViewModel extends DefaultAsyncTableContentProvider implemen
         var values = getNode().getAllFileNodes().stream()
                 .map(fileNode -> fileNode.getValue(metric))
                 .flatMap(Optional::stream)
-                .mapToDouble(Value::asDouble)
+                .mapToDouble(TreeMapNodeConverter::asDisplayValue)
                 .toArray();
         if (values.length == 0) {
             return List.of(0.0, 100.0);
@@ -446,6 +461,11 @@ public class CoverageViewModel extends DefaultAsyncTableContentProvider implemen
      *         if the coverage metric is unknown
      */
     private Metric getCoverageMetricFromText(final String text) {
+        for (Metric metric : Metric.values()) {
+            if (text.equals(metric.toTagName())) {
+                return metric;
+            }
+        }
         for (Metric metric : Metric.values()) {
             if (text.contains(metric.toTagName())) {
                 return metric;

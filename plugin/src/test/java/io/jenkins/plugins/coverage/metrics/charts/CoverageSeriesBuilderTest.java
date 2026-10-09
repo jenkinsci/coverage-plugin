@@ -1,12 +1,13 @@
 package io.jenkins.plugins.coverage.metrics.charts;
 
-import static net.javacrumbs.jsonunit.assertj.JsonAssertions.*;
-import static org.assertj.core.api.Assertions.*;
+import static net.javacrumbs.jsonunit.assertj.JsonAssertions.assertThatJson;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
 
 import edu.hm.hafner.coverage.Coverage;
 import edu.hm.hafner.coverage.Coverage.CoverageBuilder;
 import edu.hm.hafner.coverage.Metric;
+import edu.hm.hafner.coverage.Value;
 import edu.hm.hafner.echarts.Build;
 import edu.hm.hafner.echarts.BuildResult;
 import edu.hm.hafner.echarts.ChartModelConfiguration;
@@ -141,6 +142,23 @@ class CoverageSeriesBuilderTest extends ResourceTest {
                 .allSatisfy(series -> assertThat(series.getAreaStyle()).isNull());
         assertThat(lineCoverage.getRangeMax()).isEqualTo(100.0);
         assertThat(lineCoverage.getRangeMin()).isEqualTo(33.33);
+    }
+
+    @Test
+    void shouldScaleFractionsToPercentages() {
+        var statistics = new CoverageStatistics(
+                List.of(new Value(Metric.COHESION, 5455, 10_000), new Value(Metric.LOC, 1234)),
+                List.of(),
+                List.of(),
+                List.of(),
+                List.of(),
+                List.of());
+
+        var dataSet = new CoverageSeriesBuilder()
+                .createDataSet(createConfiguration(), List.of(new BuildResult<>(new Build(1), statistics)));
+
+        assertThat(dataSet.getSeries(Metric.COHESION.toTagName())).containsExactly(54.55);
+        assertThat(dataSet.getSeries(Metric.LOC.toTagName())).containsExactly(1234.0);
     }
 
     @VisibleForTesting
