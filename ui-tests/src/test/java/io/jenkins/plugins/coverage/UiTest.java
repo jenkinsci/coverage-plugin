@@ -1,19 +1,16 @@
 package io.jenkins.plugins.coverage;
 
+import io.jenkins.plugins.coverage.publisher.CoveragePublisher;
+import io.jenkins.plugins.coverage.publisher.CoveragePublisher.SourceFileResolver;
+import io.jenkins.plugins.coverage.publisher.threshold.AdapterThreshold.AdapterThresholdTarget;
+import io.jenkins.plugins.coverage.publisher.threshold.GlobalThreshold.GlobalThresholdTarget;
 import org.jenkinsci.test.acceptance.junit.AbstractJUnitTest;
 import org.jenkinsci.test.acceptance.plugins.git.GitScm;
 import org.jenkinsci.test.acceptance.po.Build;
 import org.jenkinsci.test.acceptance.po.FreeStyleJob;
 import org.jenkinsci.test.acceptance.po.Job;
 
-import io.jenkins.plugins.coverage.publisher.CoveragePublisher;
-import io.jenkins.plugins.coverage.publisher.CoveragePublisher.SourceFileResolver;
-import io.jenkins.plugins.coverage.publisher.threshold.AdapterThreshold.AdapterThresholdTarget;
-import io.jenkins.plugins.coverage.publisher.threshold.GlobalThreshold.GlobalThresholdTarget;
-
-/**
- * Base class for all UI tests. Provides several helper methods that can be used by all tests.
- */
+/** Base class for all UI tests. Provides several helper methods that can be used by all tests. */
 class UiTest extends AbstractJUnitTest {
     static final String JACOCO_ANALYSIS_MODEL_XML = "jacoco-analysis-model.xml";
     static final String JACOCO_CODINGSTYLE_XML = "jacoco-codingstyle.xml";
@@ -25,16 +22,13 @@ class UiTest extends AbstractJUnitTest {
     /**
      * Returns a job without any reports in its configuration.
      *
-     * @param configuration
-     *         if build should fail due to no reports
-     *
+     * @param configuration if build should fail due to no reports
      * @return a job without any reports
      */
     FreeStyleJob getJobWithoutAnyReports(final InCaseNoReportsConfiguration configuration) {
         if (configuration == InCaseNoReportsConfiguration.FAIL) {
             return createJobWithConfiguration(JobConfiguration.NO_REPORTS_SHOULD_FAIL);
-        }
-        else {
+        } else {
             return createJobWithConfiguration(JobConfiguration.NO_REPORTS);
         }
     }
@@ -51,9 +45,7 @@ class UiTest extends AbstractJUnitTest {
     /**
      * Creates job with source code from a set commit and its jacoco file.
      *
-     * @param sourceFileResolver
-     *         level of source code storing
-     *
+     * @param sourceFileResolver level of source code storing
      * @return job with source code and correct jacoco file
      */
     FreeStyleJob getJobWithReportAndSourceCode(final SourceFileResolver sourceFileResolver) {
@@ -61,17 +53,15 @@ class UiTest extends AbstractJUnitTest {
         copyResourceFilesToWorkspace(job, RESOURCES_FOLDER);
 
         var coveragePublisher = job.addPublisher(CoveragePublisher.class);
-        coveragePublisher.setSourceCodeEncoding("UTF-8")
+        coveragePublisher
+                .setSourceCodeEncoding("UTF-8")
                 .addSourceDirectory("checkout/src/main/java")
                 .setSourceFileResolver(sourceFileResolver);
 
         var jacocoAdapter = coveragePublisher.createAdapterPageArea("Jacoco");
         jacocoAdapter.setReportFilePath(JACOCO_FROM_COMMIT_XML);
 
-        job.useScm(GitScm.class)
-                .url(REPO_URL)
-                .branch(COMMIT_ID)
-                .localDir("checkout");
+        job.useScm(GitScm.class).url(REPO_URL).branch(COMMIT_ID).localDir("checkout");
         job.save();
 
         return job;
@@ -80,33 +70,28 @@ class UiTest extends AbstractJUnitTest {
     /**
      * Creates {@link FreeStyleJob} with threshold and jacoco adapter.
      *
-     * @param unhealthyThreshold
-     *         for threshold
-     * @param unstableThreshold
-     *         for threshold
-     * @param failUnhealthy
-     *         should build fail on unhealthy status
-     * @param thresholdLevel
-     *         level of threshold
-     *
+     * @param unhealthyThreshold for threshold
+     * @param unstableThreshold for threshold
+     * @param failUnhealthy should build fail on unhealthy status
+     * @param thresholdLevel level of threshold
      * @return Job with threshold and jacoco adapter.
      */
-    FreeStyleJob getJobWithAdapterThresholdAndFailOnUnhealthySetter(final int unhealthyThreshold, final int unstableThreshold,
-            final boolean failUnhealthy, final ThresholdLevel thresholdLevel) {
+    FreeStyleJob getJobWithAdapterThresholdAndFailOnUnhealthySetter(
+            final int unhealthyThreshold,
+            final int unstableThreshold,
+            final boolean failUnhealthy,
+            final ThresholdLevel thresholdLevel) {
         var job = jenkins.getJobs().create(FreeStyleJob.class);
         var coveragePublisher = job.addPublisher(CoveragePublisher.class);
         var jacocoAdapter = coveragePublisher.createAdapterPageArea("Jacoco");
         copyResourceFilesToWorkspace(job, RESOURCES_FOLDER);
         jacocoAdapter.setReportFilePath(JACOCO_ANALYSIS_MODEL_XML);
         if (thresholdLevel == ThresholdLevel.ADAPTER) {
-            jacocoAdapter.createThresholdsPageArea(AdapterThresholdTarget.LINE,
-                    unhealthyThreshold,
-                    unstableThreshold, failUnhealthy);
-        }
-        else if (thresholdLevel == ThresholdLevel.GLOBAL) {
-            coveragePublisher.createGlobalThresholdsPageArea(GlobalThresholdTarget.LINE,
-                    unhealthyThreshold,
-                    unstableThreshold, failUnhealthy);
+            jacocoAdapter.createThresholdsPageArea(
+                    AdapterThresholdTarget.LINE, unhealthyThreshold, unstableThreshold, failUnhealthy);
+        } else if (thresholdLevel == ThresholdLevel.GLOBAL) {
+            coveragePublisher.createGlobalThresholdsPageArea(
+                    GlobalThresholdTarget.LINE, unhealthyThreshold, unstableThreshold, failUnhealthy);
         }
         job.save();
         return job;
@@ -115,16 +100,13 @@ class UiTest extends AbstractJUnitTest {
     /**
      * Returns a job with first build and second configuration, both with different reports.
      *
-     * @param configuration
-     *         to set if second build should fail due to decreasing coverage
-     *
+     * @param configuration to set if second build should fail due to decreasing coverage
      * @return a job with first build and second configuration, both with different reports
      */
     FreeStyleJob getJobWithFirstBuildAndDifferentReports(final InCaseCoverageDecreasedConfiguration configuration) {
         if (configuration == InCaseCoverageDecreasedConfiguration.FAIL) {
             return createJobWithConfiguration(JobConfiguration.SECOND_BUILD_FAILED_DUE_TO_COVERAGE_DECREASED);
-        }
-        else {
+        } else {
             return createJobWithConfiguration(JobConfiguration.SECOND_BUILD_SUCCESSFUL_WITH_JACOCO);
         }
     }
@@ -132,9 +114,7 @@ class UiTest extends AbstractJUnitTest {
     /**
      * Creates a job and its configuration depending on {@link JobConfiguration}.
      *
-     * @param jobConfiguration
-     *         which is needed
-     *
+     * @param jobConfiguration which is needed
      * @return job with chosen configuration
      */
     private FreeStyleJob createJobWithConfiguration(final JobConfiguration jobConfiguration) {
@@ -175,9 +155,7 @@ class UiTest extends AbstractJUnitTest {
     /**
      * Build job and check if it is successfully.
      *
-     * @param job
-     *         to build
-     *
+     * @param job to build
      * @return successful build
      */
     Build buildSuccessfully(final Job job) {
@@ -187,9 +165,7 @@ class UiTest extends AbstractJUnitTest {
     /**
      * Build job and check if it is unstable.
      *
-     * @param job
-     *         to build
-     *
+     * @param job to build
      * @return unstable build
      */
     Build buildUnstable(final Job job) {
@@ -199,9 +175,7 @@ class UiTest extends AbstractJUnitTest {
     /**
      * Build job and check if it failed.
      *
-     * @param job
-     *         to build
-     *
+     * @param job to build
      * @return failed build
      */
     Build buildWithErrors(final Job job) {
@@ -211,10 +185,8 @@ class UiTest extends AbstractJUnitTest {
     /**
      * Copies all files of given resources to workspace of a project.
      *
-     * @param job
-     *         in whose workspace files should be copies
-     * @param resources
-     *         of files which should be copied
+     * @param job in whose workspace files should be copies
+     * @param resources of files which should be copied
      */
     void copyResourceFilesToWorkspace(final Job job, final String... resources) {
         for (String file : resources) {
@@ -222,9 +194,7 @@ class UiTest extends AbstractJUnitTest {
         }
     }
 
-    /**
-     * Enum for JobConfiguration for creating different FreeStyle jobs.
-     */
+    /** Enum for JobConfiguration for creating different FreeStyle jobs. */
     private enum JobConfiguration {
         NO_REPORTS,
         NO_REPORTS_SHOULD_FAIL,
@@ -233,25 +203,19 @@ class UiTest extends AbstractJUnitTest {
         SECOND_BUILD_FAILED_DUE_TO_COVERAGE_DECREASED
     }
 
-    /**
-     * Enum for Job Configuration in case no reports are found.
-     */
+    /** Enum for Job Configuration in case no reports are found. */
     enum InCaseNoReportsConfiguration {
         FAIL,
         DONT_FAIL
     }
 
-    /**
-     * Enum for Job Configuration in case coverage decreased in reference build.
-     */
+    /** Enum for Job Configuration in case coverage decreased in reference build. */
     enum InCaseCoverageDecreasedConfiguration {
         FAIL,
         DONT_FAIL
     }
 
-    /**
-     * Enum for threshold level.
-     */
+    /** Enum for threshold level. */
     enum ThresholdLevel {
         ADAPTER,
         GLOBAL

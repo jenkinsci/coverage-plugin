@@ -4,9 +4,7 @@ import org.jenkinsci.test.acceptance.po.Control;
 import org.jenkinsci.test.acceptance.po.PageArea;
 import org.jenkinsci.test.acceptance.po.PageAreaImpl;
 
-/**
- * Used for thresholds and global thresholds.
- */
+/** Used for thresholds and global thresholds. */
 public abstract class AbstractThreshold extends PageAreaImpl {
     private final Control thresholdTarget = control("thresholdTarget");
     private final Control unhealthyThreshold = control("unhealthyThreshold");
@@ -17,10 +15,8 @@ public abstract class AbstractThreshold extends PageAreaImpl {
     /**
      * Constructor of an AbstractThreshold.
      *
-     * @param parent
-     *         of threshold
-     * @param path
-     *         to threshold
+     * @param parent of threshold
+     * @param path to threshold
      */
     @SuppressWarnings("this-escape")
     protected AbstractThreshold(final PageArea parent, final String path) {
@@ -30,8 +26,7 @@ public abstract class AbstractThreshold extends PageAreaImpl {
     /**
      * Setter for unhealthy-threshold.
      *
-     * @param threshold
-     *         for unhealthy
+     * @param threshold for unhealthy
      */
     public void setUnhealthyThreshold(final double threshold) {
         ensureAdvancedOptionsIsActivated();
@@ -41,8 +36,7 @@ public abstract class AbstractThreshold extends PageAreaImpl {
     /**
      * Setter for unstable-threshold.
      *
-     * @param threshold
-     *         for unstable
+     * @param threshold for unstable
      */
     public void setUnstableThreshold(final double threshold) {
         ensureAdvancedOptionsIsActivated();
@@ -52,25 +46,20 @@ public abstract class AbstractThreshold extends PageAreaImpl {
     /**
      * Setter for fail on unhealthy.
      *
-     * @param failOnUnhealthy
-     *         boolean for failing on unhealthy
+     * @param failOnUnhealthy boolean for failing on unhealthy
      */
     public void setFailUnhealthy(final boolean failOnUnhealthy) {
         ensureAdvancedOptionsIsActivated();
         failUnhealthy.check(failOnUnhealthy);
     }
 
-    /**
-     * Deletes a threshold.
-     */
+    /** Deletes a threshold. */
     public void delete() {
         ensureAdvancedOptionsIsActivated();
         deleteButton.click();
     }
 
-    /**
-     * Ensures advanced options are activated so that Thresholds can be set.
-     */
+    /** Ensures advanced options are activated so that Thresholds can be set. */
     abstract void ensureAdvancedOptionsIsActivated();
 
     Control getThresholdTarget() {

@@ -1,16 +1,13 @@
 package io.jenkins.plugins.coverage;
 
-import org.junit.Test;
-
-import java.util.List;
-
-import org.jenkinsci.test.acceptance.po.FreeStyleJob;
+import static net.javacrumbs.jsonunit.assertj.JsonAssertions.*;
+import static org.assertj.core.api.Assertions.*;
 
 import io.jenkins.plugins.coverage.FileCoverageTable.Header;
 import io.jenkins.plugins.coverage.publisher.CoveragePublisher;
-
-import static net.javacrumbs.jsonunit.assertj.JsonAssertions.*;
-import static org.assertj.core.api.Assertions.*;
+import java.util.List;
+import org.jenkinsci.test.acceptance.po.FreeStyleJob;
+import org.junit.Test;
 
 /**
  * Acceptance tests for CoverageReport, containing three charts and one table ({@link FileCoverageTable}). Contains
@@ -18,9 +15,7 @@ import static org.assertj.core.api.Assertions.*;
  */
 @SuppressWarnings("PMD.WrongTestAnnotation")
 public class CoverageReportTest extends UiTest {
-    /**
-     * Test for CoverageReport of job with no reports does not exist. Verifies CoverageReport can't be opened.
-     */
+    /** Test for CoverageReport of job with no reports does not exist. Verifies CoverageReport can't be opened. */
     @Test
     public void shouldCoverageReportNotAvailableForJobWithNoReports() {
         var job = jenkins.getJobs().create(FreeStyleJob.class);
@@ -54,11 +49,12 @@ public class CoverageReportTest extends UiTest {
         report.open();
 
         var coverageTable = report.getCoverageTable();
-        verifyFileCoverageTableContent(coverageTable,
-                new String[]{"edu.hm.hafner.util", "edu.hm.hafner.util", "edu.hm.hafner.util"},
-                new String[]{"Ensure.java", "FilteredLog.java", "Generated.java"},
-                new String[]{"80.00%", "100.00%", "n/a"},
-                new String[]{"86.96%", "100.00%", "n/a"});
+        verifyFileCoverageTableContent(
+                coverageTable,
+                new String[] {"edu.hm.hafner.util", "edu.hm.hafner.util", "edu.hm.hafner.util"},
+                new String[] {"Ensure.java", "FilteredLog.java", "Generated.java"},
+                new String[] {"80.00%", "100.00%", "n/a"},
+                new String[] {"86.96%", "100.00%", "n/a"});
 
         var coverageTree = report.getCoverageTree();
         verifyCoverageTreeAfterSomeBuildsWithReports(coverageTree);
@@ -100,51 +96,56 @@ public class CoverageReportTest extends UiTest {
         report.open();
 
         var table = report.openFileCoverageTable();
-        verifyFileCoverageTableContent(table,
-                new String[]{"edu.hm.hafner.analysis", "edu.hm.hafner.analysis", "edu.hm.hafner.analysis"},
-                new String[]{"AbstractPackageDetector.java", "CSharpNamespaceDetector.java", "Categories.java"},
-                new String[]{"88.24%", "100.00%", "100.00%"},
-                new String[]{"50.00%", "n/a", "100.00%"});
+        verifyFileCoverageTableContent(
+                table,
+                new String[] {"edu.hm.hafner.analysis", "edu.hm.hafner.analysis", "edu.hm.hafner.analysis"},
+                new String[] {"AbstractPackageDetector.java", "CSharpNamespaceDetector.java", "Categories.java"},
+                new String[] {"88.24%", "100.00%", "100.00%"},
+                new String[] {"50.00%", "n/a", "100.00%"});
         table.openTablePage(2);
-        verifyFileCoverageTableContent(table,
-                new String[]{"edu.hm.hafner.analysis", "edu.hm.hafner.analysis", "edu.hm.hafner.analysis"},
-                new String[]{"IssueBuilder.java", "IssueDifference.java", "IssueParser.java"},
-                new String[]{"100.00%", "100.00%", "83.33%"},
-                new String[]{"100.00%", "92.86%", "n/a"});
+        verifyFileCoverageTableContent(
+                table,
+                new String[] {"edu.hm.hafner.analysis", "edu.hm.hafner.analysis", "edu.hm.hafner.analysis"},
+                new String[] {"IssueBuilder.java", "IssueDifference.java", "IssueParser.java"},
+                new String[] {"100.00%", "100.00%", "83.33%"},
+                new String[] {"100.00%", "92.86%", "n/a"});
         table.openTablePage(3);
-        verifyFileCoverageTableContent(table,
-                new String[]{"edu.hm.hafner.analysis", "edu.hm.hafner.analysis", "edu.hm.hafner.analysis"},
-                new String[]{"PackageDetectors.java", "PackageNameResolver.java", "ParsingCanceledException.java"},
-                new String[]{"92.31%", "100.00%", "0.00%"},
-                new String[]{"100.00%", "83.33%", "n/a"});
+        verifyFileCoverageTableContent(
+                table,
+                new String[] {"edu.hm.hafner.analysis", "edu.hm.hafner.analysis", "edu.hm.hafner.analysis"},
+                new String[] {"PackageDetectors.java", "PackageNameResolver.java", "ParsingCanceledException.java"},
+                new String[] {"92.31%", "100.00%", "0.00%"},
+                new String[] {"100.00%", "83.33%", "n/a"});
     }
 
     /**
      * Verifies content of CoverageTable of CoverageReport of Job. Arrays must have the same length.
      *
-     * @param fileCoverageTable
-     *         of current build
-     * @param shouldPackage
-     *         string array of expected values in package column
-     * @param shouldFiles
-     *         string array of expected values in files column
-     * @param shouldLineCoverages
-     *         string array of expected values in line coverage column
-     * @param shouldBranchCoverages
-     *         string array of expected values in branch coverage column
+     * @param fileCoverageTable of current build
+     * @param shouldPackage string array of expected values in package column
+     * @param shouldFiles string array of expected values in files column
+     * @param shouldLineCoverages string array of expected values in line coverage column
+     * @param shouldBranchCoverages string array of expected values in branch coverage column
      */
     @SuppressWarnings({"PMD.UseVarargs", "AvoidObjectArrays"})
-    public static void verifyFileCoverageTableContent(final FileCoverageTable fileCoverageTable,
-            final String[] shouldPackage, final String[] shouldFiles,
-            final String[] shouldLineCoverages, final String[] shouldBranchCoverages) {
+    public static void verifyFileCoverageTableContent(
+            final FileCoverageTable fileCoverageTable,
+            final String[] shouldPackage,
+            final String[] shouldFiles,
+            final String[] shouldLineCoverages,
+            final String[] shouldBranchCoverages) {
         List<FileCoverageTableRow> rows = fileCoverageTable.getTableRows();
         List<String> headers = fileCoverageTable.getHeaders();
 
         assertThat(headers)
                 .hasSize(7)
-                .containsExactly(Header.PACKAGE.getTitle(), Header.FILE.getTitle(),
-                        Header.LINE_COVERAGE.getTitle(), Header.LINE_COVERAGE_DELTA.getTitle(),
-                        Header.BRANCH_COVERAGE.getTitle(), Header.BRANCH_COVERAGE_DELTA.getTitle(),
+                .containsExactly(
+                        Header.PACKAGE.getTitle(),
+                        Header.FILE.getTitle(),
+                        Header.LINE_COVERAGE.getTitle(),
+                        Header.LINE_COVERAGE_DELTA.getTitle(),
+                        Header.BRANCH_COVERAGE.getTitle(),
+                        Header.BRANCH_COVERAGE_DELTA.getTitle(),
                         Header.LOC.getTitle());
 
         for (int i = 0; i < shouldFiles.length; i++) {
@@ -159,21 +160,18 @@ public class CoverageReportTest extends UiTest {
     /**
      * Verifies number of maximal entries in {@link FileCoverageTable}.
      *
-     * @param fileCoverageTable
-     *         of build
-     * @param shouldValue
-     *         number of expected maximal entries
+     * @param fileCoverageTable of build
+     * @param shouldValue number of expected maximal entries
      */
-    public static void verifyFileCoverageTableNumberOfMaxEntries(final FileCoverageTable fileCoverageTable,
-            final int shouldValue) {
+    public static void verifyFileCoverageTableNumberOfMaxEntries(
+            final FileCoverageTable fileCoverageTable, final int shouldValue) {
         assertThat(fileCoverageTable.getTotals()).isEqualTo(shouldValue);
     }
 
     /**
      * Verifies CoverageOverview of CoverageReport of Job with two Builds.
      *
-     * @param coverageOverview
-     *         from second build.
+     * @param coverageOverview from second build.
      */
     public static void verifyCoverageOverviewAfterSomeBuildsWithReports(final String coverageOverview) {
         assertThatJson(coverageOverview)
@@ -188,7 +186,10 @@ public class CoverageReportTest extends UiTest {
                 .contains("File")
                 .contains("Package");
 
-        assertThatJson(coverageOverview).inPath("series[0].data").isArray().hasSize(7)
+        assertThatJson(coverageOverview)
+                .inPath("series[0].data")
+                .isArray()
+                .hasSize(7)
                 .contains("0.7")
                 .contains("1")
                 .contains("0.8333333333333334")
@@ -204,8 +205,7 @@ public class CoverageReportTest extends UiTest {
     /**
      * Verifies CoverageOverview of CoverageReport of Job after one build.
      *
-     * @param coverageOverview
-     *         from first build.
+     * @param coverageOverview from first build.
      */
     public static void verifyCoverageOverviewAfterOneBuildWithReport(final String coverageOverview) {
         assertThatJson(coverageOverview)
@@ -220,7 +220,10 @@ public class CoverageReportTest extends UiTest {
                 .contains("File")
                 .contains("Package");
 
-        assertThatJson(coverageOverview).inPath("series[0].data").isArray().hasSize(7)
+        assertThatJson(coverageOverview)
+                .inPath("series[0].data")
+                .isArray()
+                .hasSize(7)
                 .contains("1")
                 .contains("0.996742671009772")
                 .contains("0.9856733524355301")
@@ -236,18 +239,24 @@ public class CoverageReportTest extends UiTest {
     /**
      * Verifies CoverageTree of CoverageReport of Job with two Builds.
      *
-     * @param coverageTree
-     *         from second build.
+     * @param coverageTree from second build.
      */
     public static void verifyCoverageTreeAfterSomeBuildsWithReports(final String coverageTree) {
-        assertThatJson(coverageTree).inPath("series[*].data[*].children[*].name")
+        assertThatJson(coverageTree)
+                .inPath("series[*].data[*].children[*].name")
                 .isArray()
                 .hasSize(1)
                 .contains("edu.hm.hafner.util");
-        assertThatJson(coverageTree).inPath("series[*].data[*].children[*].value").isArray().hasSize(1)
+        assertThatJson(coverageTree)
+                .inPath("series[*].data[*].children[*].value")
+                .isArray()
+                .hasSize(1)
                 .contains("[323, 294]");
 
-        assertThatJson(coverageTree).inPath("series[*].data[*].children[*].children[*].name").isArray().hasSize(10)
+        assertThatJson(coverageTree)
+                .inPath("series[*].data[*].children[*].children[*].name")
+                .isArray()
+                .hasSize(10)
                 .contains("Ensure.java")
                 .contains("FilteredLog.java")
                 .contains("Generated.java")
@@ -259,7 +268,10 @@ public class CoverageReportTest extends UiTest {
                 .contains("TreeStringBuilder.java")
                 .contains("VisibleForTesting.java");
 
-        assertThatJson(coverageTree).inPath("series[*].data[*].children[*].children[*].value").isArray().hasSize(10)
+        assertThatJson(coverageTree)
+                .inPath("series[*].data[*].children[*].children[*].value")
+                .isArray()
+                .hasSize(10)
                 .contains("[125, 100]")
                 .contains("[34,34]")
                 .contains("[0,0]")
@@ -275,21 +287,30 @@ public class CoverageReportTest extends UiTest {
     /**
      * Verifies CoverageTree of CoverageReport of Job after one build.
      *
-     * @param coverageTree
-     *         from second build.
+     * @param coverageTree from second build.
      */
     public static void verifyCoverageTreeAfterOneBuildWithReport(final String coverageTree) {
-        assertThatJson(coverageTree).inPath("series[*].data[*].children[*].name")
+        assertThatJson(coverageTree)
+                .inPath("series[*].data[*].children[*].name")
                 .isArray()
                 .hasSize(1)
                 .contains("edu.hm.hafner");
-        assertThatJson(coverageTree).inPath("series[*].data[*].children[*].value").isArray().hasSize(1)
+        assertThatJson(coverageTree)
+                .inPath("series[*].data[*].children[*].value")
+                .isArray()
+                .hasSize(1)
                 .contains("[6368, 6083]");
 
-        assertThatJson(coverageTree).inPath("series[*].data[*].children[*].children[*].name").isArray().hasSize(2)
+        assertThatJson(coverageTree)
+                .inPath("series[*].data[*].children[*].children[*].name")
+                .isArray()
+                .hasSize(2)
                 .contains("analysis")
                 .contains("util");
-        assertThatJson(coverageTree).inPath("series[*].data[*].children[*].children[*].value").isArray().hasSize(2)
+        assertThatJson(coverageTree)
+                .inPath("series[*].data[*].children[*].children[*].value")
+                .isArray()
+                .hasSize(2)
                 .contains("[6306, 6023]")
                 .contains("[62, 60]");
     }
