@@ -13,6 +13,26 @@
     <l:app-bar title="${it.displayName}">
       <div class="jenkins-details"
            style="display: flex; flex-direction: row; justify-content: space-between; align-items: center; height: auto; flex-wrap: wrap;">
+        <j:choose>
+          <j:when test="${it.hasCoverageMetrics() and it.hasSoftwareMetrics()}">
+            <div style="display: flex; flex-basis: auto; justify-content: space-between; align-items: center">
+              <div class="jenkins-!-margin-right-1" style="text-wrap: nowrap">${%metrics-title}:</div>
+              <div class="jenkins-select">
+                <select id="metric-group" class="jenkins-select__input" style="min-width: 10em;">
+                  <option value="coverage">${%coverage-group}</option>
+                  <option value="software">${%software-group}</option>
+                </select>
+              </div>
+            </div>
+          </j:when>
+          <j:when test="${it.hasSoftwareMetrics()}">
+            <select id="metric-group" style="display: none"><option value="software" selected="selected"/></select>
+          </j:when>
+          <j:otherwise>
+            <select id="metric-group" style="display: none"><option value="coverage" selected="selected"/></select>
+          </j:otherwise>
+        </j:choose>
+
         <div style="display: flex; flex-basis: auto; justify-content: space-between; align-items: center"
              tooltip="${%filled-tooltip}">
           <span class="jenkins-checkbox">

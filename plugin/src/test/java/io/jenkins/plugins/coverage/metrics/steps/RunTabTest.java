@@ -240,6 +240,17 @@ class RunTabTest extends AbstractCoverageTest {
         assertThatJson(chart).node("buildNumbers").isArray().containsExactly(BUILD_NUMBER);
         assertThatJson(chart).node("domainAxisLabels").isArray().containsExactly("#" + BUILD_NUMBER);
         assertThatJson(chart).inPath("$.series[*].name").isArray().contains("Line Coverage", "Branch Coverage");
+
+        assertThat(model.hasCoverageMetrics()).isTrue();
+        assertThat(model.hasSoftwareMetrics()).isTrue();
+        assertThatJson(model.getTrendChart("{\"softwareMetrics\": false}"))
+                .inPath("$.series[*].name")
+                .isArray()
+                .contains("Line Coverage", "Branch Coverage");
+        assertThatJson(model.getTrendChart("{\"softwareMetrics\": true}"))
+                .inPath("$.series[*].name")
+                .isArray()
+                .doesNotContain("Line Coverage", "Branch Coverage");
     }
 
     @Test
@@ -256,6 +267,12 @@ class RunTabTest extends AbstractCoverageTest {
         assertThat(model.getFormatter()).isNotNull();
 
         assertThat(model.getTreeMetrics()).contains(Metric.LINE, Metric.BRANCH).doesNotContain(Metric.INSTRUCTION);
+        assertThat(model.getCoverageTreeMetrics())
+                .contains(Metric.LINE, Metric.BRANCH)
+                .allMatch(Metric::isCoverage);
+        assertThat(model.getSoftwareTreeMetrics())
+                .contains(Metric.CYCLOMATIC_COMPLEXITY)
+                .noneMatch(Metric::isCoverage);
         assertThat(model.sharesOverviewThresholds(Metric.LINE)).isTrue();
         assertThat(model.sharesOverviewThresholds(Metric.CYCLOMATIC_COMPLEXITY)).isFalse();
         assertThat(model.getJenkinsColorIDs()).isNotEmpty();

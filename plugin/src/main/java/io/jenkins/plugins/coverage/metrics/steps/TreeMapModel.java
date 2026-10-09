@@ -50,12 +50,35 @@ public class TreeMapModel implements ModelObject {
     }
 
     /**
-     * Returns the metrics that can be visualized in the tree map, i.e., the metrics the metric selector offers.
+     * Returns the metrics from the fixed tree map selection, see {@link #getCoverageTreeMetrics()} and
+     * {@link #getSoftwareTreeMetrics()} for the metrics that the metric selector actually offers.
      *
      * @return the available metrics
      */
     public NavigableSet<Metric> getTreeMetrics() {
         return parent.getTreeMetrics();
+    }
+
+    /**
+     * Returns the coverage metrics (line, branch, mutation, ...) that can be visualized in the tree map, in the order
+     * of the metric selector.
+     *
+     * @return the available coverage metrics
+     */
+    @SuppressWarnings("unused") // Called by jelly view
+    public List<Metric> getCoverageTreeMetrics() {
+        return getTreeMetrics().stream().filter(Metric::isCoverage).toList();
+    }
+
+    /**
+     * Returns all software metrics (complexity, size, tests, ...) that are available in the report and can be
+     * visualized in the tree map, in the order of the metric selector.
+     *
+     * @return the available software metrics
+     */
+    @SuppressWarnings("unused") // Called by jelly view
+    public List<Metric> getSoftwareTreeMetrics() {
+        return List.copyOf(parent.getSoftwareTreeMetrics());
     }
 
     /**
