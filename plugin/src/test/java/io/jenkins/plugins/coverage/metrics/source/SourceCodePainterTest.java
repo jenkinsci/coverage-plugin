@@ -1,14 +1,15 @@
 package io.jenkins.plugins.coverage.metrics.source;
 
-import org.junit.jupiter.api.Test;
-import org.junitpioneer.jupiter.Issue;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.*;
 
 import edu.hm.hafner.coverage.Coverage.CoverageBuilder;
 import edu.hm.hafner.coverage.FileNode;
 import edu.hm.hafner.coverage.Metric;
 import edu.hm.hafner.coverage.ModuleNode;
 import edu.hm.hafner.util.FilteredLog;
-
+import hudson.FilePath;
+import hudson.model.Run;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -20,12 +21,8 @@ import java.util.List;
 import java.util.function.Function;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
-
-import hudson.FilePath;
-import hudson.model.Run;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.*;
+import org.junit.jupiter.api.Test;
+import org.junitpioneer.jupiter.Issue;
 
 /**
  * Tests the class {@link SourceCodePainter}.
@@ -43,15 +40,13 @@ class SourceCodePainterTest {
         Path workspace = Files.createTempDirectory("source-painter");
         Path sourceFile = workspace.resolve("Example.m");
 
-        Files.write(sourceFile, List.of(
-                "function y = example()",
-                "% Copyright 2026, Café Corporation",
-                "y = 1;"), WINDOWS_1252);
+        Files.write(
+                sourceFile,
+                List.of("function y = example()", "% Copyright 2026, Café Corporation", "y = 1;"),
+                WINDOWS_1252);
 
         var painter = new SourceCodePainter.AgentCoveragePainter(
-                List.of(new CoverageSourcePrinter(new FileNode("", "Example.m"))),
-                "windows-1252",
-                "coverage");
+                List.of(new CoverageSourcePrinter(new FileNode("", "Example.m"))), "windows-1252", "coverage");
 
         FilteredLog log = painter.invoke(workspace.toFile(), null);
 
@@ -110,7 +105,8 @@ class SourceCodePainterTest {
     @Issue("JENKINS-75871")
     void shouldSelectCoverageSourcePrinterForStandardCoverage() {
         var root = new ModuleNode("root");
-        root.addValue(new CoverageBuilder(Metric.LINE).withCovered(5).withMissed(2).build());
+        root.addValue(
+                new CoverageBuilder(Metric.LINE).withCovered(5).withMissed(2).build());
 
         Function<FileNode, CoverageSourcePrinter> factory = createPainterAndGetFactory(root);
         var fileNode = new FileNode("", "Foo.java");
@@ -123,8 +119,12 @@ class SourceCodePainterTest {
     @Issue("JENKINS-75871")
     void shouldSelectMutationSourcePrinterWhenRootHasMutationMetric() {
         var root = new ModuleNode("root");
-        root.addValue(new CoverageBuilder(Metric.LINE).withCovered(5).withMissed(2).build());
-        root.addValue(new CoverageBuilder(Metric.MUTATION).withCovered(3).withMissed(1).build());
+        root.addValue(
+                new CoverageBuilder(Metric.LINE).withCovered(5).withMissed(2).build());
+        root.addValue(new CoverageBuilder(Metric.MUTATION)
+                .withCovered(3)
+                .withMissed(1)
+                .build());
 
         Function<FileNode, CoverageSourcePrinter> factory = createPainterAndGetFactory(root);
         var fileNode = new FileNode("", "Foo.java");
@@ -137,8 +137,12 @@ class SourceCodePainterTest {
     @Issue("JENKINS-75871")
     void shouldSelectVectorCastSourcePrinterWhenRootHasMcdcPairMetric() {
         var root = new ModuleNode("root");
-        root.addValue(new CoverageBuilder(Metric.LINE).withCovered(5).withMissed(2).build());
-        root.addValue(new CoverageBuilder(Metric.MCDC_PAIR).withCovered(4).withMissed(1).build());
+        root.addValue(
+                new CoverageBuilder(Metric.LINE).withCovered(5).withMissed(2).build());
+        root.addValue(new CoverageBuilder(Metric.MCDC_PAIR)
+                .withCovered(4)
+                .withMissed(1)
+                .build());
 
         Function<FileNode, CoverageSourcePrinter> factory = createPainterAndGetFactory(root);
         var fileNode = new FileNode("", "Foo.java");
@@ -151,8 +155,12 @@ class SourceCodePainterTest {
     @Issue("JENKINS-75871")
     void shouldSelectVectorCastSourcePrinterWhenRootHasFunctionCallMetric() {
         var root = new ModuleNode("root");
-        root.addValue(new CoverageBuilder(Metric.LINE).withCovered(5).withMissed(2).build());
-        root.addValue(new CoverageBuilder(Metric.FUNCTION_CALL).withCovered(10).withMissed(2).build());
+        root.addValue(
+                new CoverageBuilder(Metric.LINE).withCovered(5).withMissed(2).build());
+        root.addValue(new CoverageBuilder(Metric.FUNCTION_CALL)
+                .withCovered(10)
+                .withMissed(2)
+                .build());
 
         Function<FileNode, CoverageSourcePrinter> factory = createPainterAndGetFactory(root);
         var fileNode = new FileNode("", "Foo.java");
@@ -165,16 +173,16 @@ class SourceCodePainterTest {
     @Issue("JENKINS-75871")
     void shouldUseSamePrinterTypeForAllFilesWhenRootHasMutationMetric() {
         var root = new ModuleNode("root");
-        root.addValue(new CoverageBuilder(Metric.LINE).withCovered(5).withMissed(2).build());
-        root.addValue(new CoverageBuilder(Metric.MUTATION).withCovered(3).withMissed(1).build());
+        root.addValue(
+                new CoverageBuilder(Metric.LINE).withCovered(5).withMissed(2).build());
+        root.addValue(new CoverageBuilder(Metric.MUTATION)
+                .withCovered(3)
+                .withMissed(1)
+                .build());
 
         Function<FileNode, CoverageSourcePrinter> factory = createPainterAndGetFactory(root);
 
-        var files = List.of(
-                new FileNode("", "Foo.java"),
-                new FileNode("", "Bar.java"),
-                new FileNode("", "Baz.java")
-        );
+        var files = List.of(new FileNode("", "Foo.java"), new FileNode("", "Bar.java"), new FileNode("", "Baz.java"));
         for (FileNode file : files) {
             assertThat(factory.apply(file)).isExactlyInstanceOf(MutationSourcePrinter.class);
         }
@@ -184,15 +192,13 @@ class SourceCodePainterTest {
     @Issue("JENKINS-75871")
     void shouldUseSamePrinterTypeForAllFilesWhenRootHasStandardCoverage() {
         var root = new ModuleNode("root");
-        root.addValue(new CoverageBuilder(Metric.LINE).withCovered(5).withMissed(2).build());
+        root.addValue(
+                new CoverageBuilder(Metric.LINE).withCovered(5).withMissed(2).build());
 
         Function<FileNode, CoverageSourcePrinter> factory = createPainterAndGetFactory(root);
 
-        var files = List.of(
-                new FileNode("", "Alpha.java"),
-                new FileNode("", "Beta.java"),
-                new FileNode("", "Gamma.java")
-        );
+        var files =
+                List.of(new FileNode("", "Alpha.java"), new FileNode("", "Beta.java"), new FileNode("", "Gamma.java"));
         for (FileNode file : files) {
             assertThat(factory.apply(file)).isExactlyInstanceOf(CoverageSourcePrinter.class);
         }
@@ -202,17 +208,21 @@ class SourceCodePainterTest {
     @Issue("JENKINS-75871")
     void shouldUseSamePrinterTypeForAllFilesWhenRootHasVectorCastMetrics() {
         var root = new ModuleNode("root");
-        root.addValue(new CoverageBuilder(Metric.LINE).withCovered(10).withMissed(3).build());
-        root.addValue(new CoverageBuilder(Metric.MCDC_PAIR).withCovered(4).withMissed(1).build());
-        root.addValue(new CoverageBuilder(Metric.FUNCTION_CALL).withCovered(8).withMissed(2).build());
+        root.addValue(
+                new CoverageBuilder(Metric.LINE).withCovered(10).withMissed(3).build());
+        root.addValue(new CoverageBuilder(Metric.MCDC_PAIR)
+                .withCovered(4)
+                .withMissed(1)
+                .build());
+        root.addValue(new CoverageBuilder(Metric.FUNCTION_CALL)
+                .withCovered(8)
+                .withMissed(2)
+                .build());
 
         Function<FileNode, CoverageSourcePrinter> factory = createPainterAndGetFactory(root);
 
-        var files = List.of(
-                new FileNode("", "driver.c"),
-                new FileNode("", "database.c"),
-                new FileNode("", "network.c")
-        );
+        var files =
+                List.of(new FileNode("", "driver.c"), new FileNode("", "database.c"), new FileNode("", "network.c"));
         for (FileNode file : files) {
             assertThat(factory.apply(file)).isExactlyInstanceOf(VectorCastSourcePrinter.class);
         }

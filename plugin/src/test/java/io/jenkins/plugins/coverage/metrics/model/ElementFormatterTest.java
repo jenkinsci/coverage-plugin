@@ -1,9 +1,6 @@
 package io.jenkins.plugins.coverage.metrics.model;
 
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.EnumSource;
-import org.junitpioneer.jupiter.DefaultLocale;
+import static org.assertj.core.api.Assertions.*;
 
 import edu.hm.hafner.coverage.Coverage;
 import edu.hm.hafner.coverage.Coverage.CoverageBuilder;
@@ -11,10 +8,11 @@ import edu.hm.hafner.coverage.Difference;
 import edu.hm.hafner.coverage.Metric;
 import edu.hm.hafner.coverage.MetricAggregation;
 import edu.hm.hafner.coverage.Value;
-
 import java.util.Locale;
-
-import static org.assertj.core.api.Assertions.*;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
+import org.junitpioneer.jupiter.DefaultLocale;
 
 @DefaultLocale("en")
 class ElementFormatterTest {
@@ -74,7 +72,10 @@ class ElementFormatterTest {
         assertThat(formatter.formatValue(line)).isEqualTo("75.00% (3/4)");
         assertThat(formatter.formatAdditionalInformation(line)).isEqualTo("Covered: 3 - Missed: 1");
 
-        var mutation = new CoverageBuilder(Metric.MUTATION).withCovered(3).withMissed(1).build();
+        var mutation = new CoverageBuilder(Metric.MUTATION)
+                .withCovered(3)
+                .withMissed(1)
+                .build();
         assertThat(formatter.getTooltip(mutation)).isEqualTo("Mutation Coverage: 75.00% (3/4)");
         assertThat(formatter.formatValueWithMetric(mutation)).isEqualTo("Mutation Coverage: 75.00%");
         assertThat(formatter.formatDetailedValueWithMetric(mutation)).isEqualTo("Mutation Coverage: 75.00% (3/4)");
@@ -113,19 +114,20 @@ class ElementFormatterTest {
     void shouldFormatDelta() {
         var formatter = new ElementFormatter();
 
-        assertThat(formatter.formatDelta(Metric.LINE,
-                Value.valueOf("LINE: -100"),
-                Locale.ENGLISH)).isEqualTo("-100.00%");
-        assertThat(formatter.formatDelta(Metric.LOC,
-                Value.valueOf("LOC: -1"),
-                Locale.ENGLISH)).isEqualTo("-1");
-        assertThat(formatter.formatDelta(Metric.CYCLOMATIC_COMPLEXITY,
-                Value.valueOf("CYCLOMATIC_COMPLEXITY: -1"),
-                Locale.ENGLISH)).isEqualTo("-1");
+        assertThat(formatter.formatDelta(Metric.LINE, Value.valueOf("LINE: -100"), Locale.ENGLISH))
+                .isEqualTo("-100.00%");
+        assertThat(formatter.formatDelta(Metric.LOC, Value.valueOf("LOC: -1"), Locale.ENGLISH))
+                .isEqualTo("-1");
+        assertThat(formatter.formatDelta(
+                        Metric.CYCLOMATIC_COMPLEXITY, Value.valueOf("CYCLOMATIC_COMPLEXITY: -1"), Locale.ENGLISH))
+                .isEqualTo("-1");
     }
 
     @ParameterizedTest
-    @EnumSource(value = Metric.class, mode = EnumSource.Mode.EXCLUDE, names = {"CONTAINER", "CYCLOMATIC_COMPLEXITY"})
+    @EnumSource(
+            value = Metric.class,
+            mode = EnumSource.Mode.EXCLUDE,
+            names = {"CONTAINER", "CYCLOMATIC_COMPLEXITY"})
     void shouldSupportAllMetrics(final Metric metric) {
         var formatter = new ElementFormatter();
 

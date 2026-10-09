@@ -1,7 +1,5 @@
 package io.jenkins.plugins.coverage.metrics;
 
-import org.junitpioneer.jupiter.DefaultLocale;
-
 import edu.hm.hafner.coverage.Coverage.CoverageBuilder;
 import edu.hm.hafner.coverage.CoverageParser;
 import edu.hm.hafner.coverage.Difference;
@@ -13,12 +11,11 @@ import edu.hm.hafner.coverage.parser.VectorCastParser;
 import edu.hm.hafner.util.FilteredLog;
 import edu.hm.hafner.util.ResourceTest;
 import edu.hm.hafner.util.SecureXmlParserFactory.ParsingException;
-
+import io.jenkins.plugins.coverage.metrics.model.CoverageStatistics;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.util.List;
-
-import io.jenkins.plugins.coverage.metrics.model.CoverageStatistics;
+import org.junitpioneer.jupiter.DefaultLocale;
 
 /**
  * Base class for coverage tests that work on real coverage reports.
@@ -31,14 +28,12 @@ public abstract class AbstractCoverageTest extends ResourceTest {
     public static final String JACOCO_ANALYSIS_MODEL_FILE = "jacoco-analysis-model.xml";
     public static final int JACOCO_ANALYSIS_MODEL_COVERED = 5531;
     public static final int JACOCO_ANALYSIS_MODEL_MISSED = 267;
-    public static final int JACOCO_ANALYSIS_MODEL_TOTAL
-            = JACOCO_ANALYSIS_MODEL_COVERED + JACOCO_ANALYSIS_MODEL_MISSED;
+    public static final int JACOCO_ANALYSIS_MODEL_TOTAL = JACOCO_ANALYSIS_MODEL_COVERED + JACOCO_ANALYSIS_MODEL_MISSED;
 
     public static final String JACOCO_CODING_STYLE_FILE = "jacoco-codingstyle.xml";
     public static final int JACOCO_CODING_STYLE_COVERED = 294;
     public static final int JACOCO_CODING_STYLE_MISSED = 29;
-    public static final int JACOCO_CODING_STYLE_TOTAL
-            = JACOCO_CODING_STYLE_COVERED + JACOCO_CODING_STYLE_MISSED;
+    public static final int JACOCO_CODING_STYLE_TOTAL = JACOCO_CODING_STYLE_COVERED + JACOCO_CODING_STYLE_MISSED;
     private final FilteredLog log = new FilteredLog("Errors");
 
     /**
@@ -72,8 +67,7 @@ public abstract class AbstractCoverageTest extends ResourceTest {
             var node = parser.parse(Files.newBufferedReader(getResourceAsFile(fileName)), fileName, log);
             node.splitPackages();
             return node;
-        }
-        catch (ParsingException | IOException exception) {
+        } catch (ParsingException | IOException exception) {
             throw new AssertionError(exception);
         }
     }
@@ -88,9 +82,8 @@ public abstract class AbstractCoverageTest extends ResourceTest {
      * @return the coverage statistics
      */
     public static CoverageStatistics createStatistics() {
-        return new CoverageStatistics(fillValues(), fillDeltas(),
-                fillValues(), fillDeltas(),
-                fillValues(), fillDeltas());
+        return new CoverageStatistics(
+                fillValues(), fillDeltas(), fillValues(), fillDeltas(), fillValues(), fillDeltas());
     }
 
     /**
@@ -99,8 +92,7 @@ public abstract class AbstractCoverageTest extends ResourceTest {
      * @return the coverage statistics
      */
     public static CoverageStatistics createOnlyProjectStatistics() {
-        return new CoverageStatistics(fillValues(),
-                List.of(), List.of(), List.of(), List.of(), List.of());
+        return new CoverageStatistics(fillValues(), List.of(), List.of(), List.of(), List.of(), List.of());
     }
 
     private static List<Value> fillValues() {
@@ -111,12 +103,12 @@ public abstract class AbstractCoverageTest extends ResourceTest {
                 builder.withMetric(Metric.BRANCH).withCovered(9).withMissed(1).build(),
                 new Value(Metric.CYCLOMATIC_COMPLEXITY, 150),
                 new Value(Metric.NPATH_COMPLEXITY, 15),
-                new Value(Metric.LOC, 1000)
-        );
+                new Value(Metric.LOC, 1000));
     }
 
     private static List<Difference> fillDeltas() {
-        return List.of(new Difference(Metric.FILE, -10),
+        return List.of(
+                new Difference(Metric.FILE, -10),
                 new Difference(Metric.LINE, 5),
                 new Difference(Metric.CYCLOMATIC_COMPLEXITY, -10),
                 new Difference(Metric.LOC, 5));

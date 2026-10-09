@@ -2,17 +2,15 @@ package io.jenkins.plugins.coverage.metrics.steps;
 
 import edu.hm.hafner.coverage.Coverage;
 import edu.hm.hafner.coverage.Value;
-
+import io.jenkins.plugins.coverage.metrics.model.Baseline;
+import io.jenkins.plugins.coverage.metrics.model.ElementFormatter;
+import io.jenkins.plugins.util.QualityGateResult;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
-
-import io.jenkins.plugins.coverage.metrics.model.Baseline;
-import io.jenkins.plugins.coverage.metrics.model.ElementFormatter;
-import io.jenkins.plugins.util.QualityGateResult;
 
 /**
  * Model for the coverage widget.
@@ -36,11 +34,9 @@ public class Widget {
         var failed = getFailedQualityGates();
         if (failed == 1) {
             message = Messages.Widget_failedQualityGate();
-        }
-        else if (failed > 1) {
+        } else if (failed > 1) {
             message = Messages.Widget_failedQualityGates(failed);
-        }
-        else {
+        } else {
             var active = results.stream()
                     .map(CoverageBuildAction::getQualityGateResult)
                     .filter(Predicate.not(QualityGateResult::isInactive))
@@ -48,8 +44,7 @@ public class Widget {
 
             if (active > 0) {
                 message = Messages.Widget_passedQualityGates();
-            }
-            else {
+            } else {
                 message = Messages.Widget_noQualityGates();
             }
         }
@@ -108,29 +103,36 @@ public class Widget {
      *         one result
      */
     public List<MetricBadge> getSingleResultMetrics() {
-        return getSingleResult().map(single -> {
-            var formatter = single.getFormatter();
-            var reportId = single.getUrlName();
-            return single.getAllValues(Baseline.PROJECT).stream()
-                    .filter(value -> OverviewModel.isCardMetric(value.getMetric()))
-                    .sorted(Comparator.comparing(Value::getMetric))
-                    .map(value -> createBadge(formatter, value, reportId))
-                    .collect(Collectors.<MetricBadge>toList());
-        }).orElseGet(List::of);
+        return getSingleResult()
+                .map(single -> {
+                    var formatter = single.getFormatter();
+                    var reportId = single.getUrlName();
+                    return single.getAllValues(Baseline.PROJECT).stream()
+                            .filter(value -> OverviewModel.isCardMetric(value.getMetric()))
+                            .sorted(Comparator.comparing(Value::getMetric))
+                            .map(value -> createBadge(formatter, value, reportId))
+                            .collect(Collectors.<MetricBadge>toList());
+                })
+                .orElseGet(List::of);
     }
 
-    private static MetricBadge createBadge(final ElementFormatter formatter, final Value value,
-            final String reportId) {
+    private static MetricBadge createBadge(final ElementFormatter formatter, final Value value, final String reportId) {
         var colors = formatter.getDisplayColors(Baseline.PROJECT, value);
         var fillPercentage = formatter.getBackgroundColorFillPercentage(value);
-        var style = "background-image: linear-gradient(90deg, %s %s, transparent %s);".formatted(
-                colors.getFillColorAsRGBAHex(BADGE_COLOR_ALPHA), fillPercentage, fillPercentage);
+        var style = "background-image: linear-gradient(90deg, %s %s, transparent %s);"
+                .formatted(colors.getFillColorAsRGBAHex(BADGE_COLOR_ALPHA), fillPercentage, fillPercentage);
         var metric = value.getMetric();
-        var tooltip = "%s: %s".formatted(formatter.getDisplayName(metric),
-                formatter.formatAdditionalInformation(value));
+        var tooltip =
+                "%s: %s".formatted(formatter.getDisplayName(metric), formatter.formatAdditionalInformation(value));
 
-        return new MetricBadge(formatter.getLabel(metric), formatter.format(value), tooltip, style,
-                toPercentage(value), fillPercentage, reportId);
+        return new MetricBadge(
+                formatter.getLabel(metric),
+                formatter.format(value),
+                tooltip,
+                style,
+                toPercentage(value),
+                fillPercentage,
+                reportId);
     }
 
     /**
@@ -169,8 +171,14 @@ public class Widget {
         private final String fillPercentage;
         private final String reportId;
 
-        private MetricBadge(final String label, final String value, final String tooltip, final String style,
-                final double percentage, final String fillPercentage, final String reportId) {
+        private MetricBadge(
+                final String label,
+                final String value,
+                final String tooltip,
+                final String style,
+                final double percentage,
+                final String fillPercentage,
+                final String reportId) {
             this.label = label;
             this.value = value;
             this.tooltip = tooltip;

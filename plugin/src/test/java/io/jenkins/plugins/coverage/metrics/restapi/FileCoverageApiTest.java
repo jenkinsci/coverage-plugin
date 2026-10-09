@@ -1,6 +1,7 @@
 package io.jenkins.plugins.coverage.metrics.restapi;
 
-import org.junit.jupiter.api.Test;
+import static net.javacrumbs.jsonunit.assertj.JsonAssertions.*;
+import static org.assertj.core.api.Assertions.*;
 
 import edu.hm.hafner.coverage.Coverage;
 import edu.hm.hafner.coverage.Coverage.CoverageBuilder;
@@ -8,19 +9,14 @@ import edu.hm.hafner.coverage.FileNode;
 import edu.hm.hafner.coverage.Metric;
 import edu.hm.hafner.coverage.PackageNode;
 import edu.hm.hafner.coverage.Value;
-
+import io.jenkins.plugins.coverage.metrics.AbstractModifiedFilesCoverageTest;
 import java.io.IOException;
 import java.io.StringWriter;
-
+import org.junit.jupiter.api.Test;
 import org.kohsuke.stapler.export.ExportConfig;
 import org.kohsuke.stapler.export.Flavor;
 import org.kohsuke.stapler.export.Model;
 import org.kohsuke.stapler.export.ModelBuilder;
-
-import io.jenkins.plugins.coverage.metrics.AbstractModifiedFilesCoverageTest;
-
-import static net.javacrumbs.jsonunit.assertj.JsonAssertions.*;
-import static org.assertj.core.api.Assertions.*;
 
 /**
  * Tests {@link FileCoverageApi}.
@@ -34,7 +30,8 @@ class FileCoverageApiTest extends AbstractModifiedFilesCoverageTest {
     void shouldReportWholeFileCoverageOnlyForModifiedFiles() {
         var files = new FileCoverageApi(createCoverageTree()).getFiles();
 
-        assertThat(files).extracting(FileCoverage::getFullyQualifiedFileName)
+        assertThat(files)
+                .extracting(FileCoverage::getFullyQualifiedFileName)
                 .containsExactly(getPathOfFileWithModifiedLines());
         assertThat(files.get(0).getMetrics()).containsKey("line");
         assertThat(files.get(0).getMetrics().get("line")).matches("\\d+(\\.\\d+)?%");
@@ -64,9 +61,21 @@ class FileCoverageApiTest extends AbstractModifiedFilesCoverageTest {
         var fileNode = new FileNode("Test.java", "path");
         fileNode.addModifiedLines(1);
         fileNode.addCounters(1, 1, 0);
-        fileNode.addValue(new CoverageBuilder().withMetric(Metric.LINE).withCovered(88).withMissed(12).build());
-        fileNode.addValue(new CoverageBuilder().withMetric(Metric.BRANCH).withCovered(9).withMissed(1).build());
-        fileNode.addValue(new CoverageBuilder().withMetric(Metric.INSTRUCTION).withCovered(80).withMissed(20).build());
+        fileNode.addValue(new CoverageBuilder()
+                .withMetric(Metric.LINE)
+                .withCovered(88)
+                .withMissed(12)
+                .build());
+        fileNode.addValue(new CoverageBuilder()
+                .withMetric(Metric.BRANCH)
+                .withCovered(9)
+                .withMissed(1)
+                .build());
+        fileNode.addValue(new CoverageBuilder()
+                .withMetric(Metric.INSTRUCTION)
+                .withCovered(80)
+                .withMissed(20)
+                .build());
         fileNode.addValue(new Value(Metric.LOC, 1000));
         fileNode.addValue(new Value(Metric.CYCLOMATIC_COMPLEXITY, 150));
         fileNode.addValue(Coverage.nullObject(Metric.MCDC_PAIR));

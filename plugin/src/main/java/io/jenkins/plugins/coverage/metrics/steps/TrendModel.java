@@ -1,10 +1,9 @@
 package io.jenkins.plugins.coverage.metrics.steps;
 
 import edu.hm.hafner.echarts.line.LinesChartModel;
-
-import org.kohsuke.stapler.bind.JavaScriptMethod;
 import hudson.model.ModelObject;
 import hudson.model.Run;
+import org.kohsuke.stapler.bind.JavaScriptMethod;
 
 /**
  * Server side model that provides the data for the "Trend" tab of the coverage details view. Shows a trend
@@ -58,7 +57,7 @@ public class TrendModel implements ModelObject {
     }
 
     private LinesChartModel createCoverageModel(final String configuration) {
-        return new TrendChartFactory().createChartModel(configuration, latestAction,
-                TrendChartFactory.DEFAULT_TREND_METRICS);
+        return new TrendChartFactory()
+                .createChartModel(configuration, latestAction, TrendChartFactory.DEFAULT_TREND_METRICS);
     }
 }

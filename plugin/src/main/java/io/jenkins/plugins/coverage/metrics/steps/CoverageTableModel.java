@@ -1,25 +1,13 @@
 package io.jenkins.plugins.coverage.metrics.steps;
 
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.text.CaseUtils;
+import static j2html.TagCreator.*;
 
 import edu.hm.hafner.coverage.Coverage;
 import edu.hm.hafner.coverage.FileNode;
 import edu.hm.hafner.coverage.Metric;
 import edu.hm.hafner.coverage.Node;
 import edu.hm.hafner.coverage.Value;
-
-import j2html.tags.ContainerTag;
-import java.io.File;
-import java.util.ArrayList;
-import java.util.EnumMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.stream.Collectors;
-
 import hudson.Functions;
-
 import io.jenkins.plugins.coverage.metrics.color.ColorProvider;
 import io.jenkins.plugins.coverage.metrics.color.ColorProvider.DisplayColors;
 import io.jenkins.plugins.coverage.metrics.color.CoverageChangeTendency;
@@ -34,8 +22,16 @@ import io.jenkins.plugins.datatables.TableColumn.ColumnType;
 import io.jenkins.plugins.datatables.TableConfiguration;
 import io.jenkins.plugins.datatables.TableConfiguration.SelectStyle;
 import io.jenkins.plugins.datatables.TableModel;
-
-import static j2html.TagCreator.*;
+import j2html.tags.ContainerTag;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.EnumMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.stream.Collectors;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.text.CaseUtils;
 
 /**
  * UI table model for the coverage details table.
@@ -49,8 +45,8 @@ class CoverageTableModel extends TableModel {
      */
     private static final int TABLE_COVERAGE_COLOR_ALPHA = 80;
 
-    static final DetailedCell<Integer> NO_COVERAGE
-            = new DetailedCell<>(Messages.Coverage_Not_Available(), NO_COVERAGE_SORT);
+    static final DetailedCell<Integer> NO_COVERAGE =
+            new DetailedCell<>(Messages.Coverage_Not_Available(), NO_COVERAGE_SORT);
     private static final String SKIP_DELTA = "";
 
     private final ColorProvider colorProvider;
@@ -91,52 +87,68 @@ class CoverageTableModel extends TableModel {
     public List<TableColumn> getColumns() {
         List<TableColumn> columns = new ArrayList<>();
 
-        var fileHash = new ColumnBuilder().withHeaderLabel("Hash")
+        var fileHash = new ColumnBuilder()
+                .withHeaderLabel("Hash")
                 .withDataPropertyKey("fileHash")
                 .withHeaderClass(ColumnCss.HIDDEN)
                 .build();
         columns.add(fileHash);
-        var modified = new ColumnBuilder().withHeaderLabel("Modified")
+        var modified = new ColumnBuilder()
+                .withHeaderLabel("Modified")
                 .withDataPropertyKey("modified")
                 .withHeaderClass(ColumnCss.HIDDEN)
                 .build();
         columns.add(modified);
-        var fileName = new ColumnBuilder().withHeaderLabel(Messages.Column_File())
+        var fileName = new ColumnBuilder()
+                .withHeaderLabel(Messages.Column_File())
                 .withDataPropertyKey("fileName")
                 .withDetailedCell()
                 .withResponsivePriority(1)
                 .build();
         columns.add(fileName);
-        var packageName = new ColumnBuilder().withHeaderLabel(Messages.Column_Package())
+        var packageName = new ColumnBuilder()
+                .withHeaderLabel(Messages.Column_Package())
                 .withDataPropertyKey("packageName")
                 .withResponsivePriority(50_000)
                 .build();
         columns.add(packageName);
 
-        configureValueColumn("lineCoverage", Metric.LINE, Messages.Column_LineCoverage(),
-                Messages.Column_DeltaLineCoverage("Δ"), columns);
-        configureValueColumn("branchCoverage", Metric.BRANCH, Messages.Column_BranchCoverage(),
-                Messages.Column_DeltaBranchCoverage("Δ"), columns);
+        configureValueColumn(
+                "lineCoverage",
+                Metric.LINE,
+                Messages.Column_LineCoverage(),
+                Messages.Column_DeltaLineCoverage("Δ"),
+                columns);
+        configureValueColumn(
+                "branchCoverage",
+                Metric.BRANCH,
+                Messages.Column_BranchCoverage(),
+                Messages.Column_DeltaBranchCoverage("Δ"),
+                columns);
 
         /* VectorCAST metrics */
-        configureValueColumn("mcdcPairCoverage", Metric.MCDC_PAIR, Messages.Column_MCDCPairs(),
-                SKIP_DELTA, columns);
-        configureValueColumn("functionCallCoverage", Metric.FUNCTION_CALL, Messages.Column_FunctionCall(),
-                SKIP_DELTA, columns);
+        configureValueColumn("mcdcPairCoverage", Metric.MCDC_PAIR, Messages.Column_MCDCPairs(), SKIP_DELTA, columns);
+        configureValueColumn(
+                "functionCallCoverage", Metric.FUNCTION_CALL, Messages.Column_FunctionCall(), SKIP_DELTA, columns);
 
-        configureValueColumn("stmtDcCoverage", Metric.STMT_DC, Metric.STMT_DC.getDisplayName(),
-                SKIP_DELTA, columns);
-        configureValueColumn("stmtCcCoverage", Metric.STMT_CC, Metric.STMT_CC.getDisplayName(),
-                SKIP_DELTA, columns);
-        configureValueColumn("conditionCoverage", Metric.CONDITION, Metric.CONDITION.getDisplayName(),
-                SKIP_DELTA, columns);
-        configureValueColumn("bytesCoverage", Metric.BYTES, Metric.BYTES.getDisplayName(),
-                SKIP_DELTA, columns);
+        configureValueColumn("stmtDcCoverage", Metric.STMT_DC, Metric.STMT_DC.getDisplayName(), SKIP_DELTA, columns);
+        configureValueColumn("stmtCcCoverage", Metric.STMT_CC, Metric.STMT_CC.getDisplayName(), SKIP_DELTA, columns);
+        configureValueColumn(
+                "conditionCoverage", Metric.CONDITION, Metric.CONDITION.getDisplayName(), SKIP_DELTA, columns);
+        configureValueColumn("bytesCoverage", Metric.BYTES, Metric.BYTES.getDisplayName(), SKIP_DELTA, columns);
 
-        configureValueColumn("mutationCoverage", Metric.MUTATION, Messages.Column_MutationCoverage(),
-                Messages.Column_DeltaMutationCoverage("Δ"), columns);
-        configureValueColumn("testStrength", Metric.TEST_STRENGTH, Messages.Column_TestStrength(),
-                Messages.Column_DeltaTestStrength("Δ"), columns);
+        configureValueColumn(
+                "mutationCoverage",
+                Metric.MUTATION,
+                Messages.Column_MutationCoverage(),
+                Messages.Column_DeltaMutationCoverage("Δ"),
+                columns);
+        configureValueColumn(
+                "testStrength",
+                Metric.TEST_STRENGTH,
+                Messages.Column_TestStrength(),
+                Messages.Column_DeltaTestStrength("Δ"),
+                columns);
 
         var entries = new EnumMap<>(Map.of(
                 Metric.LOC, 200,
@@ -161,10 +173,15 @@ class CoverageTableModel extends TableModel {
         return columns;
     }
 
-    private void configureValueColumn(final String key, final Metric metric, final String headerLabel,
-            final String deltaHeaderLabel, final List<TableColumn> columns) {
+    private void configureValueColumn(
+            final String key,
+            final Metric metric,
+            final String headerLabel,
+            final String deltaHeaderLabel,
+            final List<TableColumn> columns) {
         if (root.containsMetric(metric)) {
-            var lineCoverage = new ColumnBuilder().withHeaderLabel(headerLabel)
+            var lineCoverage = new ColumnBuilder()
+                    .withHeaderLabel(headerLabel)
                     .withDataPropertyKey(key)
                     .withDetailedCell()
                     .withType(ColumnType.NUMBER)
@@ -172,7 +189,8 @@ class CoverageTableModel extends TableModel {
                     .build();
             columns.add(lineCoverage);
             if (StringUtils.isNotEmpty(deltaHeaderLabel) && hasDelta(metric)) {
-                var lineCoverageDelta = new ColumnBuilder().withHeaderLabel(deltaHeaderLabel)
+                var lineCoverageDelta = new ColumnBuilder()
+                        .withHeaderLabel(deltaHeaderLabel)
                         .withDataPropertyKey(key + "Delta")
                         .withDetailedCell()
                         .withType(ColumnType.NUMBER)
@@ -224,7 +242,10 @@ class CoverageTableModel extends TableModel {
         private final RowRenderer renderer;
         private final ColorProvider colorProvider;
 
-        CoverageRow(final FileNode file, final Locale browserLocale, final RowRenderer renderer,
+        CoverageRow(
+                final FileNode file,
+                final Locale browserLocale,
+                final RowRenderer renderer,
                 final ColorProvider colors) {
             this.file = file;
             this.browserLocale = browserLocale;
@@ -306,15 +327,18 @@ class CoverageTableModel extends TableModel {
         }
 
         public int getCyclomaticComplexity() {
-            return file.getTypedValue(Metric.CYCLOMATIC_COMPLEXITY, ZERO_CYCLOMATIC_COMPLEXITY).asInteger();
+            return file.getTypedValue(Metric.CYCLOMATIC_COMPLEXITY, ZERO_CYCLOMATIC_COMPLEXITY)
+                    .asInteger();
         }
 
         public int getCognitiveComplexity() {
-            return file.getTypedValue(Metric.COGNITIVE_COMPLEXITY, ZERO_COGNITIVE_COMPLEXITY).asInteger();
+            return file.getTypedValue(Metric.COGNITIVE_COMPLEXITY, ZERO_COGNITIVE_COMPLEXITY)
+                    .asInteger();
         }
 
         public int getNpathComplexity() {
-            return file.getTypedValue(Metric.NPATH_COMPLEXITY, ZERO_NPATH_COMPLEXITY).asInteger();
+            return file.getTypedValue(Metric.NPATH_COMPLEXITY, ZERO_NPATH_COMPLEXITY)
+                    .asInteger();
         }
 
         public int getNcss() {
@@ -333,16 +357,19 @@ class CoverageTableModel extends TableModel {
             if (coverage.isSet()) {
                 double percentage = coverage.asRounded();
                 DisplayColors colors = CoverageLevel.getDisplayColorsOfCoverageLevel(percentage, colorProvider);
-                var style = String.format(Locale.ENGLISH,
+                var style = String.format(
+                        Locale.ENGLISH,
                         "background-image: linear-gradient(90deg, %s %f%%, transparent %f%%);",
-                        colors.getFillColorAsRGBAHex(TABLE_COVERAGE_COLOR_ALPHA), percentage, percentage);
-                var cell = div()
-                        .withClasses(COVERAGE_COLUMN_OUTER).with(
-                                div().withClasses(COVERAGE_COLUMN_INNER).withStyle(style)
-                                        .attr("data-bs-toggle", "tooltip")
-                                        .attr("data-bs-placement", "top")
-                                        .withTitle(FORMATTER.formatAdditionalInformation(coverage))
-                                        .withText(FORMATTER.formatPercentage(coverage, browserLocale)))
+                        colors.getFillColorAsRGBAHex(TABLE_COVERAGE_COLOR_ALPHA),
+                        percentage,
+                        percentage);
+                var cell = div().withClasses(COVERAGE_COLUMN_OUTER)
+                        .with(div().withClasses(COVERAGE_COLUMN_INNER)
+                                .withStyle(style)
+                                .attr("data-bs-toggle", "tooltip")
+                                .attr("data-bs-placement", "top")
+                                .withTitle(FORMATTER.formatAdditionalInformation(coverage))
+                                .withText(FORMATTER.formatPercentage(coverage, browserLocale)))
                         .render();
                 return new DetailedCell<>(cell, percentage);
             }
@@ -362,11 +389,11 @@ class CoverageTableModel extends TableModel {
         protected DetailedCell<?> createColoredCoverageDeltaColumn(final Metric metric, final Value delta) {
             double percentage = delta.asRounded();
             DisplayColors colors = CoverageChangeTendency.getDisplayColorsForTendency(percentage, colorProvider);
-            var cell = div().withClasses(COVERAGE_COLUMN_OUTER).with(
-                            div().withClasses(COVERAGE_COLUMN_INNER)
-                                    .withStyle("background-color:%s;".formatted(colors.getFillColorAsRGBAHex(
-                                            TABLE_COVERAGE_COLOR_ALPHA)))
-                                    .withText(FORMATTER.formatDelta(metric, delta, browserLocale)))
+            var cell = div().withClasses(COVERAGE_COLUMN_OUTER)
+                    .with(div().withClasses(COVERAGE_COLUMN_INNER)
+                            .withStyle("background-color:%s;"
+                                    .formatted(colors.getFillColorAsRGBAHex(TABLE_COVERAGE_COLOR_ALPHA)))
+                            .withText(FORMATTER.formatDelta(metric, delta, browserLocale)))
                     .render();
             return new DetailedCell<>(cell, percentage);
         }
@@ -414,8 +441,7 @@ class CoverageTableModel extends TableModel {
             ContainerTag cell;
             if (SOURCE_CODE_FACADE.canRead(buildFolder, resultsId, path)) {
                 cell = a().withHref(String.valueOf(path.hashCode())).withText(fileName);
-            }
-            else {
+            } else {
                 cell = div().withText(fileName);
             }
             return renderWithToolTip(cell, path);
@@ -424,7 +450,8 @@ class CoverageTableModel extends TableModel {
         static String renderWithToolTip(final ContainerTag cell, final String path) {
             return cell.attr("data-bs-toggle", "tooltip")
                     .attr("data-bs-placement", "top")
-                    .withTitle(path).render();
+                    .withTitle(path)
+                    .render();
         }
     }
 

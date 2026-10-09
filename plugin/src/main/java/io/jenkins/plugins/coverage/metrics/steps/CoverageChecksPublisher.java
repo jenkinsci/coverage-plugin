@@ -1,7 +1,5 @@
 package io.jenkins.plugins.coverage.metrics.steps;
 
-import org.apache.commons.lang3.StringUtils;
-
 import edu.hm.hafner.coverage.Coverage;
 import edu.hm.hafner.coverage.FileNode;
 import edu.hm.hafner.coverage.Metric;
@@ -11,24 +9,7 @@ import edu.hm.hafner.coverage.Value;
 import edu.hm.hafner.util.LineRange;
 import edu.hm.hafner.util.VisibleForTesting;
 import edu.umd.cs.findbugs.annotations.CheckForNull;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.NavigableSet;
-import java.util.Optional;
-import java.util.Set;
-import java.util.TreeSet;
-import java.util.function.Function;
-import java.util.stream.Collector;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
 import hudson.model.TaskListener;
-
 import io.jenkins.plugins.checks.api.ChecksAnnotation;
 import io.jenkins.plugins.checks.api.ChecksAnnotation.ChecksAnnotationBuilder;
 import io.jenkins.plugins.checks.api.ChecksAnnotation.ChecksAnnotationLevel;
@@ -44,13 +25,33 @@ import io.jenkins.plugins.coverage.metrics.model.ElementFormatter;
 import io.jenkins.plugins.coverage.metrics.steps.CoverageRecorder.ChecksAnnotationScope;
 import io.jenkins.plugins.util.JenkinsFacade;
 import io.jenkins.plugins.util.QualityGateStatus;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.NavigableSet;
+import java.util.Optional;
+import java.util.Set;
+import java.util.TreeSet;
+import java.util.function.Function;
+import java.util.stream.Collector;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * Publishes coverage as Checks to SCM platforms.
  *
  * @author Florian Orendi
  */
-@SuppressWarnings({"PMD.GodClass", "PMD.CyclomaticComplexity", "PMD.CouplingBetweenObjects", "checkstyle:ClassFanOutComplexity"})
+@SuppressWarnings({
+    "PMD.GodClass",
+    "PMD.CyclomaticComplexity",
+    "PMD.CouplingBetweenObjects",
+    "checkstyle:ClassFanOutComplexity"
+})
 class CoverageChecksPublisher {
     private static final ElementFormatter FORMATTER = new ElementFormatter();
     private static final int TITLE_HEADER_LEVEL = 4;
@@ -69,20 +70,31 @@ class CoverageChecksPublisher {
 
     private final CoverageBuildAction action;
     private final Node rootNode;
+
     @CheckForNull
     private final ChecksInfo checksInfo;
+
     private final JenkinsFacade jenkinsFacade;
     private final String checksName;
     private final ChecksAnnotationScope annotationScope;
 
-    CoverageChecksPublisher(final CoverageBuildAction action, final Node rootNode, final String checksName,
-            final ChecksAnnotationScope annotationScope, @CheckForNull final ChecksInfo checksInfo) {
+    CoverageChecksPublisher(
+            final CoverageBuildAction action,
+            final Node rootNode,
+            final String checksName,
+            final ChecksAnnotationScope annotationScope,
+            @CheckForNull final ChecksInfo checksInfo) {
         this(action, rootNode, checksName, annotationScope, checksInfo, new JenkinsFacade());
     }
 
     @VisibleForTesting
-    CoverageChecksPublisher(final CoverageBuildAction action, final Node rootNode, final String checksName,
-            final ChecksAnnotationScope annotationScope, @CheckForNull final ChecksInfo checksInfo, final JenkinsFacade jenkinsFacade) {
+    CoverageChecksPublisher(
+            final CoverageBuildAction action,
+            final Node rootNode,
+            final String checksName,
+            final ChecksAnnotationScope annotationScope,
+            @CheckForNull final ChecksInfo checksInfo,
+            final JenkinsFacade jenkinsFacade) {
         this.rootNode = rootNode;
         this.checksInfo = checksInfo;
         this.jenkinsFacade = jenkinsFacade;
@@ -118,10 +130,12 @@ class CoverageChecksPublisher {
                 .withAnnotations(getAnnotations())
                 .build();
 
-        var actualChecksName = Optional.ofNullable(checksInfo).map(ChecksInfo::getName)
+        var actualChecksName = Optional.ofNullable(checksInfo)
+                .map(ChecksInfo::getName)
                 .filter(StringUtils::isNotEmpty)
                 .orElse(checksName);
-        var detailsUrl = Optional.ofNullable(checksInfo).map(ChecksInfo::getDetailsURL)
+        var detailsUrl = Optional.ofNullable(checksInfo)
+                .map(ChecksInfo::getDetailsURL)
                 .filter(StringUtils::isNotEmpty)
                 .orElse(getBaseUrl());
 
@@ -143,8 +157,7 @@ class CoverageChecksPublisher {
 
     private Optional<String> format(final Metric metric) {
         var baseline = selectBaseline();
-        return action.getValueForMetric(baseline, metric)
-                .map(value -> formatValue(baseline, metric, value));
+        return action.getValueForMetric(baseline, metric).map(value -> formatValue(baseline, metric, value));
     }
 
     private Baseline selectBaseline() {
@@ -155,8 +168,9 @@ class CoverageChecksPublisher {
     }
 
     private String formatValue(final Baseline baseline, final Metric metric, final Value value) {
-        return "%s: %s%s".formatted(
-                FORMATTER.getDisplayName(metric), FORMATTER.format(value), getDeltaDetails(baseline, metric));
+        return "%s: %s%s"
+                .formatted(
+                        FORMATTER.getDisplayName(metric), FORMATTER.format(value), getDeltaDetails(baseline, metric));
     }
 
     private String getDeltaDetails(final Baseline baseline, final Metric metric) {
@@ -167,9 +181,7 @@ class CoverageChecksPublisher {
     }
 
     private String getSummary() {
-        return getAnnotationSummary()
-                + getOverallCoverageSummary()
-                + getQualityGatesSummary();
+        return getAnnotationSummary() + getOverallCoverageSummary() + getQualityGatesSummary();
     }
 
     private String getAnnotationSummary() {
@@ -194,33 +206,33 @@ class CoverageChecksPublisher {
         var total = countLines(modifiedFiles, FileNode::getModifiedLines);
         if (total == 1) {
             summary.append("- 1 line has been modified");
-        }
-        else {
+        } else {
             summary.append("- %d lines have been modified".formatted(total));
         }
         summary.append(NEW_LINE);
     }
 
     private int countLines(final List<FileNode> modifiedFiles, final Function<FileNode, Collection<?>> linesGetter) {
-        return modifiedFiles.stream().map(linesGetter).mapToInt(Collection::size).sum();
+        return modifiedFiles.stream()
+                .map(linesGetter)
+                .mapToInt(Collection::size)
+                .sum();
     }
 
     private void createLineCoverageSummary(final List<FileNode> modifiedFiles, final StringBuilder summary) {
         var missed = countLines(modifiedFiles, FileNode::getMissedLines);
         if (missed == 0) {
             summary.append("- all lines are covered");
-        }
-        else if (missed == 1) {
+        } else if (missed == 1) {
             summary.append("- 1 line is not covered");
-        }
-        else {
+        } else {
             summary.append("- %d lines are not covered".formatted(missed));
         }
         summary.append(NEW_LINE);
     }
 
-    private void createBranchCoverageSummary(final Node filteredRoot, final List<FileNode> modifiedFiles,
-            final StringBuilder summary) {
+    private void createBranchCoverageSummary(
+            final Node filteredRoot, final List<FileNode> modifiedFiles, final StringBuilder summary) {
         if (filteredRoot.containsMetric(Metric.BRANCH)) {
             var partiallyCovered = modifiedFiles.stream()
                     .map(FileNode::getPartiallyCoveredLines)
@@ -228,8 +240,7 @@ class CoverageChecksPublisher {
                     .count();
             if (partiallyCovered == 1) {
                 summary.append("- 1 line is covered only partially");
-            }
-            else {
+            } else {
                 summary.append("- %d lines are covered only partially".formatted(partiallyCovered));
             }
             summary.append(NEW_LINE);
@@ -247,15 +258,12 @@ class CoverageChecksPublisher {
         if (survived == 0) {
             if (mutations == 1) {
                 summary.append("- 1 mutation has been killed");
-            }
-            else {
+            } else {
                 summary.append("- all %d mutations have been killed".formatted(mutations));
             }
-        }
-        else if (survived == 1) {
+        } else if (survived == 1) {
             summary.append("- 1 mutation survived (of %d)".formatted(mutations));
-        }
-        else {
+        } else {
             summary.append("- %d mutations survived (of %d)".formatted(survived, mutations));
         }
         summary.append(NEW_LINE);
@@ -272,8 +280,7 @@ class CoverageChecksPublisher {
         for (var fileNode : filteredByScope.getAllFileNodes()) {
             if (hasMutationCoverage) {
                 annotations.addAll(getSurvivedMutations(fileNode));
-            }
-            else {
+            } else {
                 annotations.addAll(getMissingLines(fileNode));
                 annotations.addAll(getPartiallyCoveredLines(fileNode));
             }
@@ -284,8 +291,7 @@ class CoverageChecksPublisher {
     private Node filterAnnotations() {
         if (annotationScope == ChecksAnnotationScope.ALL_LINES) {
             return rootNode;
-        }
-        else {
+        } else {
             return rootNode.filterByModifiedLines();
         }
     }
@@ -301,13 +307,11 @@ class CoverageChecksPublisher {
         if (range.getStart() == range.getEnd()) {
             builder.withTitle("Not covered line")
                     .withMessage("Line %d is not covered by tests".formatted(range.getStart()));
+        } else {
+            builder.withTitle("Not covered lines")
+                    .withMessage("Lines %d-%d are not covered by tests".formatted(range.getStart(), range.getEnd()));
         }
-        else {
-            builder.withTitle("Not covered lines").withMessage(
-                    "Lines %d-%d are not covered by tests".formatted(range.getStart(), range.getEnd()));
-        }
-        return builder
-                .withStartLine(range.getStart())
+        return builder.withStartLine(range.getStart())
                 .withEndLine(range.getEnd())
                 .build();
     }
@@ -377,8 +381,7 @@ class CoverageChecksPublisher {
     private String getOverallCoverageSummary() {
         if (rootNode.hasModifiedLines()) {
             return createDeltaBaselinesOverview();
-        }
-        else {
+        } else {
             return createProjectOverview();
         }
     }
@@ -388,8 +391,10 @@ class CoverageChecksPublisher {
 
         for (Baseline baseline : getBaselines()) {
             if (action.hasBaselineResult(baseline)) {
-                description.append(getBulletListItem(1,
-                        formatText(TextFormat.BOLD,
+                description.append(getBulletListItem(
+                        1,
+                        formatText(
+                                TextFormat.BOLD,
                                 getUrlText(action.getTitle(baseline), getBaseUrl() + baseline.getUrl()))));
                 for (Value value : getValues(baseline)) {
                     var display = FORMATTER.formatDetailedValueWithMetric(value);
@@ -415,8 +420,8 @@ class CoverageChecksPublisher {
         description.append("No changes detected, that affect the code coverage.\n");
 
         for (Value value : getValues(Baseline.PROJECT)) {
-            description.append(getBulletListItem(1,
-                    FORMATTER.formatDetailedValueWithMetric(value) + getPerfectSuffix(value)));
+            description.append(
+                    getBulletListItem(1, FORMATTER.formatDetailedValueWithMetric(value) + getPerfectSuffix(value)));
         }
 
         description.append(NEW_LINE);
@@ -437,9 +442,9 @@ class CoverageChecksPublisher {
         return summary
                 + "Overall result: " + qualityGateResult.getOverallStatus().getDescription() + "\n"
                 + qualityGateResult.getMessages().stream()
-                .map(s -> s.replaceAll("-> ", ""))
-                .map(s -> s.replaceAll("[\\[\\]]", ""))
-                .collect(asSeparateLines());
+                        .map(s -> s.replaceAll("-> ", ""))
+                        .map(s -> s.replaceAll("[\\[\\]]", ""))
+                        .collect(asSeparateLines());
     }
 
     private Collector<CharSequence, ?, String> asSeparateLines() {
@@ -451,27 +456,22 @@ class CoverageChecksPublisher {
         builder.append(COLUMN);
         builder.append(COLUMN);
 
-        builder.append(getMetricStream()
-                .map(FORMATTER::getDisplayName)
-                .collect(asColumn()));
+        builder.append(getMetricStream().map(FORMATTER::getDisplayName).collect(asColumn()));
         builder.append(COLUMN);
         builder.append(":---:");
         builder.append(COLUMN);
-        builder.append(getMetricStream()
-                .map(i -> ":---:")
-                .collect(asColumn()));
+        builder.append(getMetricStream().map(i -> ":---:").collect(asColumn()));
         for (Baseline baseline : action.getBaselines()) {
             if (action.hasBaselineResult(baseline)) {
-                builder.append("%s **%s**|".formatted(Icon.FEET.markdown,
-                        FORMATTER.getDisplayName(baseline)));
+                builder.append("%s **%s**|".formatted(Icon.FEET.markdown, FORMATTER.getDisplayName(baseline)));
                 builder.append(getMetricStream()
                         .map(metric -> action.formatValue(baseline, metric))
                         .collect(asColumn()));
 
                 var deltaBaseline = action.getDeltaBaseline(baseline);
                 if (deltaBaseline != baseline) {
-                    builder.append("%s **%s**|".formatted(Icon.CHART_UPWARDS_TREND.markdown,
-                            FORMATTER.getDisplayName(deltaBaseline)));
+                    builder.append("%s **%s**|"
+                            .formatted(Icon.CHART_UPWARDS_TREND.markdown, FORMATTER.getDisplayName(deltaBaseline)));
                     builder.append(getMetricStream()
                             .map(metric -> getFormatDelta(baseline, metric))
                             .collect(asColumn()));
@@ -540,7 +540,8 @@ class CoverageChecksPublisher {
      */
     private String getPerfectSuffix(final Value value) {
         if (PERFECT_METRICS.contains(value.getMetric())
-                && value instanceof Coverage coverage && coverage.getMissed() == 0) {
+                && value instanceof Coverage coverage
+                && coverage.getMissed() == 0) {
             return PERFECT_SUFFIX;
         }
         return StringUtils.EMPTY;
@@ -606,15 +607,20 @@ class CoverageChecksPublisher {
      */
     private static class ChecksFormatter {
         NavigableSet<Metric> getTitleMetrics() {
-            return new TreeSet<>(
-                    Set.of(Metric.LINE, Metric.BRANCH, Metric.MUTATION));
+            return new TreeSet<>(Set.of(Metric.LINE, Metric.BRANCH, Metric.MUTATION));
         }
 
         NavigableSet<Metric> getOverviewMetrics() {
-            return new TreeSet<>(
-                    Set.of(Metric.LINE, Metric.LOC, Metric.BRANCH, Metric.CYCLOMATIC_COMPLEXITY,
-                            Metric.MUTATION, Metric.TEST_STRENGTH, Metric.TESTS,
-                            Metric.MCDC_PAIR, Metric.FUNCTION_CALL));
+            return new TreeSet<>(Set.of(
+                    Metric.LINE,
+                    Metric.LOC,
+                    Metric.BRANCH,
+                    Metric.CYCLOMATIC_COMPLEXITY,
+                    Metric.MUTATION,
+                    Metric.TEST_STRENGTH,
+                    Metric.TESTS,
+                    Metric.MCDC_PAIR,
+                    Metric.FUNCTION_CALL));
         }
     }
 

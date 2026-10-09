@@ -1,7 +1,6 @@
 package io.jenkins.plugins.coverage.metrics.color;
 
 import edu.umd.cs.findbugs.annotations.NonNull;
-
 import io.jenkins.plugins.coverage.metrics.color.ColorProvider.DisplayColors;
 
 /**
@@ -31,19 +30,16 @@ public enum CoverageChangeTendency {
      *
      * @return the matching change level
      */
-    public static DisplayColors getDisplayColorsForTendency(final Double change,
-            @NonNull final ColorProvider colorProvider) {
+    public static DisplayColors getDisplayColorsForTendency(
+            final Double change, @NonNull final ColorProvider colorProvider) {
         ColorId colorId;
         if (change == null || change.isNaN()) {
             colorId = NA.colorizationId;
-        }
-        else if (change > 0) {
+        } else if (change > 0) {
             colorId = INCREASED.colorizationId;
-        }
-        else if (change < 0) {
+        } else if (change < 0) {
             colorId = DECREASED.colorizationId;
-        }
-        else {
+        } else {
             colorId = EQUALS.colorizationId;
         }
         return colorProvider.getDisplayColorsOf(colorId);

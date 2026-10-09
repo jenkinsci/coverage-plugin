@@ -2,7 +2,9 @@ package io.jenkins.plugins.coverage.metrics.steps;
 
 import edu.hm.hafner.coverage.FileNode;
 import edu.hm.hafner.coverage.Node;
-
+import io.jenkins.plugins.forensics.delta.Change;
+import io.jenkins.plugins.forensics.delta.ChangeEditType;
+import io.jenkins.plugins.forensics.delta.FileChanges;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -17,10 +19,6 @@ import java.util.TreeMap;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-
-import io.jenkins.plugins.forensics.delta.Change;
-import io.jenkins.plugins.forensics.delta.ChangeEditType;
-import io.jenkins.plugins.forensics.delta.FileChanges;
 
 /**
  * Calculates and attaches values to the {@link FileNode nodes} of the coverage tree which represent the changes
@@ -77,8 +75,8 @@ public class FileChangesProcessor {
      * @param oldPathMapping
      *         A mapping between the report paths of the current and the reference coverage tree
      */
-    public void attachFileCoverageDeltas(final Node root, final Node referenceNode,
-            final Map<String, String> oldPathMapping) {
+    public void attachFileCoverageDeltas(
+            final Node root, final Node referenceNode, final Map<String, String> oldPathMapping) {
         Map<String, FileNode> fileNodes = getFileNodeMappingWithReferencePaths(root, oldPathMapping);
         Map<String, FileNode> referenceFileNodes = getReferenceFileNodeMapping(fileNodes, referenceNode);
         fileNodes.entrySet().stream()
@@ -110,8 +108,11 @@ public class FileChangesProcessor {
      * @param oldPathMapping
      *         A mapping between the report paths of the current and the reference coverage tree
      */
-    public void attachIndirectCoveragesChanges(final Node root, final Node referenceNode,
-            final Map<String, FileChanges> codeChanges, final Map<String, String> oldPathMapping) {
+    public void attachIndirectCoveragesChanges(
+            final Node root,
+            final Node referenceNode,
+            final Map<String, FileChanges> codeChanges,
+            final Map<String, String> oldPathMapping) {
         Map<String, FileNode> fileNodes = getFileNodeMappingWithReferencePaths(root, oldPathMapping);
         Map<String, FileNode> referenceFileNodes = getReferenceFileNodeMapping(fileNodes, referenceNode);
 
@@ -139,8 +140,8 @@ public class FileChangesProcessor {
      * @param referenceCoverageMapping
      *         a mapping which contains the coverage per line of the reference file
      */
-    private void attachIndirectCoverageChangeForFile(final FileNode fileNode,
-            final SortedMap<Integer, Integer> referenceCoverageMapping) {
+    private void attachIndirectCoverageChangeForFile(
+            final FileNode fileNode, final SortedMap<Integer, Integer> referenceCoverageMapping) {
         fileNode.getLinesWithCoverage().forEach(line -> {
             if (!fileNode.hasModifiedLine(line) && referenceCoverageMapping.containsKey(line)) {
                 int referenceCovered = referenceCoverageMapping.get(line);
@@ -166,7 +167,8 @@ public class FileChangesProcessor {
     private Optional<SortedMap<Integer, Integer>> getReferenceCoveragePerLine(
             final Map<String, FileNode> references, final String fullyQualifiedName) {
         if (references.containsKey(fullyQualifiedName)) {
-            NavigableMap<Integer, Integer> coveragePerLine = references.get(fullyQualifiedName).getCounters();
+            NavigableMap<Integer, Integer> coveragePerLine =
+                    references.get(fullyQualifiedName).getCounters();
             if (!coveragePerLine.isEmpty()) {
                 return Optional.of(coveragePerLine);
             }
@@ -183,8 +185,8 @@ public class FileChangesProcessor {
      * @param fileChanges
      *         The applied code changes of the file
      */
-    private void adjustedCoveragePerLine(final SortedMap<Integer, Integer> coveragePerLine,
-            final FileChanges fileChanges) {
+    private void adjustedCoveragePerLine(
+            final SortedMap<Integer, Integer> coveragePerLine, final FileChanges fileChanges) {
         List<List<Integer>> coverages = transformCoveragePerLine(coveragePerLine, fileChanges);
 
         fileChanges.getChangesByType(ChangeEditType.DELETE).forEach(change -> {
@@ -209,9 +211,8 @@ public class FileChangesProcessor {
             }
         });
 
-        List<Integer> adjustedCoveragesList = coverages.stream()
-                .flatMap(Collection::stream)
-                .collect(Collectors.toList());
+        List<Integer> adjustedCoveragesList =
+                coverages.stream().flatMap(Collection::stream).collect(Collectors.toList());
 
         coveragePerLine.clear();
         for (int line = 1; line < adjustedCoveragesList.size(); line++) {
@@ -254,8 +255,7 @@ public class FileChangesProcessor {
                 .forEach(line -> {
                     if (line < coverages.size()) {
                         coverages.add(line, new ArrayList<>(Collections.singletonList(null)));
-                    }
-                    else {
+                    } else {
                         coverages.add(new ArrayList<>(Collections.singletonList(null)));
                     }
                 });
