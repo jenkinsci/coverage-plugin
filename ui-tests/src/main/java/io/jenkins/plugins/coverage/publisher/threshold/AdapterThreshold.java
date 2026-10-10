@@ -3,19 +3,15 @@ package io.jenkins.plugins.coverage.publisher.threshold;
 import io.jenkins.plugins.coverage.publisher.Adapter;
 import io.jenkins.plugins.coverage.publisher.CoveragePublisher;
 
-/**
- * Threshold used in {@link Adapter} in {@link CoveragePublisher}.
- */
+/** Threshold used in {@link Adapter} in {@link CoveragePublisher}. */
 public class AdapterThreshold extends AbstractThreshold {
     private final Adapter adapter;
 
     /**
      * Constructor of an AdapterThreshold.
      *
-     * @param adapter
-     *         of threshold
-     * @param path
-     *         to threshold
+     * @param adapter of threshold
+     * @param path to threshold
      */
     public AdapterThreshold(final Adapter adapter, final String path) {
         super(adapter, path);
@@ -25,25 +21,20 @@ public class AdapterThreshold extends AbstractThreshold {
     /**
      * Setter for target of Threshold using {@link AdapterThresholdTarget}.
      *
-     * @param adapterThresholdTarget
-     *         of threshold
+     * @param adapterThresholdTarget of threshold
      */
     public void setThresholdTarget(final AdapterThresholdTarget adapterThresholdTarget) {
         ensureAdvancedOptionsIsActivated();
         this.getThresholdTarget().select(adapterThresholdTarget.getValue());
     }
 
-    /**
-     * Ensures advanced options are activated so that values can be set.
-     */
+    /** Ensures advanced options are activated so that values can be set. */
     @Override
     void ensureAdvancedOptionsIsActivated() {
         this.adapter.ensureAdvancedOptionsIsActivated();
     }
 
-    /**
-     * Enum for Options of {@link AdapterThreshold}.
-     */
+    /** Enum for Options of {@link AdapterThreshold}. */
     public enum AdapterThresholdTarget {
         AGGREGATED_REPORT("Aggregated Report"),
         REPORT("Report"),
@@ -61,8 +52,7 @@ public class AdapterThreshold extends AbstractThreshold {
         /**
          * Constructor of enum.
          *
-         * @param value
-         *         is value-attribute of option-tag.
+         * @param value is value-attribute of option-tag.
          */
         AdapterThresholdTarget(final String value) {
             this.value = value;

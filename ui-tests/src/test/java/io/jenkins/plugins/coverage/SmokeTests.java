@@ -1,19 +1,14 @@
 package io.jenkins.plugins.coverage;
 
-import org.junit.Test;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import org.junit.Test;
 
-/**
- * Smoke Test to test the most used features of coverage plugin.
- */
+/** Smoke Test to test the most used features of coverage plugin. */
 @SuppressWarnings("PMD.WrongTestAnnotation")
 public class SmokeTests extends UiTest {
-    /**
-     * Creates two successful builds. Tests the reference values in summary, coverage report and main panel.
-     */
+    /** Creates two successful builds. Tests the reference values in summary, coverage report and main panel. */
     @Test
     public void shouldRunCodeCoveragePlugin() {
         var job = getJobWithFirstBuildAndDifferentReports(InCaseCoverageDecreasedConfiguration.DONT_FAIL);
@@ -26,18 +21,19 @@ public class SmokeTests extends UiTest {
         expectedReferenceCoverageFifthBuild.add(-4.5);
         expectedReferenceCoverageFifthBuild.add(5.38);
 
-        CoverageSummaryTest.verifySummaryWithReferenceBuild(secondBuild, expectedCoverageFifthBuild,
-                expectedReferenceCoverageFifthBuild);
+        CoverageSummaryTest.verifySummaryWithReferenceBuild(
+                secondBuild, expectedCoverageFifthBuild, expectedReferenceCoverageFifthBuild);
 
         var report = new CoverageReport(secondBuild);
         report.open();
 
         var fileCoverageTable = report.openFileCoverageTable();
-        CoverageReportTest.verifyFileCoverageTableContent(fileCoverageTable,
-                new String[]{"edu.hm.hafner.util", "edu.hm.hafner.util", "edu.hm.hafner.util"},
-                new String[]{"Ensure.java", "FilteredLog.java", "Generated.java"},
-                new String[]{"80.00%", "100.00%", "n/a"},
-                new String[]{"86.96%", "100.00%", "n/a"});
+        CoverageReportTest.verifyFileCoverageTableContent(
+                fileCoverageTable,
+                new String[] {"edu.hm.hafner.util", "edu.hm.hafner.util", "edu.hm.hafner.util"},
+                new String[] {"Ensure.java", "FilteredLog.java", "Generated.java"},
+                new String[] {"80.00%", "100.00%", "n/a"},
+                new String[] {"86.96%", "100.00%", "n/a"});
         CoverageReportTest.verifyFileCoverageTableNumberOfMaxEntries(fileCoverageTable, 10);
 
         var coverageTree = report.getCoverageTree();

@@ -1,20 +1,19 @@
 package io.jenkins.plugins.coverage;
 
-import org.junit.Test;
-
-import io.jenkins.plugins.coverage.util.TrendChartTestUtil;
-
 import static org.assertj.core.api.Assertions.*;
 
+import io.jenkins.plugins.coverage.util.TrendChartTestUtil;
+import org.junit.Test;
+
 /**
- * Acceptance tests for MainPanel of a project.
- * Contains static test-methods which can also be used other classes, especially used {@link SmokeTests}.
+ * Acceptance tests for MainPanel of a project. Contains static test-methods which can also be used other classes,
+ * especially used {@link SmokeTests}.
  */
 @SuppressWarnings("PMD.WrongTestAnnotation")
 public class MainPanelTest extends UiTest {
     /**
-     * Test for MainPanel of job with some builds with reports.
-     * Verifies TrendChart in MainPanel is displayed and has correct values.
+     * Test for MainPanel of job with some builds with reports. Verifies TrendChart in MainPanel is displayed and has
+     * correct values.
      */
     @Test
     public void shouldTrendChartAfterSomeBuildsWithReports() {
@@ -25,9 +24,8 @@ public class MainPanelTest extends UiTest {
     }
 
     /**
-     * Test for MainPanel of job with only one build containing report.
-     * Verifies no TrendChart is displayed, due to TrendChart is not displayed in MainPanel if job has less than two
-     * builds with reports.
+     * Test for MainPanel of job with only one build containing report. Verifies no TrendChart is displayed, due to
+     * TrendChart is not displayed in MainPanel if job has less than two builds with reports.
      */
     @Test
     public void shouldTrendChartShouldNotBeDisplayed() {
@@ -40,15 +38,12 @@ public class MainPanelTest extends UiTest {
     /**
      * Verifies a specific displayed TrendChart.
      *
-     * @param mainPanel
-     *         of project
-     * @param firstBuildInChartNumber
-     *         of build visualized in TrendChart
-     * @param lastBuildInChartNumber
-     *         of build visualized in TrendChart
+     * @param mainPanel of project
+     * @param firstBuildInChartNumber of build visualized in TrendChart
+     * @param lastBuildInChartNumber of build visualized in TrendChart
      */
-    public static void verifyTrendChartWithTwoReports(final MainPanel mainPanel, final int firstBuildInChartNumber,
-            final int lastBuildInChartNumber) {
+    public static void verifyTrendChartWithTwoReports(
+            final MainPanel mainPanel, final int firstBuildInChartNumber, final int lastBuildInChartNumber) {
         mainPanel.open();
         assertThat(mainPanel.isChartDisplayed()).isTrue();
         var trendChart = mainPanel.getCoverageTrendChart();

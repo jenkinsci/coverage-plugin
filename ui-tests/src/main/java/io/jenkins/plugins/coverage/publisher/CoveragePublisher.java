@@ -1,7 +1,8 @@
 package io.jenkins.plugins.coverage.publisher;
 
 import com.google.errorprone.annotations.CanIgnoreReturnValue;
-
+import io.jenkins.plugins.coverage.publisher.threshold.GlobalThreshold;
+import io.jenkins.plugins.coverage.publisher.threshold.GlobalThreshold.GlobalThresholdTarget;
 import org.jenkinsci.test.acceptance.po.AbstractStep;
 import org.jenkinsci.test.acceptance.po.Control;
 import org.jenkinsci.test.acceptance.po.Describable;
@@ -10,12 +11,7 @@ import org.jenkinsci.test.acceptance.po.PageArea;
 import org.jenkinsci.test.acceptance.po.PageAreaImpl;
 import org.jenkinsci.test.acceptance.po.PostBuildStep;
 
-import io.jenkins.plugins.coverage.publisher.threshold.GlobalThreshold;
-import io.jenkins.plugins.coverage.publisher.threshold.GlobalThreshold.GlobalThresholdTarget;
-
-/**
- * Coverage Publisher which can be added in the configuration of a FreeStyle Project.
- */
+/** Coverage Publisher which can be added in the configuration of a FreeStyle Project. */
 @Describable("Publish Coverage Report")
 public final class CoveragePublisher extends AbstractStep implements PostBuildStep {
     private final Control adapter = control("hetero-list-add[adapters]");
@@ -24,8 +20,8 @@ public final class CoveragePublisher extends AbstractStep implements PostBuildSt
     private final Control failUnhealthy = control("failUnhealthy");
     private final Control failUnstable = control("failUnstable");
     private final Control failNoReports = control("failNoReports");
-    private final Control failBuildIfCoverageDecreasedInChangeRequest = control(
-            "failBuildIfCoverageDecreasedInChangeRequest");
+    private final Control failBuildIfCoverageDecreasedInChangeRequest =
+            control("failBuildIfCoverageDecreasedInChangeRequest");
     private final Control skipPublishingChecks = control("skipPublishingChecks");
     private final Control sourceFileResolver = control("sourceFileResolver/level");
     private final Control globalThreshold = control("repeatable-add");
@@ -36,10 +32,8 @@ public final class CoveragePublisher extends AbstractStep implements PostBuildSt
     /**
      * Constructor for CoveragePublisher.
      *
-     * @param parent
-     *         is the job which uses the CoveragePublisher
-     * @param path
-     *         on the parent page
+     * @param parent is the job which uses the CoveragePublisher
+     * @param path on the parent page
      */
     public CoveragePublisher(final Job parent, final String path) {
         super(parent, path);
@@ -52,9 +46,7 @@ public final class CoveragePublisher extends AbstractStep implements PostBuildSt
     /**
      * Sets the encoding when reading source code files.
      *
-     * @param sourceCodeEncoding
-     *         the source code encoding (e.g., UTF-8)
-     *
+     * @param sourceCodeEncoding the source code encoding (e.g., UTF-8)
      * @return this publisher
      */
     @CanIgnoreReturnValue
@@ -70,9 +62,7 @@ public final class CoveragePublisher extends AbstractStep implements PostBuildSt
      * Adds the path to the folder that contains the source code. If not relative and thus not part of the workspace
      * then this folder needs to be added in Jenkins global configuration.
      *
-     * @param sourceDirectory
-     *         a folder containing the source code
-     *
+     * @param sourceDirectory a folder containing the source code
      * @return this publisher
      */
     @CanIgnoreReturnValue
@@ -89,8 +79,7 @@ public final class CoveragePublisher extends AbstractStep implements PostBuildSt
     /**
      * Setter for applying threshold recursively.
      *
-     * @param applyTresholds
-     *         boolean for using applying threshold recursively
+     * @param applyTresholds boolean for using applying threshold recursively
      */
     public void setApplyThresholdRecursively(final boolean applyTresholds) {
         ensureAdvancedOptionsIsActivated();
@@ -100,8 +89,7 @@ public final class CoveragePublisher extends AbstractStep implements PostBuildSt
     /**
      * Setter for fail on unhealthy.
      *
-     * @param failOnUnhealthy
-     *         boolean for failing on unhealthy
+     * @param failOnUnhealthy boolean for failing on unhealthy
      */
     public void setFailUnhealthy(final boolean failOnUnhealthy) {
         ensureAdvancedOptionsIsActivated();
@@ -111,8 +99,7 @@ public final class CoveragePublisher extends AbstractStep implements PostBuildSt
     /**
      * Setter for fail on unstable.
      *
-     * @param failOnUnstable
-     *         boolean for failing on unstable
+     * @param failOnUnstable boolean for failing on unstable
      */
     public void setFailUnstable(final boolean failOnUnstable) {
         ensureAdvancedOptionsIsActivated();
@@ -122,8 +109,7 @@ public final class CoveragePublisher extends AbstractStep implements PostBuildSt
     /**
      * Setter for fail on no reports.
      *
-     * @param failOnNoReports
-     *         boolean for fail on no reports
+     * @param failOnNoReports boolean for fail on no reports
      */
     public void setFailNoReports(final boolean failOnNoReports) {
         ensureAdvancedOptionsIsActivated();
@@ -133,8 +119,7 @@ public final class CoveragePublisher extends AbstractStep implements PostBuildSt
     /**
      * Setter for fail build if coverage decreased in Change Request.
      *
-     * @param failOnCoverageDecreases
-     *         boolean for failing if coverage decreased in Change Request
+     * @param failOnCoverageDecreases boolean for failing if coverage decreased in Change Request
      */
     public void setFailBuildIfCoverageDecreasedInChangeRequest(final boolean failOnCoverageDecreases) {
         ensureAdvancedOptionsIsActivated();
@@ -144,8 +129,7 @@ public final class CoveragePublisher extends AbstractStep implements PostBuildSt
     /**
      * Setter for skipping publishing checks.
      *
-     * @param skipPublishing
-     *         boolean for skipping publishing checks
+     * @param skipPublishing boolean for skipping publishing checks
      */
     public void setSkipPublishingChecks(final boolean skipPublishing) {
         ensureAdvancedOptionsIsActivated();
@@ -155,8 +139,7 @@ public final class CoveragePublisher extends AbstractStep implements PostBuildSt
     /**
      * Setter for setting the SCM checks name.
      *
-     * @param checksName
-     *         the SCM check name
+     * @param checksName the SCM check name
      */
     public void setChecksName(final String checksName) {
         ensureAdvancedOptionsIsActivated();
@@ -164,9 +147,9 @@ public final class CoveragePublisher extends AbstractStep implements PostBuildSt
     }
 
     /**
-     * Ensures advanced options of CoveragePublisher is activated, so that values like {@link
-     * CoveragePublisher#setFailUnhealthy(boolean)} or {@link CoveragePublisher#setFailNoReports(boolean)} are visible
-     * and can be set.
+     * Ensures advanced options of CoveragePublisher is activated, so that values like
+     * {@link CoveragePublisher#setFailUnhealthy(boolean)} or {@link CoveragePublisher#setFailNoReports(boolean)} are
+     * visible and can be set.
      */
     public void ensureAdvancedOptionsIsActivated() {
         if (advancedOptions.exists()) {
@@ -177,9 +160,7 @@ public final class CoveragePublisher extends AbstractStep implements PostBuildSt
     /**
      * Creates an {@link Adapter} for {@link CoveragePublisher}.
      *
-     * @param adapterName
-     *         type which should be created, f. e. jacoco or cobertura
-     *
+     * @param adapterName type which should be created, f. e. jacoco or cobertura
      * @return added {@link Adapter}
      */
     public Adapter createAdapterPageArea(final String adapterName) {
@@ -201,20 +182,17 @@ public final class CoveragePublisher extends AbstractStep implements PostBuildSt
     /**
      * Creates {@link GlobalThreshold} for {@link Adapter}.
      *
-     * @param thresholdTarget
-     *         which should be set
-     * @param unhealthyThreshold
-     *         which should be set
-     * @param unstableThreshold
-     *         which should be set
-     * @param failOnUnhealthy
-     *         boolean for failing build on unhealthy
-     *
+     * @param thresholdTarget which should be set
+     * @param unhealthyThreshold which should be set
+     * @param unstableThreshold which should be set
+     * @param failOnUnhealthy boolean for failing build on unhealthy
      * @return added {@link Adapter} with setted configuration
      */
-    public GlobalThreshold createGlobalThresholdsPageArea(final GlobalThresholdTarget thresholdTarget,
+    public GlobalThreshold createGlobalThresholdsPageArea(
+            final GlobalThresholdTarget thresholdTarget,
             final double unhealthyThreshold,
-            final double unstableThreshold, final boolean failOnUnhealthy) {
+            final double unstableThreshold,
+            final boolean failOnUnhealthy) {
         ensureAdvancedOptionsIsActivated();
         var path = createPageArea("globalThresholds", this.globalThreshold::click);
         var threshold = new GlobalThreshold(this, path);
@@ -228,17 +206,14 @@ public final class CoveragePublisher extends AbstractStep implements PostBuildSt
     /**
      * Setter for Source File Resolver.
      *
-     * @param storingLevel
-     *         which should be applied
+     * @param storingLevel which should be applied
      */
     public void setSourceFileResolver(final SourceFileResolver storingLevel) {
         ensureAdvancedOptionsIsActivated();
         sourceFileResolver.select(storingLevel.getValue());
     }
 
-    /**
-     * Enum for Options of Source File Storing Level of {@link CoveragePublisher}.
-     */
+    /** Enum for Options of Source File Storing Level of {@link CoveragePublisher}. */
     public enum SourceFileResolver {
         NEVER_STORE("NEVER_STORE"),
         STORE_LAST_BUILD("STORE_LAST_BUILD"),
@@ -249,8 +224,7 @@ public final class CoveragePublisher extends AbstractStep implements PostBuildSt
         /**
          * Constructor of enum.
          *
-         * @param value
-         *         is value-attribute of option-tag.
+         * @param value is value-attribute of option-tag.
          */
         SourceFileResolver(final String value) {
             this.value = value;
@@ -266,9 +240,7 @@ public final class CoveragePublisher extends AbstractStep implements PostBuildSt
         }
     }
 
-    /**
-     * Page area of a source code path configuration.
-     */
+    /** Page area of a source code path configuration. */
     private static class SourceCodeDirectoryPanel extends PageAreaImpl {
         private final Control path = control("path");
 

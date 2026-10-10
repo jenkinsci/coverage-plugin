@@ -1,14 +1,12 @@
 package io.jenkins.plugins.coverage;
 
-import org.junit.Ignore;
-import org.junit.Test;
-
-import org.jenkinsci.test.acceptance.junit.WithPlugins;
-import org.jenkinsci.test.acceptance.po.Build;
+import static org.assertj.core.api.AssertionsForClassTypes.*;
 
 import io.jenkins.plugins.coverage.publisher.CoveragePublisher.SourceFileResolver;
-
-import static org.assertj.core.api.AssertionsForClassTypes.*;
+import org.jenkinsci.test.acceptance.junit.WithPlugins;
+import org.jenkinsci.test.acceptance.po.Build;
+import org.junit.Ignore;
+import org.junit.Test;
 
 /**
  * Acceptance tests for CoveragePublisher. Verifies if set options in CoveragePublisher are used and lead to excepted
@@ -16,27 +14,21 @@ import static org.assertj.core.api.AssertionsForClassTypes.*;
  */
 @SuppressWarnings("PMD.WrongTestAnnotation")
 public class CoveragePublisherTest extends UiTest {
-    /**
-     * Verifies that a job with no report fails when setFailNoReports(true).
-     */
+    /** Verifies that a job with no report fails when setFailNoReports(true). */
     @Test
     public void shouldFailOnNoReport() {
         var job = getJobWithoutAnyReports(InCaseNoReportsConfiguration.FAIL);
         buildWithErrors(job);
     }
 
-    /**
-     * Verifies that a job with decreased coverage fails when setFailBuildIfCoverageDecreasedInChangeRequest(true).
-     */
+    /** Verifies that a job with decreased coverage fails when setFailBuildIfCoverageDecreasedInChangeRequest(true). */
     @Test
     public void shouldFailOnDecreasedCoverage() {
         var job = getJobWithFirstBuildAndDifferentReports(InCaseCoverageDecreasedConfiguration.FAIL);
         buildWithErrors(job);
     }
 
-    /**
-     * Test if a build fails if setFailUnhealthy is true and thresholds set.
-     */
+    /** Test if a build fails if setFailUnhealthy is true and thresholds set. */
     @Test
     @Ignore("This bug needs to be fixed")
     public void shouldAdapterThresholdsAndFailOnUnhealthySetter() {
@@ -44,18 +36,14 @@ public class CoveragePublisherTest extends UiTest {
         buildWithErrors(job);
     }
 
-    /**
-     * Test if global thresholds are set.
-     */
+    /** Test if global thresholds are set. */
     @Test
     public void shouldGlobalThresholdsAndFailSetter() {
         var job = getJobWithAdapterThresholdAndFailOnUnhealthySetter(97, 99, true, ThresholdLevel.GLOBAL);
         buildUnstable(job);
     }
 
-    /**
-     * Tests if the source file storing level and display is correct.
-     */
+    /** Tests if the source file storing level and display is correct. */
     @Test
     @WithPlugins("git")
     public void shouldSourceFileStoringLevelAllBuilds() {
@@ -69,9 +57,7 @@ public class CoveragePublisherTest extends UiTest {
         verifyClickableFileSelection(build, true);
     }
 
-    /**
-     * Tests if source file is only available for last build.
-     */
+    /** Tests if source file is only available for last build. */
     @Test
     @WithPlugins("git")
     public void shouldSourceFileStoringLevelLastBuild() {
@@ -85,9 +71,7 @@ public class CoveragePublisherTest extends UiTest {
         verifyClickableFileSelection(thirdBuild, true);
     }
 
-    /**
-     * Tests if source file storing is off.
-     */
+    /** Tests if source file storing is off. */
     @Test
     @WithPlugins("git")
     public void shouldSourceFileStoringLevelNever() {
@@ -100,10 +84,8 @@ public class CoveragePublisherTest extends UiTest {
     /**
      * Verifies if a file in a {@link FileCoverageTableRow} is clickable.
      *
-     * @param build
-     *         The current build with file coverage
-     * @param sourceCodeAvailable
-     *         {@code true} if the source code is available and should be displayed
+     * @param build The current build with file coverage
+     * @param sourceCodeAvailable {@code true} if the source code is available and should be displayed
      */
     private void verifyClickableFileSelection(final Build build, final boolean sourceCodeAvailable) {
         var report = new CoverageReport(build);
@@ -111,6 +93,7 @@ public class CoveragePublisherTest extends UiTest {
         var fileCoverageTable = report.openFileCoverageTable();
         var row = fileCoverageTable.getRow(0);
         row.openSourceCode();
-        assertThat(report.isExpectedSourceFileContentDisplayed(sourceCodeAvailable)).isEqualTo(sourceCodeAvailable);
+        assertThat(report.isExpectedSourceFileContentDisplayed(sourceCodeAvailable))
+                .isEqualTo(sourceCodeAvailable);
     }
 }
