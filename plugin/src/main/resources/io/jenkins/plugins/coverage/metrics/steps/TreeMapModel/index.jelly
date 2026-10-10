@@ -20,12 +20,26 @@
           <div class="jenkins-!-margin-right-1" style="text-wrap: nowrap">${%Metric}:</div>
           <div class="jenkins-select">
             <select id="hierarchy-metric-select" class="jenkins-select__input" style="min-width: 20em;">
-              <j:forEach var="metric" items="${it.treeMetrics}">
-                <option value="${metric.toTagName()}" data-order="${metric.tendency}"
-                        data-shares-overview-thresholds="${it.sharesOverviewThresholds(metric)}">
-                  ${formatter.getDisplayName(metric)}
-                </option>
-              </j:forEach>
+              <j:if test="${!it.coverageTreeMetrics.isEmpty()}">
+                <optgroup label="${%Coverage}">
+                  <j:forEach var="metric" items="${it.coverageTreeMetrics}">
+                    <option value="${metric.toTagName()}" data-order="${metric.tendency}"
+                            data-shares-overview-thresholds="${it.sharesOverviewThresholds(metric)}">
+                      ${formatter.getDisplayName(metric)}
+                    </option>
+                  </j:forEach>
+                </optgroup>
+              </j:if>
+              <j:if test="${!it.softwareTreeMetrics.isEmpty()}">
+                <optgroup label="${%Software Metrics}">
+                  <j:forEach var="metric" items="${it.softwareTreeMetrics}">
+                    <option value="${metric.toTagName()}" data-order="${metric.tendency}"
+                            data-shares-overview-thresholds="${it.sharesOverviewThresholds(metric)}">
+                      ${formatter.getDisplayName(metric)}
+                    </option>
+                  </j:forEach>
+                </optgroup>
+              </j:if>
             </select>
           </div>
         </div>

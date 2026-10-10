@@ -91,6 +91,7 @@ public class CoverageViewModel extends DefaultAsyncTableContentProvider implemen
 
     private static final String TREND_URL = "trend";
     private static final String TREEMAP_URL = "treemap";
+    private static final String SCATTER_URL = "scatter";
     private static final String FILES_URL = "table";
     private static final String LOG_VIEW_URL = "log";
 
@@ -226,6 +227,21 @@ public class CoverageViewModel extends DefaultAsyncTableContentProvider implemen
     public NavigableSet<Metric> getTreeMetrics() {
         var valueMetrics = node.getValueMetrics();
         valueMetrics.retainAll(TREE_METRICS);
+        return valueMetrics;
+    }
+
+    /**
+     * Returns all software metrics (i.e., all non-coverage value metrics) that are available in the report and that
+     * can be visualized in a tree map. In contrast to {@link #getTreeMetrics()}, this is not restricted to a fixed
+     * selection of metrics.
+     *
+     * @return the available software metrics
+     */
+    @SuppressWarnings("unused")
+    public NavigableSet<Metric> getSoftwareTreeMetrics() {
+        var valueMetrics = node.getValueMetrics();
+        valueMetrics.removeIf(Metric::isCoverage);
+        valueMetrics.removeIf(Metric::isContainer);
         return valueMetrics;
     }
 
@@ -425,7 +441,7 @@ public class CoverageViewModel extends DefaultAsyncTableContentProvider implemen
         var values = getNode().getAllFileNodes().stream()
                 .map(fileNode -> fileNode.getValue(metric))
                 .flatMap(Optional::stream)
-                .mapToDouble(Value::asDouble)
+                .mapToDouble(TreeMapNodeConverter::asDisplayValue)
                 .toArray();
         if (values.length == 0) {
             return List.of(0.0, 100.0);
@@ -446,6 +462,11 @@ public class CoverageViewModel extends DefaultAsyncTableContentProvider implemen
      *         if the coverage metric is unknown
      */
     private Metric getCoverageMetricFromText(final String text) {
+        for (Metric metric : Metric.values()) {
+            if (text.equals(metric.toTagName())) {
+                return metric;
+            }
+        }
         for (Metric metric : Metric.values()) {
             if (text.contains(metric.toTagName())) {
                 return metric;
@@ -651,6 +672,9 @@ public class CoverageViewModel extends DefaultAsyncTableContentProvider implemen
             }
             if (TREEMAP_URL.equals(link)) {
                 return new TreeMapModel(this);
+            }
+            if (SCATTER_URL.equals(link)) {
+                return new ScatterModel(this);
             }
             if (FILES_URL.equals(link)) {
                 return new FilesModel(this);

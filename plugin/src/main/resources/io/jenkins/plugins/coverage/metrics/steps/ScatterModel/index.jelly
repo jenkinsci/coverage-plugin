@@ -1,0 +1,56 @@
+<?jelly escape-by-default='true'?>
+<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:l="/lib/layout" xmlns:cov="/coverage">
+
+  <st:header name="Content-Type" value="text/html;charset=UTF-8"/>
+
+  <l:run-subpage>
+
+    <st:adjunct includes="io.jenkins.plugins.coverage.metrics.steps.RunTab.styles"/>
+    <st:adjunct includes="io.jenkins.plugins.echarts"/>
+
+    <link rel="stylesheet" href="${resURL}/plugin/coverage/css/view-model.css"/>
+
+    <l:app-bar title="${it.displayName}">
+      <div class="jenkins-details"
+           style="display: flex; flex-direction: row; justify-content: space-between; align-items: center; height: auto; flex-wrap: wrap; gap: 12px;">
+        <div style="display: flex; align-items: center;">
+          <div class="jenkins-!-margin-right-1" style="text-wrap: nowrap">${%x-title}:</div>
+          <div class="jenkins-select">
+            <select id="scatter-x-metric" class="jenkins-select__input" style="min-width: 14em;"
+                    data-coverage-label="${%coverage-group}" data-software-label="${%software-group}"/>
+          </div>
+        </div>
+        <div style="display: flex; align-items: center;">
+          <div class="jenkins-!-margin-right-1" style="text-wrap: nowrap">${%y-title}:</div>
+          <div class="jenkins-select">
+            <select id="scatter-y-metric" class="jenkins-select__input" style="min-width: 14em;"
+                    data-coverage-label="${%coverage-group}" data-software-label="${%software-group}"/>
+          </div>
+        </div>
+        <div style="display: flex; align-items: center;" tooltip="${%size-tooltip}">
+          <div class="jenkins-!-margin-right-1" style="text-wrap: nowrap">${%size-title}:</div>
+          <div class="jenkins-select">
+            <select id="scatter-size-metric" class="jenkins-select__input" style="min-width: 14em;"
+                    data-constant-label="${%size-constant}"/>
+          </div>
+        </div>
+      </div>
+    </l:app-bar>
+
+    <div class="coverage-body">
+      <cov:sidepanel id="${it.id}"/>
+
+      <div class="content">
+        <l:card title="${%Scatter Plot}">
+          <div id="coverage-scatter" data-report-id="${it.id}"
+               data-base-url="${rootURL}/${it.object.url}${it.id}/"/>
+        </l:card>
+      </div>
+    </div>
+
+    <st:bind var="proxy" value="${it}"/>
+    <st:adjunct includes="io.jenkins.plugins.coverage.metrics.steps.ScatterModel.scatter-model"/>
+
+  </l:run-subpage>
+
+</j:jelly>

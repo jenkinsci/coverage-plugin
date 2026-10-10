@@ -22,6 +22,9 @@
       <l:task title="${%Treemap}"
               icon="symbol-apps-outline plugin-ionicons-api"
               href="${url + '/' + id + '/treemap'}"/>
+      <l:task title="${%Scatter Plot}"
+              icon="symbol-analytics-outline plugin-ionicons-api"
+              href="${url + '/' + id + '/scatter'}"/>
       <l:task title="${%Files}"
               icon="symbol-documents-outline plugin-ionicons-api"
               href="${url + '/' + id + '/table'}"/>

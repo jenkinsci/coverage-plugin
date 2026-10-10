@@ -123,6 +123,7 @@ class RunTabTest extends AbstractCoverageTest {
         assertThat(viewModel.getDynamic("overview")).isInstanceOf(OverviewModel.class);
         assertThat(viewModel.getDynamic("trend")).isInstanceOf(TrendModel.class);
         assertThat(viewModel.getDynamic("treemap")).isInstanceOf(TreeMapModel.class);
+        assertThat(viewModel.getDynamic("scatter")).isInstanceOf(ScatterModel.class);
         assertThat(viewModel.getDynamic("table")).isInstanceOf(FilesModel.class);
         assertThat(viewModel.getDynamic("log")).isInstanceOf(LogModel.class);
     }
@@ -240,6 +241,17 @@ class RunTabTest extends AbstractCoverageTest {
         assertThatJson(chart).node("buildNumbers").isArray().containsExactly(BUILD_NUMBER);
         assertThatJson(chart).node("domainAxisLabels").isArray().containsExactly("#" + BUILD_NUMBER);
         assertThatJson(chart).inPath("$.series[*].name").isArray().contains("Line Coverage", "Branch Coverage");
+
+        assertThat(model.hasCoverageMetrics()).isTrue();
+        assertThat(model.hasSoftwareMetrics()).isTrue();
+        assertThatJson(model.getTrendChart("{\"softwareMetrics\": false}"))
+                .inPath("$.series[*].name")
+                .isArray()
+                .contains("Line Coverage", "Branch Coverage");
+        assertThatJson(model.getTrendChart("{\"softwareMetrics\": true}"))
+                .inPath("$.series[*].name")
+                .isArray()
+                .doesNotContain("Line Coverage", "Branch Coverage");
     }
 
     @Test
@@ -256,6 +268,12 @@ class RunTabTest extends AbstractCoverageTest {
         assertThat(model.getFormatter()).isNotNull();
 
         assertThat(model.getTreeMetrics()).contains(Metric.LINE, Metric.BRANCH).doesNotContain(Metric.INSTRUCTION);
+        assertThat(model.getCoverageTreeMetrics())
+                .contains(Metric.LINE, Metric.BRANCH)
+                .allMatch(Metric::isCoverage);
+        assertThat(model.getSoftwareTreeMetrics())
+                .contains(Metric.CYCLOMATIC_COMPLEXITY)
+                .noneMatch(Metric::isCoverage);
         assertThat(model.sharesOverviewThresholds(Metric.LINE)).isTrue();
         assertThat(model.sharesOverviewThresholds(Metric.CYCLOMATIC_COMPLEXITY)).isFalse();
         assertThat(model.getJenkinsColorIDs()).isNotEmpty();
@@ -273,6 +291,40 @@ class RunTabTest extends AbstractCoverageTest {
                 .hasSize(2)
                 .satisfies(range -> assertThat(range.getFirst()).isLessThanOrEqualTo(range.get(1)));
         assertThat(model.getMetricValueRange("mutation")).containsExactly(0.0, 100.0);
+    }
+
+    @Test
+    void shouldProvideScatterModel(@TempDir final Path buildFolder) {
+        var viewModel = createViewModel(true, buildFolder);
+        var build = viewModel.getOwner();
+        var action = getAction(viewModel);
+        var model = getDynamic(viewModel, "scatter", ScatterModel.class);
+
+        assertThat(model.getDisplayName()).isEqualTo(Messages.CoverageScatterModel_displayName());
+        assertThat(model.getId()).isEqualTo(ID);
+        assertThat(model.getObject()).isSameAs(build);
+        assertThat(model.getTab().getActions()).containsExactly(action);
+        assertThat(model.getMetrics())
+                .contains(Metric.LINE, Metric.BRANCH, Metric.CYCLOMATIC_COMPLEXITY)
+                .noneMatch(Metric::isContainer);
+
+        var data = model.getScatterData();
+        assertThatJson(data).node("names").isArray().isNotEmpty();
+        assertThatJson(data).node("paths").isArray().isNotEmpty();
+        assertThatJson(data).node("hashes").isArray().isNotEmpty();
+        assertThatJson(data).inPath("$.metrics[*].id").isArray().contains("line", "branch");
+        assertThatJson(data)
+                .inPath("$.metrics[?(@.id == 'line')].group")
+                .isArray()
+                .containsExactly("coverage");
+        assertThatJson(data)
+                .inPath("$.metrics[?(@.id == 'line')].unit")
+                .isArray()
+                .containsExactly("%");
+        assertThatJson(data)
+                .inPath("$.metrics[?(@.id == '" + Metric.CYCLOMATIC_COMPLEXITY.toTagName() + "')].group")
+                .isArray()
+                .containsExactly("software");
     }
 
     @Test
