@@ -123,6 +123,7 @@ class RunTabTest extends AbstractCoverageTest {
         assertThat(viewModel.getDynamic("overview")).isInstanceOf(OverviewModel.class);
         assertThat(viewModel.getDynamic("trend")).isInstanceOf(TrendModel.class);
         assertThat(viewModel.getDynamic("treemap")).isInstanceOf(TreeMapModel.class);
+        assertThat(viewModel.getDynamic("scatter")).isInstanceOf(ScatterModel.class);
         assertThat(viewModel.getDynamic("table")).isInstanceOf(FilesModel.class);
         assertThat(viewModel.getDynamic("log")).isInstanceOf(LogModel.class);
     }
@@ -290,6 +291,22 @@ class RunTabTest extends AbstractCoverageTest {
                 .hasSize(2)
                 .satisfies(range -> assertThat(range.getFirst()).isLessThanOrEqualTo(range.get(1)));
         assertThat(model.getMetricValueRange("mutation")).containsExactly(0.0, 100.0);
+    }
+
+    @Test
+    void shouldProvideScatterModel(@TempDir final Path buildFolder) {
+        var viewModel = createViewModel(true, buildFolder);
+        var build = viewModel.getOwner();
+        var action = getAction(viewModel);
+        var model = getDynamic(viewModel, "scatter", ScatterModel.class);
+
+        assertThat(model.getDisplayName()).isEqualTo(Messages.CoverageScatterModel_displayName());
+        assertThat(model.getId()).isEqualTo(ID);
+        assertThat(model.getObject()).isSameAs(build);
+        assertThat(model.getTab().getActions()).containsExactly(action);
+        assertThat(model.getMetrics())
+                .contains(Metric.LINE, Metric.BRANCH, Metric.CYCLOMATIC_COMPLEXITY)
+                .noneMatch(Metric::isContainer);
     }
 
     @Test
