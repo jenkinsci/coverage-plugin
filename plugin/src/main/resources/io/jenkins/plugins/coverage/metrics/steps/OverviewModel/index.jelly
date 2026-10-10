@@ -63,6 +63,7 @@
                           </span>
                           <span class="coverage-dashboard__quality-gate-item-value" data-successful="${item.status.successful}">${item.actualValue}</span>
                           <span class="coverage-dashboard__quality-gate-item-threshold">(${%Threshold}: ${item.qualityGate.threshold})</span>
+                          <span class="coverage-dashboard__quality-gate-item-hint">${it.getQualityGateHint(item)}</span>
                         </div>
                       </j:forEach>
                     </div>
@@ -88,6 +89,17 @@
                           </div>
                           <div class="coverage-ring-widget__title">${baseline.title}</div>
                           <div class="coverage-ring-widget__counts">${it.getCoveredTotal(baseline, metric)}</div>
+                          <j:choose>
+                            <j:when test="${it.isPerfect(baseline, metric)}">
+                              <div class="coverage-ring-widget__perfect">
+                                <l:icon src="symbol-checkmark-circle-outline plugin-ionicons-api" class="icon-sm" alt=""/>
+                                ${%Perfect}
+                              </div>
+                            </j:when>
+                            <j:when test="${!it.getMissedText(baseline, metric).isEmpty()}">
+                              <div class="coverage-ring-widget__missed">${it.getMissedText(baseline, metric)}</div>
+                            </j:when>
+                          </j:choose>
                           <j:if test="${it.hasDelta(baseline, metric)}">
                             <j:choose>
                               <j:when test="${it.getTrend(baseline, metric) gt 0}">
@@ -114,7 +126,7 @@
             <div class="coverage-dashboard__further-metrics">
               <l:card title="${%Further metrics}">
                 <div class="coverage-dashboard__count-grid">
-                  <div class="coverage-dashboard__count-grid-header"/>
+                  <div class="coverage-dashboard__count-grid-header coverage-dashboard__count-grid-header--label">${%Metric}</div>
                   <j:forEach var="baseline" items="${it.baselines}">
                     <div class="coverage-dashboard__count-grid-header coverage-dashboard__count-grid-header--group">${baseline.title}</div>
                   </j:forEach>

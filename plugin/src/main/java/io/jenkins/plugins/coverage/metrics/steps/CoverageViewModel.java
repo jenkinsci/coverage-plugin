@@ -92,6 +92,7 @@ public class CoverageViewModel extends DefaultAsyncTableContentProvider implemen
     private static final String TREND_URL = "trend";
     private static final String TREEMAP_URL = "treemap";
     private static final String SCATTER_URL = "scatter";
+    private static final String HOTSPOTS_URL = "hotspots";
     private static final String FILES_URL = "table";
     private static final String LOG_VIEW_URL = "log";
 
@@ -675,6 +676,9 @@ public class CoverageViewModel extends DefaultAsyncTableContentProvider implemen
             }
             if (SCATTER_URL.equals(link)) {
                 return new ScatterModel(this);
+            }
+            if (HOTSPOTS_URL.equals(link)) {
+                return new HotspotsModel(this);
             }
             if (FILES_URL.equals(link)) {
                 return new FilesModel(this);

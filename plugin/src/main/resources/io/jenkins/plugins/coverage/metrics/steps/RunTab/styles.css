@@ -160,13 +160,13 @@
     margin: 0 0 12px;
 }
 
-/* Each quality gate result is a row of 3 grid cells (name / value / threshold, see index.jelly) so that the value
+/* Each quality gate result is a row of 4 grid cells (name / value / threshold / hint, see index.jelly) so that the value
    column lines up flush left across all rows, independent of how wide the name or the value text happens to be --
    a flex row with justify-content: space-between could only align the value block's right edge, not the value
    text itself. `display: contents` on the row lets its 3 children become direct grid items of the list. */
 .coverage-dashboard__quality-gate-items {
     display: grid;
-    grid-template-columns: max-content max-content max-content;
+    grid-template-columns: max-content max-content max-content max-content;
     column-gap: 10px;
     row-gap: 8px;
     align-items: center;
@@ -198,6 +198,13 @@
 
 .coverage-dashboard__quality-gate-item-value[data-successful="true"] {
     color: var(--green);
+}
+
+/* Always rendered (even if empty), so that every row has 4 cells and the grid stays aligned. */
+.coverage-dashboard__quality-gate-item-hint {
+    font-size: 11px;
+    color: var(--text-color-secondary);
+    white-space: nowrap;
 }
 
 .coverage-dashboard__quality-gate-item-threshold {
@@ -281,9 +288,8 @@
    same x position on every row (a fixed-width column boundary) rather than trailing directly after values of
    varying digit width.
    The column gap leaves a little space between the underlines of the baseline headers, so that each baseline
-   gets its own short line. The label column (the metrics) is separated from the values by a vertical line that
-   starts at the first metric; the top-left corner has no lines at all. The row spacing is padding (instead of a
-   row gap) so that this vertical line has no gaps. */
+   gets its own short line; the label column ("Metric") has its own underline as well. There are no vertical
+   lines. */
 .coverage-dashboard__count-grid {
     display: grid;
     grid-template-columns: minmax(160px, max-content) repeat(4, minmax(30px, max-content) minmax(20px, max-content));
@@ -304,21 +310,18 @@
     grid-column: span 2;
 }
 
-/* Top-left corner ("Metric"): no lines, the underline only belongs to the baselines. */
-.coverage-dashboard__count-grid-header:not(.coverage-dashboard__count-grid-header--group) {
-    border-bottom: none;
+/* Top-left corner ("Metric"): the header of the label column, left-aligned above the metrics. */
+.coverage-dashboard__count-grid-header--label {
+    text-align: left;
 }
 
-/* The label column is the row header, so it is styled like the column headers (bold, secondary color) and is
-   separated from the values by a vertical line. */
+/* The label column is the row header: bold, in the normal text color. The table only has horizontal lines (below
+   the headers). */
 .coverage-dashboard__count-grid-label {
-    color: var(--text-color-secondary);
     font-weight: 600;
-    /* Not align-self: center -- the cell has to fill the whole row so that the border has no gaps. */
     display: flex;
     align-items: center;
     padding: 5px 16px 5px 0;
-    border-right: 1px solid var(--jenkins-border-color, #e5e7eb);
 }
 
 .coverage-dashboard__count-grid-value {
@@ -331,4 +334,147 @@
 .coverage-dashboard__count-grid-badge {
     align-self: center;
     padding: 5px 0;
+}
+
+.coverage-ring-widget__missed {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--red);
+}
+
+.coverage-ring-widget__perfect {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--green);
+}
+
+.coverage-hotspots {
+    display: flex;
+    flex-direction: column;
+    gap: var(--section-padding);
+    /* Without this, wide tables would stretch the grid column of the page instead of shrinking. */
+    min-width: 0;
+}
+
+.coverage-hotspots__histogram {
+    height: 320px;
+}
+
+.coverage-hotspots__rankings {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(20rem, 100%), 1fr));
+    gap: var(--section-padding);
+    align-items: start;
+}
+
+.coverage-hotspots__rankings > * {
+    min-width: 0;
+}
+
+/* The rankings look like the "Further metrics" table of the Overview (see count-grid above): small font, bold
+   values and column headers with an underline (also above the file column). The file column shrinks (and
+   truncates long names), so the table always fits into its card. */
+.coverage-hotspots__grid {
+    display: grid;
+    gap: 0 12px;
+    font-size: 12px;
+}
+
+.coverage-hotspots__grid--ranking {
+    grid-template-columns: minmax(0, 1fr) max-content max-content;
+}
+
+.coverage-hotspots__grid--risk {
+    grid-template-columns: minmax(0, 1fr) max-content max-content max-content;
+}
+
+.coverage-hotspots__grid-header {
+    padding: 0 0 6px;
+    margin-bottom: 5px;
+    border-bottom: 1px solid var(--jenkins-border-color, #e5e7eb);
+    color: var(--text-color-secondary);
+    font-weight: 600;
+    text-align: right;
+    white-space: nowrap;
+}
+
+.coverage-hotspots__grid-header--corner {
+    text-align: left;
+}
+
+/* Reset the look of the buttons that are used as sortable column headers. */
+button.coverage-hotspots__grid-header {
+    background: none;
+    border-top: none;
+    border-left: none;
+    border-right: none;
+    font: inherit;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+button.coverage-hotspots__grid-header:hover {
+    color: var(--text-color);
+}
+
+.coverage-hotspots__sort--active,
+.coverage-hotspots__grid-header--sorted {
+    color: var(--text-color);
+}
+
+/* Arrows show the sort order: most missed items descending, coverage ascending (the weakest file first). */
+.coverage-hotspots__sort--active[data-sort="missed"]::after,
+.coverage-hotspots__grid-header--sorted::after {
+    content: " \2193";
+}
+
+.coverage-hotspots__sort--active[data-sort="coverage"]::after {
+    content: " \2191";
+}
+
+/* A small "?" in a circle, shown at the right side of a card title (see the controls attribute of the card). */
+.coverage-hotspots__help {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 16px;
+    height: 16px;
+    border: 1.5px solid currentColor;
+    border-radius: 50%;
+    color: var(--text-color-secondary);
+    font-size: 10px;
+    font-weight: 700;
+    line-height: 1;
+    cursor: help;
+}
+
+.coverage-hotspots__help:hover {
+    color: var(--text-color);
+}
+
+.coverage-hotspots__rows {
+    display: contents;
+}
+
+.coverage-hotspots__rows--inactive {
+    display: none;
+}
+
+.coverage-hotspots__file {
+    min-width: 0;
+    padding: 5px 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.coverage-hotspots__value {
+    align-self: center;
+    padding: 5px 0;
+    font-weight: 600;
+    text-align: right;
+    white-space: nowrap;
 }
