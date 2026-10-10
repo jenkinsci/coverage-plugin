@@ -12,6 +12,7 @@ import edu.hm.hafner.coverage.Difference;
 import edu.hm.hafner.coverage.FileNode;
 import edu.hm.hafner.coverage.MethodNode;
 import edu.hm.hafner.coverage.Metric;
+import edu.hm.hafner.coverage.MetricAggregation;
 import edu.hm.hafner.coverage.ModuleNode;
 import edu.hm.hafner.coverage.Mutation;
 import edu.hm.hafner.coverage.Node;
@@ -100,13 +101,37 @@ class CoverageXmlStream extends AbstractXmlStream<Node> {
         xStream.alias("item", QualityGateResultItem.class);
 
         xStream.registerConverter(new FractionConverter());
-        xStream.registerConverter(new SimpleConverter<>(Value.class, Value::serialize, Value::valueOf));
-        xStream.registerConverter(new SimpleConverter<>(Metric.class, Metric::name, Metric::valueOf));
+        xStream.registerConverter(new SimpleConverter<>(Value.class, Value::serialize, CoverageXmlStream::valueOf));
+        xStream.registerConverter(new SimpleConverter<>(Metric.class, Metric::name, Metric::fromName));
     }
 
     @Override
     protected Node createDefaultValue() {
         return new ModuleNode("Empty");
+    }
+
+    /**
+     * Restores a value and rejects removed legacy aggregated metrics.
+     *
+     * @param serialization
+     *         the serialized value
+     * @return the restored value
+     */
+    private static Value valueOf(final String serialization) {
+        var metricName = StringUtils.deleteWhitespace(StringUtils.substringBefore(serialization, ':'));
+        if (extractAggregation(metricName) != MetricAggregation.getDefault()) {
+            throw new IllegalArgumentException("Skipping value of removed legacy metric: " + serialization);
+        }
+        return Value.valueOf(serialization);
+    }
+
+    private static MetricAggregation extractAggregation(final String metricName) {
+        for (var aggregation : MetricAggregation.values()) {
+            if (Strings.CI.endsWith(metricName, "_" + aggregation.name())) {
+                return aggregation;
+            }
+        }
+        return MetricAggregation.getDefault();
     }
 
     /**

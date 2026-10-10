@@ -1,6 +1,7 @@
 package io.jenkins.plugins.coverage.metrics.steps;
 
 import edu.hm.hafner.coverage.Metric;
+import edu.hm.hafner.coverage.MetricAggregation;
 import edu.hm.hafner.util.VisibleForTesting;
 import hudson.Extension;
 import hudson.util.ListBoxModel;
@@ -21,6 +22,7 @@ import org.kohsuke.stapler.verb.POST;
  *
  * @author Johannes Walter
  */
+@SuppressWarnings("PMD.DataClass")
 public class CoverageQualityGate extends QualityGate {
     @Serial
     private static final long serialVersionUID = -397278599489426668L;
@@ -29,6 +31,7 @@ public class CoverageQualityGate extends QualityGate {
 
     private final Metric metric;
     private Baseline baseline = Baseline.PROJECT;
+    private MetricAggregation aggregation = MetricAggregation.getDefault();
 
     /**
      * Creates a new instance of {@link CoverageQualityGate}.
@@ -55,11 +58,13 @@ public class CoverageQualityGate extends QualityGate {
             final double threshold,
             final Metric metric,
             final Baseline baseline,
-            final QualityGateCriticality criticality) {
+            final QualityGateCriticality criticality,
+            final MetricAggregation aggregation) {
         this(metric, threshold);
 
         setBaseline(baseline);
         setCriticality(criticality);
+        setAggregation(aggregation);
     }
 
     /**
@@ -74,13 +79,32 @@ public class CoverageQualityGate extends QualityGate {
     }
 
     /**
+     * Sets the aggregation that will be used to compute the value of the metric: the values of the individual
+     * classes or methods can be aggregated as total, minimum, maximum, or average value.
+     *
+     * @param aggregation
+     *         the aggregation to use
+     */
+    @DataBoundSetter
+    public final void setAggregation(final MetricAggregation aggregation) {
+        this.aggregation = aggregation;
+    }
+
+    /**
      * Returns a human-readable name of the quality gate.
      *
      * @return a human-readable name
      */
     @Override
     public String getName() {
-        return "%s - %s".formatted(FORMATTER.getDisplayName(getBaseline()), FORMATTER.getDisplayName(getMetric()));
+        if (aggregation == MetricAggregation.getDefault()) {
+            return "%s - %s".formatted(FORMATTER.getDisplayName(getBaseline()), FORMATTER.getDisplayName(getMetric()));
+        }
+        return "%s - %s (%s)"
+                .formatted(
+                        FORMATTER.getDisplayName(getBaseline()),
+                        FORMATTER.getDisplayName(getMetric()),
+                        FORMATTER.getDisplayName(aggregation));
     }
 
     public Metric getMetric() {
@@ -89,6 +113,10 @@ public class CoverageQualityGate extends QualityGate {
 
     public Baseline getBaseline() {
         return baseline;
+    }
+
+    public MetricAggregation getAggregation() {
+        return aggregation;
     }
 
     /**
@@ -137,6 +165,20 @@ public class CoverageQualityGate extends QualityGate {
         public ListBoxModel doFillBaselineItems() {
             if (jenkins.hasPermission(Jenkins.READ)) {
                 return FORMATTER.getBaselineItems();
+            }
+            return new ListBoxModel();
+        }
+
+        /**
+         * Returns a model with all {@link MetricAggregation aggregation modes}.
+         *
+         * @return a model with all {@link MetricAggregation aggregation modes}.
+         */
+        @POST
+        @SuppressWarnings("unused") // used by Stapler view data binding
+        public ListBoxModel doFillAggregationItems() {
+            if (jenkins.hasPermission(Jenkins.READ)) {
+                return FORMATTER.getAggregationItems();
             }
             return new ListBoxModel();
         }
