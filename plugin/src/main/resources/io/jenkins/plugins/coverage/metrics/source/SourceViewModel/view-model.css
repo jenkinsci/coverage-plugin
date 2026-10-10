@@ -31,8 +31,8 @@ table.source .text {
 /*
  * Keep the line-number and hits columns visible while scrolling a long line horizontally, so the
  * coverage status (stripe in td.hits, tint on hover) stays visible without needing to scroll back
- * to the left edge, and without wrapping the line. --source-line-col-width is measured in JS (the
- * line-number column's width varies with the file's line count) -- see the adjacent view-model.js.
+ * to the left edge, and without wrapping the line. The header establishes the metric-column offsets
+ * as table-level custom properties -- see the adjacent view-model.js.
  */
 table.source td.line {
     text-align: right;
@@ -267,14 +267,23 @@ table.source tr.coverPart:hover td.code {
 /* --- Hits column: sticky (see td.line above), also the positioning context for the ::after stripe --- */
 table.source tr td.hits {
     position: sticky;
-    left: var(--source-line-col-width, 3em);
     z-index: 3;
     background-color: var(--card-background, #fff);
     padding-right: 6px;
-    display: flex;
-    align-items: center;
-    justify-content: right;
-    min-height: 23px;
+    display: table-cell;
+    height: 23px;
+}
+
+table.source tr td.hits:nth-child(2) {
+    left: var(--source-metric-col-left-1, 3em);
+}
+
+table.source tr td.hits:nth-child(3) {
+    left: var(--source-metric-col-left-2, 6em);
+}
+
+table.source tr td.hits:nth-child(4) {
+    left: var(--source-metric-col-left-3, 9em);
 }
 
 /* td.code needs position:relative for the ::after overlay pseudo-element */
@@ -320,4 +329,21 @@ table.source tr.coverNone td.hits {
 /* --- Skipped lines --- */
 table.source tr.coverSkip {
     background-color: var(--medium-grey) !important;
+}
+
+/* VectorCAST metric cells carry their own coverage state, independent of the row. */
+table.source tr td.hits.coverFull:after {
+    background-color: var(--light-green);
+}
+
+table.source tr td.hits.coverNone:after {
+    background-color: var(--red);
+}
+
+table.source tr td.hits.coverPart:after {
+    background-color: var(--orange);
+}
+
+table.source tr td.hits.noCover:after {
+    background-color: transparent;
 }

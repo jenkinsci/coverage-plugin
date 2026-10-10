@@ -3,6 +3,7 @@ package io.jenkins.plugins.coverage.metrics.source;
 import static j2html.TagCreator.*;
 
 import edu.hm.hafner.coverage.FileNode;
+import j2html.tags.ContainerTag;
 import java.io.Serial;
 import org.apache.commons.lang3.StringUtils;
 
@@ -53,23 +54,50 @@ public class VectorCastSourcePrinter extends CoverageSourcePrinter {
      */
     private String getTr(
             final int line, final String sourceCode, final boolean isPainted, final String third, final String fouth) {
+        var coverageSummary = isPainted ? getTooltip(line) : StringUtils.EMPTY;
         var trData = tr().withClasses(isPainted ? getColorClass(line) : UNDEFINED, getModifiedClass(line))
-                .condAttr(isPainted, "data-html-tooltip", isPainted ? getTooltip(line) : StringUtils.EMPTY);
+                .condAttr(!coverageSummary.isEmpty(), "data-block-label", coverageSummary);
 
         trData.with(
                 td().withClass("line").with(a().withName(String.valueOf(line)).withText(String.valueOf(line))),
-                td().withClass("hits").with(isPainted ? text(getSummaryColumn(line)) : text(StringUtils.EMPTY)));
+                createMetricCell(getSummaryColumn(line), super.getTooltip(line), isPainted, super.getColorClass(line)));
 
-        if (!third.equals(StringUtils.EMPTY)) {
-            trData.with(td().withClass("hits").with(isPainted ? text(third) : text(StringUtils.EMPTY)));
+        if (hasAnyFunctionCallCoverage()) {
+            trData.with(createMetricCell(
+                    third,
+                    getFunctionCallTooltip(line),
+                    isPainted,
+                    getMetricColorClass(getFunctionCallCovered(line), getFunctionCallMissed(line))));
         }
-        if (!fouth.equals(StringUtils.EMPTY)) {
-            trData.with(td().withClass("hits").with(isPainted ? text(fouth) : text(StringUtils.EMPTY)));
+        if (hasAnyMcdcPairCoverage()) {
+            var summary = hasAnyFunctionCallCoverage() ? fouth : third;
+            trData.with(createMetricCell(
+                    summary,
+                    getMcdcPairTooltip(line),
+                    isPainted,
+                    getMetricColorClass(getMcdcPairCovered(line), getMcdcPairMissed(line))));
         }
 
         trData.with(td().withClass("code").with(rawHtml(SANITIZER.render(cleanupCode(sourceCode)))));
 
         return trData.render();
+    }
+
+    private ContainerTag createMetricCell(
+            final String summary, final String tooltip, final boolean isPainted, final String colorClass) {
+        return td().withClasses("hits", isPainted ? colorClass : UNDEFINED)
+                .condAttr(isPainted && !tooltip.isEmpty(), "data-html-tooltip", tooltip)
+                .with(isPainted ? text(summary) : text(StringUtils.EMPTY));
+    }
+
+    private String getMetricColorClass(final int covered, final int missed) {
+        if (covered + missed == 0) {
+            return UNDEFINED;
+        }
+        if (covered == 0) {
+            return NO_COVERAGE;
+        }
+        return missed == 0 ? FULL_COVERAGE : PARTIAL_COVERAGE;
     }
 
     /**
@@ -163,7 +191,7 @@ public class VectorCastSourcePrinter extends CoverageSourcePrinter {
      *
      */
     private String getColumnHeader(final String third) {
-        return getColumnHeader(third, NBSP);
+        return getColumnHeader(third, StringUtils.EMPTY);
     }
 
     /**
@@ -179,14 +207,17 @@ public class VectorCastSourcePrinter extends CoverageSourcePrinter {
      *
      */
     private String getColumnHeader(final String third, final String fourth) {
-        return tr().withClass(UNDEFINED)
+        var header = tr().withClass(UNDEFINED)
                 .with(
                         td().withClass("line").with(text("Line")),
-                        td().withClass("line").with(text("St/Br")),
-                        td().withClass("line").with(text(third)),
-                        td().withClass("line").with(text(fourth)),
-                        td().withClass("line").with(text(NBSP)))
-                .render();
+                        td().withClass("hits").with(text("St/Br")));
+        if (!third.isEmpty()) {
+            header.with(td().withClass("hits").with(text(third)));
+        }
+        if (!fourth.isEmpty()) {
+            header.with(td().withClass("hits").with(text(fourth)));
+        }
+        return header.with(td().withClass("code").with(rawHtml(NBSP))).render();
     }
 
     /**
@@ -216,12 +247,7 @@ public class VectorCastSourcePrinter extends CoverageSourcePrinter {
         // If this file only has Line and St/Br
         else {
             // this is the original metrics so maybe don't print header?
-            trString = tr().withClass(UNDEFINED)
-                    .with(
-                            td().withClass("line").with(text("Line ")),
-                            td().withClass("line").with(text("St/Br")),
-                            td().withClass("line").with(rawHtml(NBSP)))
-                    .render();
+            trString = getColumnHeader(StringUtils.EMPTY, StringUtils.EMPTY);
         }
 
         return trString;
@@ -260,7 +286,7 @@ public class VectorCastSourcePrinter extends CoverageSourcePrinter {
         var mcdcPairCovered = getMcdcPairCovered(line);
         var mcdcPairMissed = getMcdcPairMissed(line);
 
-        return getTooltip(mcdcPairCovered, mcdcPairMissed, false, "MC/DC pairs");
+        return getTooltip(mcdcPairCovered, mcdcPairMissed, "MC/DC pairs");
     }
 
     /**
@@ -276,7 +302,7 @@ public class VectorCastSourcePrinter extends CoverageSourcePrinter {
         var functionCallCovered = getFunctionCallCovered(line);
         var functionCallMissed = getFunctionCallMissed(line);
 
-        return getTooltip(functionCallCovered, functionCallMissed, true, "Function calls");
+        return getTooltip(functionCallCovered, functionCallMissed, "Function calls");
     }
 
     /**
@@ -288,26 +314,25 @@ public class VectorCastSourcePrinter extends CoverageSourcePrinter {
      * @param missed
      *         count of the missed coverage
      *
-     * @param checkAny
-     *         boolean to indicate if code should check for any covered bits
-     *
      * @param description
      *         Description of the coverage - MCDC/FCC
      *
      * @return
      *         string of the tooltip
      */
-    private String getTooltip(final int covered, final int missed, final boolean checkAny, final String description) {
+    private String getTooltip(final int covered, final int missed, final String description) {
         var tooltip = "";
 
         if (covered + missed > 1) {
             if (missed == 0) {
                 tooltip = "All %s covered: %d/%d".formatted(description, covered, covered + missed);
+            } else if (covered == 0) {
+                tooltip = "No %s covered: 0/%d".formatted(description, missed);
             } else {
                 tooltip = "%s partially covered: %d/%d".formatted(description, covered, covered + missed);
             }
-        } else if (checkAny && covered == 1) {
-            tooltip = "%s covered".formatted(description);
+        } else if (covered + missed == 1) {
+            tooltip = "%s %s: %d/1".formatted(description, covered == 1 ? "covered" : "not covered", covered);
         }
 
         return tooltip;
@@ -444,6 +469,9 @@ public class VectorCastSourcePrinter extends CoverageSourcePrinter {
     private String getMcdcPairSummaryColumn(final int line) {
         var covered = getMcdcPairCovered(line);
         var missed = getMcdcPairMissed(line);
+        if (covered + missed == 0) {
+            return StringUtils.EMPTY;
+        }
         if (covered + missed > 1) {
             return "%d/%d".formatted(covered, covered + missed);
         }
@@ -461,6 +489,9 @@ public class VectorCastSourcePrinter extends CoverageSourcePrinter {
     private String getFunctionCallSummaryColumn(final int line) {
         var covered = getFunctionCallCovered(line);
         var missed = getFunctionCallMissed(line);
+        if (covered + missed == 0) {
+            return StringUtils.EMPTY;
+        }
         if (covered + missed > 1) {
             return "%d/%d".formatted(covered, covered + missed);
         }
