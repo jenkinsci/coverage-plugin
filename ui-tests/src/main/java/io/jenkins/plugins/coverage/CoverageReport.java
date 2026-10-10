@@ -1,7 +1,6 @@
 package io.jenkins.plugins.coverage;
 
-import static io.jenkins.plugins.coverage.util.ChartUtil.*;
-
+import io.jenkins.plugins.coverage.util.ChartUtil;
 import java.util.NoSuchElementException;
 import org.apache.commons.lang3.StringUtils;
 import org.hamcrest.CoreMatchers;
@@ -41,7 +40,7 @@ public class CoverageReport extends PageObject {
     public String getCoverageOverview() {
         ensureCoverageReportPageIsOpen();
         ensureCoverageTreeTabIsActive();
-        return getChartDataById(this, COVERAGE_OVERVIEW_CHART);
+        return ChartUtil.getChartDataById(this, COVERAGE_OVERVIEW_CHART);
     }
 
     /**
@@ -52,7 +51,7 @@ public class CoverageReport extends PageObject {
     public String getCoverageTree() {
         ensureCoverageReportPageIsOpen();
         ensureCoverageTreeTabIsActive();
-        return getChartDataById(this, COVERAGE_TREE_CHART);
+        return ChartUtil.getChartDataById(this, COVERAGE_TREE_CHART);
     }
 
     /**
