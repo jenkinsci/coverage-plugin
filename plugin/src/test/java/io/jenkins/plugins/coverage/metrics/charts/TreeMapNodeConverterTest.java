@@ -3,6 +3,7 @@ package io.jenkins.plugins.coverage.metrics.charts;
 import static org.assertj.core.api.Assertions.*;
 
 import edu.hm.hafner.coverage.Metric;
+import edu.hm.hafner.coverage.Value;
 import edu.hm.hafner.echarts.LabeledTreeMapNode;
 import io.jenkins.plugins.coverage.metrics.AbstractCoverageTest;
 import io.jenkins.plugins.coverage.metrics.color.ColorProvider;
@@ -40,6 +41,16 @@ class TreeMapNodeConverterTest extends AbstractCoverageTest {
             assertThat(node.getValue()).contains(overallCoverage);
             assertThat(root.getItemStyle().getColor()).isEqualTo(getNodeColorAsRGBHex(overallCoveragePercentage));
         });
+    }
+
+    @Test
+    void shouldScalePercentageMetricsToHundred() {
+        assertThat(TreeMapNodeConverter.asDisplayValue(new Value(Metric.COHESION, 33, 100)))
+                .isEqualTo(33.0);
+        assertThat(TreeMapNodeConverter.asDisplayValue(new Value(Metric.CYCLOMATIC_COMPLEXITY, 33)))
+                .isEqualTo(33.0);
+        assertThat(TreeMapNodeConverter.asDisplayValue(new Value(Metric.LOC, 1234)))
+                .isEqualTo(1234.0);
     }
 
     @Test

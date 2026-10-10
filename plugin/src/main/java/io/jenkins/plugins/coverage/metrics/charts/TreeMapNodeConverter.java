@@ -5,6 +5,7 @@ import edu.hm.hafner.coverage.FileNode;
 import edu.hm.hafner.coverage.Metric;
 import edu.hm.hafner.coverage.ModuleNode;
 import edu.hm.hafner.coverage.Node;
+import edu.hm.hafner.coverage.Rate;
 import edu.hm.hafner.coverage.Value;
 import edu.hm.hafner.echarts.ItemStyle;
 import edu.hm.hafner.echarts.Label;
@@ -18,6 +19,9 @@ import io.jenkins.plugins.coverage.metrics.color.CoverageLevel;
 import io.jenkins.plugins.coverage.metrics.color.ThresholdColorProvider;
 import io.jenkins.plugins.coverage.metrics.model.ElementFormatter;
 import io.jenkins.plugins.echarts.JenkinsPalette;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.util.Locale;
 import java.util.Optional;
 
 /**
@@ -28,6 +32,57 @@ import java.util.Optional;
  */
 public class TreeMapNodeConverter {
     private static final ElementFormatter FORMATTER = new ElementFormatter();
+    private static final double PERCENT = 100.0;
+
+    /**
+     * Returns the numeric value of the specified value on the scale that is shown to the user. Metrics that are
+     * rendered as percentage (e.g., class cohesion) are stored as a fraction in the interval [0, 1] and are scaled to
+     * the interval [0, 100]. Coverage and {@link Rate} values are already provided in the interval [0, 100] and all
+     * other values are absolute, so these values are returned as is.
+     *
+     * @param value
+     *         the value to convert
+     *
+     * @return the numeric value as shown to the user
+     */
+    public static double asDisplayValue(final Value value) {
+        if (isFraction(value)) {
+            return value.asDouble() * PERCENT;
+        }
+        return value.asDouble();
+    }
+
+    /**
+     * Returns whether the specified value is rendered as a percentage but is stored as a fraction in the interval
+     * [0, 1] (e.g., class cohesion). Coverage and {@link Rate} values are already provided in the interval [0, 100].
+     *
+     * @param value
+     *         the value to check
+     *
+     * @return {@code true} if the value needs to be scaled by 100 to get the percentage
+     */
+    public static boolean isFraction(final Value value) {
+        return !(value instanceof Coverage || value instanceof Rate)
+                && value.asText(Locale.ENGLISH).endsWith("%");
+    }
+
+    /**
+     * Returns the size of a tree map node for the specified value as a plain, locale independent number. ECharts
+     * cannot handle localized or decorated text like {@code 1,234} or {@code 33.00%} as size of a tree map node.
+     *
+     * @param value the value to show as size of a tree map node
+     * @return the tree node size
+     */
+    private static String asSize(final Value value) {
+        var number = asDisplayValue(value);
+        if (Double.isNaN(number) || Double.isInfinite(number)) {
+            return "0";
+        }
+        return BigDecimal.valueOf(number)
+                .setScale(2, RoundingMode.HALF_UP)
+                .stripTrailingZeros()
+                .toPlainString();
+    }
 
     /**
      * Converts a coverage tree of {@link Node nodes} to an ECharts tree map of {@link TreeMapNode}.
@@ -228,7 +283,7 @@ public class TreeMapNodeConverter {
             final double redThreshold,
             final ColorProvider colorProvider) {
         var fillColor = ThresholdColorProvider.getFillColorAsHex(
-                value.asDouble(), metric.getTendency(), greenThreshold, redThreshold, colorProvider);
+                asDisplayValue(value), metric.getTendency(), greenThreshold, redThreshold, colorProvider);
         var textColor = ThresholdColorProvider.getTextColorAsHex(fillColor);
         var label = new Label(true, textColor);
 
@@ -238,7 +293,7 @@ public class TreeMapNodeConverter {
             sizeValue = String.valueOf(coverage.getTotal());
             tooltip = FORMATTER.getTooltip(coverage);
         } else {
-            sizeValue = value.asText(Functions.getCurrentLocale());
+            sizeValue = asSize(value);
             tooltip = FORMATTER.getTooltip(value);
         }
 

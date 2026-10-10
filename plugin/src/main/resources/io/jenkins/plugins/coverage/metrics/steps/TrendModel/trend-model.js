@@ -10,6 +10,8 @@
     const AREA_CHART_SELECTOR = '#area-chart';
     const ZERO_AXIS_SELECTOR = '#zero-axis';
     const BUILDS_SELECTOR = '#builds';
+    const GROUP_SELECTOR = '#metric-group';
+    const SOFTWARE_GROUP = 'software';
 
     const DEFAULT_ZERO_BASED_Y_AXIS = false;
     const DEFAULT_USE_LINES = false;
@@ -70,8 +72,18 @@
         return isNaN(parsed) ? defaultValue : parsed;
     }
 
+    // Coverage (percentages) and software metrics (absolute values) are shown in separate charts that have
+    // different series, so each group remembers its own legend selection.
+    function getSelectedGroup() {
+        return $(GROUP_SELECTOR).val() === SOFTWARE_GROUP ? SOFTWARE_GROUP : 'coverage';
+    }
+
+    function legendStorageKey() {
+        return storageKey('jenkins-coverage-trend-legend-selected-' + getSelectedGroup());
+    }
+
     function readStoredLegendSelection() {
-        const stored = localStorage.getItem(storageKey('jenkins-coverage-trend-legend-selected'));
+        const stored = localStorage.getItem(legendStorageKey());
         if (!stored) {
             return null;
         }
@@ -84,7 +96,7 @@
     }
 
     function persistLegendSelection(selected) {
-        localStorage.setItem(storageKey('jenkins-coverage-trend-legend-selected'), JSON.stringify(selected));
+        localStorage.setItem(legendStorageKey(), JSON.stringify(selected));
     }
 
     function getChartInstance() {
@@ -117,6 +129,12 @@
         $(AREA_CHART_SELECTOR).prop('checked', useAreaChart);
         $(ZERO_AXIS_SELECTOR).prop('checked', zeroBasedYAxis);
         $(BUILDS_SELECTOR).val(numberOfBuilds);
+
+        // only restore the stored group if the report still offers it (otherwise keep the pre-selected one)
+        const storedGroup = localStorage.getItem(storageKey('jenkins-coverage-trend-group'));
+        if (storedGroup && $(GROUP_SELECTOR + ' option[value="' + storedGroup + '"]').length > 0) {
+            $(GROUP_SELECTOR).val(storedGroup);
+        }
     }
 
     function readConfiguration() {
@@ -128,7 +146,8 @@
         return {
             zeroBasedYAxis: zeroBasedYAxis,
             useLines: !useAreaChart,
-            numberOfBuilds: numberOfBuilds
+            numberOfBuilds: numberOfBuilds,
+            softwareMetrics: getSelectedGroup() === SOFTWARE_GROUP
         };
     }
 
@@ -136,6 +155,7 @@
         localStorage.setItem(storageKey('jenkins-coverage-trend-area-chart'), String(!configuration.useLines));
         localStorage.setItem(storageKey('jenkins-coverage-trend-zero-axis'), String(configuration.zeroBasedYAxis));
         localStorage.setItem(storageKey('jenkins-coverage-trend-builds'), String(configuration.numberOfBuilds));
+        localStorage.setItem(storageKey('jenkins-coverage-trend-group'), getSelectedGroup());
     }
 
     function renderCoverageTrendChart() {
@@ -143,7 +163,13 @@
         const configuration = readConfiguration();
         persistConfiguration(configuration);
         proxy.getTrendChart(JSON.stringify(configuration), function (t) {
-            echartsJenkinsApi.renderConfigurableZoomableTrendChart('coverage-trend', t.responseJSON);
+            const model = t.responseJSON;
+            if (configuration.softwareMetrics) {
+                // The server serializes the unset maximum as 0: drop it so that ECharts adapts the maximum
+                // to the series that are currently visible in the legend.
+                model.rangeMax = null;
+            }
+            echartsJenkinsApi.renderConfigurableZoomableTrendChart('coverage-trend', model);
 
             applyStoredLegendSelection();
             resizeChartOf(CHART_SELECTOR);
@@ -154,7 +180,7 @@
         initializeControls();
         renderCoverageTrendChart();
 
-        $(AREA_CHART_SELECTOR + ', ' + ZERO_AXIS_SELECTOR).on('change', function () {
+        $(AREA_CHART_SELECTOR + ', ' + ZERO_AXIS_SELECTOR + ', ' + GROUP_SELECTOR).on('change', function () {
             renderCoverageTrendChart();
         });
         $(BUILDS_SELECTOR).on('change input', function () {
