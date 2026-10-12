@@ -551,8 +551,11 @@ class CoverageQualityGateEvaluatorTest extends AbstractCoverageTest {
 
         var result = evaluator.evaluate(new NullResultHandler(), new FilteredLog("Errors"));
 
-        // The average complexity is (5 + 10 + 15 + 20) / 4 = 12.5
-        assertThat(result).hasOverallStatus(QualityGateStatus.WARNING).isNotSuccessful();
+        assertThat(result)
+                .hasOverallStatus(QualityGateStatus.WARNING)
+                .isNotSuccessful()
+                .hasMessages("[Overall project - Cyclomatic Complexity (Average)]: "
+                        + "≪Unstable≫ - (Actual value: 13, Quality gate: 10.00)");
     }
 
     @Test

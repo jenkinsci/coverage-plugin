@@ -67,6 +67,14 @@ public class CoverageQualityGate extends QualityGate {
         setAggregation(aggregation);
     }
 
+    CoverageQualityGate(
+            final double threshold,
+            final Metric metric,
+            final Baseline baseline,
+            final QualityGateCriticality criticality) {
+        this(threshold, metric, baseline, criticality, MetricAggregation.getDefault());
+    }
+
     /**
      * Sets the baseline that will be used for the quality gate evaluation.
      *
@@ -117,6 +125,14 @@ public class CoverageQualityGate extends QualityGate {
 
     public MetricAggregation getAggregation() {
         return aggregation;
+    }
+
+    @Serial
+    protected Object readResolve() {
+        if (aggregation == null) {
+            aggregation = MetricAggregation.getDefault();
+        }
+        return this;
     }
 
     /**

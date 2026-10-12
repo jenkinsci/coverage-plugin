@@ -103,7 +103,11 @@ public class CoverageReporter {
             final FilteredLog log)
             throws InterruptedException {
         var statistics = new CoverageStatistics(
-                CoverageStatistics.aggregateValues(rootNode),
+                CoverageStatistics.aggregateValues(
+                        rootNode,
+                        qualityGates.stream()
+                                .map(CoverageQualityGate::getAggregation)
+                                .toList()),
                 List.of(),
                 EMPTY_AGGREGATION,
                 List.<Difference>of(),
@@ -158,7 +162,11 @@ public class CoverageReporter {
         List<Difference> modifiedFilesDelta;
         if (hasModifiedLinesCoverage(modifiedLinesCoverageRoot)) {
             var modifiedFilesCoverageRoot = rootNode.filterByModifiedFiles();
-            modifiedFilesAggregation = CoverageStatistics.aggregateValues(modifiedFilesCoverageRoot);
+            modifiedFilesAggregation = CoverageStatistics.aggregateValues(
+                    modifiedFilesCoverageRoot,
+                    qualityGates.stream()
+                            .map(CoverageQualityGate::getAggregation)
+                            .toList());
             modifiedFilesDelta = modifiedFilesCoverageRoot.computeDelta(
                     referenceRoot.filterByFileNames(modifiedFilesCoverageRoot.getFiles()));
             modifiedLinesDelta = modifiedLinesCoverageRoot.computeDelta(modifiedFilesCoverageRoot);
@@ -172,9 +180,13 @@ public class CoverageReporter {
             }
         }
 
-        var overallAggregation = CoverageStatistics.aggregateValues(rootNode);
+        var overallAggregation = CoverageStatistics.aggregateValues(
+                rootNode,
+                qualityGates.stream().map(CoverageQualityGate::getAggregation).toList());
         List<Difference> overallDelta = rootNode.computeDelta(referenceRoot);
-        var modifiedLinesAggregation = CoverageStatistics.aggregateValues(modifiedLinesCoverageRoot);
+        var modifiedLinesAggregation = CoverageStatistics.aggregateValues(
+                modifiedLinesCoverageRoot,
+                qualityGates.stream().map(CoverageQualityGate::getAggregation).toList());
         var modifiedLinesValues = getTotalValues(modifiedLinesAggregation);
         var modifiedFilesValues = getTotalValues(modifiedFilesAggregation);
 

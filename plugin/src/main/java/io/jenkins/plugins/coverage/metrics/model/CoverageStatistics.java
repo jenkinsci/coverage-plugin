@@ -5,7 +5,9 @@ import edu.hm.hafner.coverage.Metric;
 import edu.hm.hafner.coverage.MetricAggregation;
 import edu.hm.hafner.coverage.Node;
 import edu.hm.hafner.coverage.Value;
+import java.util.Collection;
 import java.util.EnumMap;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
@@ -25,8 +27,15 @@ public class CoverageStatistics {
      * @return the values of all metrics, grouped by aggregation
      */
     public static Map<MetricAggregation, List<Value>> aggregateValues(final Node node) {
+        return aggregateValues(node, EnumSet.allOf(MetricAggregation.class));
+    }
+
+    public static Map<MetricAggregation, List<Value>> aggregateValues(
+            final Node node, final Collection<MetricAggregation> aggregations) {
         var aggregatedValues = new EnumMap<MetricAggregation, List<Value>>(MetricAggregation.class);
-        for (MetricAggregation aggregation : MetricAggregation.values()) {
+        var requestedAggregations = EnumSet.of(MetricAggregation.getDefault());
+        requestedAggregations.addAll(aggregations);
+        for (MetricAggregation aggregation : requestedAggregations) {
             aggregatedValues.put(aggregation, aggregateValues(node, aggregation));
         }
         return aggregatedValues;
@@ -134,7 +143,7 @@ public class CoverageStatistics {
 
     /**
      * Returns the value for the specified baseline and metric that has been computed with the specified aggregation.
-     * Delta baselines do not support aggregations, so the aggregation will be ignored for these baselines.
+     * Delta baselines currently use total values; aggregation support for deltas is not implemented yet.
      *
      * @param baseline
      *         the baseline of the value
