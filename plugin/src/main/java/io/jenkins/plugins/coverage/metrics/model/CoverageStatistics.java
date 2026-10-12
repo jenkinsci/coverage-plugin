@@ -30,6 +30,15 @@ public class CoverageStatistics {
         return aggregateValues(node, EnumSet.allOf(MetricAggregation.class));
     }
 
+    /**
+     * Collects values for the requested aggregations.
+     *
+     * @param node
+     *         the root of the tree to aggregate
+     * @param aggregations
+     *         the aggregations to compute
+     * @return the values grouped by aggregation
+     */
     public static Map<MetricAggregation, List<Value>> aggregateValues(
             final Node node, final Collection<MetricAggregation> aggregations) {
         var aggregatedValues = new EnumMap<MetricAggregation, List<Value>>(MetricAggregation.class);
