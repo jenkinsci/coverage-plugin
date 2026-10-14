@@ -1,9 +1,9 @@
 package io.jenkins.plugins.coverage.metrics.source;
 
 import hudson.model.Node;
-import java.io.IOException;
 import org.jenkinsci.plugins.workflow.job.WorkflowJob;
-import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
 import org.testcontainers.utility.MountableFile;
 
 /**
@@ -11,7 +11,6 @@ import org.testcontainers.utility.MountableFile;
  *
  * @author Ullrich Hafner
  */
-@Disabled("Docker tests are failing with Java 17 Jenkins")
 class DockerAgentSourceCodeITest extends SourceCodeITest {
     private static final String SOURCES_IN_DOCKER_PATH = "/tmp/coverage";
     private static final String ACU_COBOL_PARSER_CONTAINER_PATH =
@@ -20,6 +19,7 @@ class DockerAgentSourceCodeITest extends SourceCodeITest {
             SOURCES_IN_DOCKER_PATH + "/" + PATH_UTIL_PACKAGE_PATH + PATH_UTIL_FILE_NAME;
 
     private static final String RESOURCES = "io/jenkins/plugins/coverage/metrics/source/";
+
     private static final AgentContainer AGENT_CONTAINER = new AgentContainer()
             .withCopyFileToContainer(
                     MountableFile.forClasspathResource(RESOURCES + ACU_COBOL_PARSER_SOURCE_FILE),
@@ -27,15 +27,19 @@ class DockerAgentSourceCodeITest extends SourceCodeITest {
             .withCopyFileToContainer(
                     MountableFile.forClasspathResource(RESOURCES + PATH_UTIL_SOURCE_FILE), PATH_UTIL_CONTAINER_PATH);
 
+    @BeforeAll
+    static void startAgent() {
+        AGENT_CONTAINER.start();
+    }
+
+    @AfterAll
+    static void stopAgent() {
+        AGENT_CONTAINER.stop();
+    }
+
     @Override
     Node crateCoverageAgent() {
-        try {
-            var agent = createDockerAgent(AGENT_CONTAINER);
-            agent.setLabelString(AGENT_LABEL);
-            return agent;
-        } catch (IOException exception) {
-            throw new AssertionError(exception);
-        }
+        return createDockerAgent(AGENT_CONTAINER, AGENT_LABEL);
     }
 
     @Override
