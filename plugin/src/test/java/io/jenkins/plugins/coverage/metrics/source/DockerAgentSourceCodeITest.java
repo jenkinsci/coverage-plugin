@@ -4,6 +4,7 @@ import hudson.model.Node;
 import org.jenkinsci.plugins.workflow.job.WorkflowJob;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
+import org.testcontainers.junit.jupiter.EnabledIfDockerAvailable;
 import org.testcontainers.utility.MountableFile;
 
 /**
@@ -11,6 +12,7 @@ import org.testcontainers.utility.MountableFile;
  *
  * @author Ullrich Hafner
  */
+@EnabledIfDockerAvailable
 class DockerAgentSourceCodeITest extends SourceCodeITest {
     private static final String SOURCES_IN_DOCKER_PATH = "/tmp/coverage";
     private static final String ACU_COBOL_PARSER_CONTAINER_PATH =
