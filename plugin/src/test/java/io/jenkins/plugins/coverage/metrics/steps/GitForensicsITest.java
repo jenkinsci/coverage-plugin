@@ -1,9 +1,12 @@
 package io.jenkins.plugins.coverage.metrics.steps;
 
-import static edu.hm.hafner.coverage.Metric.*;
-import static net.javacrumbs.jsonunit.assertj.JsonAssertions.*;
-import static org.assertj.core.api.Assertions.*;
-import static org.assertj.core.api.Assumptions.*;
+import static edu.hm.hafner.coverage.Metric.BRANCH;
+import static edu.hm.hafner.coverage.Metric.LINE;
+import static edu.hm.hafner.coverage.Metric.LOC;
+import static net.javacrumbs.jsonunit.assertj.JsonAssertions.assertThatJson;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.within;
+import static org.assertj.core.api.Assumptions.assumeThat;
 
 import edu.hm.hafner.coverage.Coverage;
 import edu.hm.hafner.coverage.Difference;
@@ -26,18 +29,20 @@ import java.util.List;
 import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
 import org.jenkinsci.plugins.workflow.flow.FlowDefinition;
-import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
+import org.testcontainers.junit.jupiter.EnabledIfDockerAvailable;
 
 /**
  * Tests the integration of the Forensics API Plugin while using its Git implementation.
  *
  * @author Florian Orendi
  */
-@Disabled("Docker tests are failing with Java 17 Jenkins")
+@EnabledIfDockerAvailable
 class GitForensicsITest extends AbstractCoverageITest {
     /** The JaCoCo coverage report, generated for the commit {@link #COMMIT}. */
     private static final String JACOCO_FILE = "forensics_integration.xml";
@@ -50,6 +55,16 @@ class GitForensicsITest extends AbstractCoverageITest {
     private static final String REPOSITORY = "https://github.com/jenkinsci/forensics-api-plugin.git";
 
     private static final AgentContainer AGENT_CONTAINER = new AgentContainer();
+
+    @BeforeAll
+    static void startAgent() {
+        AGENT_CONTAINER.start();
+    }
+
+    @AfterAll
+    static void stopAgent() {
+        AGENT_CONTAINER.stop();
+    }
 
     @ParameterizedTest(name = "Source code retention {0} should store {1} files")
     @CsvSource({"EVERY_BUILD, 37", "MODIFIED, 2"})
@@ -197,8 +212,25 @@ class GitForensicsITest extends AbstractCoverageITest {
     private void verifyOverallCoverage(final CoverageBuildAction action) {
         assertThat(action.getAllValues(Baseline.PROJECT))
                 .contains(Coverage.valueOf(LINE, "529/937"), Coverage.valueOf(BRANCH, "136/230"), new Value(LOC, 937));
-        assertThat(action.getAllDeltas(Baseline.PROJECT_DELTA))
-                .contains(getValue("LINE: 6424:897646"), getValue("BRANCH: 0"), getValue("LOC: -21"));
+        var deltas = action.getAllDeltas(Baseline.PROJECT_DELTA);
+        assertThat(deltas).contains(getValue("BRANCH: 0"), getValue("LOC: -21"));
+        assertLineDelta(deltas, 100.0 * 6_424 / 897_646);
+    }
+
+    /**
+     * Verifies the line coverage delta. Coverage deltas are computed in percentage points using floating point
+     * arithmetic, so they cannot be compared for exact equality.
+     *
+     * @param deltas
+     *         the actual deltas
+     * @param expectedPercentagePoints
+     *         the expected line coverage delta in percentage points
+     */
+    private void assertLineDelta(final List<? extends Difference> deltas, final double expectedPercentagePoints) {
+        assertThat(deltas)
+                .filteredOn(delta -> delta.getMetric() == LINE)
+                .first()
+                .satisfies(delta -> assertThat(delta.asDouble()).isCloseTo(expectedPercentagePoints, within(0.001)));
     }
 
     private Difference getValue(final String stringRepresentation) {
@@ -211,13 +243,14 @@ class GitForensicsITest extends AbstractCoverageITest {
         var affectedFiles = action.getResult().filterByModifiedFiles().getFiles();
         assertThat(reference.getResult().filterByFileNames(affectedFiles).aggregateValues())
                 .contains(Coverage.valueOf(LINE, "17/34"), Coverage.valueOf(BRANCH, "1/2"), new Value(LOC, 34));
-        assertThat(action.getAllDeltas(Baseline.MODIFIED_FILES_DELTA))
-                .contains(getValue("LINE: 17:374"), getValue("BRANCH: 0"), getValue("LOC: -12"));
+        var deltas = action.getAllDeltas(Baseline.MODIFIED_FILES_DELTA);
+        assertThat(deltas).contains(getValue("BRANCH: 0"), getValue("LOC: -12"));
+        assertLineDelta(deltas, 100.0 * 17 / 374);
     }
 
     private void verifyModifiedLinesCoverage(final CoverageBuildAction action) {
         assertThat(action.getAllValues(Baseline.MODIFIED_LINES)).contains(Coverage.valueOf(LINE, "1/2"));
-        assertThat(action.getAllDeltas(Baseline.MODIFIED_LINES_DELTA)).contains(getValue("LINE: -1:22"));
+        assertLineDelta(action.getAllDeltas(Baseline.MODIFIED_LINES_DELTA), -100.0 / 22);
     }
 
     private void verifyIndirectCoverageChanges(final CoverageBuildAction action) {
