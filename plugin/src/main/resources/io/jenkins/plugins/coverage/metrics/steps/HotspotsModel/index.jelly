@@ -1,0 +1,98 @@
+<?jelly escape-by-default='true'?>
+<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:l="/lib/layout" xmlns:cov="/coverage">
+
+  <st:header name="Content-Type" value="text/html;charset=UTF-8"/>
+
+  <l:run-subpage>
+
+    <st:adjunct includes="io.jenkins.plugins.coverage.metrics.steps.RunTab.styles"/>
+    <st:adjunct includes="io.jenkins.plugins.coverage.metrics.color-scale"/>
+    <st:adjunct includes="io.jenkins.plugins.echarts"/>
+
+    <link rel="stylesheet" href="${resURL}/plugin/coverage/css/view-model.css"/>
+
+    <l:app-bar title="${it.displayName}">
+      <div class="jenkins-details"
+           style="display: flex; flex-direction: row; justify-content: flex-end; align-items: center; flex-wrap: wrap; gap: 12px;">
+        <div style="display: flex; align-items: center;" tooltip="${%histogram-tooltip}">
+          <div class="jenkins-!-margin-right-1" style="text-wrap: nowrap">${%Metric}:</div>
+          <div class="jenkins-select">
+            <select id="histogram-metric" class="jenkins-select__input" style="min-width: 14em;"/>
+          </div>
+        </div>
+      </div>
+    </l:app-bar>
+
+    <div class="coverage-body">
+      <cov:sidepanel id="${it.id}"/>
+
+      <div class="content coverage-hotspots">
+        <l:card title="${%histogram-title}">
+          <div id="coverage-histogram" class="coverage-hotspots__histogram" data-report-id="${it.id}"
+               data-files-label="${%files-label}" data-empty-label="${%empty}"/>
+        </l:card>
+
+        <div class="coverage-hotspots__rankings">
+          <j:forEach var="ranking" items="${it.rankings}">
+            <l:card title="${%ranking-title(ranking.name())}">
+              <!-- The headers of the sortable columns are buttons: they switch between the two rankings. -->
+              <div class="coverage-hotspots__grid coverage-hotspots__grid--ranking" data-sortable="true">
+                <div class="coverage-hotspots__grid-header coverage-hotspots__grid-header--corner">${%File}</div>
+                <button type="button" class="coverage-hotspots__grid-header coverage-hotspots__sort coverage-hotspots__sort--active"
+                        data-sort="missed" title="${%sort-tooltip}">${%Missed}</button>
+                <button type="button" class="coverage-hotspots__grid-header coverage-hotspots__sort"
+                        data-sort="coverage" title="${%sort-tooltip}">${%Coverage}</button>
+
+                <div class="coverage-hotspots__rows" data-rows="missed">
+                  <j:forEach var="entry" items="${ranking.mostMissed()}">
+                    <div class="coverage-hotspots__file">
+                      <a href="${rootURL}/${it.object.url}${it.id}/${entry.hash()}" title="${entry.path()}">${entry.name()}</a>
+                    </div>
+                    <div class="coverage-hotspots__value">${entry.missed()} / ${entry.total()}</div>
+                    <div class="coverage-hotspots__value">${entry.coverage()}</div>
+                  </j:forEach>
+                </div>
+                <div class="coverage-hotspots__rows coverage-hotspots__rows--inactive" data-rows="coverage">
+                  <j:forEach var="entry" items="${ranking.lowestCoverage()}">
+                    <div class="coverage-hotspots__file">
+                      <a href="${rootURL}/${it.object.url}${it.id}/${entry.hash()}" title="${entry.path()}">${entry.name()}</a>
+                    </div>
+                    <div class="coverage-hotspots__value">${entry.missed()} / ${entry.total()}</div>
+                    <div class="coverage-hotspots__value">${entry.coverage()}</div>
+                  </j:forEach>
+                </div>
+              </div>
+            </l:card>
+          </j:forEach>
+
+          <j:if test="${!it.riskRanking.isEmpty()}">
+            <!-- The card renders the controls attribute (HTML) at the right side of its title. -->
+            <j:set var="riskHelp"><span class="coverage-hotspots__help" tooltip="${%risk-hint}">?</span></j:set>
+            <l:card title="${%risk-title}" controls="${riskHelp}">
+              <div class="coverage-hotspots__grid coverage-hotspots__grid--risk">
+                <div class="coverage-hotspots__grid-header coverage-hotspots__grid-header--corner">${%File}</div>
+                <div class="coverage-hotspots__grid-header coverage-hotspots__grid-header--sorted">${%Risk}</div>
+                <div class="coverage-hotspots__grid-header">${%Complexity}</div>
+                <div class="coverage-hotspots__grid-header">${%Coverage}</div>
+
+                <j:forEach var="entry" items="${it.riskRanking}">
+                  <div class="coverage-hotspots__file">
+                    <a href="${rootURL}/${it.object.url}${it.id}/${entry.hash()}" title="${entry.path()}">${entry.name()}</a>
+                  </div>
+                  <div class="coverage-hotspots__value">${entry.risk()}</div>
+                  <div class="coverage-hotspots__value">${entry.complexity()}</div>
+                  <div class="coverage-hotspots__value">${entry.coverage()}</div>
+                </j:forEach>
+              </div>
+            </l:card>
+          </j:if>
+        </div>
+      </div>
+    </div>
+
+    <st:bind var="proxy" value="${it}"/>
+    <st:adjunct includes="io.jenkins.plugins.coverage.metrics.steps.HotspotsModel.hotspots-model"/>
+
+  </l:run-subpage>
+
+</j:jelly>
