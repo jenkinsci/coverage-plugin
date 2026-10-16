@@ -103,11 +103,7 @@ public class CoverageReporter {
             final FilteredLog log)
             throws InterruptedException {
         var statistics = new CoverageStatistics(
-                CoverageStatistics.aggregateValues(
-                        rootNode,
-                        qualityGates.stream()
-                                .map(CoverageQualityGate::getAggregation)
-                                .toList()),
+                aggregateValues(rootNode, qualityGates),
                 List.of(),
                 EMPTY_AGGREGATION,
                 List.<Difference>of(),
@@ -162,11 +158,7 @@ public class CoverageReporter {
         List<Difference> modifiedFilesDelta;
         if (hasModifiedLinesCoverage(modifiedLinesCoverageRoot)) {
             var modifiedFilesCoverageRoot = rootNode.filterByModifiedFiles();
-            modifiedFilesAggregation = CoverageStatistics.aggregateValues(
-                    modifiedFilesCoverageRoot,
-                    qualityGates.stream()
-                            .map(CoverageQualityGate::getAggregation)
-                            .toList());
+            modifiedFilesAggregation = aggregateValues(modifiedFilesCoverageRoot, qualityGates);
             modifiedFilesDelta = modifiedFilesCoverageRoot.computeDelta(
                     referenceRoot.filterByFileNames(modifiedFilesCoverageRoot.getFiles()));
             modifiedLinesDelta = modifiedLinesCoverageRoot.computeDelta(modifiedFilesCoverageRoot);
@@ -180,13 +172,9 @@ public class CoverageReporter {
             }
         }
 
-        var overallAggregation = CoverageStatistics.aggregateValues(
-                rootNode,
-                qualityGates.stream().map(CoverageQualityGate::getAggregation).toList());
+        var overallAggregation = aggregateValues(rootNode, qualityGates);
         List<Difference> overallDelta = rootNode.computeDelta(referenceRoot);
-        var modifiedLinesAggregation = CoverageStatistics.aggregateValues(
-                modifiedLinesCoverageRoot,
-                qualityGates.stream().map(CoverageQualityGate::getAggregation).toList());
+        var modifiedLinesAggregation = aggregateValues(modifiedLinesCoverageRoot, qualityGates);
         var modifiedLinesValues = getTotalValues(modifiedLinesAggregation);
         var modifiedFilesValues = getTotalValues(modifiedFilesAggregation);
 
@@ -218,6 +206,13 @@ public class CoverageReporter {
                 modifiedFilesValues,
                 modifiedFilesDelta,
                 rootNode.filterByIndirectChanges().aggregateValues());
+    }
+
+    private static Map<MetricAggregation, List<Value>> aggregateValues(
+            final Node node, final List<CoverageQualityGate> qualityGates) {
+        var aggregations =
+                qualityGates.stream().map(CoverageQualityGate::getAggregation).toList();
+        return CoverageStatistics.aggregateValues(node, aggregations);
     }
 
     private static List<Value> getTotalValues(final Map<MetricAggregation, List<Value>> aggregatedValues) {

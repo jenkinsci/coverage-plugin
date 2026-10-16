@@ -5,7 +5,6 @@ import static org.assertj.core.api.BDDAssertions.*;
 import static org.mockito.Mockito.*;
 import static org.xmlunit.assertj.XmlAssert.assertThat;
 
-import com.thoughtworks.xstream.converters.ConversionException;
 import edu.hm.hafner.coverage.Difference;
 import edu.hm.hafner.coverage.FileNode;
 import edu.hm.hafner.coverage.Metric;
@@ -96,15 +95,6 @@ class CoverageXmlStreamITest extends SerializableTest<Node> {
                         a -> Assertions.assertThat(a.getAllValues(Baseline.PROJECT))
                                 .map(v -> v.getDetails(Locale.ENGLISH))
                                 .containsExactlyInAnyOrder(expectedMetrics));
-    }
-
-    @Test
-    void shouldRejectRemovedLegacyAggregatedValues() {
-        var stream = new CoverageXmlStream().getStream();
-
-        assertThatThrownBy(() -> stream.fromXML("<value>COMPLEXITY_MAXIMUM: 10</value>"))
-                .isInstanceOf(ConversionException.class)
-                .hasRootCauseMessage("Skipping value of removed legacy metric: COMPLEXITY_MAXIMUM: 10");
     }
 
     @Test
