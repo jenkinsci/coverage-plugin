@@ -2,10 +2,17 @@ package io.jenkins.plugins.coverage.metrics.steps;
 
 import static io.jenkins.plugins.util.assertions.Assertions.*;
 
+import edu.hm.hafner.coverage.ClassNode;
+import edu.hm.hafner.coverage.MethodNode;
 import edu.hm.hafner.coverage.Metric;
+import edu.hm.hafner.coverage.MetricAggregation;
+import edu.hm.hafner.coverage.ModuleNode;
+import edu.hm.hafner.coverage.Node;
+import edu.hm.hafner.coverage.Value;
 import edu.hm.hafner.util.FilteredLog;
 import io.jenkins.plugins.coverage.metrics.AbstractCoverageTest;
 import io.jenkins.plugins.coverage.metrics.model.Baseline;
+import io.jenkins.plugins.coverage.metrics.model.CoverageStatistics;
 import io.jenkins.plugins.util.NullResultHandler;
 import io.jenkins.plugins.util.QualityGate.QualityGateCriticality;
 import io.jenkins.plugins.util.QualityGateResult;
@@ -389,6 +396,216 @@ class CoverageQualityGateEvaluatorTest extends AbstractCoverageTest {
         var evaluator = new CoverageQualityGateEvaluator(qualityGates, createStatistics());
 
         assertThatStatusWillBeOverwritten(evaluator);
+    }
+
+    @Test
+    void shouldEvaluateMaximumAggregation() {
+        var qualityGates = List.of(new CoverageQualityGate(
+                15.0,
+                Metric.CYCLOMATIC_COMPLEXITY,
+                Baseline.PROJECT,
+                QualityGateCriticality.UNSTABLE,
+                MetricAggregation.MAXIMUM));
+
+        var evaluator = new CoverageQualityGateEvaluator(qualityGates, createStatistics(createTreeWithComplexity()));
+
+        var result = evaluator.evaluate(new NullResultHandler(), new FilteredLog("Errors"));
+
+        assertThat(result)
+                .hasOverallStatus(QualityGateStatus.WARNING)
+                .isNotSuccessful()
+                .hasMessages(
+                        "[Overall project - Cyclomatic Complexity (Maximum)]: ≪Unstable≫ - (Actual value: 20, Quality gate: 15.00)");
+    }
+
+    @Test
+    void shouldEvaluateMinimumAggregation() {
+        var qualityGates = List.of(new CoverageQualityGate(
+                4.0,
+                Metric.CYCLOMATIC_COMPLEXITY,
+                Baseline.PROJECT,
+                QualityGateCriticality.UNSTABLE,
+                MetricAggregation.MINIMUM));
+
+        var evaluator = new CoverageQualityGateEvaluator(qualityGates, createStatistics(createTreeWithComplexity()));
+
+        var result = evaluator.evaluate(new NullResultHandler(), new FilteredLog("Errors"));
+
+        assertThat(result)
+                .hasOverallStatus(QualityGateStatus.WARNING)
+                .isNotSuccessful()
+                .hasMessages(
+                        "[Overall project - Cyclomatic Complexity (Minimum)]: ≪Unstable≫ - (Actual value: 5, Quality gate: 4.00)");
+    }
+
+    @Test
+    void shouldEvaluateAverageAggregation() {
+        var qualityGates = List.of(new CoverageQualityGate(
+                10.0,
+                Metric.CYCLOMATIC_COMPLEXITY,
+                Baseline.PROJECT,
+                QualityGateCriticality.UNSTABLE,
+                MetricAggregation.AVERAGE));
+
+        var evaluator = new CoverageQualityGateEvaluator(qualityGates, createStatistics(createTreeWithComplexity()));
+
+        var result = evaluator.evaluate(new NullResultHandler(), new FilteredLog("Errors"));
+
+        assertThat(result)
+                .hasOverallStatus(QualityGateStatus.WARNING)
+                .isNotSuccessful()
+                .hasMessages("[Overall project - Cyclomatic Complexity (Average)]: "
+                        + "≪Unstable≫ - (Actual value: 13, Quality gate: 10.00)");
+    }
+
+    @Test
+    void shouldPassIfAggregatedValueIsWithinThreshold() {
+        var qualityGates = List.of(new CoverageQualityGate(
+                20.0,
+                Metric.CYCLOMATIC_COMPLEXITY,
+                Baseline.PROJECT,
+                QualityGateCriticality.UNSTABLE,
+                MetricAggregation.MAXIMUM));
+
+        var evaluator = new CoverageQualityGateEvaluator(qualityGates, createStatistics(createTreeWithComplexity()));
+
+        var result = evaluator.evaluate(new NullResultHandler(), new FilteredLog("Errors"));
+
+        assertThat(result).hasOverallStatus(QualityGateStatus.PASSED).isSuccessful();
+    }
+
+    @Test
+    void shouldUseTotalAggregationAsDefault() {
+        var qualityGates = List.of(new CoverageQualityGate(
+                149.0,
+                Metric.CYCLOMATIC_COMPLEXITY,
+                Baseline.PROJECT,
+                QualityGateCriticality.UNSTABLE,
+                MetricAggregation.TOTAL));
+
+        var evaluator = new CoverageQualityGateEvaluator(qualityGates, createStatistics());
+
+        var result = evaluator.evaluate(new NullResultHandler(), new FilteredLog("Errors"));
+
+        assertThat(result)
+                .hasOverallStatus(QualityGateStatus.WARNING)
+                .isNotSuccessful()
+                .hasMessages(
+                        "[Overall project - Cyclomatic Complexity]: ≪Unstable≫ - (Actual value: 150, Quality gate: 149.00)");
+    }
+
+    @Test
+    void shouldAggregateClassMetricsForClassNodes() {
+        var qualityGates = List.of(new CoverageQualityGate(
+                55.0, Metric.LOC, Baseline.PROJECT, QualityGateCriticality.UNSTABLE, MetricAggregation.MAXIMUM));
+
+        var evaluator = new CoverageQualityGateEvaluator(qualityGates, createStatistics(createTreeWithLoc()));
+
+        var result = evaluator.evaluate(new NullResultHandler(), new FilteredLog("Errors"));
+
+        // The maximum number of lines of code of all classes is 60
+        assertThat(result)
+                .hasOverallStatus(QualityGateStatus.WARNING)
+                .isNotSuccessful()
+                .hasMessages(
+                        "[Overall project - Lines of Code (Maximum)]: ≪Unstable≫ - (Actual value: 60, Quality gate: 55.00)");
+    }
+
+    @Test
+    void shouldEvaluateAggregationForModifiedLines() {
+        var qualityGates = List.of(new CoverageQualityGate(
+                15.0,
+                Metric.CYCLOMATIC_COMPLEXITY,
+                Baseline.MODIFIED_LINES,
+                QualityGateCriticality.UNSTABLE,
+                MetricAggregation.MAXIMUM));
+
+        var evaluator = new CoverageQualityGateEvaluator(qualityGates, createStatistics(createTreeWithComplexity()));
+
+        var result = evaluator.evaluate(new NullResultHandler(), new FilteredLog("Errors"));
+
+        assertThat(result)
+                .hasOverallStatus(QualityGateStatus.WARNING)
+                .isNotSuccessful()
+                .hasMessages(
+                        "[Modified code lines - Cyclomatic Complexity (Maximum)]: ≪Unstable≫ - (Actual value: 20, Quality gate: 15.00)");
+    }
+
+    @Test
+    void shouldBeInactiveIfAggregatedValueIsNotAvailable() {
+        var qualityGates = List.of(new CoverageQualityGate(
+                10.0,
+                Metric.CYCLOMATIC_COMPLEXITY,
+                Baseline.PROJECT,
+                QualityGateCriticality.UNSTABLE,
+                MetricAggregation.MAXIMUM));
+
+        var evaluator = new CoverageQualityGateEvaluator(qualityGates, createStatistics());
+
+        var result = evaluator.evaluate(new NullResultHandler(), new FilteredLog("Errors"));
+
+        assertThat(result).hasOverallStatus(QualityGateStatus.INACTIVE).isInactive();
+    }
+
+    @Test
+    void shouldBeInactiveIfTreeIsEmpty() {
+        var qualityGates = List.of(new CoverageQualityGate(
+                10.0,
+                Metric.CYCLOMATIC_COMPLEXITY,
+                Baseline.PROJECT,
+                QualityGateCriticality.UNSTABLE,
+                MetricAggregation.MAXIMUM));
+
+        var evaluator = new CoverageQualityGateEvaluator(qualityGates, createStatistics(new ModuleNode("empty")));
+
+        var result = evaluator.evaluate(new NullResultHandler(), new FilteredLog("Errors"));
+
+        assertThat(result).hasOverallStatus(QualityGateStatus.INACTIVE).isInactive();
+    }
+
+    private static CoverageStatistics createStatistics(final Node root) {
+        var aggregatedValues = CoverageStatistics.aggregateValues(root);
+
+        return new CoverageStatistics(
+                aggregatedValues, List.of(), aggregatedValues, List.of(), aggregatedValues, List.of());
+    }
+
+    /**
+     * Creates a tree that contains a single class with four methods that have the cyclomatic complexity values 5, 10,
+     * 15, and 20.
+     *
+     * @return the created tree
+     */
+    private static Node createTreeWithComplexity() {
+        var root = new ModuleNode("Complexity");
+        var classNode = new ClassNode("TestClass");
+        root.addChild(classNode);
+
+        for (int complexity : List.of(5, 10, 15, 20)) {
+            var method = new MethodNode("method-" + complexity, "()V");
+            method.addValue(new Value(Metric.CYCLOMATIC_COMPLEXITY, complexity));
+            classNode.addChild(method);
+        }
+
+        return root;
+    }
+
+    /**
+     * Creates a tree that contains two classes with the lines of code values 40 and 60. Since {@link Metric#LOC} is
+     * not a method level metric, the values are aggregated for all classes.
+     *
+     * @return the created tree
+     */
+    private static Node createTreeWithLoc() {
+        var root = new ModuleNode("Lines of Code");
+
+        for (int loc : List.of(40, 60)) {
+            var classNode = new ClassNode("class-" + loc);
+            classNode.addValue(new Value(Metric.LOC, loc));
+            root.addChild(classNode);
+        }
+
+        return root;
     }
 
     private static void assertThatStatusWillBeOverwritten(final CoverageQualityGateEvaluator evaluator) {
