@@ -3,6 +3,7 @@ package io.jenkins.plugins.coverage.metrics.steps;
 import static io.jenkins.plugins.util.assertions.Assertions.*;
 
 import edu.hm.hafner.coverage.ClassNode;
+import edu.hm.hafner.coverage.Difference;
 import edu.hm.hafner.coverage.MethodNode;
 import edu.hm.hafner.coverage.Metric;
 import edu.hm.hafner.coverage.MetricAggregation;
@@ -21,8 +22,10 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.EnumMap;
 import java.util.List;
+import java.util.Map;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.junit.jupiter.params.provider.ValueSource;
 
 class CoverageQualityGateEvaluatorTest extends AbstractCoverageTest {
@@ -564,6 +567,45 @@ class CoverageQualityGateEvaluatorTest extends AbstractCoverageTest {
         assertThat(result).hasOverallStatus(QualityGateStatus.INACTIVE).isInactive();
     }
 
+    @ParameterizedTest(name = "{0}")
+    @EnumSource(value = Baseline.class, names = {"PROJECT_DELTA", "MODIFIED_LINES_DELTA", "MODIFIED_FILES_DELTA"})
+    void shouldEvaluateAggregationForDeltaBaselines(final Baseline baseline) {
+        var overall = new CoverageQualityGate(
+                5.0,
+                Metric.CYCLOMATIC_COMPLEXITY,
+                baseline,
+                QualityGateCriticality.UNSTABLE,
+                MetricAggregation.OVERALL);
+        var maximum = new CoverageQualityGate(
+                5.0,
+                Metric.CYCLOMATIC_COMPLEXITY,
+                baseline,
+                QualityGateCriticality.UNSTABLE,
+                MetricAggregation.MAXIMUM);
+        var minimum = new CoverageQualityGate(
+                5.0,
+                Metric.CYCLOMATIC_COMPLEXITY,
+                baseline,
+                QualityGateCriticality.UNSTABLE,
+                MetricAggregation.MINIMUM);
+
+        assertThat(evaluate(overall, createStatisticsWithDelta()))
+                .hasOverallStatus(QualityGateStatus.PASSED)
+                .isSuccessful();
+        assertThat(evaluate(maximum, createStatisticsWithDelta()))
+                .hasOverallStatus(QualityGateStatus.WARNING)
+                .isNotSuccessful();
+        assertThat(evaluate(minimum, createStatisticsWithDelta()))
+                .hasOverallStatus(QualityGateStatus.INACTIVE)
+                .isInactive();
+    }
+
+    private static QualityGateResult evaluate(
+            final CoverageQualityGate qualityGate, final CoverageStatistics statistics) {
+        var evaluator = new CoverageQualityGateEvaluator(List.of(qualityGate), statistics);
+        return evaluator.evaluate(new NullResultHandler(), new FilteredLog("Errors"));
+    }
+
     private static CoverageStatistics createStatistics(final Node root) {
         var aggregatedValues = new EnumMap<MetricAggregation, List<Value>>(MetricAggregation.class);
         for (MetricAggregation aggregation : MetricAggregation.values()) {
@@ -571,7 +613,21 @@ class CoverageQualityGateEvaluatorTest extends AbstractCoverageTest {
         }
 
         return new CoverageStatistics(
-                aggregatedValues, List.of(), aggregatedValues, List.of(), aggregatedValues, List.of());
+                aggregatedValues, Map.of(), aggregatedValues, Map.of(), aggregatedValues, Map.of());
+    }
+
+    /**
+     * Creates statistics with deltas for the cyclomatic complexity: the overall value increased by 2 and the maximum
+     * value increased by 8.
+     *
+     * @return the statistics
+     */
+    private static CoverageStatistics createStatisticsWithDelta() {
+        Map<MetricAggregation, List<Difference>> delta = Map.of(
+                MetricAggregation.OVERALL, List.of(new Difference(Metric.CYCLOMATIC_COMPLEXITY, 2)),
+                MetricAggregation.MAXIMUM, List.of(new Difference(Metric.CYCLOMATIC_COMPLEXITY, 8)));
+
+        return new CoverageStatistics(Map.of(), delta, Map.of(), delta, Map.of(), delta);
     }
 
     /**

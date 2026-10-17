@@ -13,16 +13,16 @@ import java.util.Optional;
  * Provides statistics for values and differences for all Base  the different mappings of coverage metric and baseline to actual values.
  */
 public class CoverageStatistics {
-    private static Map<MetricAggregation, List<Value>> asOverall(final List<? extends Value> values) {
+    private static <T extends Value> Map<MetricAggregation, List<T>> asOverall(final List<? extends T> values) {
         return Map.of(MetricAggregation.getDefault(), List.copyOf(values));
     }
 
     private final Map<MetricAggregation, List<Value>> projectValueMapping;
-    private final List<Difference> projectDelta;
+    private final Map<MetricAggregation, List<Difference>> projectDelta;
     private final Map<MetricAggregation, List<Value>> changeValueMapping;
-    private final List<Difference> changeDelta;
+    private final Map<MetricAggregation, List<Difference>> changeDelta;
     private final Map<MetricAggregation, List<Value>> fileValueMapping;
-    private final List<Difference> fileDelta;
+    private final Map<MetricAggregation, List<Difference>> fileDelta;
 
     /**
      * Creates a new instance of {@link CoverageStatistics}. All values are registered for the aggregation
@@ -50,48 +50,48 @@ public class CoverageStatistics {
             final List<? extends Difference> modifiedFilesDeltaMapping) {
         this(
                 asOverall(projectValueMapping),
-                projectDeltaMapping,
+                asOverall(projectDeltaMapping),
                 asOverall(modifiedLinesValueMapping),
-                modifiedLinesDeltaMapping,
+                asOverall(modifiedLinesDeltaMapping),
                 asOverall(modifiedFilesValueMapping),
-                modifiedFilesDeltaMapping);
+                asOverall(modifiedFilesDeltaMapping));
     }
 
     /**
-     * Creates a new instance of {@link CoverageStatistics}. The values of each baseline are grouped by the
+     * Creates a new instance of {@link CoverageStatistics}. The values and deltas of each baseline are grouped by the
      * {@link MetricAggregation aggregation} they have been computed with, see
      * {@link edu.hm.hafner.coverage.Node#aggregateValues(MetricAggregation)}.
      *
      * @param projectValueMapping
      *         mapping of aggregations and metrics to values for {@link Baseline#PROJECT}
      * @param projectDeltaMapping
-     *         mapping of metrics to delta values for {@link Baseline#PROJECT_DELTA}
+     *         mapping of aggregations and metrics to delta values for {@link Baseline#PROJECT_DELTA}
      * @param modifiedLinesValueMapping
      *         mapping of aggregations and metrics to values for {@link Baseline#MODIFIED_LINES}
      * @param modifiedLinesDeltaMapping
-     *         mapping of metrics to delta values for {@link Baseline#MODIFIED_LINES_DELTA}
+     *         mapping of aggregations and metrics to delta values for {@link Baseline#MODIFIED_LINES_DELTA}
      * @param modifiedFilesValueMapping
      *         mapping of aggregations and metrics to values for {@link Baseline#MODIFIED_FILES}
      * @param modifiedFilesDeltaMapping
-     *         mapping of metrics to delta values for {@link Baseline#MODIFIED_FILES_DELTA}
+     *         mapping of aggregations and metrics to delta values for {@link Baseline#MODIFIED_FILES_DELTA}
      */
     public CoverageStatistics(
             final Map<MetricAggregation, List<Value>> projectValueMapping,
-            final List<? extends Difference> projectDeltaMapping,
+            final Map<MetricAggregation, List<Difference>> projectDeltaMapping,
             final Map<MetricAggregation, List<Value>> modifiedLinesValueMapping,
-            final List<? extends Difference> modifiedLinesDeltaMapping,
+            final Map<MetricAggregation, List<Difference>> modifiedLinesDeltaMapping,
             final Map<MetricAggregation, List<Value>> modifiedFilesValueMapping,
-            final List<? extends Difference> modifiedFilesDeltaMapping) {
+            final Map<MetricAggregation, List<Difference>> modifiedFilesDeltaMapping) {
         this.projectValueMapping = Map.copyOf(projectValueMapping);
         this.changeValueMapping = Map.copyOf(modifiedLinesValueMapping);
         this.fileValueMapping = Map.copyOf(modifiedFilesValueMapping);
-        this.projectDelta = List.copyOf(projectDeltaMapping);
-        this.changeDelta = List.copyOf(modifiedLinesDeltaMapping);
-        this.fileDelta = List.copyOf(modifiedFilesDeltaMapping);
+        this.projectDelta = Map.copyOf(projectDeltaMapping);
+        this.changeDelta = Map.copyOf(modifiedLinesDeltaMapping);
+        this.fileDelta = Map.copyOf(modifiedFilesDeltaMapping);
     }
 
     /**
-     * Returns the total value for the specified baseline and metric.
+     * Returns the overall value for the specified baseline and metric.
      *
      * @param baseline
      *         the baseline of the value
@@ -106,7 +106,8 @@ public class CoverageStatistics {
 
     /**
      * Returns the value for the specified baseline and metric that has been computed with the specified aggregation.
-     * Delta baselines currently use total values; aggregation support for deltas is not implemented yet.
+     * For delta baselines, the value is the difference of the aggregated values (e.g., the difference of the maximum
+     * cyclomatic complexity).
      *
      * @param baseline
      *         the baseline of the value
@@ -128,13 +129,13 @@ public class CoverageStatistics {
             return findValue(metric, aggregation, changeValueMapping);
         }
         if (baseline == Baseline.PROJECT_DELTA) {
-            return Value.findValue(metric, projectDelta);
+            return findValue(metric, aggregation, projectDelta);
         }
         if (baseline == Baseline.MODIFIED_LINES_DELTA) {
-            return Value.findValue(metric, changeDelta);
+            return findValue(metric, aggregation, changeDelta);
         }
         if (baseline == Baseline.MODIFIED_FILES_DELTA) {
-            return Value.findValue(metric, fileDelta);
+            return findValue(metric, aggregation, fileDelta);
         }
 
         throw new NoSuchElementException("No such baseline: " + baseline);
@@ -143,8 +144,8 @@ public class CoverageStatistics {
     private Optional<Value> findValue(
             final Metric metric,
             final MetricAggregation aggregation,
-            final Map<MetricAggregation, List<Value>> valueMapping) {
-        return Value.findValue(metric, valueMapping.getOrDefault(aggregation, List.of()));
+            final Map<MetricAggregation, ? extends List<? extends Value>> valueMapping) {
+        return Optional.ofNullable(valueMapping.get(aggregation)).flatMap(values -> Value.findValue(metric, values));
     }
 
     /**

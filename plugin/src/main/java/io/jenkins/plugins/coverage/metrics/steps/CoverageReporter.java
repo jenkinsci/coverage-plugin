@@ -35,6 +35,7 @@ import java.util.Set;
 @SuppressWarnings({"checkstyle:ClassDataAbstractionCoupling", "PMD.CouplingBetweenObjects"})
 public class CoverageReporter {
     private static final Map<MetricAggregation, List<Value>> EMPTY_AGGREGATION = Map.of();
+    private static final Map<MetricAggregation, List<Difference>> EMPTY_DELTA = Map.of();
 
     @SuppressWarnings({"checkstyle:ParameterNumber", "checkstyle:JavaNCSS"})
     CoverageBuildAction publishAction(
@@ -105,12 +106,12 @@ public class CoverageReporter {
             final FilteredLog log)
             throws InterruptedException {
         var statistics = new CoverageStatistics(
-                aggregateValues(rootNode, qualityGates),
-                List.of(),
+                aggregateValues(rootNode, getAggregations(qualityGates)),
+                EMPTY_DELTA,
                 EMPTY_AGGREGATION,
-                List.<Difference>of(),
+                EMPTY_DELTA,
                 EMPTY_AGGREGATION,
-                List.of());
+                EMPTY_DELTA);
         var evaluator = new CoverageQualityGateEvaluator(qualityGates, statistics);
         var qualityGateStatus = evaluator.evaluate(notifier, log);
 
@@ -154,31 +155,32 @@ public class CoverageReporter {
         log.logInfo("Calculating coverage deltas...");
 
         var modifiedLinesCoverageRoot = rootNode.filterByModifiedLines();
+        var aggregations = getAggregations(qualityGates);
 
-        List<Difference> modifiedLinesDelta;
+        Map<MetricAggregation, List<Difference>> modifiedLinesDelta;
         Map<MetricAggregation, List<Value>> modifiedFilesAggregation;
-        List<Difference> modifiedFilesDelta;
+        Map<MetricAggregation, List<Difference>> modifiedFilesDelta;
         if (hasModifiedLinesCoverage(modifiedLinesCoverageRoot)) {
             var modifiedFilesCoverageRoot = rootNode.filterByModifiedFiles();
-            modifiedFilesAggregation = aggregateValues(modifiedFilesCoverageRoot, qualityGates);
-            modifiedFilesDelta = modifiedFilesCoverageRoot.computeDelta(
-                    referenceRoot.filterByFileNames(modifiedFilesCoverageRoot.getFiles()));
-            modifiedLinesDelta = modifiedLinesCoverageRoot.computeDelta(modifiedFilesCoverageRoot);
+            modifiedFilesAggregation = aggregateValues(modifiedFilesCoverageRoot, aggregations);
+            modifiedFilesDelta = computeDelta(
+                    modifiedFilesCoverageRoot,
+                    referenceRoot.filterByFileNames(modifiedFilesCoverageRoot.getFiles()),
+                    aggregations);
+            modifiedLinesDelta = computeDelta(modifiedLinesCoverageRoot, modifiedFilesCoverageRoot, aggregations);
         } else {
-            modifiedLinesDelta = List.of();
+            modifiedLinesDelta = EMPTY_DELTA;
             modifiedFilesAggregation = EMPTY_AGGREGATION;
-            modifiedFilesDelta = List.of();
+            modifiedFilesDelta = EMPTY_DELTA;
 
             if (rootNode.hasModifiedLines()) {
                 log.logInfo("No detected code changes affect the code coverage");
             }
         }
 
-        var overallAggregation = aggregateValues(rootNode, qualityGates);
-        List<Difference> overallDelta = rootNode.computeDelta(referenceRoot);
-        var modifiedLinesAggregation = aggregateValues(modifiedLinesCoverageRoot, qualityGates);
-        var modifiedLinesValues = getTotalValues(modifiedLinesAggregation);
-        var modifiedFilesValues = getTotalValues(modifiedFilesAggregation);
+        var overallAggregation = aggregateValues(rootNode, aggregations);
+        var overallDelta = computeDelta(rootNode, referenceRoot, aggregations);
+        var modifiedLinesAggregation = aggregateValues(modifiedLinesCoverageRoot, aggregations);
 
         var statistics = new CoverageStatistics(
                 overallAggregation,
@@ -202,37 +204,78 @@ public class CoverageReporter {
                 qualityGateResult,
                 log,
                 referenceAction.getOwner().getExternalizableId(),
-                overallDelta,
-                modifiedLinesValues,
-                modifiedLinesDelta,
-                modifiedFilesValues,
-                modifiedFilesDelta,
+                getOverallValues(overallDelta),
+                getOverallValues(modifiedLinesAggregation),
+                getOverallValues(modifiedLinesDelta),
+                getOverallValues(modifiedFilesAggregation),
+                getOverallValues(modifiedFilesDelta),
                 rootNode.filterByIndirectChanges().aggregateValues());
     }
 
     /**
-     * Aggregates the values of the specified tree for the default aggregation and all aggregations that are used by
-     * the specified quality gates.
+     * Returns the default aggregation and all aggregations that are used by the specified quality gates.
+     *
+     * @param qualityGates
+     *         the quality gates that will be evaluated
+     *
+     * @return the aggregations to compute
+     */
+    private static Set<MetricAggregation> getAggregations(final List<CoverageQualityGate> qualityGates) {
+        var aggregations = EnumSet.of(MetricAggregation.getDefault());
+        qualityGates.stream().map(CoverageQualityGate::getAggregation).forEach(aggregations::add);
+        return aggregations;
+    }
+
+    /**
+     * Aggregates the values of the specified tree for the specified aggregations.
      *
      * @param node
      *         the root of the tree
-     * @param qualityGates
-     *         the quality gates that will be evaluated
+     * @param aggregations
+     *         the aggregations to compute
      *
      * @return the values grouped by aggregation
      */
     private static Map<MetricAggregation, List<Value>> aggregateValues(
-            final Node node, final List<CoverageQualityGate> qualityGates) {
-        var aggregations = EnumSet.of(MetricAggregation.getDefault());
-        qualityGates.stream().map(CoverageQualityGate::getAggregation).forEach(aggregations::add);
-
+            final Node node, final Set<MetricAggregation> aggregations) {
         var aggregatedValues = new EnumMap<MetricAggregation, List<Value>>(MetricAggregation.class);
         aggregations.forEach(aggregation -> aggregatedValues.put(aggregation, node.aggregateValues(aggregation)));
         return aggregatedValues;
     }
 
-    private static List<Value> getTotalValues(final Map<MetricAggregation, List<Value>> aggregatedValues) {
-        return aggregatedValues.getOrDefault(MetricAggregation.getDefault(), List.of());
+    /**
+     * Computes the differences between the aggregated values of the specified tree and the reference tree for the
+     * specified aggregations. A difference is only computed for metrics that are available in both trees.
+     *
+     * @param node
+     *         the root of the tree
+     * @param reference
+     *         the root of the reference tree
+     * @param aggregations
+     *         the aggregations to compute
+     *
+     * @return the differences grouped by aggregation
+     */
+    private static Map<MetricAggregation, List<Difference>> computeDelta(
+            final Node node, final Node reference, final Set<MetricAggregation> aggregations) {
+        var deltas = new EnumMap<MetricAggregation, List<Difference>>(MetricAggregation.class);
+        aggregations.forEach(aggregation -> deltas.put(aggregation, computeDelta(node, reference, aggregation)));
+        return deltas;
+    }
+
+    private static List<Difference> computeDelta(
+            final Node node, final Node reference, final MetricAggregation aggregation) {
+        if (aggregation == MetricAggregation.getDefault()) {
+            return node.computeDelta(reference);
+        }
+        var referenceValues = reference.aggregateValues(aggregation);
+        return node.aggregateValues(aggregation).stream()
+                .flatMap(value -> Value.findValue(value.getMetric(), referenceValues).map(value::subtract).stream())
+                .toList();
+    }
+
+    private static <T extends Value> List<T> getOverallValues(final Map<MetricAggregation, List<T>> values) {
+        return values.getOrDefault(MetricAggregation.getDefault(), List.of());
     }
 
     private List<FileNode> computePaintedFiles(
