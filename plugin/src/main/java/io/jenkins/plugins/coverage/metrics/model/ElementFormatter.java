@@ -392,10 +392,9 @@ public final class ElementFormatter {
      */
     public String getDisplayName(final MetricAggregation aggregation) {
         return switch (aggregation) {
-            case TOTAL -> Messages.Aggregation_TOTAL();
+            case OVERALL -> Messages.Aggregation_OVERALL();
             case MAXIMUM -> Messages.Aggregation_MAXIMUM();
             case MINIMUM -> Messages.Aggregation_MINIMUM();
-            case AVERAGE -> Messages.Aggregation_AVERAGE();
         };
     }
 

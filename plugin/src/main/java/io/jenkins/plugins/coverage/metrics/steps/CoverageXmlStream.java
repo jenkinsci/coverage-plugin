@@ -23,6 +23,7 @@ import io.jenkins.plugins.util.AbstractXmlStream;
 import io.jenkins.plugins.util.QualityGateResult.QualityGateResultItem;
 import java.util.AbstractMap.SimpleEntry;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.NavigableMap;
@@ -80,6 +81,18 @@ class CoverageXmlStream extends AbstractXmlStream<Node> {
 
         xStream.registerLocalConverter(FileNode.class, "changedLines", new IntegerSetConverter());
         xStream.registerLocalConverter(FileNode.class, "coverageDelta", new MetricFractionMapConverter());
+
+        // old trees store the metric of each node, now the metric is derived from the type of the node
+        for (var nodeType : List.of(
+                Node.class,
+                ContainerNode.class,
+                ModuleNode.class,
+                PackageNode.class,
+                FileNode.class,
+                ClassNode.class,
+                MethodNode.class)) {
+            xStream.omitField(nodeType, "metric");
+        }
     }
 
     static void registerConverters(final XStream2 xStream) {
@@ -150,7 +163,7 @@ class CoverageXmlStream extends AbstractXmlStream<Node> {
             }
 
             var deserialized = Fraction.getFraction(value);
-            if (metric.isCoverage()) {
+            if (metric.isCoverage() && metric != Metric.TEST_STRENGTH) { // test strength was no coverage before
                 deserialized =
                         deserialized.multiplyBy(Fraction.getFraction(100)); // previously stored not as percentage
             }

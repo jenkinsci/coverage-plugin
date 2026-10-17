@@ -3,11 +3,7 @@ package io.jenkins.plugins.coverage.metrics.model;
 import edu.hm.hafner.coverage.Difference;
 import edu.hm.hafner.coverage.Metric;
 import edu.hm.hafner.coverage.MetricAggregation;
-import edu.hm.hafner.coverage.Node;
 import edu.hm.hafner.coverage.Value;
-import java.util.Collection;
-import java.util.EnumMap;
-import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
@@ -17,50 +13,7 @@ import java.util.Optional;
  * Provides statistics for values and differences for all Base  the different mappings of coverage metric and baseline to actual values.
  */
 public class CoverageStatistics {
-    /**
-     * Collects the values of all metrics of the specified tree of nodes, once for every available
-     * {@link MetricAggregation aggregation}.
-     *
-     * @param node
-     *         the root of the tree to aggregate
-     *
-     * @return the values of all metrics, grouped by aggregation
-     */
-    public static Map<MetricAggregation, List<Value>> aggregateValues(final Node node) {
-        return aggregateValues(node, EnumSet.allOf(MetricAggregation.class));
-    }
-
-    /**
-     * Collects values for the requested aggregations.
-     *
-     * @param node
-     *         the root of the tree to aggregate
-     * @param aggregations
-     *         the aggregations to compute
-     * @return the values grouped by aggregation
-     */
-    public static Map<MetricAggregation, List<Value>> aggregateValues(
-            final Node node, final Collection<MetricAggregation> aggregations) {
-        var aggregatedValues = new EnumMap<MetricAggregation, List<Value>>(MetricAggregation.class);
-        var requestedAggregations = EnumSet.of(MetricAggregation.getDefault());
-        requestedAggregations.addAll(aggregations);
-        for (MetricAggregation aggregation : requestedAggregations) {
-            aggregatedValues.put(aggregation, aggregateValues(node, aggregation));
-        }
-        return aggregatedValues;
-    }
-
-    private static List<Value> aggregateValues(final Node node, final MetricAggregation aggregation) {
-        if (aggregation == MetricAggregation.getDefault()) {
-            return node.aggregateValues();
-        }
-        return node.getMetrics().stream()
-                .map(metric -> node.getValue(metric, aggregation))
-                .flatMap(Optional::stream)
-                .toList();
-    }
-
-    private static Map<MetricAggregation, List<Value>> asTotal(final List<? extends Value> values) {
+    private static Map<MetricAggregation, List<Value>> asOverall(final List<? extends Value> values) {
         return Map.of(MetricAggregation.getDefault(), List.copyOf(values));
     }
 
@@ -73,7 +26,7 @@ public class CoverageStatistics {
 
     /**
      * Creates a new instance of {@link CoverageStatistics}. All values are registered for the aggregation
-     * {@link MetricAggregation#TOTAL}.
+     * {@link MetricAggregation#OVERALL}.
      *
      * @param projectValueMapping
      *         mapping of metrics to values for {@link Baseline#PROJECT}
@@ -96,17 +49,18 @@ public class CoverageStatistics {
             final List<? extends Value> modifiedFilesValueMapping,
             final List<? extends Difference> modifiedFilesDeltaMapping) {
         this(
-                asTotal(projectValueMapping),
+                asOverall(projectValueMapping),
                 projectDeltaMapping,
-                asTotal(modifiedLinesValueMapping),
+                asOverall(modifiedLinesValueMapping),
                 modifiedLinesDeltaMapping,
-                asTotal(modifiedFilesValueMapping),
+                asOverall(modifiedFilesValueMapping),
                 modifiedFilesDeltaMapping);
     }
 
     /**
      * Creates a new instance of {@link CoverageStatistics}. The values of each baseline are grouped by the
-     * {@link MetricAggregation aggregation} they have been computed with, see {@link #aggregateValues(Node)}.
+     * {@link MetricAggregation aggregation} they have been computed with, see
+     * {@link edu.hm.hafner.coverage.Node#aggregateValues(MetricAggregation)}.
      *
      * @param projectValueMapping
      *         mapping of aggregations and metrics to values for {@link Baseline#PROJECT}

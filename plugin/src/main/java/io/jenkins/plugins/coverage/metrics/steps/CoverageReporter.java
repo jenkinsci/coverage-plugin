@@ -19,6 +19,8 @@ import io.jenkins.plugins.forensics.delta.FileChanges;
 import io.jenkins.plugins.forensics.reference.ReferenceFinder;
 import io.jenkins.plugins.prism.SourceCodeRetention;
 import io.jenkins.plugins.util.ResultHandler;
+import java.util.EnumMap;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -208,11 +210,25 @@ public class CoverageReporter {
                 rootNode.filterByIndirectChanges().aggregateValues());
     }
 
+    /**
+     * Aggregates the values of the specified tree for the default aggregation and all aggregations that are used by
+     * the specified quality gates.
+     *
+     * @param node
+     *         the root of the tree
+     * @param qualityGates
+     *         the quality gates that will be evaluated
+     *
+     * @return the values grouped by aggregation
+     */
     private static Map<MetricAggregation, List<Value>> aggregateValues(
             final Node node, final List<CoverageQualityGate> qualityGates) {
-        var aggregations =
-                qualityGates.stream().map(CoverageQualityGate::getAggregation).toList();
-        return CoverageStatistics.aggregateValues(node, aggregations);
+        var aggregations = EnumSet.of(MetricAggregation.getDefault());
+        qualityGates.stream().map(CoverageQualityGate::getAggregation).forEach(aggregations::add);
+
+        var aggregatedValues = new EnumMap<MetricAggregation, List<Value>>(MetricAggregation.class);
+        aggregations.forEach(aggregation -> aggregatedValues.put(aggregation, node.aggregateValues(aggregation)));
+        return aggregatedValues;
     }
 
     private static List<Value> getTotalValues(final Map<MetricAggregation, List<Value>> aggregatedValues) {

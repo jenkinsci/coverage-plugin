@@ -26,6 +26,13 @@ jobs:
                           baseline('MODIFIED_LINES')
                           criticality('FAILURE')
                       }
+                      coverageQualityGate {
+                          threshold(15)
+                          metric('CYCLOMATIC_COMPLEXITY')
+                          baseline('PROJECT')
+                          aggregation('MAXIMUM')
+                          criticality('UNSTABLE')
+                      }
                   } 
                   id('my-coverage')
                   name('My Coverage')

@@ -19,6 +19,7 @@ import io.jenkins.plugins.util.QualityGateResult;
 import io.jenkins.plugins.util.QualityGateStatus;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.EnumMap;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -439,13 +440,13 @@ class CoverageQualityGateEvaluatorTest extends AbstractCoverageTest {
     }
 
     @Test
-    void shouldEvaluateAverageAggregation() {
+    void shouldEvaluateOverallAggregation() {
         var qualityGates = List.of(new CoverageQualityGate(
-                10.0,
+                40.0,
                 Metric.CYCLOMATIC_COMPLEXITY,
                 Baseline.PROJECT,
                 QualityGateCriticality.UNSTABLE,
-                MetricAggregation.AVERAGE));
+                MetricAggregation.OVERALL));
 
         var evaluator = new CoverageQualityGateEvaluator(qualityGates, createStatistics(createTreeWithComplexity()));
 
@@ -454,8 +455,8 @@ class CoverageQualityGateEvaluatorTest extends AbstractCoverageTest {
         assertThat(result)
                 .hasOverallStatus(QualityGateStatus.WARNING)
                 .isNotSuccessful()
-                .hasMessages("[Overall project - Cyclomatic Complexity (Average)]: "
-                        + "≪Unstable≫ - (Actual value: 13, Quality gate: 10.00)");
+                .hasMessages("[Overall project - Cyclomatic Complexity]: "
+                        + "≪Unstable≫ - (Actual value: 50, Quality gate: 40.00)");
     }
 
     @Test
@@ -475,13 +476,13 @@ class CoverageQualityGateEvaluatorTest extends AbstractCoverageTest {
     }
 
     @Test
-    void shouldUseTotalAggregationAsDefault() {
+    void shouldUseOverallAggregationAsDefault() {
         var qualityGates = List.of(new CoverageQualityGate(
                 149.0,
                 Metric.CYCLOMATIC_COMPLEXITY,
                 Baseline.PROJECT,
                 QualityGateCriticality.UNSTABLE,
-                MetricAggregation.TOTAL));
+                MetricAggregation.OVERALL));
 
         var evaluator = new CoverageQualityGateEvaluator(qualityGates, createStatistics());
 
@@ -564,7 +565,10 @@ class CoverageQualityGateEvaluatorTest extends AbstractCoverageTest {
     }
 
     private static CoverageStatistics createStatistics(final Node root) {
-        var aggregatedValues = CoverageStatistics.aggregateValues(root);
+        var aggregatedValues = new EnumMap<MetricAggregation, List<Value>>(MetricAggregation.class);
+        for (MetricAggregation aggregation : MetricAggregation.values()) {
+            aggregatedValues.put(aggregation, root.aggregateValues(aggregation));
+        }
 
         return new CoverageStatistics(
                 aggregatedValues, List.of(), aggregatedValues, List.of(), aggregatedValues, List.of());

@@ -158,9 +158,8 @@ class ElementFormatterTest {
     void shouldFormatAggregations() {
         var formatter = new ElementFormatter();
 
-        assertThat(formatter.getDisplayName(MetricAggregation.TOTAL)).isEqualTo("Total");
+        assertThat(formatter.getDisplayName(MetricAggregation.OVERALL)).isEqualTo("Overall");
         assertThat(formatter.getDisplayName(MetricAggregation.MAXIMUM)).isEqualTo("Maximum");
         assertThat(formatter.getDisplayName(MetricAggregation.MINIMUM)).isEqualTo("Minimum");
-        assertThat(formatter.getDisplayName(MetricAggregation.AVERAGE)).isEqualTo("Average");
     }
 }

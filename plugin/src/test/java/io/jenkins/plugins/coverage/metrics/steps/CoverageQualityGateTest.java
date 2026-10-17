@@ -20,7 +20,7 @@ class CoverageQualityGateTest {
     void shouldUseTotalAggregationByDefault() {
         var gate = new CoverageQualityGate(80.0, Metric.LINE, Baseline.PROJECT, QualityGateCriticality.UNSTABLE);
 
-        assertThat(gate.getAggregation()).isEqualTo(MetricAggregation.TOTAL);
+        assertThat(gate.getAggregation()).isEqualTo(MetricAggregation.OVERALL);
         assertThat(gate.getName()).isEqualTo("Overall project - Line Coverage");
     }
 
@@ -60,7 +60,7 @@ class CoverageQualityGateTest {
 
         var restored = (CoverageQualityGate) xStream.fromXML(legacyXml);
 
-        assertThat(restored.getAggregation()).isEqualTo(MetricAggregation.TOTAL);
+        assertThat(restored.getAggregation()).isEqualTo(MetricAggregation.OVERALL);
         assertThat(restored.getName()).isEqualTo("Overall project - Line Coverage");
         assertThat(restored.getMetric()).isEqualTo(Metric.LINE);
         assertThat(restored.getBaseline()).isEqualTo(Baseline.PROJECT);
@@ -73,7 +73,7 @@ class CoverageQualityGateTest {
         gate.setAggregation(null);
 
         assertThat(gate.readResolve()).isSameAs(gate);
-        assertThat(gate.getAggregation()).isEqualTo(MetricAggregation.TOTAL);
+        assertThat(gate.getAggregation()).isEqualTo(MetricAggregation.OVERALL);
     }
 
     private static String removeAggregation(final String xml) {

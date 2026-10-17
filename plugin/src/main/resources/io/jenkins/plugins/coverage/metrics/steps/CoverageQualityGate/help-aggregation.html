@@ -1,12 +1,25 @@
 <div>
-    Defines how the values of the selected metric are aggregated before the quality gate is evaluated. The values are
-    collected from the elements that actually store the metric: methods for method level metrics (e.g., cyclomatic
-    complexity), classes for all other metrics.
+    Defines how the values of the selected metric are aggregated before the quality gate is evaluated.
     <ul>
-        <li><strong>Total</strong>: sum of all values (default)</li>
-        <li><strong>Maximum</strong>: largest of all values</li>
-        <li><strong>Minimum</strong>: smallest of all values</li>
-        <li><strong>Average</strong>: arithmetic mean of all values</li>
+        <li>
+            <strong>Overall</strong> (default): the value of the metric for the whole selection, e.g., the line
+            coverage of all lines, the sum of the cyclomatic complexity of all methods, or the mean value of
+            percentages like the class cohesion.
+        </li>
+        <li>
+            <strong>Maximum</strong>: the largest value of all elements, e.g., the method with the highest cyclomatic
+            complexity or the file with the best line coverage.
+        </li>
+        <li>
+            <strong>Minimum</strong>: the smallest value of all elements, e.g., the file with the worst line
+            coverage.
+        </li>
     </ul>
-    <p>Delta baselines currently use total values.</p>
+    <p>
+        The maximum and minimum are selected from the elements that provide the metric: methods for method metrics
+        (e.g., cyclomatic complexity), files for coverage metrics (e.g., line or branch coverage), and classes for all
+        other metrics. Files without code are ignored. Container metrics (e.g., file or package coverage) provide
+        only an overall value.
+    </p>
+    <p>Delta baselines currently use overall values.</p>
 </div>
