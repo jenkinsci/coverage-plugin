@@ -135,20 +135,48 @@
                     <j:forEach var="baseline" items="${it.baselines}">
                       <j:choose>
                         <j:when test="${it.hasValue(baseline, metric)}">
-                          <div class="coverage-dashboard__count-grid-value">${it.formatValue(baseline, metric)}</div>
+                          <j:set var="hasWorstValue" value="${it.hasWorstValue(baseline, metric)}"/>
+                          <div class="coverage-dashboard__count-grid-value">
+                            <div class="coverage-dashboard__count-grid-line">${it.formatValue(baseline, metric)}</div>
+                            <j:if test="${hasWorstValue}">
+                              <div class="coverage-dashboard__count-grid-line coverage-dashboard__count-grid-worst"
+                                   tooltip="${it.getWorstValueTooltip(metric)}">
+                                ${it.formatWorstValue(baseline, metric)}
+                              </div>
+                            </j:if>
+                          </div>
                           <div class="coverage-dashboard__count-grid-badge">
-                            <j:if test="${it.hasDelta(baseline, metric)}">
-                              <j:choose>
-                                <j:when test="${it.getTrend(baseline, metric) gt 0}">
-                                  <span class="jenkins-badge jenkins-!-success-color">${it.formatDelta(baseline, metric)}</span>
-                                </j:when>
-                                <j:when test="${it.getTrend(baseline, metric) lt 0}">
-                                  <span class="jenkins-badge jenkins-!-error-color">${it.formatDelta(baseline, metric)}</span>
-                                </j:when>
-                                <j:otherwise>
-                                  <span class="jenkins-badge">${it.formatDelta(baseline, metric)}</span>
-                                </j:otherwise>
-                              </j:choose>
+                            <div class="coverage-dashboard__count-grid-line">
+                              <j:if test="${it.hasDelta(baseline, metric)}">
+                                <j:choose>
+                                  <j:when test="${it.getTrend(baseline, metric) gt 0}">
+                                    <span class="jenkins-badge jenkins-!-success-color">${it.formatDelta(baseline, metric)}</span>
+                                  </j:when>
+                                  <j:when test="${it.getTrend(baseline, metric) lt 0}">
+                                    <span class="jenkins-badge jenkins-!-error-color">${it.formatDelta(baseline, metric)}</span>
+                                  </j:when>
+                                  <j:otherwise>
+                                    <span class="jenkins-badge">${it.formatDelta(baseline, metric)}</span>
+                                  </j:otherwise>
+                                </j:choose>
+                              </j:if>
+                            </div>
+                            <j:if test="${hasWorstValue}">
+                              <div class="coverage-dashboard__count-grid-line">
+                                <j:if test="${it.hasWorstDelta(baseline, metric)}">
+                                  <j:choose>
+                                    <j:when test="${it.getWorstTrend(baseline, metric) gt 0}">
+                                      <span class="jenkins-badge jenkins-!-success-color">${it.formatWorstDelta(baseline, metric)}</span>
+                                    </j:when>
+                                    <j:when test="${it.getWorstTrend(baseline, metric) lt 0}">
+                                      <span class="jenkins-badge jenkins-!-error-color">${it.formatWorstDelta(baseline, metric)}</span>
+                                    </j:when>
+                                    <j:otherwise>
+                                      <span class="jenkins-badge">${it.formatWorstDelta(baseline, metric)}</span>
+                                    </j:otherwise>
+                                  </j:choose>
+                                </j:if>
+                              </div>
                             </j:if>
                           </div>
                         </j:when>

@@ -2,11 +2,15 @@ package io.jenkins.plugins.coverage.metrics.steps;
 
 import edu.hm.hafner.coverage.Coverage;
 import edu.hm.hafner.coverage.Metric;
+import edu.hm.hafner.coverage.Metric.MetricTendency;
+import edu.hm.hafner.coverage.MetricAggregation;
 import edu.hm.hafner.coverage.Value;
 import edu.umd.cs.findbugs.annotations.NonNull;
+import hudson.Functions;
 import hudson.model.ModelObject;
 import hudson.model.Run;
 import io.jenkins.plugins.coverage.metrics.model.Baseline;
+import io.jenkins.plugins.coverage.metrics.model.CoverageStatistics;
 import io.jenkins.plugins.coverage.metrics.model.ElementFormatter;
 import io.jenkins.plugins.util.QualityGateResult;
 import io.jenkins.plugins.util.QualityGateResult.QualityGateResultItem;
@@ -26,12 +30,16 @@ import java.util.stream.Collectors;
  * @author Ullrich Hafner
  */
 public class OverviewModel implements ModelObject {
+    private static final double EPSILON = 0.001;
+
     private final Run<?, ?> owner;
     private final CoverageBuildAction action;
+    private final CoverageStatistics statistics;
 
     OverviewModel(final Run<?, ?> owner, final CoverageBuildAction action) {
         this.owner = owner;
         this.action = action;
+        this.statistics = action.getStatistics();
     }
 
     @Override
@@ -380,6 +388,142 @@ public class OverviewModel implements ModelObject {
     @SuppressWarnings("unused") // Called by jelly view
     public String formatDelta(final Baseline baseline, final Metric metric) {
         return action.formatDelta(baseline, metric);
+    }
+
+    /**
+     * Returns whether the worst value of the specified metric is available for the specified baseline. The worst value
+     * is the maximum (for metrics where smaller values are better, e.g., the cyclomatic complexity) or the minimum (for
+     * metrics where larger values are better, e.g., the class cohesion) of all elements that provide the metric, e.g.,
+     * the most complex method. Container metrics provide no worst value. Builds that have been recorded with an older
+     * version of the plugin provide no worst values as well.
+     *
+     * @param baseline
+     *         the baseline to use
+     * @param metric
+     *         the metric to check
+     *
+     * @return {@code true} if the worst value is available, {@code false} otherwise
+     */
+    @SuppressWarnings("unused") // Called by jelly view
+    public boolean hasWorstValue(final Baseline baseline, final Metric metric) {
+        return getWorstValue(baseline, metric).isPresent();
+    }
+
+    private Optional<Value> getWorstValue(final Baseline baseline, final Metric metric) {
+        if (metric.isContainer() || baseline == Baseline.INDIRECT) {
+            return Optional.empty();
+        }
+        return statistics.getValue(baseline, metric, getWorstAggregation(metric));
+    }
+
+    private static MetricAggregation getWorstAggregation(final Metric metric) {
+        return metric.getTendency() == MetricTendency.SMALLER_IS_BETTER
+                ? MetricAggregation.MAXIMUM
+                : MetricAggregation.MINIMUM;
+    }
+
+    /**
+     * Returns a formatted and localized String representation of the worst value of the specified metric (with
+     * respect to the given baseline), see {@link #hasWorstValue(Baseline, Metric)}. The value is prefixed with the
+     * name of the aggregation, e.g. {@code "Maximum: 27"}.
+     *
+     * @param baseline
+     *         the baseline to use
+     * @param metric
+     *         the metric to get the worst value for
+     *
+     * @return the formatted worst value
+     */
+    @SuppressWarnings("unused") // Called by jelly view
+    public String formatWorstValue(final Baseline baseline, final Metric metric) {
+        return getWorstValue(baseline, metric)
+                .map(value -> "%s: %s"
+                        .formatted(
+                                getFormatter().getDisplayName(getWorstAggregation(metric)),
+                                getFormatter().formatValue(value)))
+                .orElse(Messages.Coverage_Not_Available());
+    }
+
+    /**
+     * Returns a tooltip that describes how the worst value of the specified metric has been computed, e.g.
+     * {@code "Maximum of all methods"}.
+     *
+     * @param metric
+     *         the metric to get the tooltip for
+     *
+     * @return the tooltip
+     */
+    @SuppressWarnings("unused") // Called by jelly view
+    public String getWorstValueTooltip(final Metric metric) {
+        var aggregation = getFormatter().getDisplayName(getWorstAggregation(metric));
+        return switch (metric.getTargetNodeMetric()) {
+            case METHOD -> Messages.OverviewModel_worstValueOfMethods(aggregation);
+            case FILE -> Messages.OverviewModel_worstValueOfFiles(aggregation);
+            default -> Messages.OverviewModel_worstValueOfClasses(aggregation);
+        };
+    }
+
+    /**
+     * Returns whether a delta of the worst value of the specified metric is available for the specified baseline.
+     * Like the deltas of the overall values in the table, these deltas are shown for the whole project only.
+     *
+     * @param baseline
+     *         the baseline to use
+     * @param metric
+     *         the metric to check
+     *
+     * @return {@code true} if a delta of the worst value is available, {@code false} otherwise
+     */
+    @SuppressWarnings("unused") // Called by jelly view
+    public boolean hasWorstDelta(final Baseline baseline, final Metric metric) {
+        return getWorstDelta(baseline, metric).isPresent();
+    }
+
+    private Optional<Value> getWorstDelta(final Baseline baseline, final Metric metric) {
+        if (baseline != Baseline.PROJECT || getWorstValue(baseline, metric).isEmpty()) {
+            return Optional.empty();
+        }
+        return statistics.getValue(Baseline.PROJECT_DELTA, metric, getWorstAggregation(metric));
+    }
+
+    /**
+     * Returns a formatted and localized String representation of the delta of the worst value of the specified
+     * metric (with respect to the given baseline).
+     *
+     * @param baseline
+     *         the baseline to use
+     * @param metric
+     *         the metric to get the delta for
+     *
+     * @return the formatted delta
+     */
+    @SuppressWarnings("unused") // Called by jelly view
+    public String formatWorstDelta(final Baseline baseline, final Metric metric) {
+        return getWorstDelta(baseline, metric)
+                .map(delta -> getFormatter().formatDelta(metric, delta, Functions.getCurrentLocale()))
+                .orElse(Messages.Coverage_Not_Available());
+    }
+
+    /**
+     * Returns whether the delta of the worst value of the specified metric is an improvement or a deterioration. In
+     * contrast to {@link #getTrend(Baseline, Metric)}, the tendency of the metric is considered: an increased maximum
+     * cyclomatic complexity is a deterioration.
+     *
+     * @param baseline
+     *         the baseline to use
+     * @param metric
+     *         the metric to check
+     *
+     * @return a positive value for an improvement, a negative value for a deterioration, or {@code 0} if there is no
+     *         significant change
+     */
+    @SuppressWarnings("unused") // Called by jelly view
+    public double getWorstTrend(final Baseline baseline, final Metric metric) {
+        var delta = getWorstDelta(baseline, metric).map(Value::asDouble).orElse(0.0);
+        if (Math.abs(delta) < EPSILON) {
+            return 0;
+        }
+        return metric.getTendency() == MetricTendency.SMALLER_IS_BETTER ? -delta : delta;
     }
 
     /**

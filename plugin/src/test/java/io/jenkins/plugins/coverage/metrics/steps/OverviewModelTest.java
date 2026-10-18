@@ -3,22 +3,29 @@ package io.jenkins.plugins.coverage.metrics.steps;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
+import edu.hm.hafner.coverage.ClassNode;
 import edu.hm.hafner.coverage.Coverage;
 import edu.hm.hafner.coverage.Coverage.CoverageBuilder;
+import edu.hm.hafner.coverage.Difference;
 import edu.hm.hafner.coverage.FileNode;
+import edu.hm.hafner.coverage.MethodNode;
 import edu.hm.hafner.coverage.Metric;
+import edu.hm.hafner.coverage.MetricAggregation;
 import edu.hm.hafner.coverage.ModuleNode;
 import edu.hm.hafner.coverage.Node;
+import edu.hm.hafner.coverage.Value;
 import edu.hm.hafner.util.FilteredLog;
 import hudson.model.Run;
 import io.jenkins.plugins.coverage.metrics.AbstractCoverageTest;
 import io.jenkins.plugins.coverage.metrics.model.Baseline;
+import io.jenkins.plugins.coverage.metrics.model.CoverageStatistics;
 import io.jenkins.plugins.util.QualityGate.QualityGateCriticality;
 import io.jenkins.plugins.util.QualityGateResult;
 import io.jenkins.plugins.util.QualityGateResult.QualityGateResultItem;
 import io.jenkins.plugins.util.QualityGateStatus;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
@@ -224,6 +231,115 @@ class OverviewModelTest extends AbstractCoverageTest {
         assertThat(model.getReferenceBuild()).isEmpty();
         assertThat(model.getReferenceBuildText()).isEmpty();
         assertThat(model.getReferenceBuildUrl()).isEmpty();
+    }
+
+    @Test
+    @DefaultLocale("en")
+    void shouldProvideWorstValuesOfSoftwareMetrics() {
+        var node = createModuleWithMethods();
+        var statistics = new CoverageStatistics(
+                Map.of(
+                        MetricAggregation.OVERALL,
+                        node.aggregateValues(),
+                        MetricAggregation.MAXIMUM,
+                        node.aggregateValues(MetricAggregation.MAXIMUM),
+                        MetricAggregation.MINIMUM,
+                        node.aggregateValues(MetricAggregation.MINIMUM)),
+                Map.of(
+                        MetricAggregation.MAXIMUM,
+                        List.of(new Difference(Metric.CYCLOMATIC_COMPLEXITY, 3)),
+                        MetricAggregation.MINIMUM,
+                        List.of(new Difference(Metric.COHESION, 1, 10))),
+                Map.of(),
+                Map.of(),
+                Map.of(),
+                Map.of());
+        var model = createModel(node, statistics);
+
+        assertThat(model.hasWorstValue(Baseline.PROJECT, Metric.CYCLOMATIC_COMPLEXITY))
+                .isTrue();
+        assertThat(model.formatWorstValue(Baseline.PROJECT, Metric.CYCLOMATIC_COMPLEXITY))
+                .isEqualTo("Maximum: 10");
+        assertThat(model.getWorstValueTooltip(Metric.CYCLOMATIC_COMPLEXITY)).isEqualTo("Maximum of all methods");
+        assertThat(model.hasWorstDelta(Baseline.PROJECT, Metric.CYCLOMATIC_COMPLEXITY))
+                .isTrue();
+        assertThat(model.formatWorstDelta(Baseline.PROJECT, Metric.CYCLOMATIC_COMPLEXITY))
+                .contains("3");
+        assertThat(model.getWorstTrend(Baseline.PROJECT, Metric.CYCLOMATIC_COMPLEXITY))
+                .as("an increased maximum complexity is a deterioration")
+                .isNegative();
+
+        assertThat(model.hasWorstValue(Baseline.PROJECT, Metric.COHESION)).isTrue();
+        assertThat(model.formatWorstValue(Baseline.PROJECT, Metric.COHESION)).isEqualTo("Minimum: 20.00%");
+        assertThat(model.getWorstValueTooltip(Metric.COHESION)).isEqualTo("Minimum of all classes");
+        assertThat(model.getWorstTrend(Baseline.PROJECT, Metric.COHESION))
+                .as("an increased minimum cohesion is an improvement")
+                .isPositive();
+
+        assertThat(model.hasWorstValue(Baseline.PROJECT, Metric.METHOD))
+                .as("container metrics have no worst value")
+                .isFalse();
+        assertThat(model.hasWorstValue(Baseline.MODIFIED_LINES, Metric.CYCLOMATIC_COMPLEXITY))
+                .isFalse();
+        assertThat(model.hasWorstDelta(Baseline.MODIFIED_LINES, Metric.CYCLOMATIC_COMPLEXITY))
+                .isFalse();
+        assertThat(model.formatWorstValue(Baseline.MODIFIED_LINES, Metric.CYCLOMATIC_COMPLEXITY))
+                .isEqualTo(Messages.Coverage_Not_Available());
+        assertThat(model.formatWorstDelta(Baseline.MODIFIED_LINES, Metric.CYCLOMATIC_COMPLEXITY))
+                .isEqualTo(Messages.Coverage_Not_Available());
+        assertThat(model.getWorstTrend(Baseline.MODIFIED_LINES, Metric.CYCLOMATIC_COMPLEXITY))
+                .isZero();
+    }
+
+    @Test
+    void shouldProvideNoWorstValuesForBuildsWithoutAggregatedValues() {
+        var model = createModel(createModuleWithMethods());
+
+        assertThat(model.hasWorstValue(Baseline.PROJECT, Metric.CYCLOMATIC_COMPLEXITY))
+                .isFalse();
+        assertThat(model.hasWorstDelta(Baseline.PROJECT, Metric.CYCLOMATIC_COMPLEXITY))
+                .isFalse();
+    }
+
+    private static ModuleNode createModuleWithMethods() {
+        var module = new ModuleNode("module");
+        var file = new FileNode("File.java", "src/File.java");
+        module.addChild(file);
+
+        var first = new ClassNode("First");
+        first.addValue(new Value(Metric.COHESION, 2, 10));
+        first.addChild(createMethod("one", 2));
+        first.addChild(createMethod("two", 10));
+        file.addChild(first);
+
+        var second = new ClassNode("Second");
+        second.addValue(new Value(Metric.COHESION, 6, 10));
+        second.addChild(createMethod("three", 4));
+        file.addChild(second);
+
+        return module;
+    }
+
+    private static MethodNode createMethod(final String name, final int complexity) {
+        var method = new MethodNode(name, "()V");
+        method.addValue(new Value(Metric.CYCLOMATIC_COMPLEXITY, complexity));
+        return method;
+    }
+
+    private OverviewModel createModel(final Node node, final CoverageStatistics statistics) {
+        var action = new CoverageBuildAction(
+                mock(Run.class),
+                "coverage",
+                "",
+                "",
+                node,
+                new QualityGateResult(),
+                new FilteredLog("Errors"),
+                "-",
+                statistics,
+                List.of(),
+                false);
+        return new OverviewModel(mock(Run.class), action);
     }
 
     private OverviewModel createModel() {

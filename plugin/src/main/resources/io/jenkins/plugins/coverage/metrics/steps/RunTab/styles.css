@@ -336,6 +336,20 @@
     padding: 5px 0;
 }
 
+/* A cell of the "Further metrics" table shows the overall value and below it - for software metrics - the worst
+   value (e.g., the maximum cyclomatic complexity of all methods). Each line has the same height in the value and the
+   badge column, so that the deltas are aligned with their values. */
+.coverage-dashboard__count-grid-line {
+    display: flex;
+    align-items: center;
+    height: 22px;
+}
+
+.coverage-dashboard__count-grid-worst {
+    font-weight: 400;
+    color: var(--text-color-secondary);
+}
+
 .coverage-ring-widget__missed {
     font-size: 12px;
     font-weight: 600;
