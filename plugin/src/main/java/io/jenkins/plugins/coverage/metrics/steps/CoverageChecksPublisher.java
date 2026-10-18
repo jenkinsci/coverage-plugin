@@ -548,7 +548,8 @@ class CoverageChecksPublisher {
     }
 
     private Stream<Metric> getMetricStream() {
-        return Stream.concat(Metric.getCoverageMetrics().stream().skip(1), Stream.of(Metric.TEST_STRENGTH))
+        return Metric.getCoverageMetrics().stream()
+                .skip(1)
                 .filter(m -> rootNode.getValue(m).isPresent());
     }
 

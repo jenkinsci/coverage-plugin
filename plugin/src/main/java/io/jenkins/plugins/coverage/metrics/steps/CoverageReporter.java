@@ -4,6 +4,7 @@ import edu.hm.hafner.coverage.Coverage;
 import edu.hm.hafner.coverage.Difference;
 import edu.hm.hafner.coverage.FileNode;
 import edu.hm.hafner.coverage.Metric;
+import edu.hm.hafner.coverage.MetricAggregation;
 import edu.hm.hafner.coverage.Node;
 import edu.hm.hafner.coverage.Value;
 import edu.hm.hafner.util.FilteredLog;
@@ -18,7 +19,10 @@ import io.jenkins.plugins.forensics.delta.FileChanges;
 import io.jenkins.plugins.forensics.reference.ReferenceFinder;
 import io.jenkins.plugins.prism.SourceCodeRetention;
 import io.jenkins.plugins.util.ResultHandler;
+import java.util.EnumMap;
+import java.util.EnumSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
@@ -30,7 +34,8 @@ import java.util.Set;
  */
 @SuppressWarnings({"checkstyle:ClassDataAbstractionCoupling", "PMD.CouplingBetweenObjects"})
 public class CoverageReporter {
-    private static final List<Value> EMPTY_VALUES = List.of();
+    private static final Map<MetricAggregation, List<Value>> EMPTY_AGGREGATION = Map.of();
+    private static final Map<MetricAggregation, List<Difference>> EMPTY_DELTA = Map.of();
 
     @SuppressWarnings({"checkstyle:ParameterNumber", "checkstyle:JavaNCSS"})
     CoverageBuildAction publishAction(
@@ -101,7 +106,12 @@ public class CoverageReporter {
             final FilteredLog log)
             throws InterruptedException {
         var statistics = new CoverageStatistics(
-                rootNode.aggregateValues(), List.of(), List.<Difference>of(), List.of(), EMPTY_VALUES, List.of());
+                aggregateValues(rootNode, getAggregations(qualityGates)),
+                EMPTY_DELTA,
+                EMPTY_AGGREGATION,
+                EMPTY_DELTA,
+                EMPTY_AGGREGATION,
+                EMPTY_DELTA);
         var evaluator = new CoverageQualityGateEvaluator(qualityGates, statistics);
         var qualityGateStatus = evaluator.evaluate(notifier, log);
 
@@ -145,36 +155,39 @@ public class CoverageReporter {
         log.logInfo("Calculating coverage deltas...");
 
         var modifiedLinesCoverageRoot = rootNode.filterByModifiedLines();
+        var aggregations = getAggregations(qualityGates);
 
-        List<Difference> modifiedLinesDelta;
-        List<Value> modifiedFilesValues;
-        List<Difference> modifiedFilesDelta;
+        Map<MetricAggregation, List<Difference>> modifiedLinesDelta;
+        Map<MetricAggregation, List<Value>> modifiedFilesAggregation;
+        Map<MetricAggregation, List<Difference>> modifiedFilesDelta;
         if (hasModifiedLinesCoverage(modifiedLinesCoverageRoot)) {
             var modifiedFilesCoverageRoot = rootNode.filterByModifiedFiles();
-            modifiedFilesValues = modifiedFilesCoverageRoot.aggregateValues();
-            modifiedFilesDelta = modifiedFilesCoverageRoot.computeDelta(
-                    referenceRoot.filterByFileNames(modifiedFilesCoverageRoot.getFiles()));
-            modifiedLinesDelta = modifiedLinesCoverageRoot.computeDelta(modifiedFilesCoverageRoot);
+            modifiedFilesAggregation = aggregateValues(modifiedFilesCoverageRoot, aggregations);
+            modifiedFilesDelta = computeDelta(
+                    modifiedFilesCoverageRoot,
+                    referenceRoot.filterByFileNames(modifiedFilesCoverageRoot.getFiles()),
+                    aggregations);
+            modifiedLinesDelta = computeDelta(modifiedLinesCoverageRoot, modifiedFilesCoverageRoot, aggregations);
         } else {
-            modifiedLinesDelta = List.of();
-            modifiedFilesValues = List.of();
-            modifiedFilesDelta = List.of();
+            modifiedLinesDelta = EMPTY_DELTA;
+            modifiedFilesAggregation = EMPTY_AGGREGATION;
+            modifiedFilesDelta = EMPTY_DELTA;
 
             if (rootNode.hasModifiedLines()) {
                 log.logInfo("No detected code changes affect the code coverage");
             }
         }
 
-        var overallValues = rootNode.aggregateValues();
-        List<Difference> overallDelta = rootNode.computeDelta(referenceRoot);
-        var modifiedLinesValues = modifiedLinesCoverageRoot.aggregateValues();
+        var overallAggregation = aggregateValues(rootNode, aggregations);
+        var overallDelta = computeDelta(rootNode, referenceRoot, aggregations);
+        var modifiedLinesAggregation = aggregateValues(modifiedLinesCoverageRoot, aggregations);
 
         var statistics = new CoverageStatistics(
-                overallValues,
+                overallAggregation,
                 overallDelta,
-                modifiedLinesValues,
+                modifiedLinesAggregation,
                 modifiedLinesDelta,
-                modifiedFilesValues,
+                modifiedFilesAggregation,
                 modifiedFilesDelta);
         var evaluator = new CoverageQualityGateEvaluator(qualityGates, statistics);
         var qualityGateResult = evaluator.evaluate(notifier, log);
@@ -191,12 +204,78 @@ public class CoverageReporter {
                 qualityGateResult,
                 log,
                 referenceAction.getOwner().getExternalizableId(),
-                overallDelta,
-                modifiedLinesValues,
-                modifiedLinesDelta,
-                modifiedFilesValues,
-                modifiedFilesDelta,
+                getOverallValues(overallDelta),
+                getOverallValues(modifiedLinesAggregation),
+                getOverallValues(modifiedLinesDelta),
+                getOverallValues(modifiedFilesAggregation),
+                getOverallValues(modifiedFilesDelta),
                 rootNode.filterByIndirectChanges().aggregateValues());
+    }
+
+    /**
+     * Returns the default aggregation and all aggregations that are used by the specified quality gates.
+     *
+     * @param qualityGates
+     *         the quality gates that will be evaluated
+     *
+     * @return the aggregations to compute
+     */
+    private static Set<MetricAggregation> getAggregations(final List<CoverageQualityGate> qualityGates) {
+        var aggregations = EnumSet.of(MetricAggregation.getDefault());
+        qualityGates.stream().map(CoverageQualityGate::getAggregation).forEach(aggregations::add);
+        return aggregations;
+    }
+
+    /**
+     * Aggregates the values of the specified tree for the specified aggregations.
+     *
+     * @param node
+     *         the root of the tree
+     * @param aggregations
+     *         the aggregations to compute
+     *
+     * @return the values grouped by aggregation
+     */
+    private static Map<MetricAggregation, List<Value>> aggregateValues(
+            final Node node, final Set<MetricAggregation> aggregations) {
+        var aggregatedValues = new EnumMap<MetricAggregation, List<Value>>(MetricAggregation.class);
+        aggregations.forEach(aggregation -> aggregatedValues.put(aggregation, node.aggregateValues(aggregation)));
+        return aggregatedValues;
+    }
+
+    /**
+     * Computes the differences between the aggregated values of the specified tree and the reference tree for the
+     * specified aggregations. A difference is only computed for metrics that are available in both trees.
+     *
+     * @param node
+     *         the root of the tree
+     * @param reference
+     *         the root of the reference tree
+     * @param aggregations
+     *         the aggregations to compute
+     *
+     * @return the differences grouped by aggregation
+     */
+    private static Map<MetricAggregation, List<Difference>> computeDelta(
+            final Node node, final Node reference, final Set<MetricAggregation> aggregations) {
+        var deltas = new EnumMap<MetricAggregation, List<Difference>>(MetricAggregation.class);
+        aggregations.forEach(aggregation -> deltas.put(aggregation, computeDelta(node, reference, aggregation)));
+        return deltas;
+    }
+
+    private static List<Difference> computeDelta(
+            final Node node, final Node reference, final MetricAggregation aggregation) {
+        if (aggregation == MetricAggregation.getDefault()) {
+            return node.computeDelta(reference);
+        }
+        var referenceValues = reference.aggregateValues(aggregation);
+        return node.aggregateValues(aggregation).stream()
+                .flatMap(value -> Value.findValue(value.getMetric(), referenceValues).map(value::subtract).stream())
+                .toList();
+    }
+
+    private static <T extends Value> List<T> getOverallValues(final Map<MetricAggregation, List<T>> values) {
+        return values.getOrDefault(MetricAggregation.getDefault(), List.of());
     }
 
     private List<FileNode> computePaintedFiles(

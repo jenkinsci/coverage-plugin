@@ -148,13 +148,11 @@ public class OverviewModel implements ModelObject {
 
     /**
      * Returns whether the specified metric should be rendered as its own gauge card (alongside the leaf coverage
-     * metrics), rather than as a row in the "Further metrics" table. This is normally the same as
-     * {@link Metric#isCoverage()}, with two deliberate exceptions: a {@link Metric#isContainer() container} metric
-     * (e.g. file or package coverage) is excluded even though it is a coverage metric -- it merely aggregates the
-     * coverage tree structure and is rarely interesting on its own, so it is left for the "Further metrics" table
-     * instead of getting a prominent card; and {@link Metric#TEST_STRENGTH} is included even though it is *not*
-     * tagged as a coverage metric by the coverage model library (it is a mutation testing quality score, not code
-     * coverage), because it is backed by the same covered/missed {@link Coverage} structure and reads the same way.
+     * metrics), rather than as a row in the "Further metrics" table. This is the same as {@link Metric#isCoverage()},
+     * with one deliberate exception: a {@link Metric#isContainer() container} metric (e.g. file or package coverage)
+     * is excluded even though it is a coverage metric -- it merely aggregates the coverage tree structure and is
+     * rarely interesting on its own, so it is left for the "Further metrics" table instead of getting a prominent
+     * card.
      * Package-private (rather than {@code private}) so {@link Widget} can reuse the same definition when it shows
      * the card metrics of a single build result as badges.
      *
@@ -164,10 +162,7 @@ public class OverviewModel implements ModelObject {
      * @return {@code true} if the metric should be rendered as a card
      */
     static boolean isCardMetric(final Metric metric) {
-        if (metric.isContainer()) {
-            return false;
-        }
-        return metric.isCoverage() || metric == Metric.TEST_STRENGTH;
+        return !metric.isContainer() && metric.isCoverage();
     }
 
     /**
