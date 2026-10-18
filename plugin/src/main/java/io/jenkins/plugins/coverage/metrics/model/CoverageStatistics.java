@@ -10,7 +10,7 @@ import java.util.NoSuchElementException;
 import java.util.Optional;
 
 /**
- * Provides statistics for values and differences for all Base  the different mappings of coverage metric and baseline to actual values.
+ * Provides the values and differences of all metrics for all baselines and aggregations.
  */
 public class CoverageStatistics {
     private static <T extends Value> Map<MetricAggregation, List<T>> asOverall(final List<? extends T> values) {
@@ -119,33 +119,67 @@ public class CoverageStatistics {
      * @return the value, if available
      */
     public Optional<Value> getValue(final Baseline baseline, final Metric metric, final MetricAggregation aggregation) {
+        return Value.findValue(metric, getAllValues(baseline, aggregation));
+    }
+
+    /**
+     * Returns all values for the specified baseline that have been computed with the specified aggregation. For delta
+     * baselines, the values are the differences of the aggregated values.
+     *
+     * @param baseline
+     *         the baseline of the values
+     * @param aggregation
+     *         the aggregation of the values
+     *
+     * @return the values, might be empty if the aggregation has not been computed for the baseline
+     */
+    public List<Value> getAllValues(final Baseline baseline, final MetricAggregation aggregation) {
+        return Optional.ofNullable(getMapping(baseline).get(aggregation))
+                .<List<Value>>map(List::copyOf)
+                .orElse(List.of());
+    }
+
+    /**
+     * Returns all deltas for the specified delta baseline that have been computed with the specified aggregation.
+     *
+     * @param baseline
+     *         the delta baseline of the values, e.g. {@link Baseline#PROJECT_DELTA}
+     * @param aggregation
+     *         the aggregation of the values
+     *
+     * @return the deltas, might be empty if the aggregation has not been computed for the baseline
+     * @throws NoSuchElementException
+     *         if the baseline is not a delta baseline
+     */
+    public List<Difference> getAllDeltas(final Baseline baseline, final MetricAggregation aggregation) {
+        return List.copyOf(getDeltaMapping(baseline).getOrDefault(aggregation, List.of()));
+    }
+
+    private Map<MetricAggregation, ? extends List<? extends Value>> getMapping(final Baseline baseline) {
         if (baseline == Baseline.PROJECT) {
-            return findValue(metric, aggregation, projectValueMapping);
+            return projectValueMapping;
         }
         if (baseline == Baseline.MODIFIED_FILES) {
-            return findValue(metric, aggregation, fileValueMapping);
+            return fileValueMapping;
         }
         if (baseline == Baseline.MODIFIED_LINES) {
-            return findValue(metric, aggregation, changeValueMapping);
+            return changeValueMapping;
         }
+        return getDeltaMapping(baseline);
+    }
+
+    private Map<MetricAggregation, List<Difference>> getDeltaMapping(final Baseline baseline) {
         if (baseline == Baseline.PROJECT_DELTA) {
-            return findValue(metric, aggregation, projectDelta);
+            return projectDelta;
         }
         if (baseline == Baseline.MODIFIED_LINES_DELTA) {
-            return findValue(metric, aggregation, changeDelta);
+            return changeDelta;
         }
         if (baseline == Baseline.MODIFIED_FILES_DELTA) {
-            return findValue(metric, aggregation, fileDelta);
+            return fileDelta;
         }
 
         throw new NoSuchElementException("No such baseline: " + baseline);
-    }
-
-    private Optional<Value> findValue(
-            final Metric metric,
-            final MetricAggregation aggregation,
-            final Map<MetricAggregation, ? extends List<? extends Value>> valueMapping) {
-        return Optional.ofNullable(valueMapping.get(aggregation)).flatMap(values -> Value.findValue(metric, values));
     }
 
     /**

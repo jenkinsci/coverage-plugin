@@ -4,6 +4,7 @@ import static hudson.model.Run.*;
 
 import edu.hm.hafner.coverage.Difference;
 import edu.hm.hafner.coverage.Metric;
+import edu.hm.hafner.coverage.MetricAggregation;
 import edu.hm.hafner.coverage.Node;
 import edu.hm.hafner.coverage.Value;
 import edu.hm.hafner.util.FilteredLog;
@@ -26,7 +27,10 @@ import io.jenkins.plugins.util.QualityGateResult;
 import io.jenkins.plugins.util.ValidationUtilities;
 import java.io.Serial;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.EnumMap;
 import java.util.List;
+import java.util.Map;
 import java.util.NavigableMap;
 import java.util.NavigableSet;
 import java.util.NoSuchElementException;
@@ -34,6 +38,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.apache.commons.lang3.StringUtils;
@@ -114,6 +119,10 @@ public final class CoverageBuildAction extends BuildAction<Node> implements Stap
     @SuppressWarnings("serial")
     private final List<? extends Value> indirectCoverageChanges;
 
+    /** The values of all baselines for the aggregations other than {@link MetricAggregation#OVERALL}. */
+    @SuppressWarnings("serial")
+    private /* almost final */ List<AggregatedValues> aggregatedValues; // since 3.0
+
     static {
         CoverageXmlStream.registerConverters(XSTREAM2);
 
@@ -121,6 +130,7 @@ public final class CoverageBuildAction extends BuildAction<Node> implements Stap
     }
 
     static void registerValueListConverters(final XStream2 xstream) {
+        xstream.alias("coverage-aggregated-values", AggregatedValues.class);
         registerMapConverter("difference", xstream);
         registerMapConverter("modifiedLinesCoverageDifference", xstream);
         registerMapConverter("modifiedFilesCoverageDifference", xstream);
@@ -239,6 +249,124 @@ public final class CoverageBuildAction extends BuildAction<Node> implements Stap
                 true);
     }
 
+    /**
+     * Creates a new instance of {@link CoverageBuildAction} that has no reference build.
+     *
+     * @param owner
+     *         the associated build that created the statistics
+     * @param id
+     *         ID (URL) of the results
+     * @param optionalName
+     *         optional name that overrides the default name of the results
+     * @param icon
+     *         name of the icon that should be used in actions and views
+     * @param result
+     *         the coverage tree as a result to persist with this action
+     * @param qualityGateResult
+     *         status of the quality gates
+     * @param log
+     *         the logging statements of the recording step
+     * @param statistics
+     *         the values of all baselines and aggregations
+     */
+    @SuppressWarnings("checkstyle:ParameterNumber")
+    public CoverageBuildAction(
+            final Run<?, ?> owner,
+            final String id,
+            final String optionalName,
+            final String icon,
+            final Node result,
+            final QualityGateResult qualityGateResult,
+            final FilteredLog log,
+            final CoverageStatistics statistics) {
+        this(owner, id, optionalName, icon, result, qualityGateResult, log, NO_REFERENCE_BUILD, statistics, NO_VALUES);
+    }
+
+    /**
+     * Creates a new instance of {@link CoverageBuildAction}. The values and deltas of all baselines are taken from
+     * the specified statistics. Besides the {@link MetricAggregation#OVERALL overall} values, the values of all other
+     * aggregations are persisted as well.
+     *
+     * @param owner
+     *         the associated build that created the statistics
+     * @param id
+     *         ID (URL) of the results
+     * @param optionalName
+     *         optional name that overrides the default name of the results
+     * @param icon
+     *         name of the icon that should be used in actions and views
+     * @param result
+     *         the coverage tree as a result to persist with this action
+     * @param qualityGateResult
+     *         status of the quality gates
+     * @param log
+     *         the logging statements of the recording step
+     * @param referenceBuildId
+     *         the ID of the reference build
+     * @param statistics
+     *         the values of all baselines and aggregations
+     * @param indirectCoverageChanges
+     *         the indirect coverage changes of the associated change request with respect to the reference build
+     */
+    @SuppressWarnings("checkstyle:ParameterNumber")
+    public CoverageBuildAction(
+            final Run<?, ?> owner,
+            final String id,
+            final String optionalName,
+            final String icon,
+            final Node result,
+            final QualityGateResult qualityGateResult,
+            final FilteredLog log,
+            final String referenceBuildId,
+            final CoverageStatistics statistics,
+            final List<? extends Value> indirectCoverageChanges) {
+        this(
+                owner,
+                id,
+                optionalName,
+                icon,
+                result,
+                qualityGateResult,
+                log,
+                referenceBuildId,
+                statistics,
+                indirectCoverageChanges,
+                true);
+    }
+
+    @VisibleForTesting
+    @SuppressWarnings("checkstyle:ParameterNumber")
+    CoverageBuildAction(
+            final Run<?, ?> owner,
+            final String id,
+            final String optionalName,
+            final String icon,
+            final Node result,
+            final QualityGateResult qualityGateResult,
+            final FilteredLog log,
+            final String referenceBuildId,
+            final CoverageStatistics statistics,
+            final List<? extends Value> indirectCoverageChanges,
+            final boolean canSerialize) {
+        this(
+                owner,
+                id,
+                optionalName,
+                icon,
+                result,
+                qualityGateResult,
+                log,
+                referenceBuildId,
+                statistics.getAllDeltas(Baseline.PROJECT_DELTA, MetricAggregation.getDefault()),
+                statistics.getAllValues(Baseline.MODIFIED_LINES, MetricAggregation.getDefault()),
+                statistics.getAllDeltas(Baseline.MODIFIED_LINES_DELTA, MetricAggregation.getDefault()),
+                statistics.getAllValues(Baseline.MODIFIED_FILES, MetricAggregation.getDefault()),
+                statistics.getAllDeltas(Baseline.MODIFIED_FILES_DELTA, MetricAggregation.getDefault()),
+                indirectCoverageChanges,
+                createAggregatedValues(statistics),
+                canSerialize);
+    }
+
     @VisibleForTesting
     @SuppressWarnings("checkstyle:ParameterNumber")
     CoverageBuildAction(
@@ -256,6 +384,44 @@ public final class CoverageBuildAction extends BuildAction<Node> implements Stap
             final List<? extends Value> modifiedFilesCoverage,
             final List<? extends Difference> modifiedFilesDifferences,
             final List<? extends Value> indirectCoverageChanges,
+            final boolean canSerialize) {
+        this(
+                owner,
+                id,
+                name,
+                icon,
+                result,
+                qualityGateResult,
+                log,
+                referenceBuildId,
+                differences,
+                modifiedLinesCoverage,
+                modifiedLinesDifferences,
+                modifiedFilesCoverage,
+                modifiedFilesDifferences,
+                indirectCoverageChanges,
+                List.of(),
+                canSerialize);
+    }
+
+    @VisibleForTesting
+    @SuppressWarnings("checkstyle:ParameterNumber")
+    CoverageBuildAction(
+            final Run<?, ?> owner,
+            final String id,
+            final String name,
+            final String icon,
+            final Node result,
+            final QualityGateResult qualityGateResult,
+            final FilteredLog log,
+            final String referenceBuildId,
+            final List<? extends Difference> differences,
+            final List<? extends Value> modifiedLinesCoverage,
+            final List<? extends Difference> modifiedLinesDifferences,
+            final List<? extends Value> modifiedFilesCoverage,
+            final List<? extends Difference> modifiedFilesDifferences,
+            final List<? extends Value> indirectCoverageChanges,
+            final List<AggregatedValues> aggregatedValues,
             final boolean canSerialize) {
         super(owner, result, false);
 
@@ -276,10 +442,18 @@ public final class CoverageBuildAction extends BuildAction<Node> implements Stap
         this.modifiedFilesCoverage = copy(modifiedFilesCoverage);
         this.modifiedFilesDifferences = copy(modifiedFilesDifferences);
         this.indirectCoverageChanges = copy(indirectCoverageChanges);
+        this.aggregatedValues = copy(aggregatedValues);
 
         if (canSerialize) {
             createXmlStream().write(owner.getRootDir().toPath().resolve(getBuildResultBaseName()), result);
         }
+    }
+
+    private static List<AggregatedValues> createAggregatedValues(final CoverageStatistics statistics) {
+        return Arrays.stream(MetricAggregation.values())
+                .filter(aggregation -> aggregation != MetricAggregation.getDefault())
+                .map(aggregation -> new AggregatedValues(aggregation, statistics))
+                .toList();
     }
 
     private <T> List<T> copy(final List<? extends T> list) {
@@ -311,6 +485,9 @@ public final class CoverageBuildAction extends BuildAction<Node> implements Stap
         if (modifiedLinesDifferences == null) { // before 2.0
             modifiedLinesDifferences = new ArrayList<>(modifiedLinesCoverageDifference.values());
         }
+        if (aggregatedValues == null) { // before 3.0
+            aggregatedValues = new ArrayList<>();
+        }
 
         return this;
     }
@@ -336,14 +513,29 @@ public final class CoverageBuildAction extends BuildAction<Node> implements Stap
         return FORMATTER;
     }
 
+    /**
+     * Returns the statistics of this build: the values and deltas of all baselines for all aggregations. Builds that
+     * have been recorded with an older version of the plugin provide the {@link MetricAggregation#OVERALL overall}
+     * values only.
+     *
+     * @return the statistics
+     */
     public CoverageStatistics getStatistics() {
         return new CoverageStatistics(
-                projectValues,
-                differences,
-                modifiedLinesCoverage,
-                modifiedLinesDifferences,
-                modifiedFilesCoverage,
-                modifiedFilesDifferences);
+                createMapping(projectValues, AggregatedValues::getProjectValues),
+                createMapping(differences, AggregatedValues::getProjectDifferences),
+                createMapping(modifiedLinesCoverage, AggregatedValues::getModifiedLinesValues),
+                createMapping(modifiedLinesDifferences, AggregatedValues::getModifiedLinesDifferences),
+                createMapping(modifiedFilesCoverage, AggregatedValues::getModifiedFilesValues),
+                createMapping(modifiedFilesDifferences, AggregatedValues::getModifiedFilesDifferences));
+    }
+
+    private <T extends Value> Map<MetricAggregation, List<T>> createMapping(
+            final List<? extends T> overallValues, final Function<AggregatedValues, List<T>> aggregatedValuesGetter) {
+        var mapping = new EnumMap<MetricAggregation, List<T>>(MetricAggregation.class);
+        mapping.put(MetricAggregation.getDefault(), List.copyOf(overallValues));
+        aggregatedValues.forEach(values -> mapping.put(values.getAggregation(), aggregatedValuesGetter.apply(values)));
+        return mapping;
     }
 
     /**

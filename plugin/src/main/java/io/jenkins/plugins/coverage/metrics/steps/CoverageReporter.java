@@ -35,6 +35,9 @@ import java.util.Set;
 @SuppressWarnings({"checkstyle:ClassDataAbstractionCoupling", "PMD.CouplingBetweenObjects"})
 public class CoverageReporter {
     private static final Map<MetricAggregation, List<Value>> EMPTY_AGGREGATION = Map.of();
+    /** All aggregations are computed, so that the values are available in quality gates, views, and trends. */
+    private static final Set<MetricAggregation> ALL_AGGREGATIONS = EnumSet.allOf(MetricAggregation.class);
+
     private static final Map<MetricAggregation, List<Difference>> EMPTY_DELTA = Map.of();
 
     @SuppressWarnings({"checkstyle:ParameterNumber", "checkstyle:JavaNCSS"})
@@ -106,7 +109,7 @@ public class CoverageReporter {
             final FilteredLog log)
             throws InterruptedException {
         var statistics = new CoverageStatistics(
-                aggregateValues(rootNode, getAggregations(qualityGates)),
+                aggregateValues(rootNode, ALL_AGGREGATIONS),
                 EMPTY_DELTA,
                 EMPTY_AGGREGATION,
                 EMPTY_DELTA,
@@ -125,7 +128,7 @@ public class CoverageReporter {
                 rootNode.getAllFileNodes(),
                 log);
 
-        return new CoverageBuildAction(build, id, optionalName, icon, rootNode, qualityGateStatus, log);
+        return new CoverageBuildAction(build, id, optionalName, icon, rootNode, qualityGateStatus, log, statistics);
     }
 
     @SuppressWarnings("checkstyle:ParameterNumber")
@@ -155,19 +158,18 @@ public class CoverageReporter {
         log.logInfo("Calculating coverage deltas...");
 
         var modifiedLinesCoverageRoot = rootNode.filterByModifiedLines();
-        var aggregations = getAggregations(qualityGates);
 
         Map<MetricAggregation, List<Difference>> modifiedLinesDelta;
         Map<MetricAggregation, List<Value>> modifiedFilesAggregation;
         Map<MetricAggregation, List<Difference>> modifiedFilesDelta;
         if (hasModifiedLinesCoverage(modifiedLinesCoverageRoot)) {
             var modifiedFilesCoverageRoot = rootNode.filterByModifiedFiles();
-            modifiedFilesAggregation = aggregateValues(modifiedFilesCoverageRoot, aggregations);
+            modifiedFilesAggregation = aggregateValues(modifiedFilesCoverageRoot, ALL_AGGREGATIONS);
             modifiedFilesDelta = computeDelta(
                     modifiedFilesCoverageRoot,
                     referenceRoot.filterByFileNames(modifiedFilesCoverageRoot.getFiles()),
-                    aggregations);
-            modifiedLinesDelta = computeDelta(modifiedLinesCoverageRoot, modifiedFilesCoverageRoot, aggregations);
+                    ALL_AGGREGATIONS);
+            modifiedLinesDelta = computeDelta(modifiedLinesCoverageRoot, modifiedFilesCoverageRoot, ALL_AGGREGATIONS);
         } else {
             modifiedLinesDelta = EMPTY_DELTA;
             modifiedFilesAggregation = EMPTY_AGGREGATION;
@@ -178,9 +180,9 @@ public class CoverageReporter {
             }
         }
 
-        var overallAggregation = aggregateValues(rootNode, aggregations);
-        var overallDelta = computeDelta(rootNode, referenceRoot, aggregations);
-        var modifiedLinesAggregation = aggregateValues(modifiedLinesCoverageRoot, aggregations);
+        var overallAggregation = aggregateValues(rootNode, ALL_AGGREGATIONS);
+        var overallDelta = computeDelta(rootNode, referenceRoot, ALL_AGGREGATIONS);
+        var modifiedLinesAggregation = aggregateValues(modifiedLinesCoverageRoot, ALL_AGGREGATIONS);
 
         var statistics = new CoverageStatistics(
                 overallAggregation,
@@ -204,26 +206,8 @@ public class CoverageReporter {
                 qualityGateResult,
                 log,
                 referenceAction.getOwner().getExternalizableId(),
-                getOverallValues(overallDelta),
-                getOverallValues(modifiedLinesAggregation),
-                getOverallValues(modifiedLinesDelta),
-                getOverallValues(modifiedFilesAggregation),
-                getOverallValues(modifiedFilesDelta),
+                statistics,
                 rootNode.filterByIndirectChanges().aggregateValues());
-    }
-
-    /**
-     * Returns the default aggregation and all aggregations that are used by the specified quality gates.
-     *
-     * @param qualityGates
-     *         the quality gates that will be evaluated
-     *
-     * @return the aggregations to compute
-     */
-    private static Set<MetricAggregation> getAggregations(final List<CoverageQualityGate> qualityGates) {
-        var aggregations = EnumSet.of(MetricAggregation.getDefault());
-        qualityGates.stream().map(CoverageQualityGate::getAggregation).forEach(aggregations::add);
-        return aggregations;
     }
 
     /**
@@ -261,10 +245,6 @@ public class CoverageReporter {
         var deltas = new EnumMap<MetricAggregation, List<Difference>>(MetricAggregation.class);
         aggregations.forEach(aggregation -> deltas.put(aggregation, node.computeDelta(reference, aggregation)));
         return deltas;
-    }
-
-    private static <T extends Value> List<T> getOverallValues(final Map<MetricAggregation, List<T>> values) {
-        return values.getOrDefault(MetricAggregation.getDefault(), List.of());
     }
 
     private List<FileNode> computePaintedFiles(
