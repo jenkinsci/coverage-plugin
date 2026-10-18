@@ -6,6 +6,7 @@ import static org.mockito.Mockito.*;
 
 import edu.hm.hafner.coverage.FileNode;
 import edu.hm.hafner.coverage.Metric;
+import edu.hm.hafner.coverage.MetricAggregation;
 import edu.hm.hafner.util.FilteredLog;
 import hudson.model.Run;
 import io.jenkins.plugins.bootstrap5.MessagesViewModel;
@@ -296,7 +297,13 @@ class RunTabTest extends AbstractCoverageTest {
         assertThat(model.getMetricValueRange("file", "MAXIMUM"))
                 .isEqualTo(model.getMetricValueRange("file", "OVERALL"));
         assertThat(model.getThresholdCoverageTree("line", "MINIMUM", 80.0, 60.0).getValue())
-                .isEqualTo(tree.getValue());
+                .as("the size is derived from the overall value, the tooltip from the minimum")
+                .first()
+                .isEqualTo(tree.getValue().getFirst());
+        assertThat(model.getThresholdCoverageTree("line", "MINIMUM", 80.0, 60.0).getValue())
+                .last()
+                .asString()
+                .endsWith("(" + model.getFormatter().getDisplayName(MetricAggregation.MINIMUM) + ")");
     }
 
     @Test
