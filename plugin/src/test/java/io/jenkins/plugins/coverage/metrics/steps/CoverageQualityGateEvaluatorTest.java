@@ -568,7 +568,9 @@ class CoverageQualityGateEvaluatorTest extends AbstractCoverageTest {
     }
 
     @ParameterizedTest(name = "{0}")
-    @EnumSource(value = Baseline.class, names = {"PROJECT_DELTA", "MODIFIED_LINES_DELTA", "MODIFIED_FILES_DELTA"})
+    @EnumSource(
+            value = Baseline.class,
+            names = {"PROJECT_DELTA", "MODIFIED_LINES_DELTA", "MODIFIED_FILES_DELTA"})
     void shouldEvaluateAggregationForDeltaBaselines(final Baseline baseline) {
         var overall = new CoverageQualityGate(
                 5.0,
