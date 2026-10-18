@@ -9,6 +9,9 @@ import hudson.model.Run;
 import io.jenkins.plugins.coverage.metrics.model.Baseline;
 import io.jenkins.plugins.coverage.metrics.model.ElementFormatter;
 import io.jenkins.plugins.util.QualityGateResult;
+import io.jenkins.plugins.util.QualityGateResult.QualityGateResultItem;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
@@ -290,6 +293,50 @@ public class OverviewModel implements ModelObject {
     }
 
     /**
+     * Returns whether nothing is missed for the specified coverage metric and baseline, i.e., all items are covered.
+     * The view shows a confirmation instead of the missed items in that case (see {@link #getMissedText}).
+     *
+     * @param baseline
+     *         the baseline to use
+     * @param metric
+     *         the (coverage) metric to check
+     *
+     * @return {@code true} if there are items and all of them are covered, {@code false} otherwise
+     */
+    @SuppressWarnings("unused") // Called by jelly view
+    public boolean isPerfect(final Baseline baseline, final Metric metric) {
+        return action.getValueForMetric(baseline, metric)
+                .filter(Coverage.class::isInstance)
+                .map(Coverage.class::cast)
+                .filter(coverage -> coverage.getTotal() > 0)
+                .map(coverage -> coverage.getMissed() == 0)
+                .orElse(false);
+    }
+
+    /**
+     * Returns the number of missed items for the specified coverage metric and baseline, e.g. {@code "129 missed"}.
+     * Percentages hide the size of the gap: 80% of 50 lines is something different than 80% of 50,000 lines. Shown as
+     * a small caption underneath a gauge, below the covered and total counts (see {@link #getCoveredTotal}). Empty if
+     * no value is available, if the value is not backed by covered/total counts, or if nothing is missed.
+     *
+     * @param baseline
+     *         the baseline to use
+     * @param metric
+     *         the (coverage) metric to get the missed items for
+     *
+     * @return the localized number of missed items, or an empty string if nothing is missed
+     */
+    @SuppressWarnings("unused") // Called by jelly view
+    public String getMissedText(final Baseline baseline, final Metric metric) {
+        return action.getValueForMetric(baseline, metric)
+                .filter(Coverage.class::isInstance)
+                .map(Coverage.class::cast)
+                .filter(coverage -> coverage.getMissed() > 0)
+                .map(coverage -> Messages.OverviewModel_missed(coverage.getMissed()))
+                .orElse("");
+    }
+
+    /**
      * Returns whether a delta metric for the specified metric exists.
      *
      * @param baseline
@@ -372,5 +419,63 @@ public class OverviewModel implements ModelObject {
 
     public QualityGateResult getQualityGateResult() {
         return action.getQualityGateResult();
+    }
+
+    /**
+     * Returns a hint that tells how many more items need to be covered so that the specified quality gate would
+     * pass, e.g. {@code "Cover 42 more lines"}. The hint is computed when the view is rendered from the covered and
+     * total counts of the baseline of the gate, so no additional data needs to be stored with the quality gate result.
+     * There is no hint for quality gates that pass, for gates that do not evaluate a coverage metric with absolute
+     * counts (e.g. deltas or software metrics), and for gates without a value.
+     *
+     * @param item
+     *         the result of the quality gate to get the hint for
+     *
+     * @return the localized hint, or an empty string if there is no hint
+     */
+    @SuppressWarnings("unused") // Called by jelly view
+    public String getQualityGateHint(final QualityGateResultItem item) {
+        // Delta baselines have no covered/total counts (and the build action does not provide values for them)
+        if (item.getStatus().isSuccessful()
+                || !(item.getQualityGate() instanceof CoverageQualityGate gate)
+                || gate.getBaseline().isDelta()) {
+            return "";
+        }
+        return action.getValueForMetric(gate.getBaseline(), gate.getMetric())
+                .filter(Coverage.class::isInstance)
+                .map(Coverage.class::cast)
+                .map(coverage -> countMissingItems(coverage, gate.getThreshold()))
+                .filter(missing -> missing > 0)
+                .map(missing -> formatHint(gate.getMetric(), missing))
+                .orElse("");
+    }
+
+    /**
+     * Counts the items that need to be additionally covered so that the coverage reaches the specified threshold.
+     * The total number of items is assumed to stay the same.
+     *
+     * @param coverage
+     *         the current coverage
+     * @param threshold
+     *         the required coverage percentage
+     *
+     * @return the number of items to cover, or 0 if the threshold is already reached
+     */
+    static int countMissingItems(final Coverage coverage, final double threshold) {
+        var required = BigDecimal.valueOf(threshold)
+                .multiply(BigDecimal.valueOf(coverage.getTotal()))
+                .divide(BigDecimal.valueOf(100), 0, RoundingMode.CEILING)
+                .intValue();
+        return Math.max(0, Math.min(required, coverage.getTotal()) - coverage.getCovered());
+    }
+
+    private static String formatHint(final Metric metric, final int missing) {
+        return switch (metric) {
+            case LINE -> Messages.OverviewModel_hintLine(missing);
+            case BRANCH -> Messages.OverviewModel_hintBranch(missing);
+            case INSTRUCTION -> Messages.OverviewModel_hintInstruction(missing);
+            case MUTATION -> Messages.OverviewModel_hintMutation(missing);
+            default -> Messages.OverviewModel_hintItems(missing);
+        };
     }
 }
