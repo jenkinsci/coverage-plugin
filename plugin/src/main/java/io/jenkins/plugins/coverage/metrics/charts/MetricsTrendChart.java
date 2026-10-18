@@ -1,6 +1,7 @@
 package io.jenkins.plugins.coverage.metrics.charts;
 
 import edu.hm.hafner.coverage.Metric;
+import edu.hm.hafner.coverage.MetricAggregation;
 import edu.hm.hafner.echarts.BuildResult;
 import edu.hm.hafner.echarts.ChartModelConfiguration;
 import edu.hm.hafner.echarts.line.LinesChartModel;
@@ -43,7 +44,29 @@ public class MetricsTrendChart extends TrendChart {
      *         minimum and maximum of all series.
      */
     public MetricsTrendChart(final Set<Metric> visibleMetrics, final boolean useLines, final boolean adaptiveMaximum) {
-        super(visibleMetrics, useLines);
+        this(visibleMetrics, useLines, adaptiveMaximum, MetricAggregation.getDefault());
+    }
+
+    /**
+     * Creates a new {@link MetricsTrendChart}.
+     *
+     * @param visibleMetrics
+     *         the metrics to render in the trend chart
+     * @param useLines
+     *         determines if the chart should use lines or filled areas
+     * @param adaptiveMaximum
+     *         if {@code true}, then only the minimum of the Y-axis is fixed, the maximum is computed by the chart
+     *         from the series that are currently selected in the legend. Otherwise, the Y-axis range is fixed to the
+     *         minimum and maximum of all series.
+     * @param aggregation
+     *         the aggregation of the values to show, e.g., the maximum cyclomatic complexity of all methods
+     */
+    public MetricsTrendChart(
+            final Set<Metric> visibleMetrics,
+            final boolean useLines,
+            final boolean adaptiveMaximum,
+            final MetricAggregation aggregation) {
+        super(visibleMetrics, useLines, aggregation);
 
         this.adaptiveMaximum = adaptiveMaximum;
     }
@@ -51,7 +74,7 @@ public class MetricsTrendChart extends TrendChart {
     @Override
     public LinesChartModel create(
             final Iterable<BuildResult<CoverageStatistics>> results, final ChartModelConfiguration configuration) {
-        var dataSet = new CoverageSeriesBuilder().createDataSet(configuration, results);
+        var dataSet = createSeriesBuilder().createDataSet(configuration, results);
 
         var model = new LinesChartModel(dataSet);
         if (dataSet.isNotEmpty()) {

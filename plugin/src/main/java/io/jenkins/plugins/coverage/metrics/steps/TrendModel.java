@@ -6,6 +6,7 @@ import edu.hm.hafner.echarts.line.LinesChartModel;
 import hudson.model.ModelObject;
 import hudson.model.Run;
 import io.jenkins.plugins.coverage.metrics.model.Baseline;
+import io.jenkins.plugins.coverage.metrics.model.ElementFormatter;
 import java.util.Set;
 import org.kohsuke.stapler.bind.JavaScriptMethod;
 
@@ -13,7 +14,8 @@ import org.kohsuke.stapler.bind.JavaScriptMethod;
  * Server side model that provides the data for the "Trend" tab of the coverage details view. Shows a trend
  * chart that visualizes the selected coverage and size metrics across previous builds, so regressions and
  * improvements become visible over time. Whether an area or line style is used, which Y-axis scaling is
- * applied, and how many builds are considered can be switched inline on the client side, see the corresponding
+ * applied, which aggregation of the values is shown (overall, maximum, or minimum), and how many builds are
+ * considered can be switched inline on the client side, see the corresponding
  * {@code trend-model.js}. This model simply delegates the actual chart model computation to
  * {@link TrendChartFactory}. The layout of the associated view is defined in the corresponding jelly view
  * 'index.jelly'.
@@ -44,6 +46,10 @@ public class TrendModel implements ModelObject {
 
     public RunTab getTab() {
         return new RunTab(owner);
+    }
+
+    public ElementFormatter getFormatter() {
+        return latestAction.getFormatter();
     }
 
     /**

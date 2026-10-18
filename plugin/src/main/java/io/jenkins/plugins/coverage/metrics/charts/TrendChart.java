@@ -1,6 +1,7 @@
 package io.jenkins.plugins.coverage.metrics.charts;
 
 import edu.hm.hafner.coverage.Metric;
+import edu.hm.hafner.coverage.MetricAggregation;
 import edu.hm.hafner.echarts.BuildResult;
 import edu.hm.hafner.echarts.ChartModelConfiguration;
 import edu.hm.hafner.echarts.line.LineSeries;
@@ -37,10 +38,21 @@ public abstract class TrendChart {
 
     private final Set<Metric> visibleMetrics;
     private final FilledMode filledMode;
+    private final MetricAggregation aggregation;
 
-    TrendChart(final Set<Metric> visibleMetrics, final boolean useLines) {
+    TrendChart(final Set<Metric> visibleMetrics, final boolean useLines, final MetricAggregation aggregation) {
         this.visibleMetrics = visibleMetrics;
+        this.aggregation = aggregation;
         filledMode = useLines ? FilledMode.LINES : FilledMode.FILLED;
+    }
+
+    /**
+     * Creates the series builder that computes the values of the series, using the aggregation of this chart.
+     *
+     * @return the series builder
+     */
+    CoverageSeriesBuilder createSeriesBuilder() {
+        return new CoverageSeriesBuilder(aggregation);
     }
 
     /**

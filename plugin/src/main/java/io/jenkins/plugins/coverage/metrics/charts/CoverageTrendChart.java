@@ -1,6 +1,7 @@
 package io.jenkins.plugins.coverage.metrics.charts;
 
 import edu.hm.hafner.coverage.Metric;
+import edu.hm.hafner.coverage.MetricAggregation;
 import edu.hm.hafner.echarts.BuildResult;
 import edu.hm.hafner.echarts.ChartModelConfiguration;
 import edu.hm.hafner.echarts.JacksonFacade;
@@ -66,7 +67,28 @@ public class CoverageTrendChart extends TrendChart {
      */
     public CoverageTrendChart(
             final Set<Metric> visibleMetrics, final boolean useLines, final boolean showAllPercentages) {
-        super(visibleMetrics, useLines);
+        this(visibleMetrics, useLines, showAllPercentages, MetricAggregation.getDefault());
+    }
+
+    /**
+     * Creates a new {@link CoverageTrendChart}.
+     *
+     * @param visibleMetrics
+     *         the metrics to render in the trend chart
+     * @param useLines
+     *         determines if the chart should use lines or filled areas
+     * @param showAllPercentages
+     *         determines if all visible metrics that are shown as a percentage should be rendered (e.g., the class
+     *         cohesion), or only the coverage metrics with a predefined color
+     * @param aggregation
+     *         the aggregation of the values to show, e.g., the minimum line coverage of all files
+     */
+    public CoverageTrendChart(
+            final Set<Metric> visibleMetrics,
+            final boolean useLines,
+            final boolean showAllPercentages,
+            final MetricAggregation aggregation) {
+        super(visibleMetrics, useLines, aggregation);
 
         this.showAllPercentages = showAllPercentages;
     }
@@ -74,7 +96,7 @@ public class CoverageTrendChart extends TrendChart {
     @Override
     public LinesChartModel create(
             final Iterable<BuildResult<CoverageStatistics>> results, final ChartModelConfiguration configuration) {
-        var dataSet = new CoverageSeriesBuilder().createDataSet(configuration, results);
+        var dataSet = createSeriesBuilder().createDataSet(configuration, results);
 
         var model = new LinesChartModel(dataSet);
         if (dataSet.isNotEmpty()) {

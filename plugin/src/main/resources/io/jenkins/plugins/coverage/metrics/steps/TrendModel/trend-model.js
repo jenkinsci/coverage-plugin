@@ -11,6 +11,8 @@
     const ZERO_AXIS_SELECTOR = '#zero-axis';
     const BUILDS_SELECTOR = '#builds';
     const GROUP_SELECTOR = '#metric-group';
+    const AGGREGATION_SELECTOR = '#aggregation';
+    const OVERALL = 'OVERALL';
     const SOFTWARE_GROUP = 'software';
 
     const DEFAULT_ZERO_BASED_Y_AXIS = false;
@@ -130,6 +132,11 @@
         $(ZERO_AXIS_SELECTOR).prop('checked', zeroBasedYAxis);
         $(BUILDS_SELECTOR).val(numberOfBuilds);
 
+        const storedAggregation = localStorage.getItem(storageKey('jenkins-coverage-trend-aggregation'));
+        if (storedAggregation && $(AGGREGATION_SELECTOR + ' option[value="' + storedAggregation + '"]').length > 0) {
+            $(AGGREGATION_SELECTOR).val(storedAggregation);
+        }
+
         // only restore the stored group if the report still offers it (otherwise keep the pre-selected one)
         const storedGroup = localStorage.getItem(storageKey('jenkins-coverage-trend-group'));
         if (storedGroup && $(GROUP_SELECTOR + ' option[value="' + storedGroup + '"]').length > 0) {
@@ -147,7 +154,8 @@
             zeroBasedYAxis: zeroBasedYAxis,
             useLines: !useAreaChart,
             numberOfBuilds: numberOfBuilds,
-            softwareMetrics: getSelectedGroup() === SOFTWARE_GROUP
+            softwareMetrics: getSelectedGroup() === SOFTWARE_GROUP,
+            aggregation: $(AGGREGATION_SELECTOR).val() || OVERALL
         };
     }
 
@@ -156,6 +164,7 @@
         localStorage.setItem(storageKey('jenkins-coverage-trend-zero-axis'), String(configuration.zeroBasedYAxis));
         localStorage.setItem(storageKey('jenkins-coverage-trend-builds'), String(configuration.numberOfBuilds));
         localStorage.setItem(storageKey('jenkins-coverage-trend-group'), getSelectedGroup());
+        localStorage.setItem(storageKey('jenkins-coverage-trend-aggregation'), configuration.aggregation);
     }
 
     function renderCoverageTrendChart() {
@@ -180,7 +189,7 @@
         initializeControls();
         renderCoverageTrendChart();
 
-        $(AREA_CHART_SELECTOR + ', ' + ZERO_AXIS_SELECTOR + ', ' + GROUP_SELECTOR).on('change', function () {
+        $([AREA_CHART_SELECTOR, ZERO_AXIS_SELECTOR, GROUP_SELECTOR, AGGREGATION_SELECTOR].join(', ')).on('change', function () {
             renderCoverageTrendChart();
         });
         $(BUILDS_SELECTOR).on('change input', function () {

@@ -34,6 +34,18 @@
         </j:choose>
 
         <div style="display: flex; flex-basis: auto; justify-content: space-between; align-items: center"
+             tooltip="${%aggregation-tooltip}">
+          <div class="jenkins-!-margin-right-1" style="text-wrap: nowrap">${%aggregation-title}:</div>
+          <div class="jenkins-select">
+            <select id="aggregation" class="jenkins-select__input" style="min-width: 10em;">
+              <j:forEach var="aggregation" items="${it.formatter.aggregationItems}">
+                <option value="${aggregation.value}">${aggregation.name}</option>
+              </j:forEach>
+            </select>
+          </div>
+        </div>
+
+        <div style="display: flex; flex-basis: auto; justify-content: space-between; align-items: center"
              tooltip="${%filled-tooltip}">
           <span class="jenkins-checkbox">
             <input type="checkbox" class="jenkins-!-margin-left-0 jenkins-!-margin-right-0" id="area-chart" />
