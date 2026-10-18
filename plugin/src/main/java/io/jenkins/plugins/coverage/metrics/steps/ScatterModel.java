@@ -2,9 +2,11 @@ package io.jenkins.plugins.coverage.metrics.steps;
 
 import edu.hm.hafner.coverage.FileNode;
 import edu.hm.hafner.coverage.Metric;
+import edu.hm.hafner.coverage.MetricAggregation;
 import hudson.model.ModelObject;
 import hudson.model.Run;
 import io.jenkins.plugins.coverage.metrics.charts.TreeMapNodeConverter;
+import io.jenkins.plugins.coverage.metrics.model.ElementFormatter;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.Comparator;
@@ -21,7 +23,8 @@ import tools.jackson.databind.ObjectMapper;
  * selected on the client side (see the corresponding {@code scatter-model.js}). This makes it easy to spot outliers,
  * e.g., files with a high complexity and a low coverage. Since ECharts options for scatter plots are not provided by
  * the Java side, this model only delivers the raw values of all metrics for all files - the chart itself is created in
- * the browser.
+ * the browser. The values of the files can be aggregated in different ways, e.g., the maximum cyclomatic complexity of
+ * all methods of a file rather than the total complexity of the file.
  *
  * @author Ullrich Hafner
  */
@@ -52,6 +55,10 @@ public class ScatterModel implements ModelObject {
         return new RunTab(parent.getOwner());
     }
 
+    public ElementFormatter getFormatter() {
+        return parent.getFormatter();
+    }
+
     /**
      * Returns all metrics that can be selected for the axes of the scatter plot: all non-container metrics that have
      * a value for at least one file. Percentages are listed before absolute values.
@@ -69,27 +76,33 @@ public class ScatterModel implements ModelObject {
     }
 
     private static boolean isPercentage(final Metric metric) {
-        return TrendChartFactory.COVERAGE_TREND_METRICS.contains(metric);
+        return metric.getUnit().isPercentage();
     }
 
     /**
      * Returns the values of all selectable metrics for all files of the current build, as JSON. The data is
      * column-oriented: for every metric, the values are stored by the index of the file. Files that do not provide
-     * the metric have no entry.
+     * the metric have no entry. The value of each file is computed using the specified aggregation: e.g., the maximum
+     * of a method metric is the largest value of all methods of the file. Coverage metrics are stored for files, so
+     * all aggregations provide the same values for these metrics.
+     *
+     * @param aggregation
+     *         the aggregation that is used to compute the value of each file (OVERALL, MAXIMUM, MINIMUM)
      *
      * @return the values of all metrics (converted to a JSON string)
      */
     @JavaScriptMethod
     @SuppressWarnings("unused") // called by view
-    public String getScatterData() {
+    public String getScatterData(final String aggregation) {
         var files = parent.getNode().getAllFileNodes();
+        var metricAggregation = MetricAggregation.fromString(aggregation);
         var metrics = getMetrics().stream()
                 .map(metric -> new ScatterMetric(
                         metric.toTagName(),
-                        metric.getDisplayName(),
+                        getDisplayName(metric, metricAggregation),
                         isPercentage(metric) ? COVERAGE_GROUP : SOFTWARE_GROUP,
                         isPercentage(metric) ? "%" : "",
-                        getValues(files, metric)))
+                        getValues(files, metric, metricAggregation)))
                 .toList();
         var data = new ScatterData(
                 files.stream().map(FileNode::getName).toList(),
@@ -99,10 +112,18 @@ public class ScatterModel implements ModelObject {
         return new ObjectMapper().writeValueAsString(data);
     }
 
-    private Map<Integer, Double> getValues(final List<FileNode> files, final Metric metric) {
+    private String getDisplayName(final Metric metric, final MetricAggregation aggregation) {
+        if (aggregation == MetricAggregation.OVERALL || metric.isCoverage()) {
+            return metric.getDisplayName();
+        }
+        return "%s (%s)".formatted(metric.getDisplayName(), getFormatter().getDisplayName(aggregation));
+    }
+
+    private Map<Integer, Double> getValues(
+            final List<FileNode> files, final Metric metric, final MetricAggregation aggregation) {
         var values = new LinkedHashMap<Integer, Double>();
         for (int index = 0; index < files.size(); index++) {
-            var value = getValue(files.get(index), metric);
+            var value = getValue(files.get(index), metric, aggregation);
             if (value.isPresent()) {
                 values.put(index, value.get());
             }
@@ -110,8 +131,8 @@ public class ScatterModel implements ModelObject {
         return values;
     }
 
-    private Optional<Double> getValue(final FileNode file, final Metric metric) {
-        return file.getValue(metric)
+    private Optional<Double> getValue(final FileNode file, final Metric metric, final MetricAggregation aggregation) {
+        return file.getValue(metric, aggregation)
                 .map(TreeMapNodeConverter::asDisplayValue)
                 .filter(Double::isFinite)
                 .map(number -> BigDecimal.valueOf(number)

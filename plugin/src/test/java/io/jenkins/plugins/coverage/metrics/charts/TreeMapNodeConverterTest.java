@@ -2,7 +2,10 @@ package io.jenkins.plugins.coverage.metrics.charts;
 
 import static org.assertj.core.api.Assertions.*;
 
+import edu.hm.hafner.coverage.FileNode;
 import edu.hm.hafner.coverage.Metric;
+import edu.hm.hafner.coverage.MetricAggregation;
+import edu.hm.hafner.coverage.ModuleNode;
 import edu.hm.hafner.coverage.Value;
 import edu.hm.hafner.echarts.LabeledTreeMapNode;
 import io.jenkins.plugins.coverage.metrics.AbstractCoverageTest;
@@ -10,6 +13,7 @@ import io.jenkins.plugins.coverage.metrics.color.ColorProvider;
 import io.jenkins.plugins.coverage.metrics.color.ColorProviderFactory;
 import io.jenkins.plugins.coverage.metrics.color.CoverageLevel;
 import io.jenkins.plugins.coverage.metrics.color.ThresholdColorProvider;
+import io.jenkins.plugins.coverage.metrics.model.ElementFormatter;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.junit.jupiter.api.Test;
@@ -110,6 +114,95 @@ class TreeMapNodeConverterTest extends AbstractCoverageTest {
         assertThat(root.getItemStyle().getColor()).isEqualTo(fullyGreen);
         aggregateChildren(root)
                 .forEach(node -> assertThat(node.getItemStyle().getColor()).isEqualTo(fullyGreen));
+    }
+
+    @Test
+    void shouldColorTreeUsingTheSelectedAggregation() {
+        var tree = createComplexityTree();
+
+        var root = new TreeMapNodeConverter()
+                .toThresholdTreeChartModel(
+                        tree, Metric.CYCLOMATIC_COMPLEXITY, MetricAggregation.MAXIMUM, 1.0, 20.0, COLOR_PROVIDER);
+
+        assertThat(root.getValue()).first().isEqualTo("16");
+        assertThat(root.getItemStyle().getColor()).isEqualTo(getComplexityColor(10.0));
+        assertThat(root.getValue().get(1))
+                .endsWith("(" + new ElementFormatter().getDisplayName(MetricAggregation.MAXIMUM) + ")");
+
+        assertThat(findNode(root, "A.java")).satisfies(file -> {
+            assertThat(file.getValue()).first().isEqualTo("12");
+            assertThat(file.getItemStyle().getColor()).isEqualTo(getComplexityColor(10.0));
+        });
+        assertThat(findNode(root, "B.java")).satisfies(file -> {
+            assertThat(file.getValue()).first().isEqualTo("4");
+            assertThat(file.getItemStyle().getColor()).isEqualTo(getComplexityColor(4.0));
+        });
+
+        var minimum = new TreeMapNodeConverter()
+                .toThresholdTreeChartModel(
+                        tree, Metric.CYCLOMATIC_COMPLEXITY, MetricAggregation.MINIMUM, 1.0, 20.0, COLOR_PROVIDER);
+        assertThat(minimum.getValue()).first().isEqualTo("16");
+        assertThat(minimum.getItemStyle().getColor()).isEqualTo(getComplexityColor(2.0));
+    }
+
+    @Test
+    void shouldUseOverallValueForUnaggregatedTree() {
+        var tree = createComplexityTree();
+
+        var root = new TreeMapNodeConverter()
+                .toThresholdTreeChartModel(
+                        tree, Metric.CYCLOMATIC_COMPLEXITY, MetricAggregation.OVERALL, 1.0, 20.0, COLOR_PROVIDER);
+
+        assertThat(root.getValue()).first().isEqualTo("16");
+        assertThat(root.getItemStyle().getColor()).isEqualTo(getComplexityColor(16.0));
+        assertThat(root.getValue().get(1)).doesNotEndWith(")");
+        assertThat(root)
+                .usingRecursiveComparison()
+                .isEqualTo(new TreeMapNodeConverter()
+                        .toThresholdTreeChartModel(tree, Metric.CYCLOMATIC_COMPLEXITY, 1.0, 20.0, COLOR_PROVIDER));
+    }
+
+    @Test
+    void shouldUseOverallValueForContainerMetrics() {
+        var tree = readJacocoResult(PREFIX + JACOCO_CODING_STYLE_FILE);
+
+        var root = new TreeMapNodeConverter()
+                .toThresholdTreeChartModel(tree, Metric.FILE, MetricAggregation.MAXIMUM, 100.0, 0.0, COLOR_PROVIDER);
+
+        assertThat(root.getValue()).isNotEmpty();
+        assertThat(root)
+                .usingRecursiveComparison()
+                .isEqualTo(new TreeMapNodeConverter()
+                        .toThresholdTreeChartModel(tree, Metric.FILE, 100.0, 0.0, COLOR_PROVIDER));
+    }
+
+    private String getComplexityColor(final double value) {
+        return ThresholdColorProvider.getFillColorAsHex(
+                value, Metric.CYCLOMATIC_COMPLEXITY.getTendency(), 1.0, 20.0, COLOR_PROVIDER);
+    }
+
+    private LabeledTreeMapNode findNode(final LabeledTreeMapNode root, final String name) {
+        return aggregateChildren(root).stream()
+                .filter(node -> node.getName().equals(name))
+                .findFirst()
+                .orElseThrow();
+    }
+
+    private ModuleNode createComplexityTree() {
+        var root = new ModuleNode("module");
+        var packageNode = root.createPackageNode("pkg");
+
+        var a = new FileNode("A.java", "pkg/A.java");
+        packageNode.addChild(a);
+        var classA = a.createClassNode("A");
+        classA.createMethodNode("m1", "()V").addValue(new Value(Metric.CYCLOMATIC_COMPLEXITY, 2));
+        classA.createMethodNode("m2", "()V").addValue(new Value(Metric.CYCLOMATIC_COMPLEXITY, 10));
+
+        var b = new FileNode("B.java", "pkg/B.java");
+        packageNode.addChild(b);
+        b.createClassNode("B").createMethodNode("m3", "()V").addValue(new Value(Metric.CYCLOMATIC_COMPLEXITY, 4));
+
+        return root;
     }
 
     private List<LabeledTreeMapNode> aggregateChildren(final LabeledTreeMapNode root) {

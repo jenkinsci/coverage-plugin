@@ -7,6 +7,7 @@ import static org.mockito.Mockito.*;
 import edu.hm.hafner.coverage.Coverage.CoverageBuilder;
 import edu.hm.hafner.coverage.FileNode;
 import edu.hm.hafner.coverage.Metric;
+import edu.hm.hafner.coverage.MetricAggregation;
 import edu.hm.hafner.coverage.ModuleNode;
 import edu.hm.hafner.coverage.Node;
 import edu.hm.hafner.coverage.Value;
@@ -65,13 +66,13 @@ class ScatterModelTest extends AbstractCoverageTest {
 
         var metrics = model.getMetrics();
         var percentages = metrics.stream()
-                .takeWhile(TrendChartFactory.COVERAGE_TREND_METRICS::contains)
+                .takeWhile(metric -> metric.getUnit().isPercentage())
                 .toList();
         var absoluteValues = metrics.subList(percentages.size(), metrics.size());
 
         assertThat(percentages).contains(Metric.LINE, Metric.BRANCH);
         assertThat(absoluteValues).contains(Metric.CYCLOMATIC_COMPLEXITY);
-        assertThat(absoluteValues).noneMatch(TrendChartFactory.COVERAGE_TREND_METRICS::contains);
+        assertThat(absoluteValues).noneMatch(metric -> metric.getUnit().isPercentage());
         assertThat(metrics).noneMatch(Metric::isContainer);
     }
 
@@ -182,6 +183,57 @@ class ScatterModelTest extends AbstractCoverageTest {
                 .doesNotContain(Metric.NPATH_COMPLEXITY.toTagName());
     }
 
+    @Test
+    void shouldAggregateValuesOfMethodsAndClasses() {
+        var model = createModel(createModuleWithMethods());
+
+        var overall = readData(model);
+        assertThat(findMetric(overall, Metric.CYCLOMATIC_COMPLEXITY)).satisfies(complexity -> {
+            assertThat(complexity.name()).isEqualTo(Metric.CYCLOMATIC_COMPLEXITY.getDisplayName());
+            assertThat(complexity.values())
+                    .containsOnly(entry(indexOf(overall, FIRST), 12.0), entry(indexOf(overall, SECOND), 4.0));
+        });
+
+        var maximum = readData(model, MetricAggregation.MAXIMUM);
+        assertThat(maximum.names()).isEqualTo(overall.names());
+        assertThat(findMetric(maximum, Metric.CYCLOMATIC_COMPLEXITY)).satisfies(complexity -> {
+            assertThat(complexity.name())
+                    .isEqualTo(Metric.CYCLOMATIC_COMPLEXITY.getDisplayName() + " ("
+                            + model.getFormatter().getDisplayName(MetricAggregation.MAXIMUM) + ")");
+            assertThat(complexity.values())
+                    .containsOnly(entry(indexOf(maximum, FIRST), 10.0), entry(indexOf(maximum, SECOND), 4.0));
+        });
+
+        var minimum = readData(model, MetricAggregation.MINIMUM);
+        assertThat(findMetric(minimum, Metric.CYCLOMATIC_COMPLEXITY).values())
+                .containsOnly(entry(indexOf(minimum, FIRST), 2.0), entry(indexOf(minimum, SECOND), 4.0));
+    }
+
+    @Test
+    void shouldProvideSameCoverageForAllAggregations() {
+        var node = readJacocoResult(JACOCO_CODING_STYLE_FILE);
+        var model = createModel(node);
+
+        var overall = findMetric(readData(model), Metric.LINE);
+        for (MetricAggregation aggregation : MetricAggregation.values()) {
+            assertThat(findMetric(readData(model, aggregation), Metric.LINE)).isEqualTo(overall);
+        }
+    }
+
+    private static ModuleNode createModuleWithMethods() {
+        var first = new FileNode(FIRST, "src/" + FIRST);
+        var firstClass = first.createClassNode("First");
+        firstClass.createMethodNode("one", "()V").addValue(new Value(Metric.CYCLOMATIC_COMPLEXITY, 2));
+        firstClass.createMethodNode("two", "()V").addValue(new Value(Metric.CYCLOMATIC_COMPLEXITY, 10));
+
+        var second = new FileNode(SECOND, "src/" + SECOND);
+        second.createClassNode("Second")
+                .createMethodNode("three", "()V")
+                .addValue(new Value(Metric.CYCLOMATIC_COMPLEXITY, 4));
+
+        return createModule(first, second);
+    }
+
     private static ModuleNode createModuleWithMixedFiles() {
         var first = new FileNode(FIRST, "src/" + FIRST);
         first.addValue(new Value(Metric.CYCLOMATIC_COMPLEXITY, 5));
@@ -221,7 +273,11 @@ class ScatterModelTest extends AbstractCoverageTest {
     }
 
     private static ScatterData readData(final ScatterModel model) {
-        return MAPPER.readValue(model.getScatterData(), ScatterData.class);
+        return readData(model, MetricAggregation.OVERALL);
+    }
+
+    private static ScatterData readData(final ScatterModel model, final MetricAggregation aggregation) {
+        return MAPPER.readValue(model.getScatterData(aggregation.name()), ScatterData.class);
     }
 
     private static ScatterModel createModel(final Node node) {

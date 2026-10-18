@@ -3,6 +3,7 @@ package io.jenkins.plugins.coverage.metrics.steps;
 import edu.hm.hafner.coverage.Coverage;
 import edu.hm.hafner.coverage.FileNode;
 import edu.hm.hafner.coverage.Metric;
+import edu.hm.hafner.coverage.MetricAggregation;
 import edu.hm.hafner.coverage.Node;
 import edu.hm.hafner.coverage.Percentage;
 import edu.hm.hafner.coverage.Value;
@@ -410,6 +411,8 @@ public class CoverageViewModel extends DefaultAsyncTableContentProvider implemen
      *
      * @param coverageMetric
      *         the used coverage metric (line, branch, instruction, mutation)
+     * @param aggregation
+     *         the aggregation that is used to compute the value of each node (OVERALL, MAXIMUM, MINIMUM)
      * @param greenThreshold
      *         the value from which on a result is considered fully green (best)
      * @param redThreshold
@@ -420,27 +423,40 @@ public class CoverageViewModel extends DefaultAsyncTableContentProvider implemen
     @JavaScriptMethod
     @SuppressWarnings("unused")
     public LabeledTreeMapNode getThresholdCoverageTree(
-            final String coverageMetric, final double greenThreshold, final double redThreshold) {
+            final String coverageMetric,
+            final String aggregation,
+            final double greenThreshold,
+            final double redThreshold) {
         var metric = getCoverageMetricFromText(coverageMetric);
         return TREE_MAP_NODE_CONVERTER.toThresholdTreeChartModel(
-                getNode(), metric, greenThreshold, redThreshold, colorProvider);
+                getNode(),
+                metric,
+                MetricAggregation.fromString(aggregation),
+                greenThreshold,
+                redThreshold,
+                colorProvider);
     }
 
     /**
      * Returns the minimum and maximum value of the given metric across all files. Used by the client to initialize
-     * sensible default green/red threshold values for the hierarchy tree map.
+     * sensible default green/red threshold values for the hierarchy tree map. The value of each file is computed
+     * using the specified aggregation, container metrics always use the overall value.
      *
      * @param coverageMetric
      *         the used coverage metric (line, branch, instruction, mutation)
+     * @param aggregation
+     *         the aggregation that is used to compute the value of each node (OVERALL, MAXIMUM, MINIMUM)
      *
      * @return a list with exactly two elements: the minimum (index 0) and the maximum (index 1) value
      */
     @JavaScriptMethod
     @SuppressWarnings("unused")
-    public List<Double> getMetricValueRange(final String coverageMetric) {
+    public List<Double> getMetricValueRange(final String coverageMetric, final String aggregation) {
         var metric = getCoverageMetricFromText(coverageMetric);
+        var effectiveAggregation =
+                metric.isContainer() ? MetricAggregation.OVERALL : MetricAggregation.fromString(aggregation);
         var values = getNode().getAllFileNodes().stream()
-                .map(fileNode -> fileNode.getValue(metric))
+                .map(fileNode -> fileNode.getValue(metric, effectiveAggregation))
                 .flatMap(Optional::stream)
                 .mapToDouble(TreeMapNodeConverter::asDisplayValue)
                 .toArray();

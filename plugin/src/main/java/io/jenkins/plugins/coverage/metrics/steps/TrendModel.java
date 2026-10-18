@@ -101,6 +101,6 @@ public class TrendModel implements ModelObject {
             return factory.createSoftwareMetricsModel(
                     configuration, latestAction, TrendChartFactory.SOFTWARE_TREND_METRICS);
         }
-        return factory.createChartModel(configuration, latestAction, TrendChartFactory.COVERAGE_TREND_METRICS);
+        return factory.createCoverageModel(configuration, latestAction);
     }
 }

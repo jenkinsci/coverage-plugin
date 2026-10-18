@@ -21,9 +21,24 @@ import java.util.Set;
  * @see JacksonFacade
  */
 public class CoverageTrendChart extends TrendChart {
+    /** Metrics that are rendered with a predefined color. */
+    private static final Set<Metric> PREDEFINED_METRICS = Set.of(
+            Metric.LINE,
+            Metric.BRANCH,
+            Metric.INSTRUCTION,
+            Metric.MUTATION,
+            Metric.TEST_STRENGTH,
+            Metric.MCDC_PAIR,
+            Metric.FUNCTION_CALL,
+            Metric.STMT_DC,
+            Metric.STMT_CC,
+            Metric.CONDITION);
+
+    private final boolean showAllPercentages;
+
     @VisibleForTesting
     CoverageTrendChart() {
-        super(Set.of(), false);
+        this(Set.of(), false);
     }
 
     /**
@@ -35,7 +50,25 @@ public class CoverageTrendChart extends TrendChart {
      *         determines if the chart should use lines or filled areas
      */
     public CoverageTrendChart(final Set<Metric> visibleMetrics, final boolean useLines) {
+        this(visibleMetrics, useLines, false);
+    }
+
+    /**
+     * Creates a new {@link CoverageTrendChart}.
+     *
+     * @param visibleMetrics
+     *         the metrics to render in the trend chart
+     * @param useLines
+     *         determines if the chart should use lines or filled areas
+     * @param showAllPercentages
+     *         determines if all visible metrics that are shown as a percentage should be rendered (e.g., the class
+     *         cohesion), or only the coverage metrics with a predefined color
+     */
+    public CoverageTrendChart(
+            final Set<Metric> visibleMetrics, final boolean useLines, final boolean showAllPercentages) {
         super(visibleMetrics, useLines);
+
+        this.showAllPercentages = showAllPercentages;
     }
 
     @Override
@@ -69,10 +102,27 @@ public class CoverageTrendChart extends TrendChart {
             addSeriesIfAvailable(dataSet, model, Metric.STMT_CC, JenkinsPalette.RED.light());
             addSeriesIfAvailable(dataSet, model, Metric.CONDITION, JenkinsPalette.RED.normal());
 
+            if (showAllPercentages) {
+                for (Metric metric : Metric.values()) {
+                    if (isAdditionalPercentage(metric)) {
+                        addSeriesIfAvailable(
+                                dataSet,
+                                model,
+                                metric,
+                                JenkinsPalette.chartColor(colorIndex).normal());
+                        colorIndex++;
+                    }
+                }
+            }
+
             model.useContinuousRangeAxis();
             model.computeVisibleRange();
             model.setRangeMax(100); // Restrict the range to 100%
         }
         return model;
+    }
+
+    private boolean isAdditionalPercentage(final Metric metric) {
+        return !metric.isContainer() && metric.getUnit().isPercentage() && !PREDEFINED_METRICS.contains(metric);
     }
 }

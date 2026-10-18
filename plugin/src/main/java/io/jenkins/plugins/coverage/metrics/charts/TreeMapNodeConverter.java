@@ -3,6 +3,7 @@ package io.jenkins.plugins.coverage.metrics.charts;
 import edu.hm.hafner.coverage.Coverage;
 import edu.hm.hafner.coverage.FileNode;
 import edu.hm.hafner.coverage.Metric;
+import edu.hm.hafner.coverage.MetricAggregation;
 import edu.hm.hafner.coverage.ModuleNode;
 import edu.hm.hafner.coverage.Node;
 import edu.hm.hafner.coverage.Rate;
@@ -21,7 +22,6 @@ import io.jenkins.plugins.coverage.metrics.model.ElementFormatter;
 import io.jenkins.plugins.echarts.JenkinsPalette;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.util.Locale;
 import java.util.Optional;
 
 /**
@@ -63,7 +63,7 @@ public class TreeMapNodeConverter {
      */
     public static boolean isFraction(final Value value) {
         return !(value instanceof Coverage || value instanceof Rate)
-                && value.asText(Locale.ENGLISH).endsWith("%");
+                && value.getMetric().getUnit().isPercentage();
     }
 
     /**
@@ -250,8 +250,43 @@ public class TreeMapNodeConverter {
             final double greenThreshold,
             final double redThreshold,
             final ColorProvider colorProvider) {
+        return toThresholdTreeChartModel(
+                node, metric, MetricAggregation.OVERALL, greenThreshold, redThreshold, colorProvider);
+    }
+
+    /**
+     * Converts a coverage tree of {@link Node nodes} to an ECharts tree map of {@link TreeMapNode}, see
+     * {@link #toThresholdTreeChartModel(Node, Metric, double, double, ColorProvider)}. The color and the label of each
+     * node are derived from the value of the specified aggregation (e.g., the maximum cyclomatic complexity of all
+     * methods of a file), while the size of each node is still derived from the overall value of the metric. Container
+     * metrics do not support aggregations, so these metrics always use the overall value.
+     *
+     * @param node
+     *         The root node of the tree to be converted
+     * @param metric
+     *         The coverage metric that should be represented
+     * @param aggregation
+     *         the aggregation that is used to compute the value of each node
+     * @param greenThreshold
+     *         the value from which on a result is considered fully green (best)
+     * @param redThreshold
+     *         the value from which on a result is considered fully red (worst)
+     * @param colorProvider
+     *         provides the red/yellow/green anchor colors to interpolate between
+     *
+     * @return the converted tree map representation
+     */
+    public LabeledTreeMapNode toThresholdTreeChartModel(
+            final Node node,
+            final Metric metric,
+            final MetricAggregation aggregation,
+            final double greenThreshold,
+            final double redThreshold,
+            final ColorProvider colorProvider) {
         var tree = mergePackages(node);
-        var root = toThresholdTreeMapNode(tree, metric, greenThreshold, redThreshold, colorProvider)
+        var effectiveAggregation = metric.isContainer() ? MetricAggregation.OVERALL : aggregation;
+        var root = toThresholdTreeMapNode(
+                        tree, metric, effectiveAggregation, greenThreshold, redThreshold, colorProvider)
                 .orElse(new LabeledTreeMapNode(getId(node), node.getName()));
         for (LabeledTreeMapNode child : root.getChildren()) {
             child.collapseEmptyPackages();
@@ -263,13 +298,14 @@ public class TreeMapNodeConverter {
     private Optional<LabeledTreeMapNode> toThresholdTreeMapNode(
             final Node node,
             final Metric metric,
+            final MetricAggregation aggregation,
             final double greenThreshold,
             final double redThreshold,
             final ColorProvider colorProvider) {
-        var value = node.getValue(metric);
+        var value = node.getValue(metric, aggregation);
         if (value.isPresent()) {
-            return Optional.of(
-                    createThresholdTree(value.get(), node, metric, greenThreshold, redThreshold, colorProvider));
+            return Optional.of(createThresholdTree(
+                    value.get(), node, metric, aggregation, greenThreshold, redThreshold, colorProvider));
         }
 
         return Optional.empty();
@@ -279,6 +315,7 @@ public class TreeMapNodeConverter {
             final Value value,
             final Node node,
             final Metric metric,
+            final MetricAggregation aggregation,
             final double greenThreshold,
             final double redThreshold,
             final ColorProvider colorProvider) {
@@ -287,15 +324,16 @@ public class TreeMapNodeConverter {
         var textColor = ThresholdColorProvider.getTextColorAsHex(fillColor);
         var label = new Label(true, textColor);
 
+        var overallValue = aggregation == MetricAggregation.OVERALL
+                ? value
+                : node.getValue(metric).orElse(value);
         String sizeValue;
-        String tooltip;
-        if (value instanceof Coverage coverage) {
+        if (overallValue instanceof Coverage coverage) {
             sizeValue = String.valueOf(coverage.getTotal());
-            tooltip = FORMATTER.getTooltip(coverage);
         } else {
-            sizeValue = asSize(value);
-            tooltip = FORMATTER.getTooltip(value);
+            sizeValue = asSize(overallValue);
         }
+        var tooltip = getTooltip(value, aggregation);
 
         if (node instanceof FileNode) { // stop recursion and create a colored leaf
             return new LabeledTreeMapNode(
@@ -306,10 +344,18 @@ public class TreeMapNodeConverter {
         var treeNode = new LabeledTreeMapNode(getId(node), node.getName(), boldFill, label, label, sizeValue, tooltip);
 
         node.getChildren().stream()
-                .map(n -> toThresholdTreeMapNode(n, metric, greenThreshold, redThreshold, colorProvider))
+                .map(n -> toThresholdTreeMapNode(n, metric, aggregation, greenThreshold, redThreshold, colorProvider))
                 .flatMap(Optional::stream)
                 .forEach(treeNode::insertNode); // recursively build the tree
 
         return treeNode;
+    }
+
+    private String getTooltip(final Value value, final MetricAggregation aggregation) {
+        var tooltip = FORMATTER.getTooltip(value);
+        if (aggregation == MetricAggregation.OVERALL) {
+            return tooltip;
+        }
+        return "%s (%s)".formatted(tooltip, FORMATTER.getDisplayName(aggregation));
     }
 }
