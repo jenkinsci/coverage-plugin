@@ -4,14 +4,14 @@
     The following different baselines are supported:
 
     <dl>
-        <dt>Overall project - PROJECT</dt>
+        <dt>Whole project - PROJECT</dt>
         <dd>
             Coverage of the whole project. This is an absolute value that might not change much from build to build.
         </dd>
-        <dt>Overall project (difference to reference job) - PROJECT_DELTA</dt>
+        <dt>Whole project (difference to reference job) - PROJECT_DELTA</dt>
         <dd>
             Difference between the project coverages of the current build and the reference build. Teams can use this delta
-            value to ensure that the overall project coverage will not decrease.
+            value to ensure that the coverage of the whole project will not decrease.
         </dd>
         <dt>Modified files - MODIFIED_FILES</dt>
         <dd>
@@ -22,7 +22,7 @@
         <dd>
             Difference between the file coverages of the current build and the reference build. Teams can use this delta
             value to ensure that the overall coverage of all modified files will not decrease.
-            This also implies that the overall project coverage will not decrease, making this metric stricter
+            This also implies that the coverage of the whole project will not decrease, making this metric stricter
             than the PROJECT_DELTA metric
         </dd>
         <dt>Modified code lines - MODIFIED_LINES</dt>

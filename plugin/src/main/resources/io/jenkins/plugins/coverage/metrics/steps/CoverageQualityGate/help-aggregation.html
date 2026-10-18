@@ -18,8 +18,9 @@
     <p>
         The maximum and minimum are selected from the elements that provide the metric: methods for method metrics
         (e.g., cyclomatic complexity), files for coverage metrics (e.g., line or branch coverage), and classes for all
-        other metrics. Files without code are ignored. Container metrics (e.g., file or package coverage) provide
-        only an overall value.
+        other metrics. If a report provides the values of a metric on a coarser level only (e.g., the complexity of
+        files rather than of methods), then these values are used instead. Files without code are ignored. Container
+        metrics (e.g., file or package coverage) provide only an overall value.
     </p>
     <p>
         For delta baselines, the difference between the aggregated values of the build and the reference is

@@ -259,19 +259,8 @@ public class CoverageReporter {
     private static Map<MetricAggregation, List<Difference>> computeDelta(
             final Node node, final Node reference, final Set<MetricAggregation> aggregations) {
         var deltas = new EnumMap<MetricAggregation, List<Difference>>(MetricAggregation.class);
-        aggregations.forEach(aggregation -> deltas.put(aggregation, computeDelta(node, reference, aggregation)));
+        aggregations.forEach(aggregation -> deltas.put(aggregation, node.computeDelta(reference, aggregation)));
         return deltas;
-    }
-
-    private static List<Difference> computeDelta(
-            final Node node, final Node reference, final MetricAggregation aggregation) {
-        if (aggregation == MetricAggregation.getDefault()) {
-            return node.computeDelta(reference);
-        }
-        var referenceValues = reference.aggregateValues(aggregation);
-        return node.aggregateValues(aggregation).stream()
-                .flatMap(value -> Value.findValue(value.getMetric(), referenceValues).map(value::subtract).stream())
-                .toList();
     }
 
     private static <T extends Value> List<T> getOverallValues(final Map<MetricAggregation, List<T>> values) {

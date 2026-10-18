@@ -61,7 +61,7 @@ class CoverageApiITest extends AbstractCoverageITest {
         assertThatJson(remoteApiResult).node("qualityGates.overallResult").isEqualTo("WARNING");
         assertThatJson(remoteApiResult).node("qualityGates.resultItems").isEqualTo("""
                         [{
-                          "qualityGate": "Overall project - Line Coverage",
+                          "qualityGate": "Whole project - Line Coverage",
                           "result": "UNSTABLE",
                           "threshold": 100.0,
                           "value": "95.39%"

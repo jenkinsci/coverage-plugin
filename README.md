@@ -80,13 +80,15 @@ The code coverage plug-in provides the following features when added as a post-b
 
   ![alt text](./images/dashboard_screen.PNG "Analysis overview for Jenkins dashboard")
 
-* Quality Gates: You can specify an arbitrary number of quality gates that allow to set the build to unstable or failed if the thresholds are not met. For each quality gate the metric (branch coverage, complexity, etc.) and the baseline (whole project, changed files, etc.) can be defined.
+* Quality Gates: You can specify an arbitrary number of quality gates that allow to set the build to unstable or failed if the thresholds are not met. For each quality gate the metric (branch coverage, complexity, etc.), the baseline (whole project, changed files, etc.), and the aggregation (overall, maximum, or minimum value) can be defined. See [Quality gates](#quality-gates) for details.
 
   ![Quality Gates](./images/quality-gates.png)
 
 * Quality gate result: The detailed result of the quality gate evaluation is available as tooltip in the build summary:
 
   ![Quality Gate Result](images/quality-gates-result.png)
+
+* Treemap and scatter plot: The treemap shows the hierarchy of the project colored by the value of a selectable metric, the scatter plot shows the files of the project with two selectable metrics as coordinates (e.g., line coverage and complexity). In both views you can choose whether the overall, the maximum, or the minimum value of the selected metrics should be shown, e.g., the maximum cyclomatic complexity of all methods of a file rather than the total complexity of the file. The size of the treemap nodes and of the scatter plot points always uses the overall value.
 
 * Cyclomatic Complexity and LOC metrics: Several coverage parsers support the measurement of cyclomatic complexity and lines of code. These metrics are now computed and recorded as well:
 
@@ -153,6 +155,29 @@ recordCoverage(tools: [[parser: 'JACOCO']],
         qualityGates: [
                 [threshold: 60.0, metric: 'LINE', baseline: 'PROJECT', unstable: true],
                 [threshold: 60.0, metric: 'BRANCH', baseline: 'PROJECT', unstable: true]])
+```
+
+## Quality gates
+
+Each quality gate evaluates a single value against a threshold. This value is defined by the following properties:
+
+- `metric`: the metric to evaluate, e.g., `LINE`, `BRANCH`, `MUTATION`, or `CYCLOMATIC_COMPLEXITY`.
+- `baseline`: the part of the project to evaluate: the whole project (`PROJECT`), the modified files (`MODIFIED_FILES`), or the modified lines (`MODIFIED_LINES`). Additionally, the delta of these values with respect to the reference build can be evaluated (`PROJECT_DELTA`, `MODIFIED_FILES_DELTA`, `MODIFIED_LINES_DELTA`), see [Reference build (baseline)](#reference-build-baseline).
+- `aggregation`: how the values of the metric are aggregated:
+  - `OVERALL` (default): the value of the metric for the whole selection, e.g., the line coverage of all lines, the sum of the cyclomatic complexity of all methods, or the mean value of percentages like the class cohesion.
+  - `MAXIMUM`: the largest value of all elements, e.g., the method with the highest cyclomatic complexity.
+  - `MINIMUM`: the smallest value of all elements, e.g., the file with the worst line coverage.
+
+The maximum and minimum are selected from the elements that provide the metric: methods for method metrics (e.g., cyclomatic complexity), files for coverage metrics (e.g., line or branch coverage), and classes for all other metrics. If a report provides the values of a metric on a coarser level only (e.g., the complexity of files rather than of methods), then these values are used instead. Container metrics (e.g., file or package coverage) provide only an overall value. For delta baselines, the difference between the aggregated values of the build and the reference build is evaluated, e.g., the change of the maximum cyclomatic complexity of all methods.
+
+The following example marks the build as unstable if the line coverage of the project is below 80%, if a file with a line coverage below 50% exists, or if the modified files contain a method with a cyclomatic complexity of more than 10:
+
+```groovy
+recordCoverage(tools: [[parser: 'JACOCO']],
+        qualityGates: [
+                [threshold: 80.0, metric: 'LINE', baseline: 'PROJECT', criticality: 'UNSTABLE'],
+                [threshold: 50.0, metric: 'LINE', baseline: 'PROJECT', aggregation: 'MINIMUM', criticality: 'UNSTABLE'],
+                [threshold: 10.0, metric: 'CYCLOMATIC_COMPLEXITY', baseline: 'MODIFIED_FILES', aggregation: 'MAXIMUM', criticality: 'UNSTABLE']])
 ```
 
 ## Reference build (baseline)
@@ -306,13 +331,13 @@ Example output:
     "overallResult" : "SUCCESS",
     "resultItems" : [
       {
-        "qualityGate" : "Overall project - Line Coverage",
+        "qualityGate" : "Whole project - Line Coverage",
         "result" : "SUCCESS",
         "threshold" : 60.0,
         "value" : "88.44%"
       },
       {
-        "qualityGate" : "Overall project - Branch Coverage",
+        "qualityGate" : "Whole project - Branch Coverage",
         "result" : "SUCCESS",
         "threshold" : 60.0,
         "value" : "82.19%"
