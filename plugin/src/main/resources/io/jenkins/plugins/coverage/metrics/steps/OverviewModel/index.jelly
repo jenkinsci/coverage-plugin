@@ -125,6 +125,7 @@
           <j:if test="${!it.countMetrics.isEmpty()}">
             <div class="coverage-dashboard__further-metrics">
               <l:card title="${%Further metrics}">
+                <j:set var="worst" value="${it.worstValues}"/>
                 <div class="coverage-dashboard__count-grid">
                   <div class="coverage-dashboard__count-grid-header coverage-dashboard__count-grid-header--label">${%Metric}</div>
                   <j:forEach var="baseline" items="${it.baselines}">
@@ -135,13 +136,13 @@
                     <j:forEach var="baseline" items="${it.baselines}">
                       <j:choose>
                         <j:when test="${it.hasValue(baseline, metric)}">
-                          <j:set var="hasWorstValue" value="${it.hasWorstValue(baseline, metric)}"/>
+                          <j:set var="hasWorstValue" value="${worst.hasValue(baseline, metric)}"/>
                           <div class="coverage-dashboard__count-grid-value">
                             <div class="coverage-dashboard__count-grid-line">${it.formatValue(baseline, metric)}</div>
                             <j:if test="${hasWorstValue}">
                               <div class="coverage-dashboard__count-grid-line coverage-dashboard__count-grid-worst"
-                                   tooltip="${it.getWorstValueTooltip(metric)}">
-                                ${it.formatWorstValue(baseline, metric)}
+                                   tooltip="${worst.getTooltip(metric)}">
+                                ${worst.formatValue(baseline, metric)}
                               </div>
                             </j:if>
                           </div>
@@ -163,16 +164,16 @@
                             </div>
                             <j:if test="${hasWorstValue}">
                               <div class="coverage-dashboard__count-grid-line">
-                                <j:if test="${it.hasWorstDelta(baseline, metric)}">
+                                <j:if test="${worst.hasDelta(baseline, metric)}">
                                   <j:choose>
-                                    <j:when test="${it.getWorstTrend(baseline, metric) gt 0}">
-                                      <span class="jenkins-badge jenkins-!-success-color">${it.formatWorstDelta(baseline, metric)}</span>
+                                    <j:when test="${worst.getTrend(baseline, metric) gt 0}">
+                                      <span class="jenkins-badge jenkins-!-success-color">${worst.formatDelta(baseline, metric)}</span>
                                     </j:when>
-                                    <j:when test="${it.getWorstTrend(baseline, metric) lt 0}">
-                                      <span class="jenkins-badge jenkins-!-error-color">${it.formatWorstDelta(baseline, metric)}</span>
+                                    <j:when test="${worst.getTrend(baseline, metric) lt 0}">
+                                      <span class="jenkins-badge jenkins-!-error-color">${worst.formatDelta(baseline, metric)}</span>
                                     </j:when>
                                     <j:otherwise>
-                                      <span class="jenkins-badge">${it.formatWorstDelta(baseline, metric)}</span>
+                                      <span class="jenkins-badge">${worst.formatDelta(baseline, metric)}</span>
                                     </j:otherwise>
                                   </j:choose>
                                 </j:if>

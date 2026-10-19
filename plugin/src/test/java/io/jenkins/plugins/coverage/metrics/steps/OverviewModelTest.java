@@ -254,50 +254,88 @@ class OverviewModelTest extends AbstractCoverageTest {
                 Map.of(),
                 Map.of(),
                 Map.of());
-        var model = createModel(node, statistics);
+        var worst = createModel(node, statistics).getWorstValues();
 
-        assertThat(model.hasWorstValue(Baseline.PROJECT, Metric.CYCLOMATIC_COMPLEXITY))
+        assertThat(worst.hasValue(Baseline.PROJECT, Metric.CYCLOMATIC_COMPLEXITY))
                 .isTrue();
-        assertThat(model.formatWorstValue(Baseline.PROJECT, Metric.CYCLOMATIC_COMPLEXITY))
+        assertThat(worst.formatValue(Baseline.PROJECT, Metric.CYCLOMATIC_COMPLEXITY))
                 .isEqualTo("Maximum: 10");
-        assertThat(model.getWorstValueTooltip(Metric.CYCLOMATIC_COMPLEXITY)).isEqualTo("Maximum of all methods");
-        assertThat(model.hasWorstDelta(Baseline.PROJECT, Metric.CYCLOMATIC_COMPLEXITY))
+        assertThat(worst.getTooltip(Metric.CYCLOMATIC_COMPLEXITY)).isEqualTo("Maximum of all methods");
+        assertThat(worst.hasDelta(Baseline.PROJECT, Metric.CYCLOMATIC_COMPLEXITY))
                 .isTrue();
-        assertThat(model.formatWorstDelta(Baseline.PROJECT, Metric.CYCLOMATIC_COMPLEXITY))
+        assertThat(worst.formatDelta(Baseline.PROJECT, Metric.CYCLOMATIC_COMPLEXITY))
                 .contains("3");
-        assertThat(model.getWorstTrend(Baseline.PROJECT, Metric.CYCLOMATIC_COMPLEXITY))
+        assertThat(worst.getTrend(Baseline.PROJECT, Metric.CYCLOMATIC_COMPLEXITY))
                 .as("an increased maximum complexity is a deterioration")
                 .isNegative();
 
-        assertThat(model.hasWorstValue(Baseline.PROJECT, Metric.COHESION)).isTrue();
-        assertThat(model.formatWorstValue(Baseline.PROJECT, Metric.COHESION)).isEqualTo("Minimum: 20.00%");
-        assertThat(model.getWorstValueTooltip(Metric.COHESION)).isEqualTo("Minimum of all classes");
-        assertThat(model.getWorstTrend(Baseline.PROJECT, Metric.COHESION))
+        assertThat(worst.hasValue(Baseline.PROJECT, Metric.COHESION)).isTrue();
+        assertThat(worst.formatValue(Baseline.PROJECT, Metric.COHESION)).isEqualTo("Minimum: 20.00%");
+        assertThat(worst.getTooltip(Metric.COHESION)).isEqualTo("Minimum of all classes");
+        assertThat(worst.getTrend(Baseline.PROJECT, Metric.COHESION))
                 .as("an increased minimum cohesion is an improvement")
                 .isPositive();
 
-        assertThat(model.hasWorstValue(Baseline.PROJECT, Metric.METHOD))
+        assertThat(worst.hasValue(Baseline.PROJECT, Metric.METHOD))
                 .as("container metrics have no worst value")
                 .isFalse();
-        assertThat(model.hasWorstValue(Baseline.MODIFIED_LINES, Metric.CYCLOMATIC_COMPLEXITY))
+        assertThat(worst.hasValue(Baseline.MODIFIED_LINES, Metric.CYCLOMATIC_COMPLEXITY))
                 .isFalse();
-        assertThat(model.hasWorstDelta(Baseline.MODIFIED_LINES, Metric.CYCLOMATIC_COMPLEXITY))
+        assertThat(worst.hasDelta(Baseline.MODIFIED_LINES, Metric.CYCLOMATIC_COMPLEXITY))
                 .isFalse();
-        assertThat(model.formatWorstValue(Baseline.MODIFIED_LINES, Metric.CYCLOMATIC_COMPLEXITY))
+        assertThat(worst.formatValue(Baseline.MODIFIED_LINES, Metric.CYCLOMATIC_COMPLEXITY))
                 .isEqualTo(Messages.Coverage_Not_Available());
-        assertThat(model.formatWorstDelta(Baseline.MODIFIED_LINES, Metric.CYCLOMATIC_COMPLEXITY))
+        assertThat(worst.formatDelta(Baseline.MODIFIED_LINES, Metric.CYCLOMATIC_COMPLEXITY))
                 .isEqualTo(Messages.Coverage_Not_Available());
-        assertThat(model.getWorstTrend(Baseline.MODIFIED_LINES, Metric.CYCLOMATIC_COMPLEXITY))
+        assertThat(worst.getTrend(Baseline.MODIFIED_LINES, Metric.CYCLOMATIC_COMPLEXITY))
                 .isZero();
     }
 
     @Test
-    void shouldProvideNoWorstValuesForBuildsWithoutAggregatedValues() {
-        var model = createModel(createModuleWithMethods());
+    void shouldConsiderTendencyForTrendOfDeltas() {
+        var deltas = List.of(
+                new Difference(Metric.LINE, 5),
+                new Difference(Metric.CYCLOMATIC_COMPLEXITY, 10),
+                new Difference(Metric.LOC, -3),
+                new Difference(Metric.TESTS, 0));
+        var action = new CoverageBuildAction(
+                mock(Run.class),
+                "coverage",
+                "",
+                "",
+                createModuleWithMethods(),
+                new QualityGateResult(),
+                new FilteredLog("Errors"),
+                "-",
+                deltas,
+                List.of(),
+                List.of(),
+                List.of(),
+                List.of(),
+                List.of(),
+                false);
+        var model = new OverviewModel(mock(Run.class), action);
 
-        assertThat(model.hasWorstValue(Baseline.PROJECT, Metric.CYCLOMATIC_COMPLEXITY))
+        assertThat(model.getTrend(Baseline.PROJECT, Metric.LINE))
+                .as("an increased coverage is an improvement")
+                .isPositive();
+        assertThat(model.getTrend(Baseline.PROJECT, Metric.CYCLOMATIC_COMPLEXITY))
+                .as("an increased complexity is a deterioration")
+                .isNegative();
+        assertThat(model.getTrend(Baseline.PROJECT, Metric.LOC))
+                .as("a decreased size is an improvement")
+                .isPositive();
+        assertThat(model.getTrend(Baseline.PROJECT, Metric.TESTS)).isZero();
+        assertThat(model.getTrend(Baseline.PROJECT, Metric.BRANCH)).isZero();
+    }
+
+    @Test
+    void shouldProvideNoWorstValuesForBuildsWithoutAggregatedValues() {
+        var worst = createModel(createModuleWithMethods()).getWorstValues();
+
+        assertThat(worst.hasValue(Baseline.PROJECT, Metric.CYCLOMATIC_COMPLEXITY))
                 .isFalse();
-        assertThat(model.hasWorstDelta(Baseline.PROJECT, Metric.CYCLOMATIC_COMPLEXITY))
+        assertThat(worst.hasDelta(Baseline.PROJECT, Metric.CYCLOMATIC_COMPLEXITY))
                 .isFalse();
     }
 

@@ -9,6 +9,7 @@ import java.io.Serial;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.NoSuchElementException;
 
 /**
  * The values and differences of all baselines of a build that have been computed with an aggregation other than the
@@ -65,27 +66,43 @@ final class AggregatedValues implements Serializable {
         return aggregation;
     }
 
-    List<Value> getProjectValues() {
-        return projectValues;
+    /**
+     * Returns the values of the specified baseline.
+     *
+     * @param baseline
+     *         the baseline, either {@link Baseline#PROJECT}, {@link Baseline#MODIFIED_LINES}, or
+     *         {@link Baseline#MODIFIED_FILES}
+     *
+     * @return the values
+     * @throws NoSuchElementException
+     *         if the baseline provides no values
+     */
+    List<Value> getValues(final Baseline baseline) {
+        return switch (baseline) {
+            case PROJECT -> projectValues;
+            case MODIFIED_LINES -> modifiedLinesValues;
+            case MODIFIED_FILES -> modifiedFilesValues;
+            default -> throw new NoSuchElementException("No values for baseline " + baseline);
+        };
     }
 
-    List<Difference> getProjectDifferences() {
-        return projectDifferences;
-    }
-
-    List<Value> getModifiedLinesValues() {
-        return modifiedLinesValues;
-    }
-
-    List<Difference> getModifiedLinesDifferences() {
-        return modifiedLinesDifferences;
-    }
-
-    List<Value> getModifiedFilesValues() {
-        return modifiedFilesValues;
-    }
-
-    List<Difference> getModifiedFilesDifferences() {
-        return modifiedFilesDifferences;
+    /**
+     * Returns the deltas of the specified delta baseline.
+     *
+     * @param baseline
+     *         the baseline, either {@link Baseline#PROJECT_DELTA}, {@link Baseline#MODIFIED_LINES_DELTA}, or
+     *         {@link Baseline#MODIFIED_FILES_DELTA}
+     *
+     * @return the deltas
+     * @throws NoSuchElementException
+     *         if the baseline provides no deltas
+     */
+    List<Difference> getDeltas(final Baseline baseline) {
+        return switch (baseline) {
+            case PROJECT_DELTA -> projectDifferences;
+            case MODIFIED_LINES_DELTA -> modifiedLinesDifferences;
+            case MODIFIED_FILES_DELTA -> modifiedFilesDifferences;
+            default -> throw new NoSuchElementException("No deltas for baseline " + baseline);
+        };
     }
 }

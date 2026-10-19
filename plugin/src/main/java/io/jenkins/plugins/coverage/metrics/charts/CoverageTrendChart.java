@@ -6,9 +6,11 @@ import edu.hm.hafner.echarts.BuildResult;
 import edu.hm.hafner.echarts.ChartModelConfiguration;
 import edu.hm.hafner.echarts.JacksonFacade;
 import edu.hm.hafner.echarts.line.LinesChartModel;
+import edu.hm.hafner.echarts.line.LinesDataSet;
 import edu.hm.hafner.util.VisibleForTesting;
 import io.jenkins.plugins.coverage.metrics.model.CoverageStatistics;
 import io.jenkins.plugins.echarts.JenkinsPalette;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 
@@ -125,16 +127,7 @@ public class CoverageTrendChart extends TrendChart {
             addSeriesIfAvailable(dataSet, model, Metric.CONDITION, JenkinsPalette.RED.normal());
 
             if (showAllPercentages) {
-                for (Metric metric : Metric.values()) {
-                    if (isAdditionalPercentage(metric)) {
-                        addSeriesIfAvailable(
-                                dataSet,
-                                model,
-                                metric,
-                                JenkinsPalette.chartColor(colorIndex).normal());
-                        colorIndex++;
-                    }
-                }
+                addAdditionalPercentages(dataSet, model, colorIndex);
             }
 
             model.useContinuousRangeAxis();
@@ -142,6 +135,25 @@ public class CoverageTrendChart extends TrendChart {
             model.setRangeMax(100); // Restrict the range to 100%
         }
         return model;
+    }
+
+    private void addAdditionalPercentages(
+            final LinesDataSet dataSet, final LinesChartModel model, final int firstColorIndex) {
+        int colorIndex = firstColorIndex;
+        for (Metric metric : getAdditionalPercentages()) {
+            addSeriesIfAvailable(
+                    dataSet,
+                    model,
+                    metric,
+                    JenkinsPalette.chartColor(colorIndex).normal());
+            colorIndex++;
+        }
+    }
+
+    private List<Metric> getAdditionalPercentages() {
+        return Arrays.stream(Metric.values())
+                .filter(this::isAdditionalPercentage)
+                .toList();
     }
 
     private boolean isAdditionalPercentage(final Metric metric) {

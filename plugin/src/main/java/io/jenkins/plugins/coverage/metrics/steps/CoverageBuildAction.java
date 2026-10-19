@@ -522,12 +522,12 @@ public final class CoverageBuildAction extends BuildAction<Node> implements Stap
      */
     public CoverageStatistics getStatistics() {
         return new CoverageStatistics(
-                createMapping(projectValues, AggregatedValues::getProjectValues),
-                createMapping(differences, AggregatedValues::getProjectDifferences),
-                createMapping(modifiedLinesCoverage, AggregatedValues::getModifiedLinesValues),
-                createMapping(modifiedLinesDifferences, AggregatedValues::getModifiedLinesDifferences),
-                createMapping(modifiedFilesCoverage, AggregatedValues::getModifiedFilesValues),
-                createMapping(modifiedFilesDifferences, AggregatedValues::getModifiedFilesDifferences));
+                this.<Value>createMapping(projectValues, values -> values.getValues(Baseline.PROJECT)),
+                createMapping(differences, values -> values.getDeltas(Baseline.PROJECT_DELTA)),
+                this.<Value>createMapping(modifiedLinesCoverage, values -> values.getValues(Baseline.MODIFIED_LINES)),
+                createMapping(modifiedLinesDifferences, values -> values.getDeltas(Baseline.MODIFIED_LINES_DELTA)),
+                this.<Value>createMapping(modifiedFilesCoverage, values -> values.getValues(Baseline.MODIFIED_FILES)),
+                createMapping(modifiedFilesDifferences, values -> values.getDeltas(Baseline.MODIFIED_FILES_DELTA)));
     }
 
     private <T extends Value> Map<MetricAggregation, List<T>> createMapping(
