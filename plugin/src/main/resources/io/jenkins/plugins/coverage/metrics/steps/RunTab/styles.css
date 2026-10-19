@@ -492,3 +492,13 @@ button.coverage-hotspots__grid-header:hover {
     text-align: right;
     white-space: nowrap;
 }
+
+/* The help page explains the baselines, aggregations, and metrics in tables, the first column contains the names. */
+.coverage-help .jenkins-table {
+    margin: 12px 0;
+}
+
+.coverage-help__name {
+    font-weight: 600;
+    white-space: nowrap;
+}

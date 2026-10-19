@@ -110,7 +110,7 @@ class RunTabTest extends AbstractCoverageTest {
     }
 
     @ParameterizedTest(name = "URL \"{0}\" is ignored")
-    @ValueSource(strings = {"overview", "trend", "treemap", "table", "log"})
+    @ValueSource(strings = {"overview", "trend", "treemap", "table", "log", "help"})
     void shouldIgnoreRunTabUrlsIfRunTabIsDisabled(final String url, @TempDir final Path buildFolder) {
         var viewModel = createViewModel(false, buildFolder);
 
@@ -127,6 +127,7 @@ class RunTabTest extends AbstractCoverageTest {
         assertThat(viewModel.getDynamic("scatter")).isInstanceOf(ScatterModel.class);
         assertThat(viewModel.getDynamic("table")).isInstanceOf(FilesModel.class);
         assertThat(viewModel.getDynamic("log")).isInstanceOf(LogModel.class);
+        assertThat(viewModel.getDynamic("help")).isInstanceOf(HelpModel.class);
     }
 
     @ParameterizedTest(name = "Run tab enabled: {0}")
