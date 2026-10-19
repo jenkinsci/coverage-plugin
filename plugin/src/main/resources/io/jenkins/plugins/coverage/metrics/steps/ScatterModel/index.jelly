@@ -14,7 +14,7 @@
       <div class="jenkins-details"
            style="display: flex; flex-direction: row; justify-content: space-between; align-items: center; height: auto; flex-wrap: wrap; gap: 12px;">
         <div style="display: flex; align-items: center;">
-          <div class="jenkins-!-margin-right-1" style="text-wrap: nowrap">${%x-title}:</div>
+          <div class="jenkins-!-margin-right-1" style="text-wrap: nowrap">${%x-title}:<cov:help-link anchor="metrics"/></div>
           <div class="jenkins-select">
             <select id="scatter-x-metric" class="jenkins-select__input" style="min-width: 14em;"
                     data-coverage-label="${%coverage-group}" data-software-label="${%software-group}"/>
@@ -28,7 +28,7 @@
           </div>
         </div>
         <div style="display: flex; align-items: center;" tooltip="${%aggregation-tooltip}">
-          <div class="jenkins-!-margin-right-1" style="text-wrap: nowrap">${%aggregation-title}:</div>
+          <div class="jenkins-!-margin-right-1" style="text-wrap: nowrap">${%aggregation-title}:<cov:help-link anchor="aggregation"/></div>
           <div class="jenkins-select">
             <select id="scatter-aggregation" class="jenkins-select__input" style="min-width: 10em;">
               <j:forEach var="aggregation" items="${it.formatter.aggregationItems}">

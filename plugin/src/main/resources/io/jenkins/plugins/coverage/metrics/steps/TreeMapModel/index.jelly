@@ -17,7 +17,7 @@
       <div class="jenkins-details"
            style="display: flex; flex-direction: row; justify-content: flex-end; align-items: center; flex-wrap: wrap; gap: 12px;">
         <div style="display: flex; align-items: center;">
-          <div class="jenkins-!-margin-right-1" style="text-wrap: nowrap">${%Metric}:</div>
+          <div class="jenkins-!-margin-right-1" style="text-wrap: nowrap">${%Metric}:<cov:help-link anchor="metrics"/></div>
           <div class="jenkins-select">
             <select id="hierarchy-metric-select" class="jenkins-select__input" style="min-width: 20em;">
               <j:if test="${!it.coverageTreeMetrics.isEmpty()}">
@@ -46,7 +46,7 @@
           </div>
         </div>
         <div style="display: flex; align-items: center;" tooltip="${%aggregation-tooltip}">
-          <div class="jenkins-!-margin-right-1" style="text-wrap: nowrap">${%aggregation-title}:</div>
+          <div class="jenkins-!-margin-right-1" style="text-wrap: nowrap">${%aggregation-title}:<cov:help-link anchor="aggregation"/></div>
           <div class="jenkins-select">
             <select id="hierarchy-aggregation-select" class="jenkins-select__input" style="min-width: 10em;">
               <j:forEach var="aggregation" items="${formatter.aggregationItems}">

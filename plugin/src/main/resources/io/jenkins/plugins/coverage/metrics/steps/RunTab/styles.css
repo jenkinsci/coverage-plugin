@@ -449,26 +449,6 @@ button.coverage-hotspots__grid-header:hover {
     content: " \2191";
 }
 
-/* A small "?" in a circle, shown at the right side of a card title (see the controls attribute of the card). */
-.coverage-hotspots__help {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 16px;
-    height: 16px;
-    border: 1.5px solid currentColor;
-    border-radius: 50%;
-    color: var(--text-color-secondary);
-    font-size: 10px;
-    font-weight: 700;
-    line-height: 1;
-    cursor: help;
-}
-
-.coverage-hotspots__help:hover {
-    color: var(--text-color);
-}
-
 .coverage-hotspots__rows {
     display: contents;
 }
@@ -501,4 +481,27 @@ button.coverage-hotspots__grid-header:hover {
 .coverage-help__name {
     font-weight: 600;
     white-space: nowrap;
+}
+
+/* Small help icon next to a label or in the controls of a card title (see the tag coverage/help-link.jelly): it
+   links to the corresponding section of the help page or explains the element in its tooltip. */
+.coverage-help-link {
+    display: inline-flex;
+    align-items: center;
+    margin-left: 4px;
+    color: var(--text-color-secondary);
+    vertical-align: middle;
+}
+
+.coverage-help-link:hover {
+    color: var(--link-color);
+}
+
+/* A help icon without a link explains the element in its tooltip only. */
+.coverage-help-link--tooltip {
+    cursor: help;
+}
+
+.coverage-help-link--tooltip:hover {
+    color: var(--text-color);
 }

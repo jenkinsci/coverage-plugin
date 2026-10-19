@@ -1,0 +1,37 @@
+<?jelly escape-by-default='true'?>
+<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:l="/lib/layout">
+
+  <st:documentation>
+    Provides a small help icon. If an anchor is given, the icon links to the corresponding section of the help page of
+    the coverage results: then the current view model (it) must provide the build (getObject) and the ID of the
+    coverage results (getId). If a tooltip is given, the tooltip explains the element directly.
+
+    <st:attribute name="anchor" type="String">
+      The anchor of the section in the help page, e.g. "aggregation", "baseline", or "metrics". If not set, the icon
+      shows the tooltip only.
+    </st:attribute>
+    <st:attribute name="tooltip" type="String">
+      The tooltip of the icon. If not set, a generic tooltip that refers to the help page is shown.
+    </st:attribute>
+  </st:documentation>
+
+  <j:set var="helpTooltip" value="${attrs.tooltip}"/>
+  <j:if test="${empty(helpTooltip)}">
+    <j:set var="helpTooltip" value="${%tooltip}"/>
+  </j:if>
+  <j:choose>
+    <j:when test="${attrs.anchor != null}">
+      <a class="coverage-help-link" href="${rootURL}/${it.object.url}${it.id}/help#${attrs.anchor}"
+         tooltip="${helpTooltip}" aria-label="${helpTooltip}">
+        <l:icon src="symbol-help-circle-outline plugin-ionicons-api" class="icon-sm"/>
+      </a>
+    </j:when>
+    <j:otherwise>
+      <span class="coverage-help-link coverage-help-link--tooltip" tooltip="${helpTooltip}"
+            aria-label="${helpTooltip}" tabindex="0">
+        <l:icon src="symbol-help-circle-outline plugin-ionicons-api" class="icon-sm"/>
+      </span>
+    </j:otherwise>
+  </j:choose>
+
+</j:jelly>
