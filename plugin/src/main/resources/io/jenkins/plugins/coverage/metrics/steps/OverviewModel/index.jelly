@@ -125,6 +125,7 @@
           <j:if test="${!it.countMetrics.isEmpty()}">
             <div class="coverage-dashboard__further-metrics">
               <l:card title="${%Further metrics}">
+                <j:set var="worst" value="${it.worstValues}"/>
                 <div class="coverage-dashboard__count-grid">
                   <div class="coverage-dashboard__count-grid-header coverage-dashboard__count-grid-header--label">${%Metric}</div>
                   <j:forEach var="baseline" items="${it.baselines}">
@@ -135,20 +136,48 @@
                     <j:forEach var="baseline" items="${it.baselines}">
                       <j:choose>
                         <j:when test="${it.hasValue(baseline, metric)}">
-                          <div class="coverage-dashboard__count-grid-value">${it.formatValue(baseline, metric)}</div>
+                          <j:set var="hasWorstValue" value="${worst.hasValue(baseline, metric)}"/>
+                          <div class="coverage-dashboard__count-grid-value">
+                            <div class="coverage-dashboard__count-grid-line">${it.formatValue(baseline, metric)}</div>
+                            <j:if test="${hasWorstValue}">
+                              <div class="coverage-dashboard__count-grid-line coverage-dashboard__count-grid-worst"
+                                   tooltip="${worst.getTooltip(metric)}">
+                                ${worst.formatValue(baseline, metric)}
+                              </div>
+                            </j:if>
+                          </div>
                           <div class="coverage-dashboard__count-grid-badge">
-                            <j:if test="${it.hasDelta(baseline, metric)}">
-                              <j:choose>
-                                <j:when test="${it.getTrend(baseline, metric) gt 0}">
-                                  <span class="jenkins-badge jenkins-!-success-color">${it.formatDelta(baseline, metric)}</span>
-                                </j:when>
-                                <j:when test="${it.getTrend(baseline, metric) lt 0}">
-                                  <span class="jenkins-badge jenkins-!-error-color">${it.formatDelta(baseline, metric)}</span>
-                                </j:when>
-                                <j:otherwise>
-                                  <span class="jenkins-badge">${it.formatDelta(baseline, metric)}</span>
-                                </j:otherwise>
-                              </j:choose>
+                            <div class="coverage-dashboard__count-grid-line">
+                              <j:if test="${it.hasDelta(baseline, metric)}">
+                                <j:choose>
+                                  <j:when test="${it.getTrend(baseline, metric) gt 0}">
+                                    <span class="jenkins-badge jenkins-!-success-color">${it.formatDelta(baseline, metric)}</span>
+                                  </j:when>
+                                  <j:when test="${it.getTrend(baseline, metric) lt 0}">
+                                    <span class="jenkins-badge jenkins-!-error-color">${it.formatDelta(baseline, metric)}</span>
+                                  </j:when>
+                                  <j:otherwise>
+                                    <span class="jenkins-badge">${it.formatDelta(baseline, metric)}</span>
+                                  </j:otherwise>
+                                </j:choose>
+                              </j:if>
+                            </div>
+                            <j:if test="${hasWorstValue}">
+                              <div class="coverage-dashboard__count-grid-line">
+                                <j:if test="${worst.hasDelta(baseline, metric)}">
+                                  <j:choose>
+                                    <j:when test="${worst.getTrend(baseline, metric) gt 0}">
+                                      <span class="jenkins-badge jenkins-!-success-color">${worst.formatDelta(baseline, metric)}</span>
+                                    </j:when>
+                                    <j:when test="${worst.getTrend(baseline, metric) lt 0}">
+                                      <span class="jenkins-badge jenkins-!-error-color">${worst.formatDelta(baseline, metric)}</span>
+                                    </j:when>
+                                    <j:otherwise>
+                                      <span class="jenkins-badge">${worst.formatDelta(baseline, metric)}</span>
+                                    </j:otherwise>
+                                  </j:choose>
+                                </j:if>
+                              </div>
                             </j:if>
                           </div>
                         </j:when>

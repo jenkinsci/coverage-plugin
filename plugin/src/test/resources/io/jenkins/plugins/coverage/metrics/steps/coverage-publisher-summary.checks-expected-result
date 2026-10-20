@@ -6,7 +6,7 @@
 
 #### Overview by baseline
 
-* **[Overall project (difference to reference job)](http://127.0.0.1:8080/job/pipeline-coding-style/job/5/coverage#overview)**
+* **[Whole project (difference to reference job)](http://127.0.0.1:8080/job/pipeline-coding-style/job/5/coverage#overview)**
   * Line Coverage: 91.02% (294/323) $\color{green}{\textsf{(+50.00\%)}}$
   * Branch Coverage: 93.97% (109/116)
   * Lines of Code: 323

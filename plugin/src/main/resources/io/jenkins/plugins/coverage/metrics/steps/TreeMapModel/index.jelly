@@ -24,7 +24,8 @@
                 <optgroup label="${%Coverage}">
                   <j:forEach var="metric" items="${it.coverageTreeMetrics}">
                     <option value="${metric.toTagName()}" data-order="${metric.tendency}"
-                            data-shares-overview-thresholds="${it.sharesOverviewThresholds(metric)}">
+                            data-shares-overview-thresholds="${it.sharesOverviewThresholds(metric)}"
+                            data-container="${metric.container}">
                       ${formatter.getDisplayName(metric)}
                     </option>
                   </j:forEach>
@@ -34,12 +35,23 @@
                 <optgroup label="${%Software Metrics}">
                   <j:forEach var="metric" items="${it.softwareTreeMetrics}">
                     <option value="${metric.toTagName()}" data-order="${metric.tendency}"
-                            data-shares-overview-thresholds="${it.sharesOverviewThresholds(metric)}">
+                            data-shares-overview-thresholds="${it.sharesOverviewThresholds(metric)}"
+                            data-container="${metric.container}">
                       ${formatter.getDisplayName(metric)}
                     </option>
                   </j:forEach>
                 </optgroup>
               </j:if>
+            </select>
+          </div>
+        </div>
+        <div style="display: flex; align-items: center;" tooltip="${%aggregation-tooltip}">
+          <div class="jenkins-!-margin-right-1" style="text-wrap: nowrap">${%aggregation-title}:</div>
+          <div class="jenkins-select">
+            <select id="hierarchy-aggregation-select" class="jenkins-select__input" style="min-width: 10em;">
+              <j:forEach var="aggregation" items="${formatter.aggregationItems}">
+                <option value="${aggregation.value}">${aggregation.name}</option>
+              </j:forEach>
             </select>
           </div>
         </div>

@@ -6,6 +6,7 @@ import static org.mockito.Mockito.*;
 
 import edu.hm.hafner.coverage.FileNode;
 import edu.hm.hafner.coverage.Metric;
+import edu.hm.hafner.coverage.MetricAggregation;
 import edu.hm.hafner.util.FilteredLog;
 import hudson.model.Run;
 import io.jenkins.plugins.bootstrap5.MessagesViewModel;
@@ -279,7 +280,7 @@ class RunTabTest extends AbstractCoverageTest {
         assertThat(model.getJenkinsColorIDs()).isNotEmpty();
         model.setJenkinsColors("broken JSON"); // falls back to the default colors
 
-        var tree = model.getThresholdCoverageTree("line", 80.0, 60.0);
+        var tree = model.getThresholdCoverageTree("line", "OVERALL", 80.0, 60.0);
         assertThat(tree.getName()).isEqualTo("Java coding style");
         assertThat(tree.getValue()).contains(String.valueOf(JACOCO_CODING_STYLE_TOTAL));
         assertThat(tree.getChildren())
@@ -287,10 +288,22 @@ class RunTabTest extends AbstractCoverageTest {
                 .first()
                 .satisfies(child -> assertThat(child.getName()).isEqualTo("edu.hm.hafner.util"));
 
-        assertThat(model.getMetricValueRange("line"))
+        assertThat(model.getMetricValueRange("line", "OVERALL"))
                 .hasSize(2)
                 .satisfies(range -> assertThat(range.getFirst()).isLessThanOrEqualTo(range.get(1)));
-        assertThat(model.getMetricValueRange("mutation")).containsExactly(0.0, 100.0);
+        assertThat(model.getMetricValueRange("mutation", "OVERALL")).containsExactly(0.0, 100.0);
+        assertThat(model.getMetricValueRange("line", "MAXIMUM"))
+                .isEqualTo(model.getMetricValueRange("line", "OVERALL"));
+        assertThat(model.getMetricValueRange("file", "MAXIMUM"))
+                .isEqualTo(model.getMetricValueRange("file", "OVERALL"));
+        assertThat(model.getThresholdCoverageTree("line", "MINIMUM", 80.0, 60.0).getValue())
+                .as("the size is derived from the overall value, the tooltip from the minimum")
+                .first()
+                .isEqualTo(tree.getValue().getFirst());
+        assertThat(model.getThresholdCoverageTree("line", "MINIMUM", 80.0, 60.0).getValue())
+                .last()
+                .asString()
+                .endsWith("(" + model.getFormatter().getDisplayName(MetricAggregation.MINIMUM) + ")");
     }
 
     @Test

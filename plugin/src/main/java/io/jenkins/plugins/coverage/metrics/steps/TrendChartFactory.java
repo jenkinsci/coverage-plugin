@@ -1,6 +1,7 @@
 package io.jenkins.plugins.coverage.metrics.steps;
 
 import edu.hm.hafner.coverage.Metric;
+import edu.hm.hafner.coverage.MetricAggregation;
 import edu.hm.hafner.coverage.Value;
 import edu.hm.hafner.echarts.ChartModelConfiguration;
 import edu.hm.hafner.echarts.line.LinesChartModel;
@@ -10,7 +11,6 @@ import io.jenkins.plugins.coverage.metrics.charts.TrendChart;
 import io.jenkins.plugins.coverage.metrics.model.Baseline;
 import io.jenkins.plugins.echarts.GenericBuildActionIterator.BuildActionIterable;
 import java.util.Arrays;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -85,9 +85,8 @@ class TrendChartFactory {
     }
 
     /**
-     * Returns whether the specified metric is shown as a percentage. This is decided by the way the value is
-     * displayed, so that percentages that are not coverage metrics (e.g., the test strength) are treated like
-     * coverage.
+     * Returns whether the specified metric is shown as a percentage. Besides the coverage metrics, this includes
+     * percentages and rates that are no coverage (e.g., the class cohesion or the test success rate).
      *
      * @param metric
      *         the metric to check
@@ -95,12 +94,13 @@ class TrendChartFactory {
      * @return {@code true} if the values of the metric are rendered as a percentage
      */
     private static boolean isPercentage(final Metric metric) {
-        return metric.isCoverage() || metric.format(Locale.ENGLISH, 0.5).endsWith("%");
+        return metric.getUnit().isPercentage();
     }
 
     LinesChartModel createMetricsModel(
             final String configuration, final CoverageBuildAction latestAction, final Set<Metric> defaultMetrics) {
-        return getLinesChartModel(configuration, latestAction, true, false, defaultMetrics);
+        return getLinesChartModel(
+                configuration, latestAction, true, false, defaultMetrics, false, MetricAggregation.getDefault());
     }
 
     /**
@@ -119,14 +119,35 @@ class TrendChartFactory {
      */
     LinesChartModel createSoftwareMetricsModel(
             final String configuration, final CoverageBuildAction latestAction, final Set<Metric> defaultMetrics) {
-        var linesChartModel = getLinesChartModel(configuration, latestAction, true, true, defaultMetrics);
+        var linesChartModel = getLinesChartModel(
+                configuration, latestAction, true, true, defaultMetrics, false, getAggregation(configuration));
         linesChartModel.setZeroBasedYAxis(useZeroBasedAxis(configuration));
         return linesChartModel;
     }
 
     LinesChartModel createChartModel(
             final String configuration, final CoverageBuildAction latestAction, final Set<Metric> defaultMetrics) {
-        var linesChartModel = getLinesChartModel(configuration, latestAction, false, false, defaultMetrics);
+        var linesChartModel = getLinesChartModel(
+                configuration, latestAction, false, false, defaultMetrics, false, MetricAggregation.getDefault());
+        linesChartModel.setZeroBasedYAxis(useZeroBasedAxis(configuration));
+        return linesChartModel;
+    }
+
+    /**
+     * Creates the coverage trend chart of the new (tabbed) run UI. In contrast to
+     * {@link #createChartModel(String, CoverageBuildAction, Set)}, all metrics of {@link #COVERAGE_TREND_METRICS} are
+     * rendered, including percentages that are no coverage metrics (e.g., the class cohesion).
+     *
+     * @param configuration
+     *         JSON object to configure optional properties for the trend chart
+     * @param latestAction
+     *         the latest action that provides the results of the builds to show
+     *
+     * @return the chart model
+     */
+    LinesChartModel createCoverageModel(final String configuration, final CoverageBuildAction latestAction) {
+        var linesChartModel = getLinesChartModel(
+                configuration, latestAction, false, false, COVERAGE_TREND_METRICS, true, getAggregation(configuration));
         linesChartModel.setZeroBasedYAxis(useZeroBasedAxis(configuration));
         return linesChartModel;
     }
@@ -136,7 +157,9 @@ class TrendChartFactory {
             final CoverageBuildAction latestAction,
             final boolean isMetric,
             final boolean adaptiveMaximum,
-            final Set<Metric> defaultMetrics) {
+            final Set<Metric> defaultMetrics,
+            final boolean showAllPercentages,
+            final MetricAggregation aggregation) {
         var buildActions = new BuildActionIterable<>(
                 CoverageBuildAction.class,
                 Optional.of(latestAction),
@@ -148,7 +171,14 @@ class TrendChartFactory {
                 .collect(Collectors.toSet());
         actualValues.retainAll(getVisibleMetrics(configuration, defaultMetrics));
 
-        return getTrendChartType(latestAction, actualValues, useLines(configuration), isMetric, adaptiveMaximum)
+        return getTrendChartType(
+                        latestAction,
+                        actualValues,
+                        useLines(configuration),
+                        isMetric,
+                        adaptiveMaximum,
+                        showAllPercentages,
+                        aggregation)
                 .create(buildActions, ChartModelConfiguration.fromJson(configuration));
     }
 
@@ -158,6 +188,29 @@ class TrendChartFactory {
 
     private boolean useZeroBasedAxis(final String configuration) {
         return getBoolean(configuration, "zeroBasedYAxis", false);
+    }
+
+    /**
+     * Returns the aggregation of the values that should be shown in the chart. The aggregation is selected by the
+     * property {@code aggregation} of the configuration, e.g. {@code "MAXIMUM"}. If this property is missing or
+     * invalid, the {@link MetricAggregation#OVERALL overall} values are shown.
+     *
+     * @param configuration
+     *         JSON object to configure optional properties for the trend chart
+     *
+     * @return the aggregation
+     */
+    MetricAggregation getAggregation(final String configuration) {
+        try {
+            var node = new ObjectMapper().readValue(configuration, ObjectNode.class);
+            var aggregationNode = node.get("aggregation");
+            if (aggregationNode != null) {
+                return MetricAggregation.fromString(aggregationNode.asString());
+            }
+        } catch (JacksonException | IllegalArgumentException exception) {
+            // ignore and use the default aggregation
+        }
+        return MetricAggregation.getDefault();
     }
 
     boolean getBoolean(final String json, final String property, final boolean defaultValue) {
@@ -200,13 +253,15 @@ class TrendChartFactory {
             final Set<Metric> visibleMetrics,
             final boolean useLines,
             final boolean isMetric,
-            final boolean adaptiveMaximum) {
+            final boolean adaptiveMaximum,
+            final boolean showAllPercentages,
+            final MetricAggregation aggregation) {
         var hasCoverage = latestAction.getAllValues(Baseline.PROJECT).stream()
                 .map(Value::getMetric)
                 .anyMatch(Metric::isCoverage);
         if (isMetric || !hasCoverage) {
-            return new MetricsTrendChart(visibleMetrics, useLines, adaptiveMaximum);
+            return new MetricsTrendChart(visibleMetrics, useLines, adaptiveMaximum, aggregation);
         }
-        return new CoverageTrendChart(visibleMetrics, useLines);
+        return new CoverageTrendChart(visibleMetrics, useLines, showAllPercentages, aggregation);
     }
 }

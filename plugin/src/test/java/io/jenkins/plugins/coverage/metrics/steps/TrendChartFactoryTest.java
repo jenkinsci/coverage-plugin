@@ -3,6 +3,7 @@ package io.jenkins.plugins.coverage.metrics.steps;
 import static org.assertj.core.api.Assertions.*;
 
 import edu.hm.hafner.coverage.Metric;
+import edu.hm.hafner.coverage.MetricAggregation;
 import org.junit.jupiter.api.Test;
 
 class TrendChartFactoryTest {
@@ -73,6 +74,29 @@ class TrendChartFactoryTest {
                 .isEqualTo(TrendChartFactory.COVERAGE_TREND_METRICS);
         assertThat(jobAction.getVisibleMetrics("broken", TrendChartFactory.COVERAGE_TREND_METRICS))
                 .isEqualTo(TrendChartFactory.COVERAGE_TREND_METRICS);
+    }
+
+    @Test
+    void shouldSelectAggregation() {
+        var factory = new TrendChartFactory();
+
+        assertThat(factory.getAggregation("""
+                {
+                    "aggregation": "MAXIMUM"
+                }
+                """)).isEqualTo(MetricAggregation.MAXIMUM);
+        assertThat(factory.getAggregation("""
+                {
+                    "aggregation": "minimum"
+                }
+                """)).isEqualTo(MetricAggregation.MINIMUM);
+        assertThat(factory.getAggregation("""
+                {
+                    "aggregation": "WRONG"
+                }
+                """)).isEqualTo(MetricAggregation.OVERALL);
+        assertThat(factory.getAggregation("{}")).isEqualTo(MetricAggregation.OVERALL);
+        assertThat(factory.getAggregation("broken")).isEqualTo(MetricAggregation.OVERALL);
     }
 
     @Test

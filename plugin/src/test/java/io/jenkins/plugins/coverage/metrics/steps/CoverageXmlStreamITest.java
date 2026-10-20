@@ -8,6 +8,7 @@ import static org.xmlunit.assertj.XmlAssert.assertThat;
 import edu.hm.hafner.coverage.Difference;
 import edu.hm.hafner.coverage.FileNode;
 import edu.hm.hafner.coverage.Metric;
+import edu.hm.hafner.coverage.MetricAggregation;
 import edu.hm.hafner.coverage.Node;
 import edu.hm.hafner.coverage.Value;
 import edu.hm.hafner.coverage.parser.JacocoParser;
@@ -18,6 +19,7 @@ import hudson.model.FreeStyleBuild;
 import hudson.util.XStream2;
 import io.jenkins.plugins.coverage.metrics.Assertions;
 import io.jenkins.plugins.coverage.metrics.model.Baseline;
+import io.jenkins.plugins.coverage.metrics.model.CoverageStatistics;
 import io.jenkins.plugins.coverage.metrics.steps.CoverageXmlStream.IntegerLineMapConverter;
 import io.jenkins.plugins.coverage.metrics.steps.CoverageXmlStream.IntegerSetConverter;
 import io.jenkins.plugins.coverage.metrics.steps.CoverageXmlStream.MetricFractionMapConverter;
@@ -95,6 +97,103 @@ class CoverageXmlStreamITest extends SerializableTest<Node> {
                         a -> Assertions.assertThat(a.getAllValues(Baseline.PROJECT))
                                 .map(v -> v.getDetails(Locale.ENGLISH))
                                 .containsExactlyInAnyOrder(expectedMetrics));
+        assertThat(restored)
+                .isInstanceOfSatisfying(CoverageBuildAction.class, this::assertThatOnlyOverallValuesAreAvailable);
+    }
+
+    private void assertThatOnlyOverallValuesAreAvailable(final CoverageBuildAction action) {
+        var statistics = action.getStatistics();
+        Assertions.assertThat(statistics.getAllValues(Baseline.PROJECT, MetricAggregation.OVERALL))
+                .isNotEmpty();
+        Assertions.assertThat(statistics.getAllValues(Baseline.PROJECT, MetricAggregation.MAXIMUM))
+                .isEmpty();
+        Assertions.assertThat(statistics.getAllValues(Baseline.PROJECT, MetricAggregation.MINIMUM))
+                .isEmpty();
+        Assertions.assertThat(statistics.getAllDeltas(Baseline.PROJECT_DELTA, MetricAggregation.MAXIMUM))
+                .isEmpty();
+    }
+
+    @Test
+    void shouldStoreAndRestoreAggregatedValues() throws IOException {
+        Path saved = createTempFile();
+
+        var stream = new XStream2();
+
+        CoverageBuildAction.registerValueListConverters(stream);
+        CoverageXmlStream.registerConverters(stream);
+
+        var file = new XmlFile(stream, saved.toFile());
+        file.write(createActionWithAggregatedValues());
+
+        var xml = Input.from(saved);
+        assertThat(xml)
+                .nodesByXPath("//" + ACTION_QUALIFIED_NAME + "/aggregatedValues/coverage-aggregated-values")
+                .hasSize(2);
+        assertThat(xml)
+                .nodesByXPath("//" + ACTION_QUALIFIED_NAME
+                        + "/aggregatedValues/coverage-aggregated-values[aggregation='MAXIMUM']/projectValues/*")
+                .extractingText()
+                .containsExactly("LOC: 100", "CYCLOMATIC_COMPLEXITY: 20");
+
+        var restored = file.read();
+        assertThat(restored)
+                .isInstanceOfSatisfying(CoverageBuildAction.class, this::assertThatAggregatedValuesAreRestored);
+    }
+
+    private void assertThatAggregatedValuesAreRestored(final CoverageBuildAction action) {
+        var statistics = action.getStatistics();
+
+        Assertions.assertThat(statistics.getValue(Baseline.PROJECT, CYCLOMATIC_COMPLEXITY))
+                .contains(new Value(CYCLOMATIC_COMPLEXITY, 160));
+        Assertions.assertThat(statistics.getValue(Baseline.PROJECT, CYCLOMATIC_COMPLEXITY, MetricAggregation.MAXIMUM))
+                .contains(new Value(CYCLOMATIC_COMPLEXITY, 20));
+        Assertions.assertThat(statistics.getValue(Baseline.PROJECT, CYCLOMATIC_COMPLEXITY, MetricAggregation.MINIMUM))
+                .contains(new Value(CYCLOMATIC_COMPLEXITY, 1));
+        Assertions.assertThat(
+                        statistics.getValue(Baseline.PROJECT_DELTA, CYCLOMATIC_COMPLEXITY, MetricAggregation.MAXIMUM))
+                .contains(new Difference(CYCLOMATIC_COMPLEXITY, 5));
+        Assertions.assertThat(
+                        statistics.getValue(Baseline.MODIFIED_LINES, CYCLOMATIC_COMPLEXITY, MetricAggregation.MAXIMUM))
+                .contains(new Value(CYCLOMATIC_COMPLEXITY, 12));
+        Assertions.assertThat(statistics.getValue(
+                        Baseline.MODIFIED_FILES_DELTA, CYCLOMATIC_COMPLEXITY, MetricAggregation.MINIMUM))
+                .contains(new Difference(CYCLOMATIC_COMPLEXITY, -1));
+
+        Assertions.assertThat(serializeValues(action.getAllValues(Baseline.MODIFIED_LINES)))
+                .containsExactly("CYCLOMATIC_COMPLEXITY: 30");
+    }
+
+    private CoverageBuildAction createActionWithAggregatedValues() {
+        var statistics = new CoverageStatistics(
+                Map.of(
+                        MetricAggregation.OVERALL,
+                        List.of(),
+                        MetricAggregation.MAXIMUM,
+                        List.of(Value.valueOf("LOC: 100"), new Value(CYCLOMATIC_COMPLEXITY, 20)),
+                        MetricAggregation.MINIMUM,
+                        List.of(new Value(CYCLOMATIC_COMPLEXITY, 1))),
+                Map.of(MetricAggregation.MAXIMUM, List.of(new Difference(CYCLOMATIC_COMPLEXITY, 5))),
+                Map.of(
+                        MetricAggregation.OVERALL,
+                        List.of(new Value(CYCLOMATIC_COMPLEXITY, 30)),
+                        MetricAggregation.MAXIMUM,
+                        List.of(new Value(CYCLOMATIC_COMPLEXITY, 12))),
+                Map.of(),
+                Map.of(),
+                Map.of(MetricAggregation.MINIMUM, List.of(new Difference(CYCLOMATIC_COMPLEXITY, -1))));
+
+        return new CoverageBuildAction(
+                mock(FreeStyleBuild.class),
+                CoverageRecorder.DEFAULT_ID,
+                StringUtils.EMPTY,
+                StringUtils.EMPTY,
+                createSerializable(),
+                new QualityGateResult(),
+                new FilteredLog("Test"),
+                "-",
+                statistics,
+                List.of(),
+                false);
     }
 
     @Test

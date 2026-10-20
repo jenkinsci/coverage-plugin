@@ -7,6 +7,7 @@ import static org.mockito.Mockito.*;
 import edu.hm.hafner.coverage.Coverage;
 import edu.hm.hafner.coverage.Coverage.CoverageBuilder;
 import edu.hm.hafner.coverage.Metric;
+import edu.hm.hafner.coverage.MetricAggregation;
 import edu.hm.hafner.coverage.Value;
 import edu.hm.hafner.echarts.Build;
 import edu.hm.hafner.echarts.BuildResult;
@@ -19,6 +20,7 @@ import io.jenkins.plugins.coverage.metrics.model.CoverageStatistics;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -248,6 +250,54 @@ class CoverageSeriesBuilderTest extends ResourceTest {
         var model = trendChart.create(List.of(first, second), createConfiguration());
 
         assertThatJson(model).isEqualTo(toString("chart.json"));
+    }
+
+    @Test
+    void shouldUseValuesOfSelectedAggregation() {
+        var withAggregatedValues = new BuildResult<>(
+                new Build(2),
+                new CoverageStatistics(
+                        Map.of(
+                                MetricAggregation.OVERALL,
+                                List.of(new Value(Metric.CYCLOMATIC_COMPLEXITY, 100)),
+                                MetricAggregation.MAXIMUM,
+                                List.of(new Value(Metric.CYCLOMATIC_COMPLEXITY, 12)),
+                                MetricAggregation.MINIMUM,
+                                List.of(new Value(Metric.CYCLOMATIC_COMPLEXITY, 1))),
+                        Map.of(),
+                        Map.of(),
+                        Map.of(),
+                        Map.of(),
+                        Map.of()));
+        var withOverallValuesOnly = new BuildResult<>(
+                new Build(1),
+                new CoverageStatistics(
+                        List.of(new Value(Metric.CYCLOMATIC_COMPLEXITY, 80)),
+                        List.of(),
+                        List.of(),
+                        List.of(),
+                        List.of(),
+                        List.of()));
+        var results = List.of(withOverallValuesOnly, withAggregatedValues);
+        var complexity = Metric.CYCLOMATIC_COMPLEXITY.toTagName();
+
+        assertThat(new CoverageSeriesBuilder()
+                        .createDataSet(createConfiguration(), results)
+                        .getSeries(complexity))
+                .containsExactly(80.0, 100.0);
+        assertThat(new CoverageSeriesBuilder(MetricAggregation.MAXIMUM)
+                        .createDataSet(createConfiguration(), List.of(withAggregatedValues))
+                        .getSeries(complexity))
+                .containsExactly(12.0);
+        assertThat(new CoverageSeriesBuilder(MetricAggregation.MINIMUM)
+                        .createDataSet(createConfiguration(), List.of(withAggregatedValues))
+                        .getSeries(complexity))
+                .containsExactly(1.0);
+        assertThat(new CoverageSeriesBuilder(MetricAggregation.MAXIMUM)
+                        .createDataSet(createConfiguration(), List.of(withOverallValuesOnly))
+                        .getDataSetIds())
+                .as("builds of older versions provide no aggregated values")
+                .isEmpty();
     }
 
     private ChartModelConfiguration createConfiguration() {

@@ -27,6 +27,16 @@
                     data-coverage-label="${%coverage-group}" data-software-label="${%software-group}"/>
           </div>
         </div>
+        <div style="display: flex; align-items: center;" tooltip="${%aggregation-tooltip}">
+          <div class="jenkins-!-margin-right-1" style="text-wrap: nowrap">${%aggregation-title}:</div>
+          <div class="jenkins-select">
+            <select id="scatter-aggregation" class="jenkins-select__input" style="min-width: 10em;">
+              <j:forEach var="aggregation" items="${it.formatter.aggregationItems}">
+                <option value="${aggregation.value}">${aggregation.name}</option>
+              </j:forEach>
+            </select>
+          </div>
+        </div>
         <div style="display: flex; align-items: center;" tooltip="${%size-tooltip}">
           <div class="jenkins-!-margin-right-1" style="text-wrap: nowrap">${%size-title}:</div>
           <div class="jenkins-select">

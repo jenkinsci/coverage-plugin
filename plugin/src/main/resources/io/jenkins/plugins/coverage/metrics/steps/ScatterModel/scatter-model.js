@@ -5,6 +5,8 @@
     const X_SELECTOR = '#scatter-x-metric';
     const Y_SELECTOR = '#scatter-y-metric';
     const SIZE_SELECTOR = '#scatter-size-metric';
+    const AGGREGATION_SELECTOR = '#scatter-aggregation';
+    const OVERALL = 'OVERALL';
     const CONSTANT_SIZE = '';
     const MIN_SYMBOL_SIZE = 6;
     const MAX_SYMBOL_SIZE = 30;
@@ -14,7 +16,8 @@
     const MIN_CHART_HEIGHT = 300;
     const BOTTOM_MARGIN = 40;
     let resizeTimeout;
-    let dataSet = null; // all metrics of all files, see ScatterModel#getScatterData
+    let dataSet = null; // all metrics of all files (overall values), see ScatterModel#getScatterData
+    let axisDataSet = null; // all metrics of all files using the selected aggregation, used for the X- and Y-axis
 
     function getReportId() {
         const element = document.querySelector(CHART_SELECTOR);
@@ -64,9 +67,18 @@
     }
 
     function findMetric(id) {
-        return dataSet.metrics.find(function (metric) {
+        return findMetricIn(dataSet, id);
+    }
+
+    function findMetricIn(data, id) {
+        return data.metrics.find(function (metric) {
             return metric.id === id;
         });
+    }
+
+    function getSelectedAggregation() {
+        const select = document.querySelector(AGGREGATION_SELECTOR);
+        return select && select.value ? select.value : OVERALL;
     }
 
     function fillSelect(select, storedKey, defaultId) {
@@ -247,8 +259,11 @@
         if (!element || !dataSet || dataSet.metrics.length === 0) {
             return;
         }
-        const xMetric = findMetric($(X_SELECTOR).val());
-        const yMetric = findMetric($(Y_SELECTOR).val());
+        // The axes use the selected aggregation, while the size always uses the overall value (e.g. the lines of
+        // code of a file), so the points keep their size when the aggregation is changed.
+        const axisData = axisDataSet || dataSet;
+        const xMetric = findMetricIn(axisData, $(X_SELECTOR).val());
+        const yMetric = findMetricIn(axisData, $(Y_SELECTOR).val());
         if (!xMetric || !yMetric) {
             return;
         }
@@ -269,18 +284,48 @@
         chart.resize();
     }
 
-    function loadData() {
-        proxy.getScatterData(function (t) {
-            dataSet = JSON.parse(t.responseObject());
-            populateSelects();
+    function loadAxisDataAndRender() {
+        const aggregation = getSelectedAggregation();
+        store('aggregation', aggregation);
+        if (aggregation === OVERALL) {
+            axisDataSet = null;
+            renderChart();
+            return;
+        }
+        proxy.getScatterData(aggregation, function (t) {
+            if (aggregation !== getSelectedAggregation()) {
+                return; // the selection has been changed in the meantime
+            }
+            axisDataSet = JSON.parse(t.responseObject());
             renderChart();
         });
     }
 
+    function initializeAggregationSelect() {
+        const select = document.querySelector(AGGREGATION_SELECTOR);
+        if (!select) {
+            return;
+        }
+        const previous = readStored('aggregation');
+        if (previous && select.querySelector('option[value="' + previous + '"]')) {
+            select.value = previous;
+        }
+    }
+
+    function loadData() {
+        proxy.getScatterData(OVERALL, function (t) {
+            dataSet = JSON.parse(t.responseObject());
+            populateSelects();
+            loadAxisDataAndRender();
+        });
+    }
+
     $(document).ready(function () {
+        initializeAggregationSelect();
         loadData();
 
         $(X_SELECTOR + ', ' + Y_SELECTOR + ', ' + SIZE_SELECTOR).on('change', renderChart);
+        $(AGGREGATION_SELECTOR).on('change', loadAxisDataAndRender);
 
         $(window).on('resize', function () {
             clearTimeout(resizeTimeout);

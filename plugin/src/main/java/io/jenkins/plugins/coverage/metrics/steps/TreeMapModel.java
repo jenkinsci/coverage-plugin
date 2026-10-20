@@ -130,6 +130,8 @@ public class TreeMapModel implements ModelObject {
      *
      * @param coverageMetric
      *         the used coverage metric (line, branch, instruction, mutation, ...)
+     * @param aggregation
+     *         the aggregation that is used to compute the value of each node (OVERALL, MAXIMUM, MINIMUM)
      * @param greenThreshold
      *         the value from which on a result is considered fully green (best)
      * @param redThreshold
@@ -140,8 +142,11 @@ public class TreeMapModel implements ModelObject {
     @JavaScriptMethod
     @SuppressWarnings("unused")
     public LabeledTreeMapNode getThresholdCoverageTree(
-            final String coverageMetric, final double greenThreshold, final double redThreshold) {
-        return parent.getThresholdCoverageTree(coverageMetric, greenThreshold, redThreshold);
+            final String coverageMetric,
+            final String aggregation,
+            final double greenThreshold,
+            final double redThreshold) {
+        return parent.getThresholdCoverageTree(coverageMetric, aggregation, greenThreshold, redThreshold);
     }
 
     /**
@@ -150,12 +155,14 @@ public class TreeMapModel implements ModelObject {
      *
      * @param coverageMetric
      *         the used coverage metric (line, branch, instruction, mutation, ...)
+     * @param aggregation
+     *         the aggregation that is used to compute the value of each node (OVERALL, MAXIMUM, MINIMUM)
      *
      * @return a list with exactly two elements: the minimum (index 0) and the maximum (index 1) value
      */
     @JavaScriptMethod
     @SuppressWarnings("unused")
-    public List<Double> getMetricValueRange(final String coverageMetric) {
-        return parent.getMetricValueRange(coverageMetric);
+    public List<Double> getMetricValueRange(final String coverageMetric, final String aggregation) {
+        return parent.getMetricValueRange(coverageMetric, aggregation);
     }
 }

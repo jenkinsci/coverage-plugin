@@ -21,7 +21,7 @@ class CoverageQualityGateTest {
         var gate = new CoverageQualityGate(80.0, Metric.LINE, Baseline.PROJECT, QualityGateCriticality.UNSTABLE);
 
         assertThat(gate.getAggregation()).isEqualTo(MetricAggregation.OVERALL);
-        assertThat(gate.getName()).isEqualTo("Overall project - Line Coverage");
+        assertThat(gate.getName()).isEqualTo("Whole project - Line Coverage");
     }
 
     @Test
@@ -34,7 +34,7 @@ class CoverageQualityGateTest {
                 MetricAggregation.MAXIMUM);
 
         assertThat(gate.getAggregation()).isEqualTo(MetricAggregation.MAXIMUM);
-        assertThat(gate.getName()).isEqualTo("Overall project - Cyclomatic Complexity (Maximum)");
+        assertThat(gate.getName()).isEqualTo("Whole project - Cyclomatic Complexity (Maximum)");
     }
 
     @ParameterizedTest
@@ -61,7 +61,7 @@ class CoverageQualityGateTest {
         var restored = (CoverageQualityGate) xStream.fromXML(legacyXml);
 
         assertThat(restored.getAggregation()).isEqualTo(MetricAggregation.OVERALL);
-        assertThat(restored.getName()).isEqualTo("Overall project - Line Coverage");
+        assertThat(restored.getName()).isEqualTo("Whole project - Line Coverage");
         assertThat(restored.getMetric()).isEqualTo(Metric.LINE);
         assertThat(restored.getBaseline()).isEqualTo(Baseline.PROJECT);
         assertThat(restored.getThreshold()).isEqualTo(80.0);

@@ -28,10 +28,12 @@ import java.util.stream.Collectors;
 public class OverviewModel implements ModelObject {
     private final Run<?, ?> owner;
     private final CoverageBuildAction action;
+    private final WorstValuesModel worstValues;
 
     OverviewModel(final Run<?, ?> owner, final CoverageBuildAction action) {
         this.owner = owner;
         this.action = action;
+        this.worstValues = new WorstValuesModel(action.getStatistics(), action.getFormatter());
     }
 
     @Override
@@ -63,6 +65,16 @@ public class OverviewModel implements ModelObject {
 
     public ElementFormatter getFormatter() {
         return action.getFormatter();
+    }
+
+    /**
+     * Returns the model that provides the worst values of the software metrics (e.g., the maximum cyclomatic
+     * complexity of all methods) for the "Further metrics" table.
+     *
+     * @return the worst values
+     */
+    public WorstValuesModel getWorstValues() {
+        return worstValues;
     }
 
     /**
@@ -351,19 +363,21 @@ public class OverviewModel implements ModelObject {
     }
 
     /**
-     * Returns whether the trend of the values for the specific metric is positive or negative.
+     * Returns whether the delta of the specified metric is an improvement or a deterioration. The tendency of the
+     * metric is considered: an increased coverage is an improvement, while an increased cyclomatic complexity is a
+     * deterioration.
      *
      * @param baseline
      *         the baseline to use
      * @param metric
      *         the metric to check
      *
-     * @return a positive value if the trend is positive, a negative value if the trend is negative, or {@code 0} if
-     *         there is no significant change in the trend
+     * @return a positive value for an improvement, a negative value for a deterioration, or {@code 0} if there is no
+     *         significant change
      */
     @SuppressWarnings("unused") // Called by jelly view
     public double getTrend(final Baseline baseline, final Metric metric) {
-        return action.getTrend(baseline, metric);
+        return WorstValuesModel.computeTrend(metric, action.getDelta(baseline, metric));
     }
 
     /**

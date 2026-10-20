@@ -4,6 +4,8 @@
     const CHART_ID = 'hierarchy-tree';
     const CHART_SELECTOR = '#' + CHART_ID;
     const SELECT_SELECTOR = '#hierarchy-metric-select';
+    const AGGREGATION_SELECTOR = '#hierarchy-aggregation-select';
+    const OVERALL = 'OVERALL';
     const GREEN_INPUT_SELECTOR = '#hierarchy-green-threshold';
     const RED_INPUT_SELECTOR = '#hierarchy-red-threshold';
     const FOOTER_SELECTOR = '.page-footer';
@@ -26,8 +28,16 @@
         return 'jenkins-coverage-hierarchy-metric-' + getReportId();
     }
 
-    function thresholdStorageKey(metricTagName) {
-        return 'jenkins-coverage-hierarchy-thresholds-' + getReportId() + '-' + metricTagName;
+    function aggregationStorageKey() {
+        return 'jenkins-coverage-hierarchy-aggregation-' + getReportId();
+    }
+
+    // The thresholds of the overall values are stored without a suffix (so previously stored thresholds are still
+    // used), the thresholds of the other aggregations get the aggregation as suffix, since e.g. the maximum
+    // complexity of the methods of a file is on a completely different scale than the total complexity of a file.
+    function thresholdStorageKey(metricTagName, aggregation) {
+        const key = 'jenkins-coverage-hierarchy-thresholds-' + getReportId() + '-' + metricTagName;
+        return aggregation === OVERALL ? key : key + '-' + aggregation.toLowerCase();
     }
 
     // Metrics that visualize a 0-100% coverage-style value (see the "data-shares-overview-thresholds" attribute
@@ -201,19 +211,41 @@
         };
     }
 
+    // Container metrics (e.g. the number of packages or files) do not support aggregations, the server then always
+    // uses the overall value. The aggregation select is disabled for these metrics.
+    function isContainer(option) {
+        return !!option && option.getAttribute('data-container') === 'true';
+    }
+
+    function getSelectedAggregation(option) {
+        const select = document.querySelector(AGGREGATION_SELECTOR);
+        if (!select || isContainer(option)) {
+            return OVERALL;
+        }
+        return select.value || OVERALL;
+    }
+
+    function updateAggregationSelect(option) {
+        const select = document.querySelector(AGGREGATION_SELECTOR);
+        if (select) {
+            select.disabled = isContainer(option);
+        }
+    }
+
     function persistThresholds(option, thresholds) {
         if (sharesOverviewThresholds(option)) {
             CoverageColorScale.persistThresholds(getReportId(), thresholds);
             return;
         }
-        localStorage.setItem(thresholdStorageKey(option.value), JSON.stringify(thresholds));
+        localStorage.setItem(thresholdStorageKey(option.value, getSelectedAggregation(option)),
+            JSON.stringify(thresholds));
     }
 
     function readPersistedThresholds(option) {
         if (sharesOverviewThresholds(option)) {
             return CoverageColorScale.readStoredThresholds(getReportId());
         }
-        const stored = localStorage.getItem(thresholdStorageKey(option.value));
+        const stored = localStorage.getItem(thresholdStorageKey(option.value, getSelectedAggregation(option)));
         if (!stored) {
             return null;
         }
@@ -235,11 +267,12 @@
             return;
         }
         const metricTagName = option.value;
+        const aggregation = getSelectedAggregation(option);
         const thresholds = readThresholds();
 
         fitChartToViewport();
 
-        proxy.getThresholdCoverageTree(metricTagName, thresholds.green, thresholds.red, function (t) {
+        proxy.getThresholdCoverageTree(metricTagName, aggregation, thresholds.green, thresholds.red, function (t) {
             createHierarchyTreeMap(t.responseObject(), option.textContent.trim());
             fitChartToViewport();
             resizeChart();
@@ -262,6 +295,7 @@
             return;
         }
         const metricTagName = option.value;
+        updateAggregationSelect(option);
 
         const persisted = readPersistedThresholds(option);
         if (persisted) {
@@ -281,7 +315,7 @@
             return;
         }
 
-        proxy.getMetricValueRange(metricTagName, function (t) {
+        proxy.getMetricValueRange(metricTagName, getSelectedAggregation(option), function (t) {
             const range = t.responseObject();
             const isAscending = option.getAttribute('data-order') === 'LARGER_IS_BETTER';
             const defaults = isAscending
@@ -320,6 +354,23 @@
         });
     }
 
+    function initializeAggregationSelect() {
+        const select = document.querySelector(AGGREGATION_SELECTOR);
+        if (!select) {
+            return;
+        }
+
+        const stored = localStorage.getItem(aggregationStorageKey());
+        if (stored && select.querySelector('option[value="' + stored + '"]')) {
+            select.value = stored;
+        }
+
+        select.addEventListener('change', function () {
+            localStorage.setItem(aggregationStorageKey(), select.value);
+            loadThresholdsAndRender();
+        });
+    }
+
     function initializeThresholdInputs() {
         document.querySelector(GREEN_INPUT_SELECTOR).addEventListener('change', onThresholdInputChanged);
         document.querySelector(RED_INPUT_SELECTOR).addEventListener('change', onThresholdInputChanged);
@@ -352,6 +403,7 @@
 
     $(document).ready(function () {
         initializeMetricSelect();
+        initializeAggregationSelect();
         initializeThresholdInputs();
 
         initializeJenkinsColorsAndRender();
