@@ -241,7 +241,7 @@ public final class CoveragePublisher extends AbstractStep implements PostBuildSt
     }
 
     /** Page area of a source code path configuration. */
-    private static class SourceCodeDirectoryPanel extends PageAreaImpl {
+    private static final class SourceCodeDirectoryPanel extends PageAreaImpl {
         private final Control path = control("path");
 
         private SourceCodeDirectoryPanel(final PageArea area, final String path) {

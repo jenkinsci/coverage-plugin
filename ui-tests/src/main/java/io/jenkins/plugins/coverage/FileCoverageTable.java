@@ -40,13 +40,13 @@ public class FileCoverageTable {
     }
 
     /**
-     * Creates the concrete table row as an object of the matching sub-class of {@link FileCoverageTableRow}. This row
+     * Creates the concrete table row as an object of the matching subclass of {@link FileCoverageTableRow}. This row
      * contains the specialized column mapping of the corresponding issues table.
      *
      * @param row the WebElement representing the specific row
      * @return the table row
      */
-    protected FileCoverageTableRow createRow(final WebElement row) {
+    private FileCoverageTableRow createRow(final WebElement row) {
         return new FileCoverageTableRow(row, this);
     }
 
