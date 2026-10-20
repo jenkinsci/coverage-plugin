@@ -15,7 +15,7 @@
       <div class="jenkins-details"
            style="display: flex; flex-direction: row; justify-content: flex-end; align-items: center; flex-wrap: wrap; gap: 12px;">
         <div style="display: flex; align-items: center;" tooltip="${%histogram-tooltip}">
-          <div class="jenkins-!-margin-right-1" style="text-wrap: nowrap">${%Metric}:<cov:help-link anchor="metrics"/></div>
+          <div class="jenkins-!-margin-right-1" style="text-wrap: nowrap">${%Metric}:</div>
           <div class="jenkins-select">
             <select id="histogram-metric" class="jenkins-select__input" style="min-width: 14em;"/>
           </div>

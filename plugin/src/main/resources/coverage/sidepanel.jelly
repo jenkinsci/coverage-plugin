@@ -32,7 +32,7 @@
               icon="symbol-documents-outline plugin-ionicons-api"
               href="${url + '/' + id + '/table'}"/>
       <l:task title="${%Log Messages}"
-              icon="symbol-information-circle-outline plugin-ionicons-api"
+              icon="symbol-information-outline plugin-ionicons-api"
               href="${url + '/' + id + '/log'}"/>
       <l:task title="${%Help}"
               icon="symbol-help-circle-outline plugin-ionicons-api"

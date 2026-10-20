@@ -18,7 +18,7 @@
         <div id="baseline">
           <l:card title="${%Baselines}">
             <p>${%baselines-intro}</p>
-            <table class="jenkins-table jenkins-table--small">
+            <table class="coverage-help__table">
               <thead>
                 <tr>
                   <th>${%Baseline}</th>
@@ -40,7 +40,7 @@
         <div id="aggregation">
           <l:card title="${%Aggregations}">
             <p>${%aggregations-intro}</p>
-            <table class="jenkins-table jenkins-table--small">
+            <table class="coverage-help__table">
               <thead>
                 <tr>
                   <th>${%Aggregation}</th>
@@ -63,7 +63,7 @@
         <div id="metrics">
           <l:card title="${%Metrics}">
             <p>${%metrics-intro}</p>
-            <table class="jenkins-table jenkins-table--small">
+            <table class="coverage-help__table">
               <thead>
                 <tr>
                   <th>${%Metric}</th>
