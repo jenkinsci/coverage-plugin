@@ -124,7 +124,9 @@
 
           <j:if test="${!it.countMetrics.isEmpty()}">
             <div class="coverage-dashboard__further-metrics">
-              <l:card title="${%Further metrics}">
+              <!-- The card renders the controls attribute (HTML) at the right side of its title. -->
+              <j:set var="metricsHelp"><cov:help-link anchor="metrics"/></j:set>
+              <l:card title="${%Further metrics}" controls="${metricsHelp}">
                 <j:set var="worst" value="${it.worstValues}"/>
                 <div class="coverage-dashboard__count-grid">
                   <div class="coverage-dashboard__count-grid-header coverage-dashboard__count-grid-header--label">${%Metric}</div>

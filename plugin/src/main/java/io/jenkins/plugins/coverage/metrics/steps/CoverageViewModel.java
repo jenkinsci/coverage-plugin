@@ -96,6 +96,7 @@ public class CoverageViewModel extends DefaultAsyncTableContentProvider implemen
     private static final String HOTSPOTS_URL = "hotspots";
     private static final String FILES_URL = "table";
     private static final String LOG_VIEW_URL = "log";
+    private static final String HELP_URL = "help";
 
     private static final String NEW_BUILD_PAGE_FLAG_CLASS_NAME =
             "jenkins.model.experimentalflags.NewBuildPageUserExperimentalFlag";
@@ -701,6 +702,9 @@ public class CoverageViewModel extends DefaultAsyncTableContentProvider implemen
             }
             if (LOG_VIEW_URL.equals(link)) {
                 return new LogModel(getId(), getOwner(), getFormatter(), getLog());
+            }
+            if (HELP_URL.equals(link)) {
+                return new HelpModel(this);
             }
         }
 

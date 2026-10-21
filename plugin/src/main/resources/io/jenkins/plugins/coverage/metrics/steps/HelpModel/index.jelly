@@ -1,0 +1,106 @@
+<?jelly escape-by-default='true'?>
+<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:l="/lib/layout" xmlns:cov="/coverage">
+
+  <st:header name="Content-Type" value="text/html;charset=UTF-8"/>
+
+  <l:run-subpage>
+
+    <st:adjunct includes="io.jenkins.plugins.coverage.metrics.steps.RunTab.styles"/>
+
+    <j:set var="formatter" value="${it.formatter}"/>
+
+    <l:app-bar title="${it.displayName}"/>
+
+    <div class="coverage-body">
+      <cov:sidepanel id="${it.id}"/>
+
+      <div class="content coverage-help">
+        <div id="baseline">
+          <l:card title="${%Baselines}">
+            <p>${%baselines-intro}</p>
+            <table class="coverage-help__table">
+              <thead>
+                <tr>
+                  <th>${%Baseline}</th>
+                  <th>${%Description}</th>
+                </tr>
+              </thead>
+              <tbody>
+                <j:forEach var="baseline" items="${it.baselines}">
+                  <tr>
+                    <td class="coverage-help__name">${formatter.getDisplayName(baseline)}</td>
+                    <td>${it.getBaselineDescription(baseline)}</td>
+                  </tr>
+                </j:forEach>
+              </tbody>
+            </table>
+          </l:card>
+        </div>
+
+        <div id="aggregation">
+          <l:card title="${%Aggregations}">
+            <p>${%aggregations-intro}</p>
+            <table class="coverage-help__table">
+              <thead>
+                <tr>
+                  <th>${%Aggregation}</th>
+                  <th>${%Description}</th>
+                </tr>
+              </thead>
+              <tbody>
+                <j:forEach var="aggregation" items="${it.aggregations}">
+                  <tr>
+                    <td class="coverage-help__name">${formatter.getDisplayName(aggregation)}</td>
+                    <td>${it.getAggregationDescription(aggregation)}</td>
+                  </tr>
+                </j:forEach>
+              </tbody>
+            </table>
+            <p>${%aggregations-details}</p>
+          </l:card>
+        </div>
+
+        <div id="metrics">
+          <l:card title="${%Metrics}">
+            <p>${%metrics-intro}</p>
+            <table class="coverage-help__table">
+              <thead>
+                <tr>
+                  <th>${%Metric}</th>
+                  <th>${%Description}</th>
+                  <th>${%Group}</th>
+                  <th>${%Tendency}</th>
+                  <th>${%Overall value}</th>
+                  <th>${%Maximum and minimum of}</th>
+                </tr>
+              </thead>
+              <tbody>
+                <j:forEach var="metric" items="${it.metrics}">
+                  <tr>
+                    <td class="coverage-help__name">${formatter.getDisplayName(metric)}</td>
+                    <td>${it.getMetricDescription(metric)}</td>
+                    <td>${it.getGroup(metric)}</td>
+                    <td>${it.getTendency(metric)}</td>
+                    <td>${it.getComputation(metric)}</td>
+                    <td>${it.getAggregationElements(metric)}</td>
+                  </tr>
+                </j:forEach>
+              </tbody>
+            </table>
+          </l:card>
+        </div>
+
+        <l:card title="${%More information}">
+          <p>
+            ${%more-intro}
+            <a href="https://github.com/jenkinsci/coverage-plugin#readme" target="_blank" rel="noopener noreferrer">
+              ${%Coverage Plugin documentation}
+            </a>
+          </p>
+        </l:card>
+      </div>
+    </div>
+
+  </l:run-subpage>
+
+</j:jelly>

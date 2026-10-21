@@ -67,7 +67,7 @@
 
           <j:if test="${!it.riskRanking.isEmpty()}">
             <!-- The card renders the controls attribute (HTML) at the right side of its title. -->
-            <j:set var="riskHelp"><span class="coverage-hotspots__help" tooltip="${%risk-hint}">?</span></j:set>
+            <j:set var="riskHelp"><cov:help-link tooltip="${%risk-hint}"/></j:set>
             <l:card title="${%risk-title}" controls="${riskHelp}">
               <div class="coverage-hotspots__grid coverage-hotspots__grid--risk">
                 <div class="coverage-hotspots__grid-header coverage-hotspots__grid-header--corner">${%File}</div>

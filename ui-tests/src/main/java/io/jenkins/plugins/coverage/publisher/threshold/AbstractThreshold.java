@@ -1,10 +1,12 @@
 package io.jenkins.plugins.coverage.publisher.threshold;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.jenkinsci.test.acceptance.po.Control;
 import org.jenkinsci.test.acceptance.po.PageArea;
 import org.jenkinsci.test.acceptance.po.PageAreaImpl;
 
 /** Used for thresholds and global thresholds. */
+@SuppressFBWarnings("MC_OVERRIDABLE_METHOD_CALL_IN_CONSTRUCTOR")
 public abstract class AbstractThreshold extends PageAreaImpl {
     private final Control thresholdTarget = control("thresholdTarget");
     private final Control unhealthyThreshold = control("unhealthyThreshold");

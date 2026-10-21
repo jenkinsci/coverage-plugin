@@ -449,26 +449,6 @@ button.coverage-hotspots__grid-header:hover {
     content: " \2191";
 }
 
-/* A small "?" in a circle, shown at the right side of a card title (see the controls attribute of the card). */
-.coverage-hotspots__help {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 16px;
-    height: 16px;
-    border: 1.5px solid currentColor;
-    border-radius: 50%;
-    color: var(--text-color-secondary);
-    font-size: 10px;
-    font-weight: 700;
-    line-height: 1;
-    cursor: help;
-}
-
-.coverage-hotspots__help:hover {
-    color: var(--text-color);
-}
-
 .coverage-hotspots__rows {
     display: contents;
 }
@@ -491,4 +471,70 @@ button.coverage-hotspots__grid-header:hover {
     font-weight: 600;
     text-align: right;
     white-space: nowrap;
+}
+
+/* The help page explains the baselines, aggregations, and metrics in cards (with the same vertical spacing as the
+   cards of the log messages). The tables look like the "Further metrics" table of the Overview: small font, column
+   headers with an underline, and no other lines. */
+.coverage-help {
+    display: flex;
+    flex-direction: column;
+    gap: calc(var(--section-padding) / 2);
+}
+
+/* The columns are separated by the horizontal border spacing (like the gap of the other grids), so the underline of
+   the headers is interrupted between two columns. The negative margins compensate the spacing at the outer edges. */
+.coverage-help__table {
+    width: calc(100% + 24px);
+    margin: 12px -12px;
+    border-collapse: separate;
+    border-spacing: 12px 0;
+    font-size: 12px;
+}
+
+.coverage-help__table th {
+    padding: 0 0 6px;
+    border-bottom: 1px solid var(--jenkins-border-color, #e5e7eb);
+    color: var(--text-color-secondary);
+    font-weight: 600;
+    text-align: left;
+    white-space: nowrap;
+}
+
+.coverage-help__table td {
+    padding: 5px 0;
+    vertical-align: top;
+}
+
+/* Same distance between the underline of the headers and the first row as in the other tables. */
+.coverage-help__table tbody tr:first-child td {
+    padding-top: 10px;
+}
+
+.coverage-help__name {
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+/* Small help icon in the controls of a card title (see the tag coverage/help-link.jelly): it links to the
+   corresponding section of the help page or explains the content of the card in its tooltip. */
+.coverage-help-link {
+    display: inline-flex;
+    align-items: center;
+    margin-left: 4px;
+    color: var(--text-color-secondary);
+    vertical-align: middle;
+}
+
+.coverage-help-link:hover {
+    color: var(--link-color);
+}
+
+/* A help icon without a link explains the element in its tooltip only. */
+.coverage-help-link--tooltip {
+    cursor: help;
+}
+
+.coverage-help-link--tooltip:hover {
+    color: var(--text-color);
 }
