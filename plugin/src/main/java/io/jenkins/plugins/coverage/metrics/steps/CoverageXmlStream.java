@@ -10,6 +10,7 @@ import edu.hm.hafner.coverage.ContainerNode;
 import edu.hm.hafner.coverage.Coverage;
 import edu.hm.hafner.coverage.Difference;
 import edu.hm.hafner.coverage.FileNode;
+import edu.hm.hafner.coverage.LineCounters;
 import edu.hm.hafner.coverage.MethodNode;
 import edu.hm.hafner.coverage.Metric;
 import edu.hm.hafner.coverage.ModuleNode;
@@ -75,6 +76,9 @@ class CoverageXmlStream extends AbstractXmlStream<Node> {
         xStream.alias("method", MethodNode.class);
         xStream.alias("mutation", Mutation.class);
 
+        xStream.registerLocalConverter(LineCounters.class, "covered", new IntegerLineMapConverter());
+        xStream.registerLocalConverter(LineCounters.class, "missed", new IntegerLineMapConverter());
+        // legacy format: these fields are still read, but are migrated to LineCounters by FileNode
         xStream.registerLocalConverter(FileNode.class, "coveredPerLine", new IntegerLineMapConverter());
         xStream.registerLocalConverter(FileNode.class, "missedPerLine", new IntegerLineMapConverter());
         xStream.registerLocalConverter(FileNode.class, "indirectCoverageChanges", new IntegerLineMapConverter());
