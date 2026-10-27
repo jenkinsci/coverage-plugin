@@ -42,7 +42,15 @@ class CoverageBuildActionTest {
                         "icon",
                         new ModuleNode("root"),
                         new QualityGateResult(QualityGateStatus.ERROR),
-                        new FilteredLog()))
+                        new FilteredLog(),
+                        "-",
+                        List.of(),
+                        List.of(),
+                        List.of(),
+                        List.of(),
+                        List.of(),
+                        List.of(),
+                        false))
                 .withMessageContaining("An ID must match the regexp pattern");
     }
 
