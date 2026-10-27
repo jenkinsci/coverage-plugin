@@ -1,5 +1,6 @@
 package io.jenkins.plugins.coverage.metrics.steps;
 
+import edu.hm.hafner.coverage.ChangeSet;
 import edu.hm.hafner.coverage.Coverage;
 import edu.hm.hafner.coverage.FileNode;
 import edu.hm.hafner.coverage.Metric;
@@ -121,6 +122,7 @@ public class CoverageViewModel extends DefaultAsyncTableContentProvider implemen
     private final String referenceBuild;
     private final FilteredLog log;
     private final Node node;
+    private final ChangeSet changes;
     private final String id;
 
     private final Node modifiedLinesCoverageTreeRoot;
@@ -137,6 +139,7 @@ public class CoverageViewModel extends DefaultAsyncTableContentProvider implemen
             final String id,
             final String displayName,
             final Node node,
+            final ChangeSet changes,
             final CoverageStatistics statistics,
             final QualityGateResult qualityGateResult,
             final String referenceBuild,
@@ -148,6 +151,7 @@ public class CoverageViewModel extends DefaultAsyncTableContentProvider implemen
                 id,
                 displayName,
                 node,
+                changes,
                 statistics,
                 qualityGateResult,
                 referenceBuild,
@@ -164,6 +168,7 @@ public class CoverageViewModel extends DefaultAsyncTableContentProvider implemen
             final String id,
             final String displayName,
             final Node node,
+            final ChangeSet changes,
             final CoverageStatistics statistics,
             final QualityGateResult qualityGateResult,
             final String referenceBuild,
@@ -179,14 +184,15 @@ public class CoverageViewModel extends DefaultAsyncTableContentProvider implemen
         this.displayName = displayName;
 
         this.node = node;
+        this.changes = changes;
         this.statistics = statistics;
         this.qualityGateResult = qualityGateResult;
         this.referenceBuild = referenceBuild;
 
         this.log = log;
 
-        modifiedLinesCoverageTreeRoot = node.filterByModifiedLines();
-        indirectCoverageChangesTreeRoot = node.filterByIndirectChanges();
+        modifiedLinesCoverageTreeRoot = node.filterByModifiedLines(changes);
+        indirectCoverageChangesTreeRoot = node.filterByIndirectChanges(changes);
         this.trendChartFunction = trendChartFunction;
         this.metricsTrendFunction = metricsTrendFunction;
         this.usePropertyFacade = usePropertyFacade;
@@ -508,13 +514,14 @@ public class CoverageViewModel extends DefaultAsyncTableContentProvider implemen
 
         var actualId = tableId.replace(INLINE_SUFFIX, StringUtils.EMPTY);
         return switch (actualId) {
-            case ABSOLUTE_COVERAGE_TABLE_ID -> new CoverageTableModel(tableId, getNode(), renderer, colorProvider);
+            case ABSOLUTE_COVERAGE_TABLE_ID ->
+                new CoverageTableModel(tableId, getNode(), changes, renderer, colorProvider);
             case MODIFIED_LINES_COVERAGE_TABLE_ID ->
                 new ModifiedLinesCoverageTableModel(
-                        tableId, getNode(), modifiedLinesCoverageTreeRoot, renderer, colorProvider);
+                        tableId, getNode(), changes, modifiedLinesCoverageTreeRoot, renderer, colorProvider);
             case INDIRECT_COVERAGE_TABLE_ID ->
                 new IndirectCoverageChangesTable(
-                        tableId, getNode(), indirectCoverageChangesTreeRoot, renderer, colorProvider);
+                        tableId, getNode(), changes, indirectCoverageChangesTreeRoot, renderer, colorProvider);
             default -> throw new NoSuchElementException("No such table with id " + actualId);
         };
     }
@@ -601,9 +608,9 @@ public class CoverageViewModel extends DefaultAsyncTableContentProvider implemen
         if (!content.isEmpty()) {
             String cleanTableId = Strings.CS.removeEnd(tableId, INLINE_SUFFIX);
             if (MODIFIED_LINES_COVERAGE_TABLE_ID.equals(cleanTableId)) {
-                return SOURCE_CODE_FACADE.calculateModifiedLinesCoverageSourceCode(content, sourceNode);
+                return SOURCE_CODE_FACADE.calculateModifiedLinesCoverageSourceCode(content, sourceNode, changes);
             } else if (INDIRECT_COVERAGE_TABLE_ID.equals(cleanTableId)) {
-                return SOURCE_CODE_FACADE.calculateIndirectCoverageChangesSourceCode(content, sourceNode);
+                return SOURCE_CODE_FACADE.calculateIndirectCoverageChangesSourceCode(content, sourceNode, changes);
             } else {
                 return content;
             }
@@ -709,10 +716,10 @@ public class CoverageViewModel extends DefaultAsyncTableContentProvider implemen
         }
 
         if (FILE_COVERAGE_API_URL.equals(link)) {
-            return new FileCoverageApiModel(node);
+            return new FileCoverageApiModel(node, changes);
         }
         if (MODIFIED_LINES_API_URL.equals(link)) {
-            return new ModifiedLinesCoverageApiModel(node);
+            return new ModifiedLinesCoverageApiModel(node, changes);
         }
         if (INFO_MESSAGES_VIEW_URL.equals(link)) {
             return new MessagesViewModel(

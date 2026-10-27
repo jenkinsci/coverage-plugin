@@ -1,5 +1,6 @@
 package io.jenkins.plugins.coverage.metrics.steps;
 
+import edu.hm.hafner.coverage.ChangeSet;
 import edu.hm.hafner.coverage.FileNode;
 import edu.hm.hafner.coverage.Node;
 import io.jenkins.plugins.coverage.metrics.color.ColorProvider;
@@ -13,16 +14,17 @@ class IndirectCoverageChangesTable extends ChangesTableModel {
     IndirectCoverageChangesTable(
             final String id,
             final Node root,
+            final ChangeSet changes,
             final Node changeRoot,
             final RowRenderer renderer,
             final ColorProvider colorProvider) {
-        super(id, root, changeRoot, renderer, colorProvider);
+        super(id, root, changes, changeRoot, renderer, colorProvider);
     }
 
     @Override
     IndirectCoverageChangesRow createRow(final FileNode file, final Locale browserLocale) {
         return new IndirectCoverageChangesRow(
-                getOriginalNode(file), file, browserLocale, getRenderer(), getColorProvider());
+                getOriginalNode(file), file, getChanges(), browserLocale, getRenderer(), getColorProvider());
     }
 
     /**
@@ -32,15 +34,18 @@ class IndirectCoverageChangesTable extends ChangesTableModel {
         IndirectCoverageChangesRow(
                 final FileNode originalFile,
                 final FileNode changedFileNode,
+                final ChangeSet changes,
                 final Locale browserLocale,
                 final RowRenderer renderer,
                 final ColorProvider colorProvider) {
-            super(originalFile, changedFileNode, browserLocale, renderer, colorProvider);
+            super(originalFile, changedFileNode, changes, browserLocale, renderer, colorProvider);
         }
 
         @Override
         public int getLoc() {
-            return getOriginalFile().getIndirectCoverageChanges().size();
+            return getChanges()
+                    .getIndirectCoverageChanges(getOriginalFile().getRelativePath())
+                    .size();
         }
     }
 }

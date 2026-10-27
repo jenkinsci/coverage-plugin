@@ -240,7 +240,8 @@ class GitForensicsITest extends AbstractCoverageITest {
     private void verifyModifiedFilesCoverage(final CoverageBuildAction action, final CoverageBuildAction reference) {
         assertThat(action.getAllValues(Baseline.MODIFIED_FILES))
                 .contains(Coverage.valueOf(LINE, "12/22"), Coverage.valueOf(BRANCH, "1/2"), new Value(LOC, 22));
-        var affectedFiles = action.getResult().filterByModifiedFiles().getFiles();
+        var affectedFiles =
+                action.getResult().filterByModifiedFiles(action.getChangeSet()).getFiles();
         assertThat(reference.getResult().filterByFileNames(affectedFiles).aggregateValues())
                 .contains(Coverage.valueOf(LINE, "17/34"), Coverage.valueOf(BRANCH, "1/2"), new Value(LOC, 34));
         var deltas = action.getAllDeltas(Baseline.MODIFIED_FILES_DELTA);
@@ -270,8 +271,9 @@ class GitForensicsITest extends AbstractCoverageITest {
         var root = action.getResult();
         assertThat(root).isNotNull();
 
+        var changes = action.getChangeSet();
         List<FileNode> modifiedFiles = root.getAllFileNodes().stream()
-                .filter(FileNode::hasModifiedLines)
+                .filter(file -> changes.hasModifiedLines(file.getRelativePath()))
                 .collect(Collectors.toList());
         assertThat(modifiedFiles).hasSize(4);
         assertThat(modifiedFiles)
@@ -281,8 +283,9 @@ class GitForensicsITest extends AbstractCoverageITest {
                         "RepositoryMinerStep.java",
                         "SimpleReferenceRecorder.java",
                         "CommitDecoratorFactory.java");
-        assertThat(modifiedFiles)
-                .flatExtracting(FileNode::getModifiedLines)
+        assertThat(modifiedFiles.stream()
+                        .flatMap(file -> changes.getModifiedLines(file.getRelativePath()).stream())
+                        .toList())
                 .containsExactlyInAnyOrder(15, 17, 63, 68, 80, 90, 130);
     }
 

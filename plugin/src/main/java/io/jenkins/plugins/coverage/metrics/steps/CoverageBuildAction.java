@@ -2,6 +2,7 @@ package io.jenkins.plugins.coverage.metrics.steps;
 
 import static hudson.model.Run.*;
 
+import edu.hm.hafner.coverage.ChangeSet;
 import edu.hm.hafner.coverage.Difference;
 import edu.hm.hafner.coverage.Metric;
 import edu.hm.hafner.coverage.MetricAggregation;
@@ -26,6 +27,7 @@ import io.jenkins.plugins.util.JobAction;
 import io.jenkins.plugins.util.QualityGateResult;
 import io.jenkins.plugins.util.ValidationUtilities;
 import java.io.Serial;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.EnumMap;
@@ -38,6 +40,8 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -122,6 +126,13 @@ public final class CoverageBuildAction extends BuildAction<Node> implements Stap
     /** The values of all baselines for the aggregations other than {@link MetricAggregation#OVERALL}. */
     @SuppressWarnings("serial")
     private /* almost final */ List<AggregatedValues> aggregatedValues; // since 3.0
+
+    /** Lazily loaded changes of the associated change request, see {@link #getChangeSet()}. */
+    private transient ChangeSet changeSet = ChangeSet.empty();
+
+    private transient boolean isChangeSetLoaded;
+
+    private transient Lock changeSetLock = new ReentrantLock(); // re-created in readResolve
 
     static {
         CoverageXmlStream.registerConverters(XSTREAM2);
@@ -279,7 +290,18 @@ public final class CoverageBuildAction extends BuildAction<Node> implements Stap
             final QualityGateResult qualityGateResult,
             final FilteredLog log,
             final CoverageStatistics statistics) {
-        this(owner, id, optionalName, icon, result, qualityGateResult, log, NO_REFERENCE_BUILD, statistics, NO_VALUES);
+        this(
+                owner,
+                id,
+                optionalName,
+                icon,
+                result,
+                qualityGateResult,
+                log,
+                NO_REFERENCE_BUILD,
+                statistics,
+                ChangeSet.empty(),
+                NO_VALUES);
     }
 
     /**
@@ -305,6 +327,8 @@ public final class CoverageBuildAction extends BuildAction<Node> implements Stap
      *         the ID of the reference build
      * @param statistics
      *         the values of all baselines and aggregations
+     * @param changes
+     *         the modified lines and indirect coverage changes of the associated change request
      * @param indirectCoverageChanges
      *         the indirect coverage changes of the associated change request with respect to the reference build
      */
@@ -319,6 +343,7 @@ public final class CoverageBuildAction extends BuildAction<Node> implements Stap
             final FilteredLog log,
             final String referenceBuildId,
             final CoverageStatistics statistics,
+            final ChangeSet changes,
             final List<? extends Value> indirectCoverageChanges) {
         this(
                 owner,
@@ -330,6 +355,7 @@ public final class CoverageBuildAction extends BuildAction<Node> implements Stap
                 log,
                 referenceBuildId,
                 statistics,
+                changes,
                 indirectCoverageChanges,
                 true);
     }
@@ -346,6 +372,7 @@ public final class CoverageBuildAction extends BuildAction<Node> implements Stap
             final FilteredLog log,
             final String referenceBuildId,
             final CoverageStatistics statistics,
+            final ChangeSet changes,
             final List<? extends Value> indirectCoverageChanges,
             final boolean canSerialize) {
         this(
@@ -364,6 +391,7 @@ public final class CoverageBuildAction extends BuildAction<Node> implements Stap
                 statistics.getAllDeltas(Baseline.MODIFIED_FILES_DELTA, MetricAggregation.getDefault()),
                 indirectCoverageChanges,
                 createAggregatedValues(statistics),
+                changes,
                 canSerialize);
     }
 
@@ -401,6 +429,7 @@ public final class CoverageBuildAction extends BuildAction<Node> implements Stap
                 modifiedFilesDifferences,
                 indirectCoverageChanges,
                 List.of(),
+                ChangeSet.empty(),
                 canSerialize);
     }
 
@@ -422,6 +451,7 @@ public final class CoverageBuildAction extends BuildAction<Node> implements Stap
             final List<? extends Difference> modifiedFilesDifferences,
             final List<? extends Value> indirectCoverageChanges,
             final List<AggregatedValues> aggregatedValues,
+            final ChangeSet changes,
             final boolean canSerialize) {
         super(owner, result, false);
 
@@ -444,9 +474,53 @@ public final class CoverageBuildAction extends BuildAction<Node> implements Stap
         this.indirectCoverageChanges = copy(indirectCoverageChanges);
         this.aggregatedValues = copy(aggregatedValues);
 
+        changeSet = changes;
+        isChangeSetLoaded = true;
+
         if (canSerialize) {
-            createXmlStream().write(owner.getRootDir().toPath().resolve(getBuildResultBaseName()), result);
+            var rootDir = owner.getRootDir().toPath();
+            createXmlStream().write(rootDir.resolve(getBuildResultBaseName()), result);
+            if (hasChanges(changes)) {
+                new ChangeSetXmlStream().write(rootDir.resolve(getChangeSetBaseName()), changes);
+            }
         }
+    }
+
+    private static boolean hasChanges(final ChangeSet changes) {
+        return changes.hasModifiedLines() || changes.hasIndirectCoverageChanges();
+    }
+
+    private String getChangeSetBaseName() {
+        return "%s-changes.xml".formatted(id);
+    }
+
+    /**
+     * Returns the modified lines and the indirect coverage changes of the associated change request. The changes are
+     * stored in a separate file, which is loaded on demand. Builds that have been created before the changes have been
+     * stored in a separate file still provide the changes, they are read from the coverage tree in this case.
+     *
+     * @return the changes, or an empty change set if there are no changes
+     */
+    public ChangeSet getChangeSet() {
+        changeSetLock.lock();
+        try {
+            if (!isChangeSetLoaded) {
+                changeSet = loadChangeSet();
+                isChangeSetLoaded = true;
+            }
+            return changeSet;
+        } finally {
+            changeSetLock.unlock();
+        }
+    }
+
+    @SuppressWarnings("deprecation") // migration of builds that store the changes in the tree
+    private ChangeSet loadChangeSet() {
+        var file = getOwner().getRootDir().toPath().resolve(getChangeSetBaseName());
+        if (Files.exists(file)) {
+            return new ChangeSetXmlStream().read(file);
+        }
+        return ChangeSet.fromLegacyTree(getResult());
     }
 
     private static List<AggregatedValues> createAggregatedValues(final CoverageStatistics statistics) {
@@ -466,6 +540,8 @@ public final class CoverageBuildAction extends BuildAction<Node> implements Stap
         super.readResolve();
 
         VALIDATION_UTILITIES.ensureValidId(id);
+
+        changeSetLock = new ReentrantLock(); // transient fields are not initialized by the deserialization
 
         if (difference == null) {
             difference = new TreeMap<>();
@@ -939,6 +1015,7 @@ public final class CoverageBuildAction extends BuildAction<Node> implements Stap
                 getUrlName(),
                 name,
                 getResult(),
+                getChangeSet(),
                 getStatistics(),
                 getQualityGateResult(),
                 getReferenceBuildLink(),
@@ -954,6 +1031,7 @@ public final class CoverageBuildAction extends BuildAction<Node> implements Stap
                 getUrlName(),
                 name,
                 getResult(),
+                getChangeSet(),
                 getStatistics(),
                 getQualityGateResult(),
                 getReferenceBuildLink(),

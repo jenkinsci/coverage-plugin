@@ -3,6 +3,7 @@ package io.jenkins.plugins.coverage.metrics.steps;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
+import edu.hm.hafner.coverage.ChangeSet;
 import edu.hm.hafner.coverage.ClassNode;
 import edu.hm.hafner.coverage.Coverage;
 import edu.hm.hafner.coverage.Coverage.CoverageBuilder;
@@ -375,6 +376,7 @@ class OverviewModelTest extends AbstractCoverageTest {
                 new FilteredLog("Errors"),
                 "-",
                 statistics,
+                ChangeSet.empty(),
                 List.of(),
                 false);
         return new OverviewModel(mock(Run.class), action);

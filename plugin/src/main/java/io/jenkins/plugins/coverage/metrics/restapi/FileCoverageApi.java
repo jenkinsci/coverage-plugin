@@ -1,5 +1,6 @@
 package io.jenkins.plugins.coverage.metrics.restapi;
 
+import edu.hm.hafner.coverage.ChangeSet;
 import edu.hm.hafner.coverage.Coverage;
 import edu.hm.hafner.coverage.FileNode;
 import edu.hm.hafner.coverage.Node;
@@ -24,8 +25,8 @@ public class FileCoverageApi {
 
     private final List<FileCoverage> files;
 
-    FileCoverageApi(final Node node) {
-        files = createListOfFilesWithCoverage(node);
+    FileCoverageApi(final Node node, final ChangeSet changes) {
+        files = createListOfFilesWithCoverage(node, changes);
     }
 
     @Exported(inline = true, name = "files")
@@ -40,13 +41,15 @@ public class FileCoverageApi {
      *
      * @param node
      *         containing the file tree.
+     * @param changes
+     *         the changes of the build
      *
      * @return a list of {@link FileCoverage} objects, one per file with coverage relevant changes.
      */
-    private List<FileCoverage> createListOfFilesWithCoverage(final Node node) {
+    private List<FileCoverage> createListOfFilesWithCoverage(final Node node, final ChangeSet changes) {
         var result = new ArrayList<FileCoverage>();
 
-        for (FileNode fileNode : node.filterByModifiedFiles().getAllFileNodes()) {
+        for (FileNode fileNode : node.filterByModifiedFiles(changes).getAllFileNodes()) {
             var metrics = new TreeMap<String, String>();
             for (Value value : fileNode.getValues()) {
                 if (value instanceof Coverage coverage && coverage.isSet()) {

@@ -1,10 +1,17 @@
 package io.jenkins.plugins.coverage.metrics.steps;
 
-import static edu.hm.hafner.coverage.Metric.*;
-import static org.assertj.core.api.BDDAssertions.*;
+import static edu.hm.hafner.coverage.Metric.BRANCH;
+import static edu.hm.hafner.coverage.Metric.CYCLOMATIC_COMPLEXITY;
+import static edu.hm.hafner.coverage.Metric.INSTRUCTION;
+import static edu.hm.hafner.coverage.Metric.LINE;
+import static edu.hm.hafner.coverage.Metric.LOC;
+import static edu.hm.hafner.coverage.Metric.METHOD;
+import static java.util.Map.entry;
 import static org.mockito.Mockito.*;
 import static org.xmlunit.assertj.XmlAssert.assertThat;
 
+import edu.hm.hafner.coverage.ChangeSet;
+import edu.hm.hafner.coverage.ChangeSet.ChangeSetBuilder;
 import edu.hm.hafner.coverage.Difference;
 import edu.hm.hafner.coverage.FileNode;
 import edu.hm.hafner.coverage.LineCounters;
@@ -40,6 +47,8 @@ import java.util.TreeSet;
 import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.junitpioneer.jupiter.Issue;
 import org.xmlunit.builder.Input;
 import org.xmlunit.builder.Input.Builder;
@@ -194,6 +203,7 @@ class CoverageXmlStreamITest extends SerializableTest<Node> {
                 new FilteredLog("Test"),
                 "-",
                 statistics,
+                ChangeSet.empty(),
                 List.of(),
                 false);
     }
@@ -243,11 +253,72 @@ class CoverageXmlStreamITest extends SerializableTest<Node> {
         xmlStream.write(saved, tree);
         Files.writeString(saved, convertToLegacyFormat(Files.readString(saved)));
 
-        then(Files.readString(saved))
+        Assertions.assertThat(Files.readString(saved))
                 .contains("<coveredPerLine", "<missedPerLine")
                 .doesNotContain("<lineCounters>");
 
         Assertions.assertThat(xmlStream.read(saved)).usingRecursiveComparison().isEqualTo(tree);
+    }
+
+    /**
+     * Verifies that the modified lines and the indirect coverage changes are stored in a separate file (sidecar) and
+     * that they survive a save and restore cycle.
+     *
+     * @throws IOException
+     *         if the change set cannot be written or read
+     */
+    @Test
+    void shouldSaveAndRestoreChangeSet() throws IOException {
+        Path saved = createTempFile();
+        var changes = new ChangeSetBuilder()
+                .addModifiedLines(MODIFIED_FILE_PATH, 5, 6, 7)
+                .addModifiedLines("Other.java", 1)
+                .addIndirectCoverageChange(MODIFIED_FILE_PATH, 11, -1)
+                .addIndirectCoverageChange(MODIFIED_FILE_PATH, 31, 1)
+                .build();
+
+        var xmlStream = new ChangeSetXmlStream();
+        xmlStream.write(saved, changes);
+
+        Assertions.assertThat(Files.readString(saved)).contains("<changes>");
+        Assertions.assertThat(xmlStream.read(saved)).isEqualTo(changes);
+    }
+
+    /**
+     * Verifies that the modified lines of old builds can still be read: they have been stored in the field
+     * {@code changedLines} (compact format) or in the field {@code modifiedLines} (default collection format).
+     *
+     * @param legacyModifiedLines
+     *         the XML element of the legacy format that is added to the first file
+     *
+     * @throws IOException
+     *         if the coverage tree cannot be written or read
+     */
+    @ParameterizedTest
+    @ValueSource(
+            strings = {
+                "<changedLines>[3, 4]</changedLines>",
+                "<modifiedLines>[3, 4]</modifiedLines>",
+                "<modifiedLines class=\"tree-set\"><no-comparator/><int>3</int><int>4</int></modifiedLines>"
+            })
+    void shouldRestoreTreeWithLegacyModifiedLines(final String legacyModifiedLines) throws IOException {
+        Path saved = createTempFile();
+
+        var xmlStream = new CoverageXmlStream();
+        var tree = createSerializable();
+        xmlStream.write(saved, tree);
+        var xml = Files.readString(saved);
+        Assertions.assertThat(xml).doesNotContain("changedLines", "modifiedLines");
+        Files.writeString(saved, xml.replaceFirst("(<file(?: [^>]*)?>)", "$1" + legacyModifiedLines));
+
+        var changes = ChangeSet.fromLegacyTree(xmlStream.read(saved));
+
+        var firstFile = tree.getAllFileNodes().get(0);
+        Assertions.assertThat(changes.hasModifiedLines()).isTrue();
+        Assertions.assertThat(changes.hasModifiedLines(firstFile.getRelativePath()))
+                .isTrue();
+        Assertions.assertThat(changes.getModifiedLines(firstFile.getRelativePath()))
+                .containsExactly(3, 4);
     }
 
     private String convertToLegacyFormat(final String xml) {
@@ -287,12 +358,12 @@ class CoverageXmlStreamITest extends SerializableTest<Node> {
     private void assertThatDeltasOfModifiedFileAreCorrect(final Node tree) {
         var file = findModifiedFile(tree);
 
-        then(file.hasDelta(LINE)).isTrue();
-        then(file.hasDelta(BRANCH)).isTrue();
-        then(file.getDelta(LINE)).isEqualTo(new Difference(LINE, 100, 39));
-        then(file.getDelta(BRANCH)).isEqualTo(new Difference(BRANCH, 25, 2));
-        then(file.getDelta(INSTRUCTION)).isEqualTo(new Difference(INSTRUCTION, 1000, 111));
-        then(file.getDelta(METHOD)).isEqualTo(new Difference(METHOD, -40, 3));
+        Assertions.assertThat(file.hasDelta(LINE)).isTrue();
+        Assertions.assertThat(file.hasDelta(BRANCH)).isTrue();
+        Assertions.assertThat(file.getDelta(LINE)).isEqualTo(new Difference(LINE, 100, 39));
+        Assertions.assertThat(file.getDelta(BRANCH)).isEqualTo(new Difference(BRANCH, 25, 2));
+        Assertions.assertThat(file.getDelta(INSTRUCTION)).isEqualTo(new Difference(INSTRUCTION, 1000, 111));
+        Assertions.assertThat(file.getDelta(METHOD)).isEqualTo(new Difference(METHOD, -40, 3));
     }
 
     private FileNode findModifiedFile(final Node tree) {

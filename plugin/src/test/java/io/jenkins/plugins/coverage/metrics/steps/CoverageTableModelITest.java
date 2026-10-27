@@ -73,6 +73,7 @@ class CoverageTableModelITest extends AbstractModifiedFilesCoverageTest {
                 "id",
                 StringUtils.EMPTY,
                 node,
+                createChangeSet(node),
                 createStatistics(),
                 new QualityGateResult(),
                 "-",

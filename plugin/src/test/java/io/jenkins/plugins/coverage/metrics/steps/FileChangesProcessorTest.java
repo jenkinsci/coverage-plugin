@@ -17,24 +17,12 @@ import org.junit.jupiter.api.Test;
 class FileChangesProcessorTest extends AbstractModifiedFilesCoverageTest {
     @Test
     void shouldAttachChangedCodeLines() {
-        var tree = createCoverageTree();
+        var changes = createChangeSet(createCoverageTree());
 
-        assertThat(tree.findByHashCode(
-                        Metric.FILE, getPathOfFileWithModifiedLines().hashCode()))
-                .isNotEmpty()
-                .satisfies(node -> assertThat(node.get())
-                        .isInstanceOfSatisfying(
-                                FileNode.class,
-                                f -> assertThat(f.getModifiedLines())
-                                        .containsExactly(
-                                                5, 6, 7, 8, 9, 14, 15, 16, 17, 18, 20, 21, 22, 33, 34, 35, 36)));
-        assertThat(tree.findByHashCode(
-                        Metric.FILE, getNameOfFileWithoutModifiedLines().hashCode()))
-                .isNotEmpty()
-                .satisfies(node -> assertThat(node.get())
-                        .isInstanceOfSatisfying(
-                                FileNode.class,
-                                f -> assertThat(f.getModifiedLines()).isEmpty()));
+        assertThat(changes.getModifiedLines(getPathOfFileWithModifiedLines()))
+                .containsExactly(5, 6, 7, 8, 9, 14, 15, 16, 17, 18, 20, 21, 22, 33, 34, 35, 36);
+        assertThat(changes.getModifiedLines(getNameOfFileWithoutModifiedLines()))
+                .isEmpty();
     }
 
     @Test
@@ -52,18 +40,10 @@ class FileChangesProcessorTest extends AbstractModifiedFilesCoverageTest {
 
     @Test
     void shouldAttachIndirectCoverageChanges() {
-        var tree = createCoverageTree();
+        var changes = createChangeSet(createCoverageTree());
 
-        assertThat(tree.findByHashCode(
-                        Metric.FILE, getPathOfFileWithModifiedLines().hashCode()))
-                .isNotEmpty()
-                .satisfies(node -> {
-                    assertThat(node.get()).isInstanceOf(FileNode.class);
-                    var file = (FileNode) node.get();
-                    assertThat(file.getIndirectCoverageChanges())
-                            .containsExactly(
-                                    new SimpleEntry<>(11, -1), new SimpleEntry<>(29, -1), new SimpleEntry<>(31, 1));
-                });
+        assertThat(changes.getIndirectCoverageChanges(getPathOfFileWithModifiedLines()))
+                .containsExactly(new SimpleEntry<>(11, -1), new SimpleEntry<>(29, -1), new SimpleEntry<>(31, 1));
     }
 
     /**

@@ -4,6 +4,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.entry;
 import static org.mockito.Mockito.*;
 
+import edu.hm.hafner.coverage.ChangeSet;
+import edu.hm.hafner.coverage.ChangeSet.ChangeSetBuilder;
 import edu.hm.hafner.coverage.Coverage.CoverageBuilder;
 import edu.hm.hafner.coverage.Difference;
 import edu.hm.hafner.coverage.Metric;
@@ -383,28 +385,32 @@ class CoverageChecksPublisherTest extends AbstractCoverageTest {
     @Test
     void shouldShowPerfectSuffixInBaselineOverviewWithDelta() {
         var result = readJacocoResult("jacoco-codingstyle.xml");
-        result.findFile("TreeStringBuilder.java").ifPresent(file -> file.addModifiedLines(61, 62, 113));
+        var changes = new ChangeSetBuilder();
+        result.findFile("TreeStringBuilder.java")
+                .ifPresent(file -> changes.addModifiedLines(file.getRelativePath(), 61, 62, 113));
 
         var perfectCoverage =
                 new CoverageBuilder(Metric.LINE).withCovered(2).withMissed(0).build();
         var run = mock(Run.class);
         when(run.getUrl()).thenReturn(BUILD_LINK);
-        var action = new CoverageBuildAction(
-                run,
-                COVERAGE_ID,
-                REPORT_NAME,
-                StringUtils.EMPTY,
-                result,
-                new QualityGateResult(),
-                null,
-                "refId",
-                List.of(getValue("LINE: 50")),
-                List.of(perfectCoverage),
-                List.of(getValue("LINE: 50")),
-                List.of(perfectCoverage),
-                List.of(getValue("LINE: 50")),
-                List.of(perfectCoverage),
-                false);
+        var action = withChanges(
+                new CoverageBuildAction(
+                        run,
+                        COVERAGE_ID,
+                        REPORT_NAME,
+                        StringUtils.EMPTY,
+                        result,
+                        new QualityGateResult(),
+                        null,
+                        "refId",
+                        List.of(getValue("LINE: 50")),
+                        List.of(perfectCoverage),
+                        List.of(getValue("LINE: 50")),
+                        List.of(perfectCoverage),
+                        List.of(getValue("LINE: 50")),
+                        List.of(perfectCoverage),
+                        false),
+                changes.build());
 
         var publisher = new CoverageChecksPublisher(
                 action, result, REPORT_NAME, ChecksAnnotationScope.SKIP, NO_CHECKS_INFO, createJenkins());
@@ -609,32 +615,41 @@ class CoverageChecksPublisherTest extends AbstractCoverageTest {
         var run = mock(Run.class);
         when(run.getUrl()).thenReturn(BUILD_LINK);
 
+        var changes = new ChangeSetBuilder();
         result.findFile("TreeStringBuilder.java").ifPresent(file -> {
             assertThat(file.getMissedLines()).contains(61, 62);
             assertThat(file.getPartiallyCoveredLines()).contains(entry(113, 1));
-            file.addModifiedLines(61, 62, 113);
+            changes.addModifiedLines(file.getRelativePath(), 61, 62, 113);
         });
         result.findFile("CoberturaParser.java").ifPresent(file -> {
             assertThat(file.getSurvivedMutationsPerLine()).containsKey(251);
-            file.addModifiedLines(251);
+            changes.addModifiedLines(file.getRelativePath(), 251);
         });
 
-        return new CoverageBuildAction(
-                run,
-                COVERAGE_ID,
-                REPORT_NAME,
-                StringUtils.EMPTY,
-                result,
-                new QualityGateResult(),
-                null,
-                "refId",
-                List.of(getValue("LINE: 50"), getValue("MODULE: 0"), getValue("PACKAGE: -50")),
-                List.of(testCoverage),
-                List.of(getValue("LINE: 50")),
-                List.of(testCoverage),
-                List.of(getValue("LINE: 50")),
-                List.of(testCoverage),
-                false);
+        return withChanges(
+                new CoverageBuildAction(
+                        run,
+                        COVERAGE_ID,
+                        REPORT_NAME,
+                        StringUtils.EMPTY,
+                        result,
+                        new QualityGateResult(),
+                        null,
+                        "refId",
+                        List.of(getValue("LINE: 50"), getValue("MODULE: 0"), getValue("PACKAGE: -50")),
+                        List.of(testCoverage),
+                        List.of(getValue("LINE: 50")),
+                        List.of(testCoverage),
+                        List.of(getValue("LINE: 50")),
+                        List.of(testCoverage),
+                        false),
+                changes.build());
+    }
+
+    private CoverageBuildAction withChanges(final CoverageBuildAction action, final ChangeSet changes) {
+        var spiedAction = spy(action);
+        doReturn(changes).when(spiedAction).getChangeSet();
+        return spiedAction;
     }
 
     private Difference getValue(final String stringRepresentation) {

@@ -1,5 +1,7 @@
 package io.jenkins.plugins.coverage.metrics.steps;
 
+import edu.hm.hafner.coverage.ChangeSet;
+import edu.hm.hafner.coverage.ChangeSet.ChangeSetBuilder;
 import edu.hm.hafner.coverage.FileNode;
 import edu.hm.hafner.coverage.Node;
 import io.jenkins.plugins.forensics.delta.Change;
@@ -34,32 +36,36 @@ public class FileChangesProcessor {
      *         The root node of the coverage tree
      * @param codeChanges
      *         The code changes to be attached
+     * @param builder
+     *         The builder that collects the modified lines
      */
-    public void attachChangedCodeLines(final Node coverageNode, final Map<String, FileChanges> codeChanges) {
+    public void attachChangedCodeLines(
+            final Node coverageNode, final Map<String, FileChanges> codeChanges, final ChangeSetBuilder builder) {
         Map<String, FileNode> nodePathMapping = coverageNode.getAllFileNodes().stream()
                 .collect(Collectors.toMap(FileNode::getRelativePath, Function.identity()));
 
         codeChanges.forEach((path, fileChange) -> {
             if (nodePathMapping.containsKey(path)) {
-                var changedNode = nodePathMapping.get(path);
-                attachChanges(changedNode, fileChange.getChangesByType(ChangeEditType.INSERT));
-                attachChanges(changedNode, fileChange.getChangesByType(ChangeEditType.REPLACE));
+                attachChanges(builder, path, fileChange.getChangesByType(ChangeEditType.INSERT));
+                attachChanges(builder, path, fileChange.getChangesByType(ChangeEditType.REPLACE));
             }
         });
     }
 
     /**
-     * Attaches a set of changes to a specific {@link FileNode node}.
+     * Attaches a set of changes to a specific file.
      *
-     * @param changedNode
-     *         The node which contains code changes
+     * @param builder
+     *         The builder that collects the modified lines
+     * @param path
+     *         The relative path of the file which contains code changes
      * @param relevantChanges
      *         The relevant changes
      */
-    private void attachChanges(final FileNode changedNode, final Set<Change> relevantChanges) {
+    private void attachChanges(final ChangeSetBuilder builder, final String path, final Set<Change> relevantChanges) {
         for (Change change : relevantChanges) {
             for (int i = change.getFromLine(); i <= change.getToLine(); i++) {
-                changedNode.addModifiedLines(i);
+                builder.addModifiedLines(path, i);
             }
         }
     }
@@ -107,12 +113,16 @@ public class FileChangesProcessor {
      *         The code changes that has been applied between the two commits underlying the node and its reference
      * @param oldPathMapping
      *         A mapping between the report paths of the current and the reference coverage tree
+     * @param builder
+     *         The builder that already contains the modified lines and that collects the indirect coverage changes
      */
     public void attachIndirectCoveragesChanges(
             final Node root,
             final Node referenceNode,
             final Map<String, FileChanges> codeChanges,
-            final Map<String, String> oldPathMapping) {
+            final Map<String, String> oldPathMapping,
+            final ChangeSetBuilder builder) {
+        var modifiedLines = builder.build();
         Map<String, FileNode> fileNodes = getFileNodeMappingWithReferencePaths(root, oldPathMapping);
         Map<String, FileNode> referenceFileNodes = getReferenceFileNodeMapping(fileNodes, referenceNode);
 
@@ -127,7 +137,7 @@ public class FileChangesProcessor {
                 if (codeChanges.containsKey(currentPath)) {
                     adjustedCoveragePerLine(referenceCoverageMapping, codeChanges.get(currentPath));
                 }
-                attachIndirectCoverageChangeForFile(fileNode, referenceCoverageMapping);
+                attachIndirectCoverageChangeForFile(builder, modifiedLines, fileNode, referenceCoverageMapping);
             }
         }
     }
@@ -135,19 +145,27 @@ public class FileChangesProcessor {
     /**
      * Attaches the indirect coverage changes for a specific file, represented by the specified {@link FileNode}.
      *
+     * @param builder
+     *         the builder that collects the indirect coverage changes
+     * @param modifiedLines
+     *         the lines that have been modified
      * @param fileNode
      *         the file coverage node which represents the processed file
      * @param referenceCoverageMapping
      *         a mapping which contains the coverage per line of the reference file
      */
     private void attachIndirectCoverageChangeForFile(
-            final FileNode fileNode, final SortedMap<Integer, Integer> referenceCoverageMapping) {
+            final ChangeSetBuilder builder,
+            final ChangeSet modifiedLines,
+            final FileNode fileNode,
+            final SortedMap<Integer, Integer> referenceCoverageMapping) {
+        var path = fileNode.getRelativePath();
         fileNode.getLinesWithCoverage().forEach(line -> {
-            if (!fileNode.hasModifiedLine(line) && referenceCoverageMapping.containsKey(line)) {
+            if (!modifiedLines.isModified(path, line) && referenceCoverageMapping.containsKey(line)) {
                 int referenceCovered = referenceCoverageMapping.get(line);
                 int covered = fileNode.getCoveredOfLine(line);
                 if (covered != referenceCovered) {
-                    fileNode.addIndirectCoverageChange(line, covered - referenceCovered);
+                    builder.addIndirectCoverageChange(path, line, covered - referenceCovered);
                 }
             }
         });

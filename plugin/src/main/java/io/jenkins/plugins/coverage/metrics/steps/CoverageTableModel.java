@@ -2,6 +2,7 @@ package io.jenkins.plugins.coverage.metrics.steps;
 
 import static j2html.TagCreator.*;
 
+import edu.hm.hafner.coverage.ChangeSet;
 import edu.hm.hafner.coverage.Coverage;
 import edu.hm.hafner.coverage.FileNode;
 import edu.hm.hafner.coverage.Metric;
@@ -51,14 +52,21 @@ class CoverageTableModel extends TableModel {
 
     private final ColorProvider colorProvider;
     private final Node root;
+    private final ChangeSet changes;
     private final RowRenderer renderer;
     private final String id;
 
-    CoverageTableModel(final String id, final Node root, final RowRenderer renderer, final ColorProvider colors) {
+    CoverageTableModel(
+            final String id,
+            final Node root,
+            final ChangeSet changes,
+            final RowRenderer renderer,
+            final ColorProvider colors) {
         super();
 
         this.id = id;
         this.root = root;
+        this.changes = changes;
         this.renderer = renderer;
         colorProvider = colors;
     }
@@ -209,12 +217,16 @@ class CoverageTableModel extends TableModel {
     public List<Object> getRows() {
         Locale browserLocale = Functions.getCurrentLocale();
         return root.getAllFileNodes().stream()
-                .map(file -> new CoverageRow(file, browserLocale, renderer, colorProvider))
+                .map(file -> new CoverageRow(file, changes, browserLocale, renderer, colorProvider))
                 .collect(Collectors.toList());
     }
 
     protected Node getRoot() {
         return root;
+    }
+
+    protected ChangeSet getChanges() {
+        return changes;
     }
 
     protected ColorProvider getColorProvider() {
@@ -238,19 +250,26 @@ class CoverageTableModel extends TableModel {
         private static final Value ZERO_NCSS = new Value(Metric.NCSS, 0);
 
         private final FileNode file;
+        private final ChangeSet changes;
         private final Locale browserLocale;
         private final RowRenderer renderer;
         private final ColorProvider colorProvider;
 
         CoverageRow(
                 final FileNode file,
+                final ChangeSet changes,
                 final Locale browserLocale,
                 final RowRenderer renderer,
                 final ColorProvider colors) {
             this.file = file;
+            this.changes = changes;
             this.browserLocale = browserLocale;
             this.renderer = renderer;
             colorProvider = colors;
+        }
+
+        ChangeSet getChanges() {
+            return changes;
         }
 
         public String getFileHash() {
@@ -259,7 +278,7 @@ class CoverageTableModel extends TableModel {
 
         @SuppressWarnings("PMD.BooleanGetMethodName")
         public boolean getModified() {
-            return file.hasModifiedLines();
+            return changes.hasModifiedLines(file.getRelativePath());
         }
 
         public DetailedCell<?> getFileName() {

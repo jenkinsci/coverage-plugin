@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.entry;
 import static org.mockito.Mockito.*;
 
+import edu.hm.hafner.coverage.ChangeSet;
 import edu.hm.hafner.coverage.Coverage.CoverageBuilder;
 import edu.hm.hafner.coverage.FileNode;
 import edu.hm.hafner.coverage.Metric;
@@ -290,6 +291,7 @@ class ScatterModelTest extends AbstractCoverageTest {
                 ID,
                 "",
                 node,
+                ChangeSet.empty(),
                 createStatistics(),
                 new QualityGateResult(),
                 "-",

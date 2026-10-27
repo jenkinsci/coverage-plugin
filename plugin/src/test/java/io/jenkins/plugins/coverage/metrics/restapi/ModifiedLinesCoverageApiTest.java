@@ -3,6 +3,7 @@ package io.jenkins.plugins.coverage.metrics.restapi;
 import static net.javacrumbs.jsonunit.assertj.JsonAssertions.*;
 import static org.assertj.core.api.Assertions.*;
 
+import edu.hm.hafner.coverage.ChangeSet.ChangeSetBuilder;
 import edu.hm.hafner.coverage.FileNode;
 import edu.hm.hafner.coverage.PackageNode;
 import edu.hm.hafner.util.LineRange;
@@ -28,7 +29,7 @@ class ModifiedLinesCoverageApiTest extends AbstractModifiedFilesCoverageTest {
     @Test
     void shouldCalculateCoverageForAllModifiedLines() {
         var node = createCoverageTree();
-        var modifiedLineCoverageApi = new ModifiedLinesCoverageApi(node);
+        var modifiedLineCoverageApi = new ModifiedLinesCoverageApi(node, createChangeSet(node));
         var filesWithChangedLines = modifiedLineCoverageApi.getFilesWithModifiedLines();
 
         var expectedLineBlocks =
@@ -49,7 +50,7 @@ class ModifiedLinesCoverageApiTest extends AbstractModifiedFilesCoverageTest {
     @Test
     void shouldExportModifiedLinesAsJson() throws IOException {
         var node = createCoverageTree();
-        var api = new ModifiedLinesCoverageApi(node);
+        var api = new ModifiedLinesCoverageApi(node, createChangeSet(node));
 
         var json = exportToJson(api);
 
@@ -71,14 +72,15 @@ class ModifiedLinesCoverageApiTest extends AbstractModifiedFilesCoverageTest {
     @Test
     void shouldIncludeLinesWithoutCoverage() {
         var fileNode = new FileNode("Test.java", "path");
-        fileNode.addModifiedLines(1, 2, 3, 4);
         fileNode.addCounters(1, 1, 0);
         fileNode.addCounters(4, 1, 0);
         var parentNode = new PackageNode("package");
         parentNode.addChild(fileNode);
         var expectedBlocks = createListOfModifiedLines(LineCoverageType.COVERED, new LineRange(1, 4));
+        var changes =
+                new ChangeSetBuilder().addModifiedLines("path", 1, 2, 3, 4).build();
 
-        var filesWithModifiedLines = new ModifiedLinesCoverageApi(parentNode).getFilesWithModifiedLines();
+        var filesWithModifiedLines = new ModifiedLinesCoverageApi(parentNode, changes).getFilesWithModifiedLines();
 
         assertThat(filesWithModifiedLines.get(0).getModifiedLinesBlocks()).containsOnlyOnceElementsOf(expectedBlocks);
     }
@@ -86,14 +88,14 @@ class ModifiedLinesCoverageApiTest extends AbstractModifiedFilesCoverageTest {
     @Test
     void shouldIgnoreNotModifiedLines() {
         var fileNode = new FileNode("Test.java", "path");
-        fileNode.addModifiedLines(1);
         fileNode.addCounters(1, 1, 0);
         fileNode.addCounters(2, 1, 0);
         var parentNode = new PackageNode("package");
         parentNode.addChild(fileNode);
         var expectedBlocks = createListOfModifiedLines(LineCoverageType.COVERED, new LineRange(1));
+        var changes = new ChangeSetBuilder().addModifiedLines("path", 1).build();
 
-        var filesWithModifiedLines = new ModifiedLinesCoverageApi(parentNode).getFilesWithModifiedLines();
+        var filesWithModifiedLines = new ModifiedLinesCoverageApi(parentNode, changes).getFilesWithModifiedLines();
 
         assertThat(filesWithModifiedLines.get(0).getModifiedLinesBlocks()).containsOnlyOnceElementsOf(expectedBlocks);
     }

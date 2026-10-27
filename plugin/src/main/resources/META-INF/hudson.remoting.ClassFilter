@@ -5,11 +5,13 @@ gnu.trove.map.hash.TIntObjectHashMap
 
 org.apache.commons.lang3.math.Fraction
 
+edu.hm.hafner.coverage.ChangeSet
 edu.hm.hafner.coverage.ClassNode
 edu.hm.hafner.coverage.ContainerNode
 edu.hm.hafner.coverage.Coverage
 edu.hm.hafner.coverage.Difference
 edu.hm.hafner.coverage.FileNode
+edu.hm.hafner.coverage.LineCounters
 edu.hm.hafner.coverage.MethodNode
 edu.hm.hafner.coverage.Metric
 edu.hm.hafner.coverage.ModuleNode

@@ -1,5 +1,6 @@
 package io.jenkins.plugins.coverage.metrics.steps;
 
+import edu.hm.hafner.coverage.ChangeSet;
 import edu.hm.hafner.coverage.FileNode;
 import edu.hm.hafner.coverage.Node;
 import io.jenkins.plugins.coverage.metrics.color.ColorProvider;
@@ -12,16 +13,17 @@ class ModifiedLinesCoverageTableModel extends ChangesTableModel {
     ModifiedLinesCoverageTableModel(
             final String id,
             final Node root,
+            final ChangeSet changes,
             final Node changeRoot,
             final RowRenderer renderer,
             final ColorProvider colorProvider) {
-        super(id, root, changeRoot, renderer, colorProvider);
+        super(id, root, changes, changeRoot, renderer, colorProvider);
     }
 
     @Override
     ModifiedLinesCoverageRow createRow(final FileNode file, final Locale browserLocale) {
         return new ModifiedLinesCoverageRow(
-                getOriginalNode(file), file, browserLocale, getRenderer(), getColorProvider());
+                getOriginalNode(file), file, getChanges(), browserLocale, getRenderer(), getColorProvider());
     }
 
     /**
@@ -31,15 +33,16 @@ class ModifiedLinesCoverageTableModel extends ChangesTableModel {
         ModifiedLinesCoverageRow(
                 final FileNode originalFile,
                 final FileNode changedFileNode,
+                final ChangeSet changes,
                 final Locale browserLocale,
                 final RowRenderer renderer,
                 final ColorProvider colorProvider) {
-            super(originalFile, changedFileNode, browserLocale, renderer, colorProvider);
+            super(originalFile, changedFileNode, changes, browserLocale, renderer, colorProvider);
         }
 
         @Override
         public int getLoc() {
-            return getFile().getCoveredAndModifiedLines().size();
+            return getFile().getCoveredAndModifiedLines(getChanges()).size();
         }
     }
 }

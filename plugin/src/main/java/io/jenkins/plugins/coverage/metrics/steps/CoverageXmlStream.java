@@ -83,7 +83,11 @@ class CoverageXmlStream extends AbstractXmlStream<Node> {
         xStream.registerLocalConverter(FileNode.class, "missedPerLine", new IntegerLineMapConverter());
         xStream.registerLocalConverter(FileNode.class, "indirectCoverageChanges", new IntegerLineMapConverter());
 
-        xStream.registerLocalConverter(FileNode.class, "changedLines", new IntegerSetConverter());
+        // legacy format: the modified lines have been stored in the element 'changedLines' (compact format), or in
+        // the element 'modifiedLines' (default collection format), see FileNode and ChangeSet. Note that the alias
+        // also defines the name of the element that is written, i.e., 'changedLines'.
+        xStream.aliasField("changedLines", FileNode.class, "modifiedLines");
+        xStream.registerLocalConverter(FileNode.class, "modifiedLines", new IntegerSetConverter());
         xStream.registerLocalConverter(FileNode.class, "coverageDelta", new MetricFractionMapConverter());
 
         // old trees store the metric of each node, now the metric is derived from the type of the node
@@ -308,6 +312,17 @@ class CoverageXmlStream extends AbstractXmlStream<Node> {
         @Override
         public NavigableSet<Integer> unmarshal(
                 final HierarchicalStreamReader reader, final UnmarshallingContext context) {
+            if (reader.hasMoreChildren()) { // default collection format
+                var lines = new TreeSet<Integer>();
+                while (reader.hasMoreChildren()) {
+                    reader.moveDown();
+                    if (!"no-comparator".equals(reader.getNodeName())) {
+                        lines.add(Integer.valueOf(reader.getValue()));
+                    }
+                    reader.moveUp();
+                }
+                return lines;
+            }
             return unmarshal(reader.getValue());
         }
 

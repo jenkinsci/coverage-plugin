@@ -5,6 +5,8 @@ import static net.javacrumbs.jsonunit.assertj.JsonAssertions.*;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
+import edu.hm.hafner.coverage.ChangeSet;
+import edu.hm.hafner.coverage.ChangeSet.ChangeSetBuilder;
 import edu.hm.hafner.coverage.FileNode;
 import edu.hm.hafner.coverage.ModuleNode;
 import edu.hm.hafner.coverage.Node;
@@ -92,7 +94,7 @@ class CoverageViewModelTest extends AbstractCoverageTest {
     void shouldProvideIndirectCoverageChanges() {
         var node = createIndirectCoverageChangesNode();
 
-        var model = createModel(node);
+        var model = createModel(node, createIndirectCoverageChanges());
 
         assertThat(model.hasIndirectCoverageChanges()).isTrue();
     }
@@ -104,11 +106,18 @@ class CoverageViewModelTest extends AbstractCoverageTest {
 
             for (int line = 0; line < 2; line++) {
                 fileNode.addCounters(10 + line, 1, 1);
-                fileNode.addIndirectCoverageChange(10 + line, 2);
             }
             root.addChild(fileNode);
         }
         return root;
+    }
+
+    private ChangeSet createIndirectCoverageChanges() {
+        var builder = new ChangeSetBuilder();
+        for (int line = 0; line < 2; line++) {
+            builder.addIndirectCoverageChange("path", 10 + line, 2);
+        }
+        return builder.build();
     }
 
     @Test
@@ -124,7 +133,7 @@ class CoverageViewModelTest extends AbstractCoverageTest {
 
     @Test
     void shouldProvideFileCoverageApi() {
-        var model = createModel(createIndirectCoverageChangesNode());
+        var model = createModel(createIndirectCoverageChangesNode(), createIndirectCoverageChanges());
 
         assertThat(model.getDynamic("files")).isInstanceOf(FileCoverageApiModel.class);
         assertThat(model.getDynamic("info")).isInstanceOf(MessagesViewModel.class);
@@ -135,11 +144,16 @@ class CoverageViewModelTest extends AbstractCoverageTest {
     }
 
     private CoverageViewModel createModel(final Node node) {
+        return createModel(node, ChangeSet.empty());
+    }
+
+    private CoverageViewModel createModel(final Node node, final ChangeSet changes) {
         return new CoverageViewModel(
                 mock(Run.class),
                 "id",
                 StringUtils.EMPTY,
                 node,
+                changes,
                 createStatistics(),
                 new QualityGateResult(),
                 "-",

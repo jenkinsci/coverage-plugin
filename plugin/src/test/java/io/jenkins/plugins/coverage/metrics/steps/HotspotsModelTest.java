@@ -3,6 +3,7 @@ package io.jenkins.plugins.coverage.metrics.steps;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
 
+import edu.hm.hafner.coverage.ChangeSet;
 import edu.hm.hafner.coverage.Coverage;
 import edu.hm.hafner.coverage.Coverage.CoverageBuilder;
 import edu.hm.hafner.coverage.FileNode;
@@ -268,6 +269,7 @@ class HotspotsModelTest extends AbstractCoverageTest {
                 ID,
                 "",
                 node,
+                ChangeSet.empty(),
                 createStatistics(),
                 new QualityGateResult(),
                 "-",
