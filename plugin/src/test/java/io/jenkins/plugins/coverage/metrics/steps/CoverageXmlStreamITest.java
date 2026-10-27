@@ -280,7 +280,10 @@ class CoverageXmlStreamITest extends SerializableTest<Node> {
         var xmlStream = new ChangeSetXmlStream();
         xmlStream.write(saved, changes);
 
-        Assertions.assertThat(Files.readString(saved)).contains("<changes>");
+        Assertions.assertThat(Files.readString(saved))
+                .contains("<changes>")
+                .contains("<tree-set>[1]</tree-set>")
+                .contains("<tree-set>[5, 6, 7]</tree-set>");
         Assertions.assertThat(xmlStream.read(saved)).isEqualTo(changes);
     }
 

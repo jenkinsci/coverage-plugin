@@ -2,6 +2,7 @@ package io.jenkins.plugins.coverage.metrics.steps;
 
 import edu.hm.hafner.coverage.ChangeSet;
 import hudson.util.XStream2;
+import io.jenkins.plugins.coverage.metrics.steps.CoverageXmlStream.IntegerSetConverter;
 import io.jenkins.plugins.util.AbstractXmlStream;
 
 /**
@@ -20,6 +21,8 @@ class ChangeSetXmlStream extends AbstractXmlStream<ChangeSet> {
     @Override
     protected void configureXStream(final XStream2 xStream) {
         xStream.alias("changes", ChangeSet.class);
+        // stores the modified lines of each file in a compact array: [5, 6, 7]
+        xStream.registerConverter(new IntegerSetConverter());
     }
 
     @Override
