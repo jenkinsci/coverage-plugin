@@ -2,6 +2,8 @@ package io.jenkins.plugins.coverage.metrics;
 
 import edu.hm.hafner.coverage.ChangeSet;
 import edu.hm.hafner.coverage.ChangeSet.ChangeSetBuilder;
+import edu.hm.hafner.coverage.FileDeltas;
+import edu.hm.hafner.coverage.FileDeltas.FileDeltasBuilder;
 import edu.hm.hafner.coverage.FileNode;
 import edu.hm.hafner.coverage.Node;
 import io.jenkins.plugins.coverage.metrics.steps.FileChangesProcessor;
@@ -80,17 +82,30 @@ public abstract class AbstractModifiedFilesCoverageTest extends AbstractCoverage
 
     /**
      * Creates a coverage tree that consists of {@link FileNode}s with and without modified lines together with the
-     * corresponding coverage information. The modified lines are provided by {@link #createChangeSet(Node)}.
+     * corresponding coverage information. The modified lines are provided by {@link #createChangeSet(Node)}, the
+     * coverage deltas of the files by {@link #createFileDeltas(Node)}.
      *
      * @return a Node tree with modified and unmodified mock data.
      */
     protected Node createCoverageTree() {
+        return readJacocoResult(TEST_REPORT_AFTER);
+    }
+
+    /**
+     * Creates the coverage deltas of the files of the specified coverage tree with respect to the reference tree.
+     *
+     * @param tree
+     *         the coverage tree, see {@link #createCoverageTree()}
+     *
+     * @return the deltas of the files
+     */
+    protected FileDeltas createFileDeltas(final Node tree) {
         var fileChangesProcessor = createFileChangesProcessor();
         var reference = readJacocoResult(TEST_REPORT_BEFORE);
-        var tree = readJacocoResult(TEST_REPORT_AFTER);
+        var builder = new FileDeltasBuilder();
 
-        fileChangesProcessor.attachFileCoverageDeltas(tree, reference, OLD_PATH_MAPPING);
-        return tree;
+        fileChangesProcessor.attachFileCoverageDeltas(tree, reference, OLD_PATH_MAPPING, builder);
+        return builder.build();
     }
 
     /**

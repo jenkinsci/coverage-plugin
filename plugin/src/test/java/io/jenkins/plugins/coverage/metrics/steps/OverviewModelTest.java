@@ -8,6 +8,7 @@ import edu.hm.hafner.coverage.ClassNode;
 import edu.hm.hafner.coverage.Coverage;
 import edu.hm.hafner.coverage.Coverage.CoverageBuilder;
 import edu.hm.hafner.coverage.Difference;
+import edu.hm.hafner.coverage.FileDeltas;
 import edu.hm.hafner.coverage.FileNode;
 import edu.hm.hafner.coverage.MethodNode;
 import edu.hm.hafner.coverage.Metric;
@@ -377,6 +378,7 @@ class OverviewModelTest extends AbstractCoverageTest {
                 "-",
                 statistics,
                 ChangeSet.empty(),
+                FileDeltas.empty(),
                 List.of(),
                 false);
         return new OverviewModel(mock(Run.class), action);

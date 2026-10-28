@@ -4,6 +4,7 @@ import static hudson.model.Run.*;
 
 import edu.hm.hafner.coverage.ChangeSet;
 import edu.hm.hafner.coverage.Difference;
+import edu.hm.hafner.coverage.FileDeltas;
 import edu.hm.hafner.coverage.Metric;
 import edu.hm.hafner.coverage.MetricAggregation;
 import edu.hm.hafner.coverage.Node;
@@ -132,7 +133,12 @@ public final class CoverageBuildAction extends BuildAction<Node> implements Stap
 
     private transient boolean isChangeSetLoaded;
 
-    private transient Lock changeSetLock = new ReentrantLock(); // re-created in readResolve
+    /** Lazily loaded coverage deltas of the files, see {@link #getFileDeltas()}. */
+    private transient FileDeltas fileDeltas = FileDeltas.empty();
+
+    private transient boolean isFileDeltasLoaded;
+
+    private transient Lock sidecarLock = new ReentrantLock(); // re-created in readResolve
 
     static {
         CoverageXmlStream.registerConverters(XSTREAM2);
@@ -192,6 +198,7 @@ public final class CoverageBuildAction extends BuildAction<Node> implements Stap
                 NO_REFERENCE_BUILD,
                 statistics,
                 ChangeSet.empty(),
+                FileDeltas.empty(),
                 NO_VALUES);
     }
 
@@ -220,6 +227,8 @@ public final class CoverageBuildAction extends BuildAction<Node> implements Stap
      *         the values of all baselines and aggregations
      * @param changes
      *         the modified lines and indirect coverage changes of the associated change request
+     * @param fileDeltas
+     *         the coverage deltas of the files with respect to the reference build
      * @param indirectCoverageChanges
      *         the indirect coverage changes of the associated change request with respect to the reference build
      */
@@ -235,6 +244,7 @@ public final class CoverageBuildAction extends BuildAction<Node> implements Stap
             final String referenceBuildId,
             final CoverageStatistics statistics,
             final ChangeSet changes,
+            final FileDeltas fileDeltas,
             final List<? extends Value> indirectCoverageChanges) {
         this(
                 owner,
@@ -247,6 +257,7 @@ public final class CoverageBuildAction extends BuildAction<Node> implements Stap
                 referenceBuildId,
                 statistics,
                 changes,
+                fileDeltas,
                 indirectCoverageChanges,
                 true);
     }
@@ -264,6 +275,7 @@ public final class CoverageBuildAction extends BuildAction<Node> implements Stap
             final String referenceBuildId,
             final CoverageStatistics statistics,
             final ChangeSet changes,
+            final FileDeltas fileDeltas,
             final List<? extends Value> indirectCoverageChanges,
             final boolean canSerialize) {
         this(
@@ -283,6 +295,7 @@ public final class CoverageBuildAction extends BuildAction<Node> implements Stap
                 indirectCoverageChanges,
                 createAggregatedValues(statistics),
                 changes,
+                fileDeltas,
                 canSerialize);
     }
 
@@ -321,6 +334,7 @@ public final class CoverageBuildAction extends BuildAction<Node> implements Stap
                 indirectCoverageChanges,
                 List.of(),
                 ChangeSet.empty(),
+                FileDeltas.empty(),
                 canSerialize);
     }
 
@@ -343,6 +357,7 @@ public final class CoverageBuildAction extends BuildAction<Node> implements Stap
             final List<? extends Value> indirectCoverageChanges,
             final List<AggregatedValues> aggregatedValues,
             final ChangeSet changes,
+            final FileDeltas fileDeltas,
             final boolean canSerialize) {
         super(owner, result, false);
 
@@ -367,12 +382,17 @@ public final class CoverageBuildAction extends BuildAction<Node> implements Stap
 
         changeSet = changes;
         isChangeSetLoaded = true;
+        this.fileDeltas = fileDeltas;
+        isFileDeltasLoaded = true;
 
         if (canSerialize) {
             var rootDir = owner.getRootDir().toPath();
             createXmlStream().write(rootDir.resolve(getBuildResultBaseName()), result);
             if (hasChanges(changes)) {
                 new ChangeSetXmlStream().write(rootDir.resolve(getChangeSetBaseName()), changes);
+            }
+            if (fileDeltas.hasDeltas()) {
+                new FileDeltasXmlStream().write(rootDir.resolve(getFileDeltasBaseName()), fileDeltas);
             }
         }
     }
@@ -385,6 +405,10 @@ public final class CoverageBuildAction extends BuildAction<Node> implements Stap
         return "%s-changes.xml".formatted(id);
     }
 
+    private String getFileDeltasBaseName() {
+        return "%s-deltas.xml".formatted(id);
+    }
+
     /**
      * Returns the modified lines and the indirect coverage changes of the associated change request. The changes are
      * stored in a separate file, which is loaded on demand. Builds that have been created before the changes have been
@@ -393,7 +417,7 @@ public final class CoverageBuildAction extends BuildAction<Node> implements Stap
      * @return the changes, or an empty change set if there are no changes
      */
     public ChangeSet getChangeSet() {
-        changeSetLock.lock();
+        sidecarLock.lock();
         try {
             if (!isChangeSetLoaded) {
                 changeSet = loadChangeSet();
@@ -401,7 +425,7 @@ public final class CoverageBuildAction extends BuildAction<Node> implements Stap
             }
             return changeSet;
         } finally {
-            changeSetLock.unlock();
+            sidecarLock.unlock();
         }
     }
 
@@ -412,6 +436,35 @@ public final class CoverageBuildAction extends BuildAction<Node> implements Stap
             return new ChangeSetXmlStream().read(file);
         }
         return ChangeSet.fromLegacyTree(getResult());
+    }
+
+    /**
+     * Returns the coverage deltas of the files with respect to the reference build. The deltas are stored in a
+     * separate file, which is loaded on demand. Builds that have been created before the deltas have been stored in a
+     * separate file still provide the deltas, they are read from the coverage tree in this case.
+     *
+     * @return the deltas, or empty deltas if there is no reference build
+     */
+    public FileDeltas getFileDeltas() {
+        sidecarLock.lock();
+        try {
+            if (!isFileDeltasLoaded) {
+                fileDeltas = loadFileDeltas();
+                isFileDeltasLoaded = true;
+            }
+            return fileDeltas;
+        } finally {
+            sidecarLock.unlock();
+        }
+    }
+
+    @SuppressWarnings("deprecation") // migration of builds that store the deltas in the tree
+    private FileDeltas loadFileDeltas() {
+        var file = getOwner().getRootDir().toPath().resolve(getFileDeltasBaseName());
+        if (Files.exists(file)) {
+            return new FileDeltasXmlStream().read(file);
+        }
+        return FileDeltas.fromLegacyTree(getResult());
     }
 
     private static List<AggregatedValues> createAggregatedValues(final CoverageStatistics statistics) {
@@ -432,7 +485,7 @@ public final class CoverageBuildAction extends BuildAction<Node> implements Stap
 
         VALIDATION_UTILITIES.ensureValidId(id);
 
-        changeSetLock = new ReentrantLock(); // transient fields are not initialized by the deserialization
+        sidecarLock = new ReentrantLock(); // transient fields are not initialized by the deserialization
 
         if (difference == null) {
             difference = new TreeMap<>();
@@ -907,6 +960,7 @@ public final class CoverageBuildAction extends BuildAction<Node> implements Stap
                 name,
                 getResult(),
                 getChangeSet(),
+                getFileDeltas(),
                 getStatistics(),
                 getQualityGateResult(),
                 getReferenceBuildLink(),
@@ -923,6 +977,7 @@ public final class CoverageBuildAction extends BuildAction<Node> implements Stap
                 name,
                 getResult(),
                 getChangeSet(),
+                getFileDeltas(),
                 getStatistics(),
                 getQualityGateResult(),
                 getReferenceBuildLink(),

@@ -1,6 +1,7 @@
 package io.jenkins.plugins.coverage.metrics.steps;
 
 import edu.hm.hafner.coverage.ChangeSet;
+import edu.hm.hafner.coverage.FileDeltas;
 import edu.hm.hafner.coverage.FileNode;
 import edu.hm.hafner.coverage.Node;
 import io.jenkins.plugins.coverage.metrics.color.ColorProvider;
@@ -15,16 +16,23 @@ class IndirectCoverageChangesTable extends ChangesTableModel {
             final String id,
             final Node root,
             final ChangeSet changes,
+            final FileDeltas deltas,
             final Node changeRoot,
             final RowRenderer renderer,
             final ColorProvider colorProvider) {
-        super(id, root, changes, changeRoot, renderer, colorProvider);
+        super(id, root, changes, deltas, changeRoot, renderer, colorProvider);
     }
 
     @Override
     IndirectCoverageChangesRow createRow(final FileNode file, final Locale browserLocale) {
         return new IndirectCoverageChangesRow(
-                getOriginalNode(file), file, getChanges(), browserLocale, getRenderer(), getColorProvider());
+                getOriginalNode(file),
+                file,
+                getChanges(),
+                getDeltas(),
+                browserLocale,
+                getRenderer(),
+                getColorProvider());
     }
 
     /**
@@ -35,10 +43,11 @@ class IndirectCoverageChangesTable extends ChangesTableModel {
                 final FileNode originalFile,
                 final FileNode changedFileNode,
                 final ChangeSet changes,
+                final FileDeltas deltas,
                 final Locale browserLocale,
                 final RowRenderer renderer,
                 final ColorProvider colorProvider) {
-            super(originalFile, changedFileNode, changes, browserLocale, renderer, colorProvider);
+            super(originalFile, changedFileNode, changes, deltas, browserLocale, renderer, colorProvider);
         }
 
         @Override

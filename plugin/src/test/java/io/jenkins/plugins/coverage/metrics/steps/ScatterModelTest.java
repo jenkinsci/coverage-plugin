@@ -6,6 +6,7 @@ import static org.mockito.Mockito.*;
 
 import edu.hm.hafner.coverage.ChangeSet;
 import edu.hm.hafner.coverage.Coverage.CoverageBuilder;
+import edu.hm.hafner.coverage.FileDeltas;
 import edu.hm.hafner.coverage.FileNode;
 import edu.hm.hafner.coverage.Metric;
 import edu.hm.hafner.coverage.MetricAggregation;
@@ -292,6 +293,7 @@ class ScatterModelTest extends AbstractCoverageTest {
                 "",
                 node,
                 ChangeSet.empty(),
+                FileDeltas.empty(),
                 createStatistics(),
                 new QualityGateResult(),
                 "-",

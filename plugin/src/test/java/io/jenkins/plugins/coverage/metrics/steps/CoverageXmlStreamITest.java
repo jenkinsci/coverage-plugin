@@ -13,7 +13,8 @@ import static org.xmlunit.assertj.XmlAssert.assertThat;
 import edu.hm.hafner.coverage.ChangeSet;
 import edu.hm.hafner.coverage.ChangeSet.ChangeSetBuilder;
 import edu.hm.hafner.coverage.Difference;
-import edu.hm.hafner.coverage.FileNode;
+import edu.hm.hafner.coverage.FileDeltas;
+import edu.hm.hafner.coverage.FileDeltas.FileDeltasBuilder;
 import edu.hm.hafner.coverage.LineCounters;
 import edu.hm.hafner.coverage.Metric;
 import edu.hm.hafner.coverage.MetricAggregation;
@@ -204,6 +205,7 @@ class CoverageXmlStreamITest extends SerializableTest<Node> {
                 "-",
                 statistics,
                 ChangeSet.empty(),
+                FileDeltas.empty(),
                 List.of(),
                 false);
     }
@@ -282,8 +284,8 @@ class CoverageXmlStreamITest extends SerializableTest<Node> {
 
         Assertions.assertThat(Files.readString(saved))
                 .contains("<changes>")
-                .contains("<tree-set>[1]</tree-set>")
-                .contains("<tree-set>[5, 6, 7]</tree-set>");
+                .contains("<sorted-set>[1]</sorted-set>")
+                .contains("<sorted-set>[5, 6, 7]</sorted-set>");
         Assertions.assertThat(xmlStream.read(saved)).isEqualTo(changes);
     }
 
@@ -333,57 +335,80 @@ class CoverageXmlStreamITest extends SerializableTest<Node> {
     }
 
     /**
-     * Verifies that the coverage deltas of the individual files survive a save and restore cycle. Otherwise, the delta
-     * columns of the file tables will vanish as soon as the coverage tree has been restored from disk (i.e., after a
-     * restart of Jenkins or after the cached tree has been garbage collected).
+     * Verifies that the coverage deltas of the individual files are stored in a separate file (sidecar) and that they
+     * survive a save and restore cycle. Otherwise, the delta columns of the file tables will vanish as soon as the
+     * coverage tree has been restored from disk (i.e., after a restart of Jenkins or after the cached tree has been
+     * garbage collected).
+     *
+     * @throws IOException
+     *         if the deltas cannot be written or read
      */
     @Test
     @Issue("https://github.com/jenkinsci/coverage-plugin/issues/643")
-    void shouldSaveAndRestoreFileCoverageDeltas() {
+    void shouldSaveAndRestoreFileCoverageDeltas() throws IOException {
         Path saved = createTempFile();
-        var tree = createTreeWithFileCoverageDeltas();
+        var deltas = createFileCoverageDeltas();
 
-        assertThatDeltasOfModifiedFileAreCorrect(tree);
+        assertThatDeltasOfModifiedFileAreCorrect(deltas);
+
+        var xmlStream = new FileDeltasXmlStream();
+        xmlStream.write(saved, deltas);
+
+        Assertions.assertThat(Files.readString(saved)).contains("<deltas>").contains("LINE: Δ100:39");
+
+        var restored = xmlStream.read(saved);
+        assertThatDeltasOfModifiedFileAreCorrect(restored);
+        Assertions.assertThat(restored).isEqualTo(deltas);
+    }
+
+    /**
+     * Verifies that the coverage deltas of old builds can still be read: they have been stored in the field
+     * {@code coverageDelta} of the files in the coverage tree.
+     *
+     * @throws IOException
+     *         if the coverage tree cannot be written or read
+     */
+    @Test
+    void shouldRestoreTreeWithLegacyFileDeltas() throws IOException {
+        Path saved = createTempFile();
 
         var xmlStream = new CoverageXmlStream();
+        var tree = createSerializable();
         xmlStream.write(saved, tree);
+        var xml = Files.readString(saved);
+        Assertions.assertThat(xml).doesNotContain("coverageDelta");
+        Files.writeString(
+                saved,
+                xml.replaceFirst(
+                        "(<file(?: [^>]*)?>)",
+                        "$1<coverageDelta class=\"tree-map\">[LINE: Δ100:39, BRANCH: Δ25:2]</coverageDelta>"));
 
-        assertThat(Input.from(saved))
-                .nodesByXPath("//file[./name = '" + MODIFIED_FILE + "']/coverageDelta")
-                .hasSize(1)
-                .extractingText()
-                .containsExactly("[FILE: Δ0, CLASS: Δ0, METHOD: Δ-40:3, LINE: Δ100:39, BRANCH: Δ25:2, "
-                        + "INSTRUCTION: Δ1000:111, LOC: Δ4, CYCLOMATIC_COMPLEXITY: Δ2]");
+        var deltas = FileDeltas.fromLegacyTree(xmlStream.read(saved));
 
-        assertThatDeltasOfModifiedFileAreCorrect(xmlStream.read(saved));
+        var path = tree.getAllFileNodes().get(0).getRelativePath();
+        Assertions.assertThat(deltas.hasDelta(path, LINE)).isTrue();
+        Assertions.assertThat(deltas.getDelta(path, LINE)).isEqualTo(new Difference(LINE, 100, 39));
+        Assertions.assertThat(deltas.getDelta(path, BRANCH)).isEqualTo(new Difference(BRANCH, 25, 2));
     }
 
-    private void assertThatDeltasOfModifiedFileAreCorrect(final Node tree) {
-        var file = findModifiedFile(tree);
-
-        Assertions.assertThat(file.hasDelta(LINE)).isTrue();
-        Assertions.assertThat(file.hasDelta(BRANCH)).isTrue();
-        Assertions.assertThat(file.getDelta(LINE)).isEqualTo(new Difference(LINE, 100, 39));
-        Assertions.assertThat(file.getDelta(BRANCH)).isEqualTo(new Difference(BRANCH, 25, 2));
-        Assertions.assertThat(file.getDelta(INSTRUCTION)).isEqualTo(new Difference(INSTRUCTION, 1000, 111));
-        Assertions.assertThat(file.getDelta(METHOD)).isEqualTo(new Difference(METHOD, -40, 3));
+    private void assertThatDeltasOfModifiedFileAreCorrect(final FileDeltas deltas) {
+        Assertions.assertThat(deltas.hasDelta(MODIFIED_FILE_PATH, LINE)).isTrue();
+        Assertions.assertThat(deltas.hasDelta(MODIFIED_FILE_PATH, BRANCH)).isTrue();
+        Assertions.assertThat(deltas.getDelta(MODIFIED_FILE_PATH, LINE)).isEqualTo(new Difference(LINE, 100, 39));
+        Assertions.assertThat(deltas.getDelta(MODIFIED_FILE_PATH, BRANCH)).isEqualTo(new Difference(BRANCH, 25, 2));
+        Assertions.assertThat(deltas.getDelta(MODIFIED_FILE_PATH, INSTRUCTION))
+                .isEqualTo(new Difference(INSTRUCTION, 1000, 111));
+        Assertions.assertThat(deltas.getDelta(MODIFIED_FILE_PATH, METHOD)).isEqualTo(new Difference(METHOD, -40, 3));
     }
 
-    private FileNode findModifiedFile(final Node tree) {
-        return tree.getAllFileNodes().stream()
-                .filter(file -> MODIFIED_FILE.equals(file.getName()))
-                .findFirst()
-                .orElseThrow(() -> new AssertionError("No file " + MODIFIED_FILE + " found in " + tree));
-    }
-
-    private Node createTreeWithFileCoverageDeltas() {
+    private FileDeltas createFileCoverageDeltas() {
         var reference = parseJacocoReport("file-changes-test-before.xml");
         var tree = parseJacocoReport("file-changes-test-after.xml");
 
+        var builder = new FileDeltasBuilder();
         new FileChangesProcessor()
-                .attachFileCoverageDeltas(tree, reference, Map.of(MODIFIED_FILE_PATH, MODIFIED_FILE_PATH_OLD));
-
-        return tree;
+                .attachFileCoverageDeltas(tree, reference, Map.of(MODIFIED_FILE_PATH, MODIFIED_FILE_PATH_OLD), builder);
+        return builder.build();
     }
 
     @Test

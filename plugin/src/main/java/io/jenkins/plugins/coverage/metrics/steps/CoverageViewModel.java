@@ -2,6 +2,7 @@ package io.jenkins.plugins.coverage.metrics.steps;
 
 import edu.hm.hafner.coverage.ChangeSet;
 import edu.hm.hafner.coverage.Coverage;
+import edu.hm.hafner.coverage.FileDeltas;
 import edu.hm.hafner.coverage.FileNode;
 import edu.hm.hafner.coverage.Metric;
 import edu.hm.hafner.coverage.MetricAggregation;
@@ -123,6 +124,7 @@ public class CoverageViewModel extends DefaultAsyncTableContentProvider implemen
     private final FilteredLog log;
     private final Node node;
     private final ChangeSet changes;
+    private final FileDeltas deltas;
     private final String id;
 
     private final Node modifiedLinesCoverageTreeRoot;
@@ -140,6 +142,7 @@ public class CoverageViewModel extends DefaultAsyncTableContentProvider implemen
             final String displayName,
             final Node node,
             final ChangeSet changes,
+            final FileDeltas deltas,
             final CoverageStatistics statistics,
             final QualityGateResult qualityGateResult,
             final String referenceBuild,
@@ -152,6 +155,7 @@ public class CoverageViewModel extends DefaultAsyncTableContentProvider implemen
                 displayName,
                 node,
                 changes,
+                deltas,
                 statistics,
                 qualityGateResult,
                 referenceBuild,
@@ -169,6 +173,7 @@ public class CoverageViewModel extends DefaultAsyncTableContentProvider implemen
             final String displayName,
             final Node node,
             final ChangeSet changes,
+            final FileDeltas deltas,
             final CoverageStatistics statistics,
             final QualityGateResult qualityGateResult,
             final String referenceBuild,
@@ -185,6 +190,7 @@ public class CoverageViewModel extends DefaultAsyncTableContentProvider implemen
 
         this.node = node;
         this.changes = changes;
+        this.deltas = deltas;
         this.statistics = statistics;
         this.qualityGateResult = qualityGateResult;
         this.referenceBuild = referenceBuild;
@@ -515,13 +521,13 @@ public class CoverageViewModel extends DefaultAsyncTableContentProvider implemen
         var actualId = tableId.replace(INLINE_SUFFIX, StringUtils.EMPTY);
         return switch (actualId) {
             case ABSOLUTE_COVERAGE_TABLE_ID ->
-                new CoverageTableModel(tableId, getNode(), changes, renderer, colorProvider);
+                new CoverageTableModel(tableId, getNode(), changes, deltas, renderer, colorProvider);
             case MODIFIED_LINES_COVERAGE_TABLE_ID ->
                 new ModifiedLinesCoverageTableModel(
-                        tableId, getNode(), changes, modifiedLinesCoverageTreeRoot, renderer, colorProvider);
+                        tableId, getNode(), changes, deltas, modifiedLinesCoverageTreeRoot, renderer, colorProvider);
             case INDIRECT_COVERAGE_TABLE_ID ->
                 new IndirectCoverageChangesTable(
-                        tableId, getNode(), changes, indirectCoverageChangesTreeRoot, renderer, colorProvider);
+                        tableId, getNode(), changes, deltas, indirectCoverageChangesTreeRoot, renderer, colorProvider);
             default -> throw new NoSuchElementException("No such table with id " + actualId);
         };
     }

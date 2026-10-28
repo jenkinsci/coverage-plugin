@@ -5,6 +5,7 @@ import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 import edu.hm.hafner.coverage.ChangeSet;
+import edu.hm.hafner.coverage.FileDeltas;
 import edu.hm.hafner.coverage.Node;
 import edu.hm.hafner.coverage.parser.JacocoParser;
 import edu.hm.hafner.util.FilteredLog;
@@ -64,6 +65,7 @@ class CoverageViewModelITest extends AbstractCoverageITest {
                 StringUtils.EMPTY,
                 node,
                 ChangeSet.empty(),
+                FileDeltas.empty(),
                 AbstractCoverageTest.createStatistics(),
                 new QualityGateResult(),
                 "-",

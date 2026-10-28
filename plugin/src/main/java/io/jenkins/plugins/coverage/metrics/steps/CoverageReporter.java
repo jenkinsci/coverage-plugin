@@ -4,6 +4,8 @@ import edu.hm.hafner.coverage.ChangeSet;
 import edu.hm.hafner.coverage.ChangeSet.ChangeSetBuilder;
 import edu.hm.hafner.coverage.Coverage;
 import edu.hm.hafner.coverage.Difference;
+import edu.hm.hafner.coverage.FileDeltas;
+import edu.hm.hafner.coverage.FileDeltas.FileDeltasBuilder;
 import edu.hm.hafner.coverage.FileNode;
 import edu.hm.hafner.coverage.Metric;
 import edu.hm.hafner.coverage.MetricAggregation;
@@ -156,8 +158,10 @@ public class CoverageReporter {
         Optional<Delta> delta = codeDeltaCalculator.calculateCodeDeltaToReference(referenceAction.getOwner(), log);
 
         var referenceRoot = referenceAction.getResult();
-        var changes = delta.map(value -> createDeltaReports(rootNode, log, referenceRoot, codeDeltaCalculator, value))
-                .orElse(ChangeSet.empty());
+        var coverageChanges = delta.map(
+                        value -> createDeltaReports(rootNode, log, referenceRoot, codeDeltaCalculator, value))
+                .orElse(CoverageChanges.EMPTY);
+        var changes = coverageChanges.changes();
 
         log.logInfo("Calculating coverage deltas...");
 
@@ -213,6 +217,7 @@ public class CoverageReporter {
                 referenceAction.getOwner().getExternalizableId(),
                 statistics,
                 changes,
+                coverageChanges.deltas(),
                 rootNode.filterByIndirectChanges(changes).aggregateValues());
     }
 
@@ -287,7 +292,7 @@ public class CoverageReporter {
         log.logInfo("Finished coverage processing - adding the action to the build...");
     }
 
-    private ChangeSet createDeltaReports(
+    private CoverageChanges createDeltaReports(
             final Node rootNode,
             final FilteredLog log,
             final Node referenceRoot,
@@ -295,6 +300,7 @@ public class CoverageReporter {
             final Delta delta) {
         var fileChangesProcessor = new FileChangesProcessor();
         var changeSetBuilder = new ChangeSetBuilder();
+        var deltasBuilder = new FileDeltasBuilder();
 
         try {
             log.logInfo("Preprocessing code changes...");
@@ -310,14 +316,14 @@ public class CoverageReporter {
                     rootNode, referenceRoot, mappedChanges, oldPathMapping, changeSetBuilder);
 
             log.logInfo("Obtaining coverage delta for files...");
-            fileChangesProcessor.attachFileCoverageDeltas(rootNode, referenceRoot, oldPathMapping);
+            fileChangesProcessor.attachFileCoverageDeltas(rootNode, referenceRoot, oldPathMapping, deltasBuilder);
         } catch (IllegalStateException exception) {
             log.logError("An error occurred while processing code and coverage changes:");
             log.logError("-> Message: " + exception.getMessage());
             log.logError("-> Skipping calculating modified lines coverage, modified files coverage"
                     + " and indirect coverage changes");
         }
-        return changeSetBuilder.build();
+        return new CoverageChanges(changeSetBuilder.build(), deltasBuilder.build());
     }
 
     private boolean hasModifiedLinesCoverage(final Node modifiedLinesCoverageRoot) {
@@ -388,5 +394,17 @@ public class CoverageReporter {
         }
 
         return Optional.empty();
+    }
+
+    /**
+     * The changes of a build with respect to the reference build.
+     *
+     * @param changes
+     *         the modified lines and the indirect coverage changes
+     * @param deltas
+     *         the coverage deltas of the files
+     */
+    private record CoverageChanges(ChangeSet changes, FileDeltas deltas) {
+        private static final CoverageChanges EMPTY = new CoverageChanges(ChangeSet.empty(), FileDeltas.empty());
     }
 }

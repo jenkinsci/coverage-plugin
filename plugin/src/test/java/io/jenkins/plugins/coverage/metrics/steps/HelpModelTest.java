@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 import edu.hm.hafner.coverage.ChangeSet;
+import edu.hm.hafner.coverage.FileDeltas;
 import edu.hm.hafner.coverage.Metric;
 import edu.hm.hafner.coverage.MetricAggregation;
 import edu.hm.hafner.coverage.Node;
@@ -108,6 +109,7 @@ class HelpModelTest extends AbstractCoverageTest {
                 "",
                 node,
                 ChangeSet.empty(),
+                FileDeltas.empty(),
                 createStatistics(),
                 new QualityGateResult(),
                 "-",

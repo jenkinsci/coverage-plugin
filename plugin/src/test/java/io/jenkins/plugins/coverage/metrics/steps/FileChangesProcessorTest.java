@@ -3,7 +3,7 @@ package io.jenkins.plugins.coverage.metrics.steps;
 import static org.assertj.core.api.Assertions.*;
 
 import edu.hm.hafner.coverage.Difference;
-import edu.hm.hafner.coverage.FileNode;
+import edu.hm.hafner.coverage.FileDeltas;
 import edu.hm.hafner.coverage.Metric;
 import io.jenkins.plugins.coverage.metrics.AbstractModifiedFilesCoverageTest;
 import java.util.AbstractMap.SimpleEntry;
@@ -27,15 +27,9 @@ class FileChangesProcessorTest extends AbstractModifiedFilesCoverageTest {
 
     @Test
     void shouldAttachFileCoverageDelta() {
-        var tree = createCoverageTree();
+        var deltas = createFileDeltas(createCoverageTree());
 
-        assertThat(tree.findByHashCode(
-                        Metric.FILE, getPathOfFileWithModifiedLines().hashCode()))
-                .isNotEmpty()
-                .satisfies(node -> {
-                    assertThat(node.get()).isInstanceOf(FileNode.class);
-                    verifyFileCoverageDeltaOfTestFile1((FileNode) node.get());
-                });
+        verifyFileCoverageDeltaOfTestFile1(deltas);
     }
 
     @Test
@@ -49,16 +43,16 @@ class FileChangesProcessorTest extends AbstractModifiedFilesCoverageTest {
     /**
      * Verifies the file coverage delta of {@link #getPathOfFileWithModifiedLines() the modified file}.
      *
-     * @param file
-     *         The referencing coverage tree {@link FileNode node}
+     * @param deltas
+     *         The coverage deltas of the files
      */
-    private void verifyFileCoverageDeltaOfTestFile1(final FileNode file) {
-        assertThat(file.getName()).isEqualTo(getNameOfFileWithModifiedLines());
-        assertThat(file.getDelta(Metric.LINE)).isEqualTo(new Difference(Metric.LINE, 100, 39));
-        assertThat(file.getDelta(Metric.BRANCH)).isEqualTo(new Difference(Metric.BRANCH, 25, 2));
-        assertThat(file.getDelta(Metric.INSTRUCTION)).isEqualTo(new Difference(Metric.INSTRUCTION, 1000, 111));
-        assertThat(file.getDelta(Metric.METHOD)).isEqualTo(new Difference(Metric.METHOD, -40, 3));
-        assertThat(file.getDelta(Metric.CLASS)).isEqualTo(Difference.nullObject(Metric.CLASS));
-        assertThat(file.getDelta(Metric.FILE)).isEqualTo(Difference.nullObject(Metric.FILE));
+    private void verifyFileCoverageDeltaOfTestFile1(final FileDeltas deltas) {
+        var path = getPathOfFileWithModifiedLines();
+        assertThat(deltas.getDelta(path, Metric.LINE)).isEqualTo(new Difference(Metric.LINE, 100, 39));
+        assertThat(deltas.getDelta(path, Metric.BRANCH)).isEqualTo(new Difference(Metric.BRANCH, 25, 2));
+        assertThat(deltas.getDelta(path, Metric.INSTRUCTION)).isEqualTo(new Difference(Metric.INSTRUCTION, 1000, 111));
+        assertThat(deltas.getDelta(path, Metric.METHOD)).isEqualTo(new Difference(Metric.METHOD, -40, 3));
+        assertThat(deltas.getDelta(path, Metric.CLASS)).isEqualTo(Difference.nullObject(Metric.CLASS));
+        assertThat(deltas.getDelta(path, Metric.FILE)).isEqualTo(Difference.nullObject(Metric.FILE));
     }
 }

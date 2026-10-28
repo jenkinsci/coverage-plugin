@@ -2,6 +2,7 @@ package io.jenkins.plugins.coverage.metrics.steps;
 
 import edu.hm.hafner.coverage.ChangeSet;
 import edu.hm.hafner.coverage.ChangeSet.ChangeSetBuilder;
+import edu.hm.hafner.coverage.FileDeltas.FileDeltasBuilder;
 import edu.hm.hafner.coverage.FileNode;
 import edu.hm.hafner.coverage.Node;
 import io.jenkins.plugins.forensics.delta.Change;
@@ -23,8 +24,7 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 /**
- * Calculates and attaches values to the {@link FileNode nodes} of the coverage tree which represent the changes
- * concerning code and coverage.
+ * Calculates the changes concerning code and coverage of the {@link FileNode nodes} of the coverage tree.
  *
  * @author Florian Orendi
  */
@@ -71,7 +71,7 @@ public class FileChangesProcessor {
     }
 
     /**
-     * Attaches the delta between the total file coverage of all currently built files against the passed reference. The
+     * Collects the delta between the total file coverage of all currently built files against the passed reference. The
      * algorithm also covers renamed files.
      *
      * @param root
@@ -80,26 +80,23 @@ public class FileChangesProcessor {
      *         The root of the reference coverage tree
      * @param oldPathMapping
      *         A mapping between the report paths of the current and the reference coverage tree
+     * @param builder
+     *         The builder that collects the deltas of the files
      */
     public void attachFileCoverageDeltas(
-            final Node root, final Node referenceNode, final Map<String, String> oldPathMapping) {
+            final Node root,
+            final Node referenceNode,
+            final Map<String, String> oldPathMapping,
+            final FileDeltasBuilder builder) {
         Map<String, FileNode> fileNodes = getFileNodeMappingWithReferencePaths(root, oldPathMapping);
         Map<String, FileNode> referenceFileNodes = getReferenceFileNodeMapping(fileNodes, referenceNode);
         fileNodes.entrySet().stream()
                 .filter(entry -> referenceFileNodes.containsKey(entry.getKey()))
-                .forEach(entry -> attachFileCoverageDelta(entry.getValue(), referenceFileNodes.get(entry.getKey())));
-    }
-
-    /**
-     * Attaches the delta between the total coverage of a file against the same file from the reference build.
-     *
-     * @param fileNode
-     *         The {@link FileNode node} which represents the total coverage of a file
-     * @param referenceNode
-     *         The {@link FileNode reference node} which represents the coverage of the reference file
-     */
-    private void attachFileCoverageDelta(final FileNode fileNode, final FileNode referenceNode) {
-        fileNode.computeDelta(referenceNode);
+                .forEach(entry -> {
+                    var fileNode = entry.getValue();
+                    var referenceFile = referenceFileNodes.get(entry.getKey());
+                    builder.addDeltas(fileNode.getRelativePath(), fileNode.computeDelta(referenceFile));
+                });
     }
 
     /**

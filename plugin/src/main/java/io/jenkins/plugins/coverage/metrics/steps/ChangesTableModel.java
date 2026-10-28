@@ -2,6 +2,7 @@ package io.jenkins.plugins.coverage.metrics.steps;
 
 import edu.hm.hafner.coverage.ChangeSet;
 import edu.hm.hafner.coverage.Coverage;
+import edu.hm.hafner.coverage.FileDeltas;
 import edu.hm.hafner.coverage.FileNode;
 import edu.hm.hafner.coverage.Metric;
 import edu.hm.hafner.coverage.Node;
@@ -22,10 +23,11 @@ abstract class ChangesTableModel extends CoverageTableModel {
             final String id,
             final Node root,
             final ChangeSet changes,
+            final FileDeltas deltas,
             final Node changeRoot,
             final RowRenderer renderer,
             final ColorProvider colorProvider) {
-        super(id, root, changes, renderer, colorProvider);
+        super(id, root, changes, deltas, renderer, colorProvider);
 
         this.changeRoot = changeRoot;
     }
@@ -58,10 +60,11 @@ abstract class ChangesTableModel extends CoverageTableModel {
                 final FileNode originalFile,
                 final FileNode changedFileNode,
                 final ChangeSet changes,
+                final FileDeltas deltas,
                 final Locale browserLocale,
                 final RowRenderer renderer,
                 final ColorProvider colorProvider) {
-            super(changedFileNode, changes, browserLocale, renderer, colorProvider);
+            super(changedFileNode, changes, deltas, browserLocale, renderer, colorProvider);
 
             this.originalFile = originalFile;
         }

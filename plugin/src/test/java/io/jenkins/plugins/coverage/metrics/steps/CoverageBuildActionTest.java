@@ -1,6 +1,7 @@
 package io.jenkins.plugins.coverage.metrics.steps;
 
-import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 import static org.mockito.Mockito.*;
 
 import edu.hm.hafner.coverage.Coverage.CoverageBuilder;
@@ -32,6 +33,7 @@ import org.junitpioneer.jupiter.Issue;
 class CoverageBuildActionTest {
     @Test
     @Issue("SECURITY-3611")
+    @SuppressWarnings("checkstyle:LambdaBodyLength")
     void shouldValidateInAction() {
         String evilId = "javascript:alert(1)";
         assertThatIllegalArgumentException()
