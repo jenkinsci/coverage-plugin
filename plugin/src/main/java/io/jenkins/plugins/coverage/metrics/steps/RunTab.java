@@ -17,6 +17,8 @@ import org.kohsuke.stapler.StaplerResponse2;
  * Defines the coverage tab for a run.
  */
 public class RunTab extends Tab {
+    static final String URL = "coverage";
+
     /**
      * Creates a new {@link RunTab}.
      *
@@ -43,7 +45,7 @@ public class RunTab extends Tab {
 
     @Override
     public String getUrlName() {
-        return "coverage";
+        return URL;
     }
 
     @Override
