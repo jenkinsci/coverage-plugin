@@ -10,6 +10,7 @@ edu.hm.hafner.coverage.ClassNode
 edu.hm.hafner.coverage.ContainerNode
 edu.hm.hafner.coverage.Coverage
 edu.hm.hafner.coverage.Difference
+edu.hm.hafner.coverage.FileDeltas
 edu.hm.hafner.coverage.FileNode
 edu.hm.hafner.coverage.LineCounters
 edu.hm.hafner.coverage.MethodNode
