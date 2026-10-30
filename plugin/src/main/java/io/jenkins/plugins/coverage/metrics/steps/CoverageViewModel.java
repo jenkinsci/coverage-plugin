@@ -741,7 +741,7 @@ public class CoverageViewModel extends DefaultAsyncTableContentProvider implemen
                 .orElseThrow(() -> new NoSuchElementException("No coverage action found for id " + id));
     }
 
-    private static boolean isRunTabActive() {
+    static boolean isRunTabActive() {
         Boolean newBuildPage = BooleanUserExperimentalFlag.getFlagValueForCurrentUser(NEW_BUILD_PAGE_FLAG_CLASS_NAME);
 
         return Boolean.TRUE.equals(newBuildPage);

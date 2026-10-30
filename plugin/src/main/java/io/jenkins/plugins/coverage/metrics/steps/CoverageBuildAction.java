@@ -1,6 +1,6 @@
 package io.jenkins.plugins.coverage.metrics.steps;
 
-import static hudson.model.Run.*;
+import static hudson.model.Run.XSTREAM2;
 
 import edu.hm.hafner.coverage.Difference;
 import edu.hm.hafner.coverage.Metric;
@@ -9,6 +9,7 @@ import edu.hm.hafner.coverage.Node;
 import edu.hm.hafner.coverage.Value;
 import edu.hm.hafner.util.FilteredLog;
 import edu.hm.hafner.util.VisibleForTesting;
+import edu.umd.cs.findbugs.annotations.CheckForNull;
 import edu.umd.cs.findbugs.annotations.NonNull;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import hudson.Functions;
@@ -522,11 +523,11 @@ public final class CoverageBuildAction extends BuildAction<Node> implements Stap
      */
     public CoverageStatistics getStatistics() {
         return new CoverageStatistics(
-                this.<Value>createMapping(projectValues, values -> values.getValues(Baseline.PROJECT)),
+                this.createMapping(projectValues, values -> values.getValues(Baseline.PROJECT)),
                 createMapping(differences, values -> values.getDeltas(Baseline.PROJECT_DELTA)),
-                this.<Value>createMapping(modifiedLinesCoverage, values -> values.getValues(Baseline.MODIFIED_LINES)),
+                this.createMapping(modifiedLinesCoverage, values -> values.getValues(Baseline.MODIFIED_LINES)),
                 createMapping(modifiedLinesDifferences, values -> values.getDeltas(Baseline.MODIFIED_LINES_DELTA)),
-                this.<Value>createMapping(modifiedFilesCoverage, values -> values.getValues(Baseline.MODIFIED_FILES)),
+                this.createMapping(modifiedFilesCoverage, values -> values.getValues(Baseline.MODIFIED_FILES)),
                 createMapping(modifiedFilesDifferences, values -> values.getDeltas(Baseline.MODIFIED_FILES_DELTA)));
     }
 
@@ -975,9 +976,16 @@ public final class CoverageBuildAction extends BuildAction<Node> implements Stap
                         .createMetricsModel(configuration, this, TrendChartFactory.LEGACY_DEFAULT_TREND_METRICS));
     }
 
-    @NonNull
+    @CheckForNull
     @Override
     public String getIconFileName() {
+        if (CoverageViewModel.isRunTabActive() && getUrlName().equals(RunTab.URL)) {
+            return null;
+        }
+        return icon;
+    }
+
+    public String getIcon() {
         return icon;
     }
 
