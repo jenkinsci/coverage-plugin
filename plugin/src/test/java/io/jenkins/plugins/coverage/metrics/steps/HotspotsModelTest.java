@@ -3,9 +3,11 @@ package io.jenkins.plugins.coverage.metrics.steps;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
 
+import edu.hm.hafner.coverage.ClassNode;
 import edu.hm.hafner.coverage.Coverage;
 import edu.hm.hafner.coverage.Coverage.CoverageBuilder;
 import edu.hm.hafner.coverage.FileNode;
+import edu.hm.hafner.coverage.MethodNode;
 import edu.hm.hafner.coverage.Metric;
 import edu.hm.hafner.coverage.ModuleNode;
 import edu.hm.hafner.coverage.Node;
@@ -13,8 +15,10 @@ import edu.hm.hafner.coverage.Value;
 import edu.hm.hafner.util.FilteredLog;
 import hudson.model.Run;
 import io.jenkins.plugins.coverage.metrics.AbstractCoverageTest;
+import io.jenkins.plugins.coverage.metrics.steps.HotspotsModel.Histogram;
 import io.jenkins.plugins.coverage.metrics.steps.HotspotsModel.HistogramData;
 import io.jenkins.plugins.coverage.metrics.steps.HotspotsModel.HistogramMetric;
+import io.jenkins.plugins.coverage.metrics.steps.HotspotsModel.MetricEntry;
 import io.jenkins.plugins.coverage.metrics.steps.HotspotsModel.MissedEntry;
 import io.jenkins.plugins.coverage.metrics.steps.HotspotsModel.RiskEntry;
 import io.jenkins.plugins.util.QualityGateResult;
@@ -50,6 +54,7 @@ class HotspotsModelTest extends AbstractCoverageTest {
 
         assertThat(model.getRankings()).isEmpty();
         assertThat(model.getRiskRanking()).isEmpty();
+        assertThat(model.getMetricRankings()).isEmpty();
         assertThat(readHistogram(model).metrics()).isEmpty();
     }
 
@@ -64,6 +69,7 @@ class HotspotsModelTest extends AbstractCoverageTest {
         assertThat(rankings).hasSize(1);
 
         var ranking = rankings.get(0);
+        assertThat(ranking.id()).isEqualTo(Metric.LINE.toTagName());
         assertThat(ranking.name()).isEqualTo(Metric.LINE.getDisplayName());
         assertThat(ranking.mostMissed())
                 .extracting(MissedEntry::name)
@@ -106,6 +112,22 @@ class HotspotsModelTest extends AbstractCoverageTest {
         assertThat(rankings)
                 .extracting(HotspotsModel.Ranking::name)
                 .containsExactly(Metric.LINE.getDisplayName(), Metric.BRANCH.getDisplayName());
+    }
+
+    @Test
+    void shouldCreateRankingForEveryCoverageMetric() {
+        var file = createFile("Mutated.java", Metric.TEST_STRENGTH, 3, 1);
+        file.addValue(new CoverageBuilder()
+                .withMetric(Metric.INSTRUCTION)
+                .withCovered(5)
+                .withMissed(6)
+                .build());
+
+        var rankings = createModel(createModule(file)).getRankings();
+
+        assertThat(rankings)
+                .extracting(HotspotsModel.Ranking::id)
+                .containsExactly(Metric.INSTRUCTION.toTagName(), Metric.TEST_STRENGTH.toTagName());
     }
 
     @Test
@@ -168,6 +190,88 @@ class HotspotsModelTest extends AbstractCoverageTest {
     }
 
     @Test
+    void shouldRankFilesByOverallAndWorstComplexity() {
+        var model = createModel(createModule(
+                createFileWithMethods("Many.java", Metric.CYCLOMATIC_COMPLEXITY, 5, 5, 5, 5),
+                createFileWithMethods("Monster.java", Metric.CYCLOMATIC_COMPLEXITY, 1, 15),
+                createFileWithMethods("Simple.java", Metric.CYCLOMATIC_COMPLEXITY, 2)));
+
+        assertThat(model.getMetricRankings()).hasSize(1);
+
+        var ranking = model.getMetricRankings().get(0);
+        assertThat(ranking.id()).isEqualTo(Metric.CYCLOMATIC_COMPLEXITY.toTagName());
+        assertThat(ranking.name()).isEqualTo(Metric.CYCLOMATIC_COMPLEXITY.getDisplayName());
+        assertThat(ranking.smallerIsBetter()).isTrue();
+        assertThat(ranking.methodMetric()).isTrue();
+        assertThat(ranking.overallName())
+                .isEqualTo(io.jenkins.plugins.coverage.metrics.model.Messages.Aggregation_OVERALL());
+        assertThat(ranking.worstName())
+                .isEqualTo(io.jenkins.plugins.coverage.metrics.model.Messages.Aggregation_MAXIMUM());
+
+        assertThat(ranking.byOverall())
+                .extracting(MetricEntry::name)
+                .containsExactly("Many.java", "Monster.java", "Simple.java");
+        assertThat(ranking.byOverall()).extracting(MetricEntry::overall).containsExactly("20", "16", "2");
+        assertThat(ranking.byWorst())
+                .extracting(MetricEntry::name)
+                .containsExactly("Monster.java", "Many.java", "Simple.java");
+        assertThat(ranking.byWorst()).extracting(MetricEntry::worst).containsExactly("15", "5", "2");
+
+        var monster = ranking.byWorst().get(0);
+        assertThat(monster.element()).isEqualTo("method1");
+        assertThat(monster.path()).isEqualTo("src/Monster.java");
+        assertThat(monster.hash()).isEqualTo("src/Monster.java".hashCode());
+    }
+
+    @Test
+    void shouldRankFilesWithLowestCohesionFirst() {
+        var model = createModel(createModule(
+                createFileWithClass("High.java", new Value(Metric.COHESION, 9, 10)),
+                createFileWithClass("Perfect.java", new Value(Metric.COHESION, 1, 1)),
+                createFileWithClass("Low.java", new Value(Metric.COHESION, 1, 10))));
+
+        var ranking = model.getMetricRankings().get(0);
+
+        assertThat(ranking.smallerIsBetter()).isFalse();
+        assertThat(ranking.methodMetric()).isFalse();
+        assertThat(ranking.worstName())
+                .isEqualTo(io.jenkins.plugins.coverage.metrics.model.Messages.Aggregation_MINIMUM());
+        assertThat(ranking.byWorst()).extracting(MetricEntry::name).containsExactly("Low.java", "High.java");
+        assertThat(ranking.byWorst()).extracting(MetricEntry::element).containsExactly("Low", "High");
+    }
+
+    @Test
+    void shouldOmitFilesAndMetricsWithBestValues() {
+        var model = createModel(createModule(createFileWithMethods("Empty.java", Metric.NPATH_COMPLEXITY, 0, 0)));
+
+        assertThat(model.getMetricRankings()).isEmpty();
+    }
+
+    @Test
+    void shouldUseFileValueIfThereAreNoElements() {
+        var file = new FileNode("Flat.java", "src/Flat.java");
+        file.addValue(new Value(Metric.FAN_OUT, 7));
+
+        var ranking = createModel(createModule(file)).getMetricRankings().get(0);
+
+        assertThat(ranking.byWorst()).extracting(MetricEntry::worst).containsExactly("7");
+        assertThat(ranking.byWorst()).extracting(MetricEntry::element).containsExactly("-");
+    }
+
+    @Test
+    void shouldLimitMetricRankingsToMaximumNumberOfEntries() {
+        var files = IntStream.rangeClosed(1, HotspotsModel.MAX_ENTRIES + 2)
+                .mapToObj(index -> createFileWithMethods("File" + index + ".java", Metric.CYCLOMATIC_COMPLEXITY, index))
+                .toArray(FileNode[]::new);
+
+        var ranking = createModel(createModule(files)).getMetricRankings().get(0);
+
+        assertThat(ranking.byOverall()).hasSize(HotspotsModel.MAX_ENTRIES);
+        assertThat(ranking.byWorst()).hasSize(HotspotsModel.MAX_ENTRIES);
+        assertThat(ranking.byOverall().get(0).name()).isEqualTo("File12.java");
+    }
+
+    @Test
     void shouldCountFilesInBuckets() {
         var model = createModel(createModule(
                 createFile("None.java", Metric.LINE, 0, 10),
@@ -177,29 +281,70 @@ class HotspotsModelTest extends AbstractCoverageTest {
                 createFile("High.java", Metric.LINE, 95, 5),
                 createFile("Full.java", Metric.LINE, 10, 0)));
 
-        var histogram = readHistogram(model);
+        var line = findHistogramMetric(readHistogram(model), Metric.LINE);
+        assertThat(line.name()).isEqualTo(Metric.LINE.getDisplayName());
+        assertThat(line.coverage()).isTrue();
+        assertThat(line.histograms()).hasSize(1);
 
+        var histogram = line.histograms().get(0);
+        assertThat(histogram.id()).isEqualTo(HotspotsModel.OVERALL);
         assertThat(histogram.labels()).hasSize(HotspotsModel.BUCKETS);
         assertThat(histogram.labels()).startsWith("0–9%", "10–19%").endsWith("90–99%", "100%");
-        assertThat(histogram.metrics()).hasSize(1);
+        assertThat(histogram.counts()).containsExactly(1, 0, 0, 1, 0, 0, 0, 0, 0, 3, 1);
+    }
 
-        var line = histogram.metrics().get(0);
-        assertThat(line.id()).isEqualTo(Metric.LINE.toTagName());
-        assertThat(line.name()).isEqualTo(Metric.LINE.getDisplayName());
-        assertThat(line.counts()).containsExactly(1, 0, 0, 1, 0, 0, 0, 0, 0, 3, 1);
+    @Test
+    void shouldProvideOverallAndWorstHistogramForSoftwareMetrics() {
+        var model = createModel(createModule(
+                createFileWithMethods("Many.java", Metric.CYCLOMATIC_COMPLEXITY, 1, 1, 1),
+                createFileWithMethods("Monster.java", Metric.CYCLOMATIC_COMPLEXITY, 1, 4),
+                createFileWithMethods("Simple.java", Metric.CYCLOMATIC_COMPLEXITY, 2)));
+
+        var complexity = findHistogramMetric(readHistogram(model), Metric.CYCLOMATIC_COMPLEXITY);
+        assertThat(complexity.coverage()).isFalse();
+        assertThat(complexity.smallerIsBetter()).isTrue();
+        assertThat(complexity.histograms())
+                .extracting(Histogram::id)
+                .containsExactly(HotspotsModel.OVERALL, HotspotsModel.WORST);
+        assertThat(complexity.histograms())
+                .extracting(Histogram::name)
+                .containsExactly(
+                        io.jenkins.plugins.coverage.metrics.model.Messages.Aggregation_OVERALL(),
+                        io.jenkins.plugins.coverage.metrics.model.Messages.Aggregation_MAXIMUM());
+
+        var overall = complexity.histograms().get(0);
+        assertThat(overall.labels()).containsExactly("2", "3", "4", "5");
+        assertThat(overall.counts()).containsExactly(1, 1, 0, 1);
+
+        var worst = complexity.histograms().get(1);
+        assertThat(worst.labels()).containsExactly("1", "2", "3", "4");
+        assertThat(worst.counts()).containsExactly(1, 1, 0, 1);
+    }
+
+    @Test
+    void shouldUsePercentageBucketsForPercentageMetrics() {
+        var model = createModel(createModule(
+                createFileWithClass("Low.java", new Value(Metric.COHESION, 1, 10)),
+                createFileWithClass("Perfect.java", new Value(Metric.COHESION, 1, 1))));
+
+        var cohesion = findHistogramMetric(readHistogram(model), Metric.COHESION);
+        assertThat(cohesion.smallerIsBetter()).isFalse();
+
+        var overall = cohesion.histograms().get(0);
+        assertThat(overall.labels()).hasSize(HotspotsModel.BUCKETS).endsWith("100%");
+        assertThat(overall.counts()).containsExactly(0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1);
     }
 
     @Test
     void shouldCountEveryFileOnce() {
         var jacoco = readJacocoResult(JACOCO_CODING_STYLE_FILE);
 
-        var line = readHistogram(createModel(jacoco)).metrics().stream()
-                .filter(metric -> metric.id().equals(Metric.LINE.toTagName()))
-                .findFirst()
-                .orElseThrow();
+        var line = findHistogramMetric(readHistogram(createModel(jacoco)), Metric.LINE);
 
-        assertThat(line.counts().stream().mapToInt(Integer::intValue).sum()).isEqualTo((int)
-                jacoco.getAllFileNodes().stream()
+        assertThat(line.histograms().get(0).counts().stream()
+                        .mapToInt(Integer::intValue)
+                        .sum())
+                .isEqualTo((int) jacoco.getAllFileNodes().stream()
                         .flatMap(file -> file.getValue(Metric.LINE).stream())
                         .filter(value -> value instanceof Coverage coverage && coverage.getTotal() > 0)
                         .count());
@@ -228,6 +373,15 @@ class HotspotsModelTest extends AbstractCoverageTest {
         assertThat(HotspotsModel.getBucket(createCoverage(1, 0))).isEqualTo(HotspotsModel.BUCKETS - 1);
     }
 
+    @Test
+    void shouldAssignPercentagesToBuckets() {
+        assertThat(HotspotsModel.getBucket(0.0)).isZero();
+        assertThat(HotspotsModel.getBucket(0.099)).isZero();
+        assertThat(HotspotsModel.getBucket(0.1)).isEqualTo(1);
+        assertThat(HotspotsModel.getBucket(0.999)).isEqualTo(HotspotsModel.BUCKETS - 2);
+        assertThat(HotspotsModel.getBucket(1.0)).isEqualTo(HotspotsModel.BUCKETS - 1);
+    }
+
     private static Coverage createCoverage(final int covered, final int missed) {
         return new CoverageBuilder()
                 .withMetric(Metric.LINE)
@@ -246,6 +400,48 @@ class HotspotsModelTest extends AbstractCoverageTest {
         return file;
     }
 
+    /**
+     * Creates a file with a single class that contains one method for each of the specified values.
+     *
+     * @param name
+     *         the name of the file
+     * @param metric
+     *         the metric of the values
+     * @param values
+     *         the values of the methods: the methods are named method0, method1, ...
+     *
+     * @return the file
+     */
+    private static FileNode createFileWithMethods(final String name, final Metric metric, final int... values) {
+        var file = new FileNode(name, "src/" + name);
+        var classNode = new ClassNode(name.replace(".java", ""));
+        file.addChild(classNode);
+        for (int index = 0; index < values.length; index++) {
+            var method = new MethodNode("method" + index, "()V", index + 1);
+            method.addValue(new Value(metric, values[index]));
+            classNode.addChild(method);
+        }
+        return file;
+    }
+
+    /**
+     * Creates a file with a single class that provides the specified value.
+     *
+     * @param name
+     *         the name of the file
+     * @param value
+     *         the value of the class
+     *
+     * @return the file
+     */
+    private static FileNode createFileWithClass(final String name, final Value value) {
+        var file = new FileNode(name, "src/" + name);
+        var classNode = new ClassNode("edu.hm." + name.replace(".java", ""));
+        classNode.addValue(value);
+        file.addChild(classNode);
+        return file;
+    }
+
     private static ModuleNode createModule(final FileNode... files) {
         var module = new ModuleNode("module");
         for (FileNode file : List.of(files)) {
@@ -256,6 +452,23 @@ class HotspotsModelTest extends AbstractCoverageTest {
 
     private static HistogramData readHistogram(final HotspotsModel model) {
         return MAPPER.readValue(model.getHistogramData(), HistogramData.class);
+    }
+
+    /**
+     * Returns the distribution of the specified metric.
+     *
+     * @param histogram
+     *         the distributions of all metrics
+     * @param metric
+     *         the metric to find
+     *
+     * @return the distribution of the metric
+     */
+    private static HistogramMetric findHistogramMetric(final HistogramData histogram, final Metric metric) {
+        return histogram.metrics().stream()
+                .filter(candidate -> candidate.id().equals(metric.toTagName()))
+                .findFirst()
+                .orElseThrow();
     }
 
     private static HotspotsModel createModel(final Node node) {

@@ -55,7 +55,16 @@ public class WorstValuesModel {
         return statistics.getValue(baseline, metric, getWorstAggregation(metric));
     }
 
-    private static MetricAggregation getWorstAggregation(final Metric metric) {
+    /**
+     * Returns the aggregation that selects the worst value of the specified metric: the maximum for metrics where
+     * smaller values are better, the minimum otherwise.
+     *
+     * @param metric
+     *         the metric to get the aggregation for
+     *
+     * @return the aggregation that selects the worst value
+     */
+    static MetricAggregation getWorstAggregation(final Metric metric) {
         return metric.getTendency() == MetricTendency.SMALLER_IS_BETTER
                 ? MetricAggregation.MAXIMUM
                 : MetricAggregation.MINIMUM;
