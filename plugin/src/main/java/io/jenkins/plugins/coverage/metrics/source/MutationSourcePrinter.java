@@ -25,6 +25,7 @@ final class MutationSourcePrinter extends CoverageSourcePrinter {
 
     private final int[] survivedPerLine;
     private final int[] killedPerLine;
+    private final int[] notCoveredPerLine;
     private final String[] tooltipPerLine;
 
     MutationSourcePrinter(final FileNode file) {
@@ -32,6 +33,7 @@ final class MutationSourcePrinter extends CoverageSourcePrinter {
 
         survivedPerLine = new int[size()];
         killedPerLine = new int[size()];
+        notCoveredPerLine = new int[size()];
         tooltipPerLine = new String[size()];
         Arrays.fill(tooltipPerLine, StringUtils.EMPTY);
 
@@ -42,6 +44,8 @@ final class MutationSourcePrinter extends CoverageSourcePrinter {
                 survivedPerLine[findIndexOfLine(mutation.getLine())]++;
             } else if (mutation.isKilled()) {
                 killedPerLine[findIndexOfLine(mutation.getLine())]++;
+            } else if (mutation.isMissed()) {
+                notCoveredPerLine[findIndexOfLine(mutation.getLine())]++;
             }
         }
     }
@@ -60,7 +64,12 @@ final class MutationSourcePrinter extends CoverageSourcePrinter {
         if (killedContainer.getNumChildren() == 0 && survivedContainer.getNumChildren() == 0) {
             return "Not covered";
         }
-        return div().with(killedContainer, survivedContainer).render();
+        var info = div().with(killedContainer, survivedContainer);
+        var notCoveredContainer = listMutations(allMutations, Mutation::isMissed, "Not Covered Mutations:");
+        if (notCoveredContainer.getNumChildren() > 0) {
+            info.with(notCoveredContainer);
+        }
+        return info.render();
     }
 
     private ContainerTag listMutations(
@@ -86,6 +95,23 @@ final class MutationSourcePrinter extends CoverageSourcePrinter {
 
     int getKilled(final int line) {
         return getCounter(line, killedPerLine);
+    }
+
+    int getNotCovered(final int line) {
+        return getCounter(line, notCoveredPerLine);
+    }
+
+    /**
+     * Returns the number of mutations in the specified line that have not been killed, i.e., mutations that survived
+     * or that have not been covered by any test.
+     *
+     * @param line
+     *         the 1-based line number
+     *
+     * @return the number of mutations that have not been killed
+     */
+    private int getNotKilled(final int line) {
+        return getSurvived(line) + getNotCovered(line);
     }
 
     /**
@@ -127,12 +153,9 @@ final class MutationSourcePrinter extends CoverageSourcePrinter {
 
     @Override
     String getColorClass(final int line) {
-        if (getCovered(line) == 0) {
-            return NO_COVERAGE;
-        }
         if (getKilled(line) == 0) {
             return NO_COVERAGE;
-        } else if (getSurvived(line) == 0) {
+        } else if (getNotKilled(line) == 0) {
             return FULL_COVERAGE;
         } else {
             return PARTIAL_COVERAGE;
@@ -147,9 +170,9 @@ final class MutationSourcePrinter extends CoverageSourcePrinter {
     @Override
     String getSummaryColumn(final int line) {
         var killed = getKilled(line);
-        var survived = getSurvived(line);
-        if (survived + killed > 0) {
-            return "%d/%d".formatted(killed, survived + killed);
+        var total = killed + getNotKilled(line);
+        if (total > 0) {
+            return "%d/%d".formatted(killed, total);
         }
         return String.valueOf(killed);
     }

@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mutations>
+  <mutation detected='true' status='KILLED' numberOfTestsRun='1'>
+    <sourceFile>Mixed.java</sourceFile>
+    <mutatedClass>edu.hm.hafner.Mixed</mutatedClass>
+    <mutatedMethod>compute</mutatedMethod>
+    <methodDescription>(I)I</methodDescription>
+    <lineNumber>10</lineNumber>
+    <mutator>org.pitest.mutationtest.engine.gregor.mutators.returns.PrimitiveReturnsMutator</mutator>
+    <killingTest>edu.hm.hafner.MixedTest.shouldCompute()</killingTest>
+    <description>replaced int return with 0 for edu/hm/hafner/Mixed::compute</description>
+  </mutation>
+  <mutation detected='false' status='SURVIVED' numberOfTestsRun='1'>
+    <sourceFile>Mixed.java</sourceFile>
+    <mutatedClass>edu.hm.hafner.Mixed</mutatedClass>
+    <mutatedMethod>compute</mutatedMethod>
+    <methodDescription>(I)I</methodDescription>
+    <lineNumber>10</lineNumber>
+    <mutator>org.pitest.mutationtest.engine.gregor.mutators.ConditionalsBoundaryMutator</mutator>
+    <killingTest/>
+    <description>changed conditional boundary</description>
+  </mutation>
+  <mutation detected='false' status='NO_COVERAGE' numberOfTestsRun='0'>
+    <sourceFile>Mixed.java</sourceFile>
+    <mutatedClass>edu.hm.hafner.Mixed</mutatedClass>
+    <mutatedMethod>lambda$compute$0</mutatedMethod>
+    <methodDescription>(I)I</methodDescription>
+    <lineNumber>10</lineNumber>
+    <mutator>org.pitest.mutationtest.engine.gregor.mutators.MathMutator</mutator>
+    <killingTest/>
+    <description>Replaced integer addition with subtraction</description>
+  </mutation>
+  <mutation detected='false' status='NO_COVERAGE' numberOfTestsRun='0'>
+    <sourceFile>Mixed.java</sourceFile>
+    <mutatedClass>edu.hm.hafner.Mixed</mutatedClass>
+    <mutatedMethod>unused</mutatedMethod>
+    <methodDescription>()V</methodDescription>
+    <lineNumber>20</lineNumber>
+    <mutator>org.pitest.mutationtest.engine.gregor.mutators.VoidMethodCallMutator</mutator>
+    <killingTest/>
+    <description>removed call to edu/hm/hafner/Mixed::log</description>
+  </mutation>
+  <mutation detected='true' status='KILLED' numberOfTestsRun='1'>
+    <sourceFile>Mixed.java</sourceFile>
+    <mutatedClass>edu.hm.hafner.Mixed</mutatedClass>
+    <mutatedMethod>compute</mutatedMethod>
+    <methodDescription>(I)I</methodDescription>
+    <lineNumber>30</lineNumber>
+    <mutator>org.pitest.mutationtest.engine.gregor.mutators.NegateConditionalsMutator</mutator>
+    <killingTest>edu.hm.hafner.MixedTest.shouldCompute()</killingTest>
+    <description>negated conditional</description>
+  </mutation>
+</mutations>
