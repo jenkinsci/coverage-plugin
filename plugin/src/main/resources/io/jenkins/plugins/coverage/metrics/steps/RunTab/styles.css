@@ -405,6 +405,11 @@
     grid-template-columns: minmax(0, 1fr) max-content max-content max-content;
 }
 
+/* The element column (method or class) shrinks and truncates long names, like the file column. */
+.coverage-hotspots__grid--metric {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) max-content max-content;
+}
+
 .coverage-hotspots__grid-header {
     padding: 0 0 6px;
     margin-bottom: 5px;
@@ -439,13 +444,14 @@ button.coverage-hotspots__grid-header:hover {
     color: var(--text-color);
 }
 
-/* Arrows show the sort order: most missed items descending, coverage ascending (the weakest file first). */
-.coverage-hotspots__sort--active[data-sort="missed"]::after,
+/* Arrows show the sort order, the weakest file is always the first one: e.g., most missed items descending,
+   coverage ascending, complexity descending, or cohesion ascending. */
+.coverage-hotspots__sort--active[data-order="descending"]::after,
 .coverage-hotspots__grid-header--sorted::after {
     content: " \2193";
 }
 
-.coverage-hotspots__sort--active[data-sort="coverage"]::after {
+.coverage-hotspots__sort--active[data-order="ascending"]::after {
     content: " \2191";
 }
 
