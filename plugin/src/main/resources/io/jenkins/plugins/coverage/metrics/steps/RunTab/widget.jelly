@@ -39,7 +39,7 @@
           <div class="coverage-widget">
             <j:forEach var="action" items="${widget.results}">
                 <a href="${action.urlName}" class="coverage-widget__item">
-                    <l:icon src="${action.iconFileName}"/>
+                    <l:icon src="${action.icon}"/>
                     ${action.displayName}
                 </a>
             </j:forEach>

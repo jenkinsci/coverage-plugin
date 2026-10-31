@@ -2,14 +2,14 @@ package io.jenkins.plugins.coverage.metrics.source;
 
 import static org.assertj.core.api.Assertions.*;
 
+import edu.hm.hafner.coverage.ChangeSet;
+import edu.hm.hafner.coverage.ChangeSet.ChangeSetBuilder;
 import edu.hm.hafner.coverage.FileNode;
 import edu.hm.hafner.util.ResourceTest;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Arrays;
-import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 import org.jsoup.Jsoup;
@@ -64,7 +64,8 @@ class SourceCodeFacadeTest extends ResourceTest {
         var requiredHtml = Jsoup.parse(readHtml(MODIFIED_LINES_COVERAGE_SOURCE_CODE), Parser.xmlParser())
                 .html();
 
-        var modifiedLinesCoverageHtml = sourceCodeFacade.calculateModifiedLinesCoverageSourceCode(originalHtml, node);
+        var modifiedLinesCoverageHtml =
+                sourceCodeFacade.calculateModifiedLinesCoverageSourceCode(originalHtml, node, createChanges());
         assertThat(modifiedLinesCoverageHtml).isEqualTo(requiredHtml);
     }
 
@@ -77,7 +78,8 @@ class SourceCodeFacadeTest extends ResourceTest {
         var requiredHtml = Jsoup.parse(readHtml(INDIRECT_COVERAGE_SOURCE_CODE), Parser.xmlParser())
                 .html();
 
-        var modifiedLinesCoverageHtml = sourceCodeFacade.calculateIndirectCoverageChangesSourceCode(originalHtml, node);
+        var modifiedLinesCoverageHtml =
+                sourceCodeFacade.calculateIndirectCoverageChangesSourceCode(originalHtml, node, createChanges());
         assertThat(modifiedLinesCoverageHtml).isEqualTo(requiredHtml);
     }
 
@@ -103,18 +105,20 @@ class SourceCodeFacadeTest extends ResourceTest {
 
     private FileNode createFileCoverageNode() {
         var file = new FileNode("", "path");
-        List<Integer> lines = Arrays.asList(10, 11, 12, 16, 17, 18, 19);
-        for (Integer line : lines) {
-            file.addModifiedLines(line);
-        }
-        file.addIndirectCoverageChange(6, -1);
-        file.addIndirectCoverageChange(7, -1);
-        file.addIndirectCoverageChange(14, 1);
-        file.addIndirectCoverageChange(15, 1);
         for (int i = 1; i <= 25; i++) {
             file.addCounters(i, 1, 0);
         }
         return file;
+    }
+
+    private ChangeSet createChanges() {
+        return new ChangeSetBuilder()
+                .addModifiedLines("path", 10, 11, 12, 16, 17, 18, 19)
+                .addIndirectCoverageChange("path", 6, -1)
+                .addIndirectCoverageChange("path", 7, -1)
+                .addIndirectCoverageChange("path", 14, 1)
+                .addIndirectCoverageChange("path", 15, 1)
+                .build();
     }
 
     /**

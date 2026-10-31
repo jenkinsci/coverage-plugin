@@ -5,8 +5,6 @@ import static io.jenkins.plugins.coverage.metrics.AbstractCoverageTest.*;
 import static org.assertj.core.api.Assertions.*;
 
 import edu.hm.hafner.coverage.Coverage.CoverageBuilder;
-import edu.hm.hafner.coverage.FileNode;
-import edu.hm.hafner.coverage.Node;
 import edu.hm.hafner.coverage.Value;
 import hudson.model.FreeStyleProject;
 import hudson.model.Run;
@@ -198,10 +196,7 @@ class DeltaComputationITest extends AbstractCoverageITest {
      *         The created Jenkins action
      */
     private void verifyModifiedLinesCoverage(final CoverageBuildAction action) {
-        Node root = action.getResult();
-        assertThat(root).isNotNull();
-        assertThat(root.getAllFileNodes())
-                .flatExtracting(FileNode::getModifiedLines)
-                .isEmpty();
+        assertThat(action.getResult()).isNotNull();
+        assertThat(action.getChangeSet().hasModifiedLines()).isFalse();
     }
 }

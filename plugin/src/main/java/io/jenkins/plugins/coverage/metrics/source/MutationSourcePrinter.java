@@ -2,6 +2,7 @@ package io.jenkins.plugins.coverage.metrics.source;
 
 import static j2html.TagCreator.*;
 
+import edu.hm.hafner.coverage.ChangeSet;
 import edu.hm.hafner.coverage.FileNode;
 import edu.hm.hafner.coverage.Mutation;
 import j2html.tags.ContainerTag;
@@ -28,7 +29,11 @@ final class MutationSourcePrinter extends CoverageSourcePrinter {
     private final String[] tooltipPerLine;
 
     MutationSourcePrinter(final FileNode file) {
-        super(file);
+        this(file, ChangeSet.empty());
+    }
+
+    MutationSourcePrinter(final FileNode file, final ChangeSet changes) {
+        super(file, changes);
 
         survivedPerLine = new int[size()];
         killedPerLine = new int[size()];

@@ -3,6 +3,7 @@ package io.jenkins.plugins.coverage.metrics.restapi;
 import static net.javacrumbs.jsonunit.assertj.JsonAssertions.*;
 import static org.assertj.core.api.Assertions.*;
 
+import edu.hm.hafner.coverage.ChangeSet.ChangeSetBuilder;
 import edu.hm.hafner.coverage.Coverage;
 import edu.hm.hafner.coverage.Coverage.CoverageBuilder;
 import edu.hm.hafner.coverage.FileNode;
@@ -28,7 +29,8 @@ class FileCoverageApiTest extends AbstractModifiedFilesCoverageTest {
      */
     @Test
     void shouldReportWholeFileCoverageOnlyForModifiedFiles() {
-        var files = new FileCoverageApi(createCoverageTree()).getFiles();
+        var tree = createCoverageTree();
+        var files = new FileCoverageApi(tree, createChangeSet(tree)).getFiles();
 
         assertThat(files)
                 .extracting(FileCoverage::getFullyQualifiedFileName)
@@ -43,7 +45,8 @@ class FileCoverageApiTest extends AbstractModifiedFilesCoverageTest {
      */
     @Test
     void shouldExportFilesAsJson() throws IOException {
-        var api = new FileCoverageApi(createCoverageTree());
+        var tree = createCoverageTree();
+        var api = new FileCoverageApi(tree, createChangeSet(tree));
 
         var json = exportToJson(api);
 
@@ -59,7 +62,6 @@ class FileCoverageApiTest extends AbstractModifiedFilesCoverageTest {
     @Test
     void shouldReportAllSetCoverageMetrics() {
         var fileNode = new FileNode("Test.java", "path");
-        fileNode.addModifiedLines(1);
         fileNode.addCounters(1, 1, 0);
         fileNode.addValue(new CoverageBuilder()
                 .withMetric(Metric.LINE)
@@ -82,7 +84,9 @@ class FileCoverageApiTest extends AbstractModifiedFilesCoverageTest {
         var parentNode = new PackageNode("package");
         parentNode.addChild(fileNode);
 
-        var files = new FileCoverageApi(parentNode).getFiles();
+        var changes = new ChangeSetBuilder().addModifiedLines("path", 1).build();
+
+        var files = new FileCoverageApi(parentNode, changes).getFiles();
 
         assertThat(files).hasSize(1);
         var metrics = files.get(0).getMetrics();
@@ -97,11 +101,11 @@ class FileCoverageApiTest extends AbstractModifiedFilesCoverageTest {
     @Test
     void shouldReportNothingWhenNoFileHasCoveredModifiedLines() {
         var fileNode = new FileNode("Test.java", "path");
-        fileNode.addModifiedLines(1);
         var parentNode = new PackageNode("package");
         parentNode.addChild(fileNode);
+        var changes = new ChangeSetBuilder().addModifiedLines("path", 1).build();
 
-        assertThat(new FileCoverageApi(parentNode).getFiles()).isEmpty();
+        assertThat(new FileCoverageApi(parentNode, changes).getFiles()).isEmpty();
     }
 
     private String exportToJson(final FileCoverageApi api) throws IOException {

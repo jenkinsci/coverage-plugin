@@ -3,6 +3,7 @@ package io.jenkins.plugins.coverage.metrics.source;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
 
+import edu.hm.hafner.coverage.ChangeSet;
 import edu.hm.hafner.coverage.Coverage.CoverageBuilder;
 import edu.hm.hafner.coverage.FileNode;
 import edu.hm.hafner.coverage.Metric;
@@ -242,7 +243,7 @@ class SourceCodePainterTest {
         var build = mock(Run.class);
         var workspace = new FilePath(Path.of(".").toFile());
         var painter = new SourceCodePainter(build, workspace, "coverage");
-        return painter.createPrinterFactory(rootNode);
+        return painter.createPrinterFactory(rootNode, ChangeSet.empty());
     }
 
     private byte[] readPaintedBytesFromNestedZip(final Path outerZipPath) throws IOException {

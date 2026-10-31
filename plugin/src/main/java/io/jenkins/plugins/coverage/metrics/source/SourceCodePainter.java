@@ -1,5 +1,6 @@
 package io.jenkins.plugins.coverage.metrics.source;
 
+import edu.hm.hafner.coverage.ChangeSet;
 import edu.hm.hafner.coverage.FileNode;
 import edu.hm.hafner.coverage.Metric;
 import edu.hm.hafner.coverage.Node;
@@ -62,6 +63,8 @@ public class SourceCodePainter {
      *         the root of the tree
      * @param files
      *         the files to paint
+     * @param changes
+     *         the changes that should be highlighted in the painted files
      * @param sourceCodeEncoding
      *         the encoding of the source code files
      * @param sourceCodeRetention
@@ -75,13 +78,14 @@ public class SourceCodePainter {
     public void processSourceCodePainting(
             final Node rootNode,
             final List<FileNode> files,
+            final ChangeSet changes,
             final String sourceCodeEncoding,
             final SourceCodeRetention sourceCodeRetention,
             final FilteredLog log)
             throws InterruptedException {
         var sourceCodeFacade = new SourceCodeFacade();
         if (sourceCodeRetention != SourceCodeRetention.NEVER) {
-            var printerFactory = createPrinterFactory(rootNode);
+            var printerFactory = createPrinterFactory(rootNode, changes);
             var paintedFiles = files.stream().map(printerFactory).collect(Collectors.toList());
             log.logInfo("Painting %d source files on agent", paintedFiles.size());
 
@@ -100,17 +104,19 @@ public class SourceCodePainter {
      *
      * @param rootNode
      *         the root of the coverage tree, used to determine which printer type to use
+     * @param changes
+     *         the changes that should be highlighted in the painted files
      *
      * @return a function that maps a {@link FileNode} to the appropriate {@link CoverageSourcePrinter}
      */
-    Function<FileNode, CoverageSourcePrinter> createPrinterFactory(final Node rootNode) {
+    Function<FileNode, CoverageSourcePrinter> createPrinterFactory(final Node rootNode, final ChangeSet changes) {
         if (rootNode.getValue(Metric.MUTATION).isPresent()) {
-            return MutationSourcePrinter::new;
+            return file -> new MutationSourcePrinter(file, changes);
         } else if (rootNode.getValue(Metric.MCDC_PAIR).isPresent()
                 || rootNode.getValue(Metric.FUNCTION_CALL).isPresent()) {
-            return VectorCastSourcePrinter::new;
+            return file -> new VectorCastSourcePrinter(file, changes);
         } else {
-            return CoverageSourcePrinter::new;
+            return file -> new CoverageSourcePrinter(file, changes);
         }
     }
 

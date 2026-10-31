@@ -1,5 +1,6 @@
 package io.jenkins.plugins.coverage.metrics.source;
 
+import edu.hm.hafner.coverage.ChangeSet;
 import edu.hm.hafner.coverage.FileNode;
 import edu.hm.hafner.util.FilteredLog;
 import hudson.FilePath;
@@ -208,12 +209,15 @@ public class SourceCodeFacade {
      *         The original HTML content
      * @param fileNode
      *         The {@link FileNode node} which represents the coverage of the file
+     * @param changes
+     *         The changes of the build
      *
      * @return the filtered HTML sourcecode view
      */
-    public String calculateModifiedLinesCoverageSourceCode(final String content, final FileNode fileNode) {
+    public String calculateModifiedLinesCoverageSourceCode(
+            final String content, final FileNode fileNode, final ChangeSet changes) {
         Set<Integer> lines = fileNode.getLinesWithCoverage();
-        lines.retainAll(fileNode.getModifiedLines());
+        lines.retainAll(changes.getModifiedLines(fileNode.getRelativePath()));
         Set<String> linesAsText = lines.stream().map(String::valueOf).collect(Collectors.toSet());
         Document doc = Jsoup.parse(content, Parser.xmlParser());
         int maxLine = Integer.parseInt(
@@ -244,11 +248,14 @@ public class SourceCodeFacade {
      *         The original HTML content
      * @param fileNode
      *         The {@link FileNode node} which represents the coverage of the file
+     * @param changes
+     *         The changes of the build
      *
      * @return the filtered HTML sourcecode view
      */
-    public String calculateIndirectCoverageChangesSourceCode(final String content, final FileNode fileNode) {
-        Map<Integer, Integer> lines = fileNode.getIndirectCoverageChanges();
+    public String calculateIndirectCoverageChangesSourceCode(
+            final String content, final FileNode fileNode, final ChangeSet changes) {
+        Map<Integer, Integer> lines = changes.getIndirectCoverageChanges(fileNode.getRelativePath());
         Map<String, String> indirectCoverageChangesAsText = lines.entrySet().stream()
                 .collect(Collectors.toMap(
                         entry -> String.valueOf(entry.getKey()), entry -> String.valueOf(entry.getValue())));

@@ -1,5 +1,6 @@
 package io.jenkins.plugins.coverage.metrics.restapi;
 
+import edu.hm.hafner.coverage.ChangeSet;
 import edu.hm.hafner.coverage.FileNode;
 import edu.hm.hafner.coverage.Node;
 import java.util.ArrayList;
@@ -18,8 +19,8 @@ import org.kohsuke.stapler.export.ExportedBean;
 public class ModifiedLinesCoverageApi {
     private final List<FileWithModifiedLines> filesWithModifiedLines;
 
-    ModifiedLinesCoverageApi(final Node node) {
-        this.filesWithModifiedLines = createListOfFilesWithModifiedLines(node);
+    ModifiedLinesCoverageApi(final Node node, final ChangeSet changes) {
+        this.filesWithModifiedLines = createListOfFilesWithModifiedLines(node, changes);
     }
 
     @Exported(inline = true, name = "files")
@@ -32,14 +33,16 @@ public class ModifiedLinesCoverageApi {
      *
      * @param node
      *         containing the file tree.
+     * @param changes
+     *         the changes of the build
      *
      * @return a list of {@link FileWithModifiedLines} objects.
      */
-    private List<FileWithModifiedLines> createListOfFilesWithModifiedLines(final Node node) {
+    private List<FileWithModifiedLines> createListOfFilesWithModifiedLines(final Node node, final ChangeSet changes) {
         var result = new ArrayList<FileWithModifiedLines>();
 
-        for (FileNode fileNode : node.filterByModifiedLines().getAllFileNodes()) {
-            var modifiedLines = new ArrayList<>(fileNode.getModifiedLines());
+        for (FileNode fileNode : node.filterByModifiedLines(changes).getAllFileNodes()) {
+            var modifiedLines = new ArrayList<>(changes.getModifiedLines(fileNode.getRelativePath()));
             var modifiedLinesWithoutCoverage = modifiedLines.stream()
                     .filter(line -> !fileNode.getLinesWithCoverage().contains(line))
                     .collect(Collectors.toList());

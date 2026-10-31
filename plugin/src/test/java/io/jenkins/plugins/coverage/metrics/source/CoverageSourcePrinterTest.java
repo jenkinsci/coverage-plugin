@@ -2,6 +2,7 @@ package io.jenkins.plugins.coverage.metrics.source;
 
 import static org.assertj.core.api.Assertions.*;
 
+import edu.hm.hafner.coverage.ChangeSet.ChangeSetBuilder;
 import edu.hm.hafner.coverage.FileNode;
 import edu.hm.hafner.coverage.parser.JacocoParser;
 import io.jenkins.plugins.coverage.metrics.AbstractCoverageTest;
@@ -51,8 +52,7 @@ class CoverageSourcePrinterTest extends AbstractCoverageTest {
         var tree = readResult("../steps/jacoco-codingstyle.xml", new JacocoParser());
 
         var node = tree.findFile("TreeStringBuilder.java").get();
-        node.addModifiedLines(0, 113, 61, 18, 19);
-        var file = new CoverageSourcePrinter(node);
+        var file = createPrinter(node, 0, 113, 61, 18, 19);
 
         var line0 = file.renderLine(0, "                    for (int line = 0; line < lines.size(); line++) {\n");
         XmlAssert.assertThat(line0)
@@ -190,8 +190,7 @@ class CoverageSourcePrinterTest extends AbstractCoverageTest {
     void shouldRenderTdClassesRequiredByCssOverlays() {
         var tree = readResult("../steps/jacoco-codingstyle.xml", new JacocoParser());
         var node = tree.findFile("TreeStringBuilder.java").get();
-        node.addModifiedLines(19, 61);
-        var file = new CoverageSourcePrinter(node);
+        var file = createPrinter(node, 19, 61);
 
         var coverFull = file.renderLine(19, "// covered\n");
         var fullColumns =
@@ -219,8 +218,7 @@ class CoverageSourcePrinterTest extends AbstractCoverageTest {
         var tree = readResult("../steps/jacoco-codingstyle.xml", new JacocoParser());
         var node = tree.findFile("TreeStringBuilder.java").get();
 
-        node.addModifiedLines(61, 0);
-        var file = new CoverageSourcePrinter(node);
+        var file = createPrinter(node, 61, 0);
 
         var modLine61 = file.renderLine(61, "int x = 0;\n");
         XmlAssert.assertThat(modLine61)
@@ -303,8 +301,7 @@ class CoverageSourcePrinterTest extends AbstractCoverageTest {
     void shouldReturnCorrectModifiedClassString() {
         var tree = readResult("../steps/jacoco-codingstyle.xml", new JacocoParser());
         var node = tree.findFile("TreeStringBuilder.java").get();
-        node.addModifiedLines(19, 61);
-        var file = new CoverageSourcePrinter(node);
+        var file = createPrinter(node, 19, 61);
 
         assertThat(file.getModifiedClass(19)).isEqualTo(CoverageSourcePrinter.MODIFIED);
         assertThat(file.getModifiedClass(61)).isEqualTo(CoverageSourcePrinter.MODIFIED);
@@ -317,8 +314,7 @@ class CoverageSourcePrinterTest extends AbstractCoverageTest {
         var tree = readResult("../steps/jacoco-codingstyle.xml", new JacocoParser());
         var node = tree.findFile("TreeStringBuilder.java").get();
 
-        node.addModifiedLines(19, 61, 113, 1);
-        var file = new CoverageSourcePrinter(node);
+        var file = createPrinter(node, 19, 61, 113, 1);
 
         var sourceSnippet = "// some code\n";
 
@@ -403,5 +399,13 @@ class CoverageSourcePrinterTest extends AbstractCoverageTest {
 
         assertThat(printer.cleanupCode("<div>")).isEqualTo("&lt;div&gt;");
         assertThat(printer.cleanupCode("a & b")).isEqualTo("a&nbsp;&amp;&nbsp;b");
+    }
+
+    private CoverageSourcePrinter createPrinter(final FileNode node, final int... modifiedLines) {
+        return new CoverageSourcePrinter(
+                node,
+                new ChangeSetBuilder()
+                        .addModifiedLines(node.getRelativePath(), modifiedLines)
+                        .build());
     }
 }
