@@ -1,12 +1,21 @@
 package io.jenkins.plugins.coverage.metrics.steps;
 
-import static edu.hm.hafner.coverage.Metric.*;
-import static org.assertj.core.api.BDDAssertions.*;
+import static edu.hm.hafner.coverage.Metric.BRANCH;
+import static edu.hm.hafner.coverage.Metric.CYCLOMATIC_COMPLEXITY;
+import static edu.hm.hafner.coverage.Metric.INSTRUCTION;
+import static edu.hm.hafner.coverage.Metric.LINE;
+import static edu.hm.hafner.coverage.Metric.LOC;
+import static edu.hm.hafner.coverage.Metric.METHOD;
+import static java.util.Map.entry;
 import static org.mockito.Mockito.*;
 import static org.xmlunit.assertj.XmlAssert.assertThat;
 
+import edu.hm.hafner.coverage.ChangeSet;
+import edu.hm.hafner.coverage.ChangeSet.ChangeSetBuilder;
 import edu.hm.hafner.coverage.Difference;
-import edu.hm.hafner.coverage.FileNode;
+import edu.hm.hafner.coverage.FileDeltas;
+import edu.hm.hafner.coverage.FileDeltas.FileDeltasBuilder;
+import edu.hm.hafner.coverage.LineCounters;
 import edu.hm.hafner.coverage.Metric;
 import edu.hm.hafner.coverage.MetricAggregation;
 import edu.hm.hafner.coverage.Node;
@@ -27,6 +36,7 @@ import io.jenkins.plugins.util.QualityGateResult;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Locale;
@@ -38,6 +48,8 @@ import java.util.TreeSet;
 import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.junitpioneer.jupiter.Issue;
 import org.xmlunit.builder.Input;
 import org.xmlunit.builder.Input.Builder;
@@ -192,6 +204,8 @@ class CoverageXmlStreamITest extends SerializableTest<Node> {
                 new FilteredLog("Test"),
                 "-",
                 statistics,
+                ChangeSet.empty(),
+                FileDeltas.empty(),
                 List.of(),
                 false);
     }
@@ -214,13 +228,13 @@ class CoverageXmlStreamITest extends SerializableTest<Node> {
                 .extractingText()
                 .containsExactly("INSTRUCTION: 229/233", "BRANCH: 17/18", "LINE: 51/53", "CYCLOMATIC_COMPLEXITY: 23");
         assertThat(xml)
-                .nodesByXPath("//file[./name = 'TreeStringBuilder.java']/coveredPerLine")
+                .nodesByXPath("//file[./name = 'TreeStringBuilder.java']/lineCounters/covered")
                 .hasSize(1)
                 .extractingText()
                 .containsExactly(
                         "[19: 1, 20: 1, 31: 1, 43: 1, 50: 1, 51: 1, 54: 1, 57: 1, 61: 0, 62: 0, 70: 1, 72: 1, 73: 1, 74: 1, 85: 2, 86: 1, 89: 1, 90: 2, 91: 1, 92: 2, 93: 2, 95: 1, 96: 1, 97: 1, 100: 1, 101: 1, 103: 1, 106: 1, 109: 1, 112: 1, 113: 1, 114: 1, 115: 1, 117: 1, 125: 2, 126: 1, 128: 1, 140: 1, 142: 1, 143: 1, 144: 1, 146: 1, 160: 1, 162: 2, 163: 2, 164: 1, 167: 1, 177: 1, 178: 2, 179: 1, 180: 1, 181: 1, 184: 1]");
         assertThat(xml)
-                .nodesByXPath("//file[./name = 'TreeStringBuilder.java']/missedPerLine")
+                .nodesByXPath("//file[./name = 'TreeStringBuilder.java']/lineCounters/missed")
                 .hasSize(1)
                 .extractingText()
                 .containsExactly(
@@ -228,57 +242,173 @@ class CoverageXmlStreamITest extends SerializableTest<Node> {
     }
 
     /**
-     * Verifies that the coverage deltas of the individual files survive a save and restore cycle. Otherwise, the delta
-     * columns of the file tables will vanish as soon as the coverage tree has been restored from disk (i.e., after a
-     * restart of Jenkins or after the cached tree has been garbage collected).
+     * Verifies that trees that have been stored before the line counters of a file have been moved into
+     * {@link LineCounters} can still be read: the counters have been stored in the fields {@code coveredPerLine} and
+     * {@code missedPerLine} of the file.
      */
     @Test
-    @Issue("https://github.com/jenkinsci/coverage-plugin/issues/643")
-    void shouldSaveAndRestoreFileCoverageDeltas() {
+    void shouldRestoreTreeWithLegacyLineCounters() throws IOException {
         Path saved = createTempFile();
-        var tree = createTreeWithFileCoverageDeltas();
-
-        assertThatDeltasOfModifiedFileAreCorrect(tree);
+        Node tree = createSerializable();
 
         var xmlStream = new CoverageXmlStream();
         xmlStream.write(saved, tree);
+        Files.writeString(saved, convertToLegacyFormat(Files.readString(saved)));
 
-        assertThat(Input.from(saved))
-                .nodesByXPath("//file[./name = '" + MODIFIED_FILE + "']/coverageDelta")
-                .hasSize(1)
-                .extractingText()
-                .containsExactly("[FILE: Δ0, CLASS: Δ0, METHOD: Δ-40:3, LINE: Δ100:39, BRANCH: Δ25:2, "
-                        + "INSTRUCTION: Δ1000:111, LOC: Δ4, CYCLOMATIC_COMPLEXITY: Δ2]");
+        Assertions.assertThat(Files.readString(saved))
+                .contains("<coveredPerLine", "<missedPerLine")
+                .doesNotContain("<lineCounters>");
 
-        assertThatDeltasOfModifiedFileAreCorrect(xmlStream.read(saved));
+        Assertions.assertThat(xmlStream.read(saved)).usingRecursiveComparison().isEqualTo(tree);
     }
 
-    private void assertThatDeltasOfModifiedFileAreCorrect(final Node tree) {
-        var file = findModifiedFile(tree);
+    /**
+     * Verifies that the modified lines and the indirect coverage changes are stored in a separate file (sidecar) and
+     * that they survive a save and restore cycle.
+     *
+     * @throws IOException
+     *         if the change set cannot be written or read
+     */
+    @Test
+    void shouldSaveAndRestoreChangeSet() throws IOException {
+        Path saved = createTempFile();
+        var changes = new ChangeSetBuilder()
+                .addModifiedLines(MODIFIED_FILE_PATH, 5, 6, 7)
+                .addModifiedLines("Other.java", 1)
+                .addIndirectCoverageChange(MODIFIED_FILE_PATH, 11, -1)
+                .addIndirectCoverageChange(MODIFIED_FILE_PATH, 31, 1)
+                .build();
 
-        then(file.hasDelta(LINE)).isTrue();
-        then(file.hasDelta(BRANCH)).isTrue();
-        then(file.getDelta(LINE)).isEqualTo(new Difference(LINE, 100, 39));
-        then(file.getDelta(BRANCH)).isEqualTo(new Difference(BRANCH, 25, 2));
-        then(file.getDelta(INSTRUCTION)).isEqualTo(new Difference(INSTRUCTION, 1000, 111));
-        then(file.getDelta(METHOD)).isEqualTo(new Difference(METHOD, -40, 3));
+        var xmlStream = new ChangeSetXmlStream();
+        xmlStream.write(saved, changes);
+
+        Assertions.assertThat(Files.readString(saved))
+                .contains("<changes>")
+                .contains("<sorted-set>[1]</sorted-set>")
+                .contains("<sorted-set>[5, 6, 7]</sorted-set>");
+        Assertions.assertThat(xmlStream.read(saved)).isEqualTo(changes);
     }
 
-    private FileNode findModifiedFile(final Node tree) {
-        return tree.getAllFileNodes().stream()
-                .filter(file -> MODIFIED_FILE.equals(file.getName()))
-                .findFirst()
-                .orElseThrow(() -> new AssertionError("No file " + MODIFIED_FILE + " found in " + tree));
+    /**
+     * Verifies that the modified lines of old builds can still be read: they have been stored in the field
+     * {@code changedLines} (compact format) or in the field {@code modifiedLines} (default collection format).
+     *
+     * @param legacyModifiedLines
+     *         the XML element of the legacy format that is added to the first file
+     *
+     * @throws IOException
+     *         if the coverage tree cannot be written or read
+     */
+    @ParameterizedTest
+    @ValueSource(
+            strings = {
+                "<changedLines>[3, 4]</changedLines>",
+                "<modifiedLines>[3, 4]</modifiedLines>",
+                "<modifiedLines class=\"tree-set\"><no-comparator/><int>3</int><int>4</int></modifiedLines>"
+            })
+    void shouldRestoreTreeWithLegacyModifiedLines(final String legacyModifiedLines) throws IOException {
+        Path saved = createTempFile();
+
+        var xmlStream = new CoverageXmlStream();
+        var tree = createSerializable();
+        xmlStream.write(saved, tree);
+        var xml = Files.readString(saved);
+        Assertions.assertThat(xml).doesNotContain("changedLines", "modifiedLines");
+        Files.writeString(saved, xml.replaceFirst("(<file(?: [^>]*)?>)", "$1" + legacyModifiedLines));
+
+        var changes = ChangeSet.fromLegacyTree(xmlStream.read(saved));
+
+        var firstFile = tree.getAllFileNodes().get(0);
+        Assertions.assertThat(changes.hasModifiedLines()).isTrue();
+        Assertions.assertThat(changes.hasModifiedLines(firstFile.getRelativePath()))
+                .isTrue();
+        Assertions.assertThat(changes.getModifiedLines(firstFile.getRelativePath()))
+                .containsExactly(3, 4);
     }
 
-    private Node createTreeWithFileCoverageDeltas() {
+    private String convertToLegacyFormat(final String xml) {
+        return xml.replaceAll("(?s)<(mcdcPairCounters|functionCallCounters)>.*?</\\1>", "")
+                .replaceAll(
+                        "(?s)<lineCounters>\\s*<covered([^>]*)>(.*?)</covered>\\s*<missed([^>]*)>(.*?)</missed>"
+                                + "\\s*</lineCounters>",
+                        "<coveredPerLine$1>$2</coveredPerLine><missedPerLine$3>$4</missedPerLine>");
+    }
+
+    /**
+     * Verifies that the coverage deltas of the individual files are stored in a separate file (sidecar) and that they
+     * survive a save and restore cycle. Otherwise, the delta columns of the file tables will vanish as soon as the
+     * coverage tree has been restored from disk (i.e., after a restart of Jenkins or after the cached tree has been
+     * garbage collected).
+     *
+     * @throws IOException
+     *         if the deltas cannot be written or read
+     */
+    @Test
+    @Issue("https://github.com/jenkinsci/coverage-plugin/issues/643")
+    void shouldSaveAndRestoreFileCoverageDeltas() throws IOException {
+        Path saved = createTempFile();
+        var deltas = createFileCoverageDeltas();
+
+        assertThatDeltasOfModifiedFileAreCorrect(deltas);
+
+        var xmlStream = new FileDeltasXmlStream();
+        xmlStream.write(saved, deltas);
+
+        Assertions.assertThat(Files.readString(saved)).contains("<deltas>").contains("LINE: Δ100:39");
+
+        var restored = xmlStream.read(saved);
+        assertThatDeltasOfModifiedFileAreCorrect(restored);
+        Assertions.assertThat(restored).isEqualTo(deltas);
+    }
+
+    /**
+     * Verifies that the coverage deltas of old builds can still be read: they have been stored in the field
+     * {@code coverageDelta} of the files in the coverage tree.
+     *
+     * @throws IOException
+     *         if the coverage tree cannot be written or read
+     */
+    @Test
+    void shouldRestoreTreeWithLegacyFileDeltas() throws IOException {
+        Path saved = createTempFile();
+
+        var xmlStream = new CoverageXmlStream();
+        var tree = createSerializable();
+        xmlStream.write(saved, tree);
+        var xml = Files.readString(saved);
+        Assertions.assertThat(xml).doesNotContain("coverageDelta");
+        Files.writeString(
+                saved,
+                xml.replaceFirst(
+                        "(<file(?: [^>]*)?>)",
+                        "$1<coverageDelta class=\"tree-map\">[LINE: Δ100:39, BRANCH: Δ25:2]</coverageDelta>"));
+
+        var deltas = FileDeltas.fromLegacyTree(xmlStream.read(saved));
+
+        var path = tree.getAllFileNodes().get(0).getRelativePath();
+        Assertions.assertThat(deltas.hasDelta(path, LINE)).isTrue();
+        Assertions.assertThat(deltas.getDelta(path, LINE)).isEqualTo(new Difference(LINE, 100, 39));
+        Assertions.assertThat(deltas.getDelta(path, BRANCH)).isEqualTo(new Difference(BRANCH, 25, 2));
+    }
+
+    private void assertThatDeltasOfModifiedFileAreCorrect(final FileDeltas deltas) {
+        Assertions.assertThat(deltas.hasDelta(MODIFIED_FILE_PATH, LINE)).isTrue();
+        Assertions.assertThat(deltas.hasDelta(MODIFIED_FILE_PATH, BRANCH)).isTrue();
+        Assertions.assertThat(deltas.getDelta(MODIFIED_FILE_PATH, LINE)).isEqualTo(new Difference(LINE, 100, 39));
+        Assertions.assertThat(deltas.getDelta(MODIFIED_FILE_PATH, BRANCH)).isEqualTo(new Difference(BRANCH, 25, 2));
+        Assertions.assertThat(deltas.getDelta(MODIFIED_FILE_PATH, INSTRUCTION))
+                .isEqualTo(new Difference(INSTRUCTION, 1000, 111));
+        Assertions.assertThat(deltas.getDelta(MODIFIED_FILE_PATH, METHOD)).isEqualTo(new Difference(METHOD, -40, 3));
+    }
+
+    private FileDeltas createFileCoverageDeltas() {
         var reference = parseJacocoReport("file-changes-test-before.xml");
         var tree = parseJacocoReport("file-changes-test-after.xml");
 
+        var builder = new FileDeltasBuilder();
         new FileChangesProcessor()
-                .attachFileCoverageDeltas(tree, reference, Map.of(MODIFIED_FILE_PATH, MODIFIED_FILE_PATH_OLD));
-
-        return tree;
+                .attachFileCoverageDeltas(tree, reference, Map.of(MODIFIED_FILE_PATH, MODIFIED_FILE_PATH_OLD), builder);
+        return builder.build();
     }
 
     @Test

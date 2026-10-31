@@ -2,7 +2,9 @@ package io.jenkins.plugins.coverage.metrics.steps;
 
 import static j2html.TagCreator.*;
 
+import edu.hm.hafner.coverage.ChangeSet;
 import edu.hm.hafner.coverage.Coverage;
+import edu.hm.hafner.coverage.FileDeltas;
 import edu.hm.hafner.coverage.FileNode;
 import edu.hm.hafner.coverage.Metric;
 import edu.hm.hafner.coverage.Node;
@@ -51,14 +53,24 @@ class CoverageTableModel extends TableModel {
 
     private final ColorProvider colorProvider;
     private final Node root;
+    private final ChangeSet changes;
+    private final FileDeltas deltas;
     private final RowRenderer renderer;
     private final String id;
 
-    CoverageTableModel(final String id, final Node root, final RowRenderer renderer, final ColorProvider colors) {
+    CoverageTableModel(
+            final String id,
+            final Node root,
+            final ChangeSet changes,
+            final FileDeltas deltas,
+            final RowRenderer renderer,
+            final ColorProvider colors) {
         super();
 
         this.id = id;
         this.root = root;
+        this.changes = changes;
+        this.deltas = deltas;
         this.renderer = renderer;
         colorProvider = colors;
     }
@@ -202,19 +214,27 @@ class CoverageTableModel extends TableModel {
     }
 
     private boolean hasDelta(final Metric metric) {
-        return root.getAllFileNodes().stream().anyMatch(f -> f.hasDelta(metric));
+        return deltas.hasDelta(metric);
     }
 
     @Override
     public List<Object> getRows() {
         Locale browserLocale = Functions.getCurrentLocale();
         return root.getAllFileNodes().stream()
-                .map(file -> new CoverageRow(file, browserLocale, renderer, colorProvider))
+                .map(file -> new CoverageRow(file, changes, deltas, browserLocale, renderer, colorProvider))
                 .collect(Collectors.toList());
     }
 
     protected Node getRoot() {
         return root;
+    }
+
+    protected ChangeSet getChanges() {
+        return changes;
+    }
+
+    protected FileDeltas getDeltas() {
+        return deltas;
     }
 
     protected ColorProvider getColorProvider() {
@@ -238,19 +258,33 @@ class CoverageTableModel extends TableModel {
         private static final Value ZERO_NCSS = new Value(Metric.NCSS, 0);
 
         private final FileNode file;
+        private final ChangeSet changes;
+        private final FileDeltas deltas;
         private final Locale browserLocale;
         private final RowRenderer renderer;
         private final ColorProvider colorProvider;
 
         CoverageRow(
                 final FileNode file,
+                final ChangeSet changes,
+                final FileDeltas deltas,
                 final Locale browserLocale,
                 final RowRenderer renderer,
                 final ColorProvider colors) {
             this.file = file;
+            this.changes = changes;
+            this.deltas = deltas;
             this.browserLocale = browserLocale;
             this.renderer = renderer;
             colorProvider = colors;
+        }
+
+        ChangeSet getChanges() {
+            return changes;
+        }
+
+        FileDeltas getDeltas() {
+            return deltas;
         }
 
         public String getFileHash() {
@@ -259,7 +293,7 @@ class CoverageTableModel extends TableModel {
 
         @SuppressWarnings("PMD.BooleanGetMethodName")
         public boolean getModified() {
-            return file.hasModifiedLines();
+            return changes.hasModifiedLines(file.getRelativePath());
         }
 
         public DetailedCell<?> getFileName() {
@@ -412,8 +446,8 @@ class CoverageTableModel extends TableModel {
          * @return the created {@link DetailedCell}
          */
         private DetailedCell<?> createColoredFileCoverageDeltaColumn(final Metric metric) {
-            if (file.hasDelta(metric)) {
-                return createColoredCoverageDeltaColumn(metric, file.getDelta(metric));
+            if (deltas.hasDelta(file.getRelativePath(), metric)) {
+                return createColoredCoverageDeltaColumn(metric, deltas.getDelta(file.getRelativePath(), metric));
             }
             return NO_COVERAGE;
         }

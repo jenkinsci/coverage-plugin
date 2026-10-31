@@ -1,7 +1,11 @@
 package io.jenkins.plugins.coverage.metrics.steps;
 
+import edu.hm.hafner.coverage.ChangeSet;
+import edu.hm.hafner.coverage.ChangeSet.ChangeSetBuilder;
 import edu.hm.hafner.coverage.Coverage;
 import edu.hm.hafner.coverage.Difference;
+import edu.hm.hafner.coverage.FileDeltas;
+import edu.hm.hafner.coverage.FileDeltas.FileDeltasBuilder;
 import edu.hm.hafner.coverage.FileNode;
 import edu.hm.hafner.coverage.Metric;
 import edu.hm.hafner.coverage.MetricAggregation;
@@ -126,6 +130,7 @@ public class CoverageReporter {
                 id,
                 rootNode,
                 rootNode.getAllFileNodes(),
+                ChangeSet.empty(),
                 log);
 
         return new CoverageBuildAction(build, id, optionalName, icon, rootNode, qualityGateStatus, log, statistics);
@@ -153,17 +158,20 @@ public class CoverageReporter {
         Optional<Delta> delta = codeDeltaCalculator.calculateCodeDeltaToReference(referenceAction.getOwner(), log);
 
         var referenceRoot = referenceAction.getResult();
-        delta.ifPresent(value -> createDeltaReports(rootNode, log, referenceRoot, codeDeltaCalculator, value));
+        var coverageChanges = delta.map(
+                        value -> createDeltaReports(rootNode, log, referenceRoot, codeDeltaCalculator, value))
+                .orElse(CoverageChanges.EMPTY);
+        var changes = coverageChanges.changes();
 
         log.logInfo("Calculating coverage deltas...");
 
-        var modifiedLinesCoverageRoot = rootNode.filterByModifiedLines();
+        var modifiedLinesCoverageRoot = rootNode.filterByModifiedLines(changes);
 
         Map<MetricAggregation, List<Difference>> modifiedLinesDelta;
         Map<MetricAggregation, List<Value>> modifiedFilesAggregation;
         Map<MetricAggregation, List<Difference>> modifiedFilesDelta;
         if (hasModifiedLinesCoverage(modifiedLinesCoverageRoot)) {
-            var modifiedFilesCoverageRoot = rootNode.filterByModifiedFiles();
+            var modifiedFilesCoverageRoot = rootNode.filterByModifiedFiles(changes);
             modifiedFilesAggregation = aggregateValues(modifiedFilesCoverageRoot, ALL_AGGREGATIONS);
             modifiedFilesDelta = computeDelta(
                     modifiedFilesCoverageRoot,
@@ -175,7 +183,7 @@ public class CoverageReporter {
             modifiedFilesAggregation = EMPTY_AGGREGATION;
             modifiedFilesDelta = EMPTY_DELTA;
 
-            if (rootNode.hasModifiedLines()) {
+            if (changes.hasModifiedLines()) {
                 log.logInfo("No detected code changes affect the code coverage");
             }
         }
@@ -195,7 +203,8 @@ public class CoverageReporter {
         var qualityGateResult = evaluator.evaluate(notifier, log);
 
         var filesToStore = computePaintedFiles(rootNode, sourceCodeRetention, log, modifiedLinesCoverageRoot);
-        paintSourceFiles(build, workspace, sourceCodeEncoding, sourceCodeRetention, id, rootNode, filesToStore, log);
+        paintSourceFiles(
+                build, workspace, sourceCodeEncoding, sourceCodeRetention, id, rootNode, filesToStore, changes, log);
 
         return new CoverageBuildAction(
                 build,
@@ -207,7 +216,9 @@ public class CoverageReporter {
                 log,
                 referenceAction.getOwner().getExternalizableId(),
                 statistics,
-                rootNode.filterByIndirectChanges().aggregateValues());
+                changes,
+                coverageChanges.deltas(),
+                rootNode.filterByIndirectChanges(changes).aggregateValues());
     }
 
     /**
@@ -271,22 +282,25 @@ public class CoverageReporter {
             final String id,
             final Node rootNode,
             final List<FileNode> filesToStore,
+            final ChangeSet changes,
             final FilteredLog log)
             throws InterruptedException {
         log.logInfo("Executing source code painting...");
         var sourceCodePainter = new SourceCodePainter(build, workspace, id);
         sourceCodePainter.processSourceCodePainting(
-                rootNode, filesToStore, sourceCodeEncoding, sourceCodeRetention, log);
+                rootNode, filesToStore, changes, sourceCodeEncoding, sourceCodeRetention, log);
         log.logInfo("Finished coverage processing - adding the action to the build...");
     }
 
-    private void createDeltaReports(
+    private CoverageChanges createDeltaReports(
             final Node rootNode,
             final FilteredLog log,
             final Node referenceRoot,
             final CodeDeltaCalculator codeDeltaCalculator,
             final Delta delta) {
         var fileChangesProcessor = new FileChangesProcessor();
+        var changeSetBuilder = new ChangeSetBuilder();
+        var deltasBuilder = new FileDeltasBuilder();
 
         try {
             log.logInfo("Preprocessing code changes...");
@@ -295,19 +309,21 @@ public class CoverageReporter {
             var oldPathMapping = codeDeltaCalculator.createOldPathMapping(rootNode, referenceRoot, mappedChanges, log);
 
             log.logInfo("Obtaining code changes for files...");
-            fileChangesProcessor.attachChangedCodeLines(rootNode, mappedChanges);
+            fileChangesProcessor.attachChangedCodeLines(rootNode, mappedChanges, changeSetBuilder);
 
             log.logInfo("Obtaining indirect coverage changes...");
-            fileChangesProcessor.attachIndirectCoveragesChanges(rootNode, referenceRoot, mappedChanges, oldPathMapping);
+            fileChangesProcessor.attachIndirectCoveragesChanges(
+                    rootNode, referenceRoot, mappedChanges, oldPathMapping, changeSetBuilder);
 
             log.logInfo("Obtaining coverage delta for files...");
-            fileChangesProcessor.attachFileCoverageDeltas(rootNode, referenceRoot, oldPathMapping);
+            fileChangesProcessor.attachFileCoverageDeltas(rootNode, referenceRoot, oldPathMapping, deltasBuilder);
         } catch (IllegalStateException exception) {
             log.logError("An error occurred while processing code and coverage changes:");
             log.logError("-> Message: " + exception.getMessage());
             log.logError("-> Skipping calculating modified lines coverage, modified files coverage"
                     + " and indirect coverage changes");
         }
+        return new CoverageChanges(changeSetBuilder.build(), deltasBuilder.build());
     }
 
     private boolean hasModifiedLinesCoverage(final Node modifiedLinesCoverageRoot) {
@@ -378,5 +394,17 @@ public class CoverageReporter {
         }
 
         return Optional.empty();
+    }
+
+    /**
+     * The changes of a build with respect to the reference build.
+     *
+     * @param changes
+     *         the modified lines and the indirect coverage changes
+     * @param deltas
+     *         the coverage deltas of the files
+     */
+    private record CoverageChanges(ChangeSet changes, FileDeltas deltas) {
+        private static final CoverageChanges EMPTY = new CoverageChanges(ChangeSet.empty(), FileDeltas.empty());
     }
 }

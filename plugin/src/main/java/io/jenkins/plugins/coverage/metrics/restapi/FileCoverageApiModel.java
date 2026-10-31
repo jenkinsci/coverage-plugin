@@ -1,5 +1,6 @@
 package io.jenkins.plugins.coverage.metrics.restapi;
 
+import edu.hm.hafner.coverage.ChangeSet;
 import edu.hm.hafner.coverage.Node;
 import hudson.model.Api;
 import hudson.model.ModelObject;
@@ -10,15 +11,19 @@ import io.jenkins.plugins.coverage.metrics.source.Messages;
  */
 public class FileCoverageApiModel implements ModelObject {
     private final Node node;
+    private final ChangeSet changes;
 
     /**
      * Creates a new instance of {@link FileCoverageApiModel}.
      *
      * @param node
      *         {@link Node} object
+     * @param changes
+     *         the changes of the build
      */
-    public FileCoverageApiModel(final Node node) {
+    public FileCoverageApiModel(final Node node, final ChangeSet changes) {
         this.node = node;
+        this.changes = changes;
     }
 
     /**
@@ -27,7 +32,7 @@ public class FileCoverageApiModel implements ModelObject {
      * @return the remote API
      */
     public Api getApi() {
-        return new Api(new FileCoverageApi(getNode()));
+        return new Api(new FileCoverageApi(getNode(), changes));
     }
 
     public Node getNode() {

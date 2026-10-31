@@ -2,6 +2,7 @@ package io.jenkins.plugins.coverage.metrics.source;
 
 import static j2html.TagCreator.*;
 
+import edu.hm.hafner.coverage.ChangeSet;
 import edu.hm.hafner.coverage.FileNode;
 import j2html.tags.ContainerTag;
 import java.io.Serial;
@@ -23,7 +24,11 @@ public class VectorCastSourcePrinter extends CoverageSourcePrinter {
     private final int[] functionCallMissedPerLine;
 
     VectorCastSourcePrinter(final FileNode file) {
-        super(file);
+        this(file, ChangeSet.empty());
+    }
+
+    VectorCastSourcePrinter(final FileNode file, final ChangeSet changes) {
+        super(file, changes);
         mcdcPairCoveredPerLine = file.getMcdcPairCoveredCounters();
         mcdcPairMissedPerLine = file.getMcdcPairMissedCounters();
 

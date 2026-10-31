@@ -1,5 +1,6 @@
 package io.jenkins.plugins.coverage.metrics.steps;
 
+import edu.hm.hafner.coverage.ChangeSet;
 import edu.hm.hafner.coverage.Coverage;
 import edu.hm.hafner.coverage.FileNode;
 import edu.hm.hafner.coverage.Metric;
@@ -180,13 +181,17 @@ class CoverageChecksPublisher {
         return StringUtils.EMPTY;
     }
 
+    private ChangeSet getChanges() {
+        return action.getChangeSet();
+    }
+
     private String getSummary() {
         return getAnnotationSummary() + getOverallCoverageSummary() + getQualityGatesSummary();
     }
 
     private String getAnnotationSummary() {
-        if (rootNode.hasModifiedLines()) {
-            var filteredRoot = rootNode.filterByModifiedLines();
+        if (getChanges().hasModifiedLines()) {
+            var filteredRoot = rootNode.filterByModifiedLines(getChanges());
             var modifiedFiles = filteredRoot.getAllFileNodes();
 
             var summary = new StringBuilder("#### Summary for modified lines\n");
@@ -203,7 +208,7 @@ class CoverageChecksPublisher {
     }
 
     private void createTotalLinesSummary(final List<FileNode> modifiedFiles, final StringBuilder summary) {
-        var total = countLines(modifiedFiles, FileNode::getModifiedLines);
+        var total = countLines(modifiedFiles, file -> getChanges().getModifiedLines(file.getRelativePath()));
         if (total == 1) {
             summary.append("- 1 line has been modified");
         } else {
@@ -292,7 +297,7 @@ class CoverageChecksPublisher {
         if (annotationScope == ChecksAnnotationScope.ALL_LINES) {
             return rootNode;
         } else {
-            return rootNode.filterByModifiedLines();
+            return rootNode.filterByModifiedLines(getChanges());
         }
     }
 
@@ -379,7 +384,7 @@ class CoverageChecksPublisher {
     }
 
     private String getOverallCoverageSummary() {
-        if (rootNode.hasModifiedLines()) {
+        if (getChanges().hasModifiedLines()) {
             return createDeltaBaselinesOverview();
         } else {
             return createProjectOverview();

@@ -2,6 +2,7 @@ package io.jenkins.plugins.coverage.metrics.source;
 
 import static j2html.TagCreator.*;
 
+import edu.hm.hafner.coverage.ChangeSet;
 import edu.hm.hafner.coverage.FileNode;
 import io.jenkins.plugins.prism.Sanitizer;
 import java.io.Serial;
@@ -38,12 +39,16 @@ class CoverageSourcePrinter implements Serializable {
     private final NavigableSet<Integer> modifiedLines;
 
     CoverageSourcePrinter(final FileNode file) {
+        this(file, ChangeSet.empty());
+    }
+
+    CoverageSourcePrinter(final FileNode file, final ChangeSet changes) {
         path = file.getRelativePath();
 
         linesToPaint = file.getLinesWithCoverage().stream().mapToInt(i -> i).toArray();
         coveredPerLine = file.getCoveredCounters();
         missedPerLine = file.getMissedCounters();
-        modifiedLines = new TreeSet<>(file.getModifiedLines());
+        modifiedLines = new TreeSet<>(changes.getModifiedLines(path));
     }
 
     String renderLine(final int line, final String sourceCode) {

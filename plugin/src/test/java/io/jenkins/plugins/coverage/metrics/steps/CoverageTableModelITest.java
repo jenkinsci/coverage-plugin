@@ -4,6 +4,7 @@ import static io.jenkins.plugins.coverage.metrics.steps.CoverageViewModel.*;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
+import edu.hm.hafner.coverage.FileDeltas;
 import edu.hm.hafner.coverage.Node;
 import edu.hm.hafner.util.FilteredLog;
 import hudson.model.Run;
@@ -29,7 +30,8 @@ class CoverageTableModelITest extends AbstractModifiedFilesCoverageTest {
 
     @Test
     void shouldShowDeltaColumnsForAFreshlyComputedTree() {
-        assertThatDeltaColumnsAreShown(createCoverageTree());
+        var tree = createCoverageTree();
+        assertThatDeltaColumnsAreShown(tree, createFileDeltas(tree));
     }
 
     /**
@@ -40,7 +42,10 @@ class CoverageTableModelITest extends AbstractModifiedFilesCoverageTest {
     @Test
     @Issue("https://github.com/jenkinsci/coverage-plugin/issues/643")
     void shouldShowDeltaColumnsForATreeThatHasBeenRestoredFromDisk() {
-        assertThatDeltaColumnsAreShown(saveAndRestore(createCoverageTree()));
+        var tree = createCoverageTree();
+        var deltas = createFileDeltas(tree);
+
+        assertThatDeltaColumnsAreShown(saveAndRestore(tree), saveAndRestore(deltas));
     }
 
     private Node saveAndRestore(final Node tree) {
@@ -52,8 +57,17 @@ class CoverageTableModelITest extends AbstractModifiedFilesCoverageTest {
         return xmlStream.read(saved);
     }
 
-    private void assertThatDeltaColumnsAreShown(final Node tree) {
-        var model = createViewModel(tree);
+    private FileDeltas saveAndRestore(final FileDeltas deltas) {
+        var saved = createTempFile();
+
+        var xmlStream = new FileDeltasXmlStream();
+        xmlStream.write(saved, deltas);
+
+        return xmlStream.read(saved);
+    }
+
+    private void assertThatDeltaColumnsAreShown(final Node tree, final FileDeltas deltas) {
+        var model = createViewModel(tree, deltas);
 
         for (String tableId : TABLES_WITH_DELTA_COLUMNS) {
             var definitions = model.getTableModel(tableId).getColumns().stream()
@@ -67,12 +81,14 @@ class CoverageTableModelITest extends AbstractModifiedFilesCoverageTest {
         }
     }
 
-    private CoverageViewModel createViewModel(final Node node) {
+    private CoverageViewModel createViewModel(final Node node, final FileDeltas deltas) {
         return new CoverageViewModel(
                 mock(Run.class),
                 "id",
                 StringUtils.EMPTY,
                 node,
+                createChangeSet(node),
+                deltas,
                 createStatistics(),
                 new QualityGateResult(),
                 "-",
