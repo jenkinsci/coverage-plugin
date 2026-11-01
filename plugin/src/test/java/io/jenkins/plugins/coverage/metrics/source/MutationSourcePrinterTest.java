@@ -23,7 +23,7 @@ class MutationSourcePrinterTest extends AbstractCoverageTest {
         assertThat(file.getTooltip(251)).isEqualToIgnoringWhitespace(toString("tooltip.html"));
 
         assertThat(file.getColorClass(254)).isEqualTo(CoverageSourcePrinter.NO_COVERAGE);
-        assertThat(file.getSummaryColumn(254)).isEqualTo("0");
+        assertThat(file.getSummaryColumn(254)).isEqualTo("0/1");
         assertThat(file.getTooltip(254)).isEqualTo("Not covered");
 
         assertThat(file.getColorClass(131)).isEqualTo(CoverageSourcePrinter.FULL_COVERAGE);
@@ -37,6 +37,30 @@ class MutationSourcePrinterTest extends AbstractCoverageTest {
         assertThat(file.getTooltip(137))
                 .contains(
                         "Survived Mutations:<ul><li>negated conditional (org.pitest.mutationtest.engine.gregor.mutators.NegateConditionalsMutator)</li></ul>");
+    }
+
+    @Test
+    void shouldRenderLineWithKilledSurvivedAndNotCoveredMutationsAsPartiallyCovered() {
+        var tree = readResult("mutations-mixed-line.xml", new PitestParser());
+
+        var file = new MutationSourcePrinter(tree.findFile("Mixed.java").get());
+
+        assertThat(file.getColorClass(10)).isEqualTo(CoverageSourcePrinter.PARTIAL_COVERAGE);
+        assertThat(file.getSummaryColumn(10)).isEqualTo("1/3");
+        assertThat(file.getTooltip(10))
+                .contains("Killed Mutations:<ul><li>replaced int return with 0 for edu/hm/hafner/Mixed::compute")
+                .contains("Survived Mutations:<ul><li>changed conditional boundary")
+                .contains("Not Covered Mutations:<ul><li>Replaced integer addition with subtraction");
+
+        assertThat(file.getColorClass(20)).isEqualTo(CoverageSourcePrinter.NO_COVERAGE);
+        assertThat(file.getSummaryColumn(20)).isEqualTo("0/1");
+        assertThat(file.getTooltip(20)).isEqualTo("Not covered");
+
+        assertThat(file.getColorClass(30)).isEqualTo(CoverageSourcePrinter.FULL_COVERAGE);
+        assertThat(file.getSummaryColumn(30)).isEqualTo("1/1");
+        assertThat(file.getTooltip(30))
+                .contains("Killed Mutations:")
+                .doesNotContain("Survived Mutations:", "Not Covered Mutations:");
     }
 
     @Test
