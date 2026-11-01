@@ -9,6 +9,15 @@
  */
 
 table.source {
+    /*
+     * Colors of the three coverage states. Used for the stripe in the hits column, the overlay of
+     * the hovered block, and the background of the block label. Defined once here so that all
+     * places stay in sync when a color is changed.
+     */
+    --coverage-full-color: var(--light-green);
+    --coverage-part-color: var(--yellow);
+    --coverage-none-color: var(--red);
+
     border-spacing: 0;
     border-collapse: collapse;
     border: 1px solid #bbb;
@@ -155,15 +164,15 @@ table.source tr.block-hover.coverPart td.code:after {
 }
 
 table.source tr.block-hover.coverNone td.code:after {
-    background: color-mix(in sRGB, var(--red) 15%, transparent) !important;
+    background: color-mix(in sRGB, var(--coverage-none-color) 15%, transparent) !important;
 }
 
 table.source tr.block-hover.coverFull td.code:after {
-    background: color-mix(in sRGB, var(--green) 15%, transparent) !important;
+    background: color-mix(in sRGB, var(--coverage-full-color) 15%, transparent) !important;
 }
 
 table.source tr.block-hover.coverPart td.code:after {
-    background: color-mix(in sRGB, var(--orange) 15%, transparent) !important;
+    background: color-mix(in sRGB, var(--coverage-part-color) 15%, transparent) !important;
 }
 
 /*
@@ -223,17 +232,17 @@ table.source td.coverage-block-label.coverage-block-label--overflow {
 }
 
 table.source td.coverage-block-label.block-label-none {
-    background: color-mix(in sRGB, var(--red) 12%, var(--card-background, #fff));
+    background: color-mix(in sRGB, var(--coverage-none-color) 12%, var(--card-background, #fff));
     color: var(--error-color);
 }
 
 table.source td.coverage-block-label.block-label-full {
-    background: color-mix(in sRGB, var(--green) 12%, var(--card-background, #fff));
+    background: color-mix(in sRGB, var(--coverage-full-color) 12%, var(--card-background, #fff));
     color: var(--success-color);
 }
 
 table.source td.coverage-block-label.block-label-part {
-    background: color-mix(in sRGB, var(--orange) 12%, var(--card-background, #fff));
+    background: color-mix(in sRGB, var(--coverage-part-color) 12%, var(--card-background, #fff));
     color: var(--warning-color);
 }
 
@@ -303,17 +312,17 @@ table.source tr td.hits:after {
 
 /* Green stripe for fully covered lines */
 table.source tr.coverFull td.hits:after {
-    background-color: var(--light-green);
+    background-color: var(--coverage-full-color);
 }
 
 /* Red stripe for uncovered lines */
 table.source tr.coverNone td.hits:after {
-    background-color: var(--red);
+    background-color: var(--coverage-none-color);
 }
 
-/* Orange stripe for partially covered lines */
+/* Yellow stripe for partially covered lines */
 table.source tr.coverPart td.hits:after {
-    background-color: var(--orange);
+    background-color: var(--coverage-part-color);
 }
 
 /* Ensure line/hits columns for uncovered rows keep default background. Uses the real Jenkins
@@ -333,15 +342,15 @@ table.source tr.coverSkip {
 
 /* VectorCAST metric cells carry their own coverage state, independent of the row. */
 table.source tr td.hits.coverFull:after {
-    background-color: var(--light-green);
+    background-color: var(--coverage-full-color);
 }
 
 table.source tr td.hits.coverNone:after {
-    background-color: var(--red);
+    background-color: var(--coverage-none-color);
 }
 
 table.source tr td.hits.coverPart:after {
-    background-color: var(--orange);
+    background-color: var(--coverage-part-color);
 }
 
 table.source tr td.hits.noCover:after {
