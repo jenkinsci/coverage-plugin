@@ -971,6 +971,7 @@ public final class CoverageBuildAction extends BuildAction<Node> implements Stap
     }
 
     @VisibleForTesting
+    @SuppressWarnings("PMD.InternalApiUsage")
     CoverageViewModel getTarget(final CoverageViewModel.UsePropertyFacade usePropertyFacade) {
         return new CoverageViewModel(
                 getOwner(),

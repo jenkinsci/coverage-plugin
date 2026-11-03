@@ -1,7 +1,5 @@
 package io.jenkins.plugins.coverage.metrics.steps;
 
-import static io.jenkins.plugins.coverage.metrics.steps.CoverageRecorder.*;
-
 import edu.umd.cs.findbugs.annotations.CheckForNull;
 import edu.umd.cs.findbugs.annotations.NonNull;
 import hudson.Extension;
@@ -15,6 +13,7 @@ import hudson.util.ComboBoxModel;
 import hudson.util.FormValidation;
 import hudson.util.ListBoxModel;
 import io.jenkins.plugins.checks.steps.ChecksInfo;
+import io.jenkins.plugins.coverage.metrics.steps.CoverageRecorder.ChecksAnnotationScope;
 import io.jenkins.plugins.prism.SourceCodeDirectory;
 import io.jenkins.plugins.prism.SourceCodeRetention;
 import io.jenkins.plugins.util.AbstractExecution;

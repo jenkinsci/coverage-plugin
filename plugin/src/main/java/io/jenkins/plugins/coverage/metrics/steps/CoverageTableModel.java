@@ -1,6 +1,7 @@
 package io.jenkins.plugins.coverage.metrics.steps;
 
-import static j2html.TagCreator.*;
+import static j2html.TagCreator.a;
+import static j2html.TagCreator.div;
 
 import edu.hm.hafner.coverage.ChangeSet;
 import edu.hm.hafner.coverage.Coverage;

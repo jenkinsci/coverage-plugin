@@ -1,7 +1,7 @@
 package io.jenkins.plugins.coverage.metrics.color;
 
 import io.jenkins.plugins.coverage.metrics.color.ColorProvider.DisplayColors;
-import java.awt.*;
+import java.awt.Color;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.EnumMap;
