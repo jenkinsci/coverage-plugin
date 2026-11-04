@@ -7,6 +7,7 @@ import edu.hm.hafner.coverage.Coverage;
 import edu.hm.hafner.coverage.FileDeltas;
 import edu.hm.hafner.coverage.FileNode;
 import edu.hm.hafner.coverage.Metric;
+import edu.hm.hafner.coverage.Metric.MetricTendency;
 import edu.hm.hafner.coverage.Node;
 import edu.hm.hafner.coverage.Value;
 import hudson.Functions;
@@ -31,6 +32,7 @@ import java.util.EnumMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.text.CaseUtils;
@@ -219,6 +221,15 @@ class CoverageTableModel extends TableModel {
 
     @Override
     public List<Object> getRows() {
+        return new ArrayList<>(createRows());
+    }
+
+    /**
+     * Creates the rows of this table, one row for each file.
+     *
+     * @return the rows of this table
+     */
+    List<CoverageRow> createRows() {
         Locale browserLocale = Functions.getCurrentLocale();
         return root.getAllFileNodes().stream()
                 .map(file -> new CoverageRow(file, changes, deltas, browserLocale, renderer, colorProvider))
@@ -248,6 +259,8 @@ class CoverageTableModel extends TableModel {
     static class CoverageRow {
         private static final String COVERAGE_COLUMN_OUTER = "coverage-cell-outer float-end";
         private static final String COVERAGE_COLUMN_INNER = "coverage-jenkins-cell-inner";
+        private static final String COMBINED_CELL = "coverage-cell-combined";
+        private static final String DELTA_BADGE = "coverage-cell-delta";
         private static final ElementFormatter FORMATTER = new ElementFormatter();
 
         private static final Value ZERO_LOC = new Value(Metric.LOC, 0);
@@ -380,6 +393,106 @@ class CoverageTableModel extends TableModel {
         }
 
         /**
+         * Returns the value of the specified metric for the file of this row. The value is aggregated using the
+         * {@link FileMetricAggregation aggregation for files}, e.g., the maximum for method metrics like the
+         * cyclomatic complexity. Coverage values without any covered or missed items are treated as missing values.
+         *
+         * @param metric
+         *         the metric to get the value for
+         *
+         * @return the value of the metric, or an empty result if the file has no such value
+         */
+        Optional<Value> getMetricValue(final Metric metric) {
+            return file.getValue(metric, FileMetricAggregation.of(metric))
+                    .filter(value -> !(value instanceof Coverage coverage) || coverage.isSet());
+        }
+
+        /**
+         * Returns the delta of the specified metric for the file of this row with respect to the reference build.
+         *
+         * @param metric
+         *         the metric to get the delta for
+         *
+         * @return the delta of the metric, or an empty result if no delta is available
+         */
+        Optional<Value> getMetricDelta(final Metric metric) {
+            if (deltas.hasDelta(file.getRelativePath(), metric)) {
+                return Optional.of(deltas.getDelta(file.getRelativePath(), metric));
+            }
+            return Optional.empty();
+        }
+
+        /**
+         * Creates a table cell that shows the value of the specified metric. Coverage values are visualized with a
+         * colored bar, all other values are shown as plain numbers.
+         *
+         * @param metric
+         *         the metric to show
+         *
+         * @return the created {@link DetailedCell}
+         */
+        DetailedCell<?> createValueCell(final Metric metric) {
+            return getMetricValue(metric).map(this::renderValue).orElse(NO_COVERAGE);
+        }
+
+        private DetailedCell<?> renderValue(final Value value) {
+            if (value instanceof Coverage coverage) {
+                return createColoredCoverageColumn(coverage);
+            }
+            var cell = div().withClasses("text-end")
+                    .withText(FORMATTER.format(value, browserLocale))
+                    .render();
+            return new DetailedCell<>(cell, value.asDouble());
+        }
+
+        /**
+         * Creates a table cell that shows the delta of the specified metric with respect to the reference build.
+         *
+         * @param metric
+         *         the metric to show
+         *
+         * @return the created {@link DetailedCell}
+         */
+        DetailedCell<?> createDeltaCell(final Metric metric) {
+            return getMetricDelta(metric)
+                    .<DetailedCell<?>>map(delta -> createColoredCoverageDeltaColumn(metric, delta))
+                    .orElse(NO_COVERAGE);
+        }
+
+        /**
+         * Creates a table cell that shows the value of the specified metric along with a small badge that shows
+         * the delta with respect to the reference build. The cell is sorted by the value.
+         *
+         * @param metric
+         *         the metric to show
+         *
+         * @return the created {@link DetailedCell}
+         */
+        DetailedCell<?> createCombinedCell(final Metric metric) {
+            var valueCell = createValueCell(metric);
+            var delta = getMetricDelta(metric);
+            if (getMetricValue(metric).isEmpty() || delta.isEmpty()) {
+                return valueCell;
+            }
+            var cell = div().withClasses(COMBINED_CELL)
+                    .with(rawHtml(valueCell.getDisplay()))
+                    .with(span().withClasses(DELTA_BADGE)
+                            .withStyle("background-color:%s;".formatted(getDeltaColor(metric, delta.get())))
+                            .withText(FORMATTER.formatDelta(metric, delta.get(), browserLocale)))
+                    .render();
+            return new DetailedCell<>(cell, valueCell.getSort());
+        }
+
+        private String getDeltaColor(final Metric metric, final Value delta) {
+            double change = delta.asRounded();
+            if (metric.getTendency() == MetricTendency.SMALLER_IS_BETTER) {
+                change = -change;
+            }
+            return CoverageChangeTendency.getDisplayColorsForTendency(change, colorProvider)
+                    .getFillColorAsRGBAHex(TABLE_COVERAGE_COLOR_ALPHA);
+        }
+
+        /**
          * Creates a table cell which colorizes the shown coverage dependent on the coverage percentage.
          *
          * @param coverage
@@ -422,11 +535,9 @@ class CoverageTableModel extends TableModel {
          */
         protected DetailedCell<?> createColoredCoverageDeltaColumn(final Metric metric, final Value delta) {
             double percentage = delta.asRounded();
-            DisplayColors colors = CoverageChangeTendency.getDisplayColorsForTendency(percentage, colorProvider);
             var cell = div().withClasses(COVERAGE_COLUMN_OUTER)
                     .with(div().withClasses(COVERAGE_COLUMN_INNER)
-                            .withStyle("background-color:%s;"
-                                    .formatted(colors.getFillColorAsRGBAHex(TABLE_COVERAGE_COLOR_ALPHA)))
+                            .withStyle("background-color:%s;".formatted(getDeltaColor(metric, delta)))
                             .withText(FORMATTER.formatDelta(metric, delta, browserLocale)))
                     .render();
             return new DetailedCell<>(cell, percentage);

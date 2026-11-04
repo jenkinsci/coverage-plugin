@@ -544,3 +544,17 @@ button.coverage-hotspots__grid-header:hover {
 .coverage-help-link--tooltip:hover {
     color: var(--text-color);
 }
+
+/*
+ * Long metric labels (e.g., "Max. Cognitive Complexity") should wrap instead of widening the column beyond its content.
+ * Additionally, the numeric metric columns should be as narrow as possible: otherwise, the browser distributes the
+ * remaining width of the table proportionally to the unwrapped width of the headers so that columns with long labels
+ * become the widest ones. With a minimal width, the remaining space goes to the file and package columns.
+ */
+.files-table-panel table.data-table thead th {
+    white-space: normal;
+}
+
+.files-table-panel table.data-table .dt-type-numeric {
+    width: 1%;
+}

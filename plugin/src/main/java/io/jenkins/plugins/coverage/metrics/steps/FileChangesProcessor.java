@@ -2,13 +2,16 @@ package io.jenkins.plugins.coverage.metrics.steps;
 
 import edu.hm.hafner.coverage.ChangeSet;
 import edu.hm.hafner.coverage.ChangeSet.ChangeSetBuilder;
+import edu.hm.hafner.coverage.Difference;
 import edu.hm.hafner.coverage.FileDeltas.FileDeltasBuilder;
 import edu.hm.hafner.coverage.FileNode;
+import edu.hm.hafner.coverage.MetricAggregation;
 import edu.hm.hafner.coverage.Node;
 import io.jenkins.plugins.forensics.delta.Change;
 import io.jenkins.plugins.forensics.delta.ChangeEditType;
 import io.jenkins.plugins.forensics.delta.FileChanges;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
@@ -95,8 +98,28 @@ public class FileChangesProcessor {
                 .forEach(entry -> {
                     var fileNode = entry.getValue();
                     var referenceFile = referenceFileNodes.get(entry.getKey());
-                    builder.addDeltas(fileNode.getRelativePath(), fileNode.computeDelta(referenceFile));
+                    builder.addDeltas(fileNode.getRelativePath(), computeFileDeltas(fileNode, referenceFile));
                 });
+    }
+
+    /**
+     * Computes the deltas of all metrics of the specified file. Each metric is aggregated using the
+     * {@link FileMetricAggregation aggregation that is used for files}, e.g., the delta of the cyclomatic complexity
+     * is the delta of the maximum complexity of the methods of both files.
+     *
+     * @param fileNode
+     *         the file to compute the deltas for
+     * @param referenceFile
+     *         the same file in the reference build
+     *
+     * @return the deltas of all metrics
+     */
+    private List<Difference> computeFileDeltas(final FileNode fileNode, final FileNode referenceFile) {
+        return Arrays.stream(MetricAggregation.values())
+                .map(aggregation -> fileNode.computeDelta(referenceFile, aggregation).stream()
+                        .filter(delta -> FileMetricAggregation.of(delta.getMetric()) == aggregation))
+                .flatMap(Function.identity())
+                .toList();
     }
 
     /**

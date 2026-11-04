@@ -16,6 +16,9 @@
             <select id="files-table-select" class="jenkins-select__input" style="min-width: 16em;"
                     data-report-id="${it.id}">
               <option value="absolute-coverage">${%files-type-all}</option>
+              <j:if test="${it.hasModifiedFiles()}">
+                <option value="modified-files">${%files-type-modified-files}</option>
+              </j:if>
               <j:if test="${it.hasModifiedLinesCoverage()}">
                 <option value="modified-lines-coverage">${%files-type-modified}</option>
               </j:if>
@@ -25,6 +28,19 @@
             </select>
           </div>
         </div>
+        <j:if test="${it.hasFileDeltas()}">
+          <div class="jenkins-!-margin-left-2" style="display: flex; align-items: center;">
+            <div class="jenkins-!-margin-right-1" style="text-wrap: nowrap">${%Columns}:</div>
+            <div class="jenkins-select">
+              <select id="files-columns-select" class="jenkins-select__input" style="min-width: 12em;"
+                      data-report-id="${it.id}">
+                <option value="combined">${%columns-combined}</option>
+                <option value="values">${%columns-values}</option>
+                <option value="deltas">${%columns-deltas}</option>
+              </select>
+            </div>
+          </div>
+        </j:if>
       </div>
     </l:app-bar>
 
@@ -33,18 +49,18 @@
 
       <div class="content">
         <div id="files-panel-absolute-coverage" class="files-table-panel">
-          <cov:coverage-table showChangedToggle="true" id="absolute-coverage" title="${%files-type-all}"
+          <cov:coverage-table id="absolute-coverage" title="${it.displayName}"
                               symbol="symbol-regular/file-lines plugin-font-awesome-api"/>
         </div>
         <j:if test="${it.hasModifiedLinesCoverage()}">
           <div id="files-panel-modified-lines-coverage" class="files-table-panel" style="display: none;">
-            <cov:coverage-table id="modified-lines-coverage" title="${%files-type-modified}"
+            <cov:coverage-table id="modified-lines-coverage" title="${it.displayName}"
                                 symbol="symbol-diff-stat plugin-forensics-api"/>
           </div>
         </j:if>
         <j:if test="${it.hasIndirectCoverageChanges()}">
           <div id="files-panel-indirect-coverage" class="files-table-panel" style="display: none;">
-            <cov:coverage-table id="indirect-coverage" title="${%files-type-indirect}"
+            <cov:coverage-table id="indirect-coverage" title="${it.displayName}"
                                 symbol="symbol-regular/face-smile plugin-font-awesome-api"/>
           </div>
         </j:if>
