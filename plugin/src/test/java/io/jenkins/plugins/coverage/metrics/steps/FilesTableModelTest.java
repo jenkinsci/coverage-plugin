@@ -1,6 +1,6 @@
 package io.jenkins.plugins.coverage.metrics.steps;
 
-import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import edu.hm.hafner.coverage.ChangeSet;
 import edu.hm.hafner.coverage.ClassNode;
@@ -40,7 +40,7 @@ class FilesTableModelTest {
 
         assertThat(model.getColumns())
                 .extracting(TableColumn::getHeaderLabel)
-                .containsExactly("Hash", "Modified", "File", "Package", "Line", "LOC", "Max. Complexity");
+                .containsExactly("Hash", "Modified", "File", "Package", "Line", "LOC", "Complexity ↑");
 
         var row = getSingleRow(model);
         assertThat(row)
@@ -81,9 +81,9 @@ class FilesTableModelTest {
                         "Line Δ",
                         "Line",
                         "LOC",
-                        "Max. Complexity",
-                        "Max. Complexity Δ",
-                        "Max. Complexity");
+                        "Complexity ↑",
+                        "Complexity ↑ Δ",
+                        "Complexity ↑");
 
         var row = getSingleRow(model);
         assertThat(row)

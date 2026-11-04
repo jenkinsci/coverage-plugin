@@ -22,6 +22,7 @@ final class FileMetricAggregation {
      *
      * @return the aggregation to use
      */
+    @SuppressWarnings("PMD.ShortMethodName")
     static MetricAggregation of(final Metric metric) {
         if (metric.getType() == MetricValueType.METHOD_METRIC) {
             return MetricAggregation.MAXIMUM;

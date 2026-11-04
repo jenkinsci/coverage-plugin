@@ -554,7 +554,3 @@ button.coverage-hotspots__grid-header:hover {
 .files-table-panel table.data-table thead th {
     white-space: normal;
 }
-
-.files-table-panel table.data-table .dt-type-numeric {
-    width: 1%;
-}

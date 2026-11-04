@@ -70,6 +70,7 @@ import tools.jackson.databind.ObjectMapper;
 @SuppressWarnings({
     "PMD.GodClass",
     "PMD.CouplingBetweenObjects",
+    "PMD.CyclomaticComplexity",
     "checkstyle:ClassDataAbstractionCoupling",
     "checkstyle:ClassFanOutComplexity"
 })

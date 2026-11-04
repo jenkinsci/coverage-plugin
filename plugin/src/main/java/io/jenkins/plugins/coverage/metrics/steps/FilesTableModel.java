@@ -80,7 +80,7 @@ class FilesTableModel extends TableModel {
 
     @Override
     public TableConfiguration getTableConfiguration() {
-        return rowProvider.getTableConfiguration();
+        return rowProvider.getTableConfiguration().optimalPageLength();
     }
 
     @Override
