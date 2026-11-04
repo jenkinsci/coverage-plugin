@@ -1,7 +1,8 @@
 package io.jenkins.plugins.coverage.metrics.restapi;
 
-import static io.jenkins.plugins.coverage.metrics.AbstractCoverageTest.*;
-import static net.javacrumbs.jsonunit.assertj.JsonAssertions.*;
+import static io.jenkins.plugins.coverage.metrics.AbstractCoverageTest.JACOCO_ANALYSIS_MODEL_FILE;
+import static io.jenkins.plugins.coverage.metrics.AbstractCoverageTest.JACOCO_CODING_STYLE_FILE;
+import static net.javacrumbs.jsonunit.assertj.JsonAssertions.assertThatJson;
 
 import edu.hm.hafner.coverage.Metric;
 import hudson.model.Result;
@@ -73,7 +74,7 @@ class CoverageApiITest extends AbstractCoverageITest {
     void shouldShowDeltaInRemoteApi() {
         var project = createFreestyleJob(Parser.JACOCO, JACOCO_ANALYSIS_MODEL_FILE, JACOCO_CODING_STYLE_FILE);
 
-        buildSuccessfully(project);
+        var referenceBuild = buildSuccessfully(project);
 
         // update the parser pattern to pick only the coding style results
         project.getPublishersList()
@@ -99,7 +100,9 @@ class CoverageApiITest extends AbstractCoverageITest {
         assertThatJson(remoteApiResult)
                 .node("referenceBuild")
                 .asString()
-                .matches("<a href=\".*jenkins/job/test0/1/\".*>test0 #1</a>");
+                .matches("<a href=\".*jenkins/job/%s/1/\".*>%s %s</a>"
+                        .formatted(
+                                project.getDisplayName(), project.getDisplayName(), referenceBuild.getDisplayName()));
     }
 
     private JSON callRemoteApi(final Run<?, ?> build) {
