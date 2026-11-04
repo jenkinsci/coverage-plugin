@@ -1,6 +1,13 @@
 package io.jenkins.plugins.coverage.metrics.source;
 
-import static j2html.TagCreator.*;
+import static j2html.TagCreator.a;
+import static j2html.TagCreator.div;
+import static j2html.TagCreator.li;
+import static j2html.TagCreator.rawHtml;
+import static j2html.TagCreator.td;
+import static j2html.TagCreator.text;
+import static j2html.TagCreator.tr;
+import static j2html.TagCreator.ul;
 
 import edu.hm.hafner.coverage.ChangeSet;
 import edu.hm.hafner.coverage.FileNode;

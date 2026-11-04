@@ -1,6 +1,6 @@
 package io.jenkins.plugins.coverage.metrics.color;
 
-import java.awt.*;
+import java.awt.Color;
 
 /**
  * Provides a color palette which can be used as a plugin internal fallback if no other color schemes have been defined.
