@@ -58,7 +58,8 @@ class FileDetailsModelTest extends AbstractCoverageTest {
     }
 
     /**
-     * Verifies that the summaries contain all metrics of the file in the order of the files table.
+     * Verifies that the summaries contain all metrics of the file in the order of the files table. The lines of code
+     * are derived from the line coverage.
      */
     @Test
     void shouldProvideSummariesOfAllMetrics() {
@@ -67,11 +68,16 @@ class FileDetailsModelTest extends AbstractCoverageTest {
         assertThat(model.hasMethods()).isTrue();
         assertThat(model.getSummaries())
                 .extracting(MetricSummary::name)
-                .containsExactly(Metric.LINE.getDisplayName(), Metric.CYCLOMATIC_COMPLEXITY.getDisplayName());
+                .containsExactly(
+                        Metric.LINE.getDisplayName(),
+                        Metric.LOC.getDisplayName(),
+                        Metric.CYCLOMATIC_COMPLEXITY.getDisplayName());
         assertThat(model.getSummaries())
                 .extracting(MetricSummary::label)
                 .containsExactly(
-                        FilesTableModel.getLabel(Metric.LINE), FilesTableModel.getLabel(Metric.CYCLOMATIC_COMPLEXITY));
+                        FilesTableModel.getLabel(Metric.LINE),
+                        FilesTableModel.getLabel(Metric.LOC),
+                        FilesTableModel.getLabel(Metric.CYCLOMATIC_COMPLEXITY));
         assertThat(model.getSummaries().get(0).cell()).contains("coverage-cell-outer");
     }
 

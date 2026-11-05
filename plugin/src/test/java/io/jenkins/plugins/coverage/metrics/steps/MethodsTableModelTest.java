@@ -22,6 +22,7 @@ import org.junit.jupiter.api.Test;
  */
 class MethodsTableModelTest {
     private static final String LINE_KEY = MethodsTableModel.getKey(Metric.LINE);
+    private static final String LOC_KEY = MethodsTableModel.getKey(Metric.LOC);
     private static final String COMPLEXITY_KEY = MethodsTableModel.getKey(Metric.CYCLOMATIC_COMPLEXITY);
 
     /**
@@ -39,19 +40,21 @@ class MethodsTableModelTest {
     }
 
     /**
-     * Verifies that only the metrics that are available for at least one method are shown as columns.
+     * Verifies that only the metrics that are available for at least one method are shown as columns. The lines of
+     * code are derived from the line coverage.
      */
     @Test
     void shouldShowColumnsOfAvailableMetricsOnly() {
         var model = createModel(createFile(createMethod("first", 10, 4, 1, 3), createMethod("second", 20, 0, 5, 1)));
 
-        assertThat(model.getVisibleMetrics()).containsExactly(Metric.LINE, Metric.CYCLOMATIC_COMPLEXITY);
+        assertThat(model.getVisibleMetrics()).containsExactly(Metric.LINE, Metric.LOC, Metric.CYCLOMATIC_COMPLEXITY);
         assertThat(model.getColumns())
                 .extracting(TableColumn::getHeaderLabel)
                 .containsExactly(
                         Messages.Column_Method(),
                         Messages.Column_LineNumber(),
                         Metric.LINE.getLabel(),
+                        Metric.LOC.getLabel(),
                         Metric.CYCLOMATIC_COMPLEXITY.getLabel());
     }
 
@@ -68,7 +71,11 @@ class MethodsTableModelTest {
         var first = rows.get(0);
         assertThat(first)
                 .containsOnlyKeys(
-                        MethodsTableModel.METHOD_KEY, MethodsTableModel.LINE_NUMBER_KEY, LINE_KEY, COMPLEXITY_KEY);
+                        MethodsTableModel.METHOD_KEY,
+                        MethodsTableModel.LINE_NUMBER_KEY,
+                        LINE_KEY,
+                        LOC_KEY,
+                        COMPLEXITY_KEY);
         assertThat(getCell(first, MethodsTableModel.METHOD_KEY).getDisplay())
                 .contains(">first<")
                 .contains("title=\"()V\"");
@@ -77,6 +84,9 @@ class MethodsTableModelTest {
                 .contains(">10<");
         assertThat(getCell(first, MethodsTableModel.LINE_NUMBER_KEY).getSort()).isEqualTo(10);
         assertThat(getCell(first, LINE_KEY).getSort()).isEqualTo(80.0);
+        assertThat(getCell(first, LOC_KEY).getSort())
+                .as("LOC derived from the line coverage")
+                .isEqualTo(5.0);
         assertThat(getCell(first, COMPLEXITY_KEY).getDisplay()).contains(">3<");
 
         var second = rows.get(1);
