@@ -6,11 +6,13 @@ import edu.hm.hafner.coverage.FileDeltas;
 import edu.hm.hafner.coverage.FileNode;
 import edu.hm.hafner.coverage.Metric;
 import edu.hm.hafner.coverage.Node;
+import edu.hm.hafner.coverage.Value;
 import hudson.Functions;
 import io.jenkins.plugins.coverage.metrics.color.ColorProvider;
 import io.jenkins.plugins.datatables.DetailedCell;
 import java.util.List;
 import java.util.Locale;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -33,7 +35,7 @@ abstract class ChangesTableModel extends CoverageTableModel {
     }
 
     @Override
-    public List<Object> getRows() {
+    List<CoverageRow> createRows() {
         Locale browserLocale = Functions.getCurrentLocale();
         return changeRoot.getAllFileNodes().stream()
                 .map(file -> createRow(file, browserLocale))
@@ -84,14 +86,36 @@ abstract class ChangesTableModel extends CoverageTableModel {
         }
 
         DetailedCell<?> createColoredModifiedLinesCoverageDeltaColumn(final Metric metric) {
+            return getModifiedLinesCoverageDelta(metric)
+                    .<DetailedCell<?>>map(delta -> createColoredCoverageDeltaColumn(metric, delta))
+                    .orElse(NO_COVERAGE);
+        }
+
+        /**
+         * Returns the delta of the specified metric. For coverage metrics, the delta is the difference between the
+         * coverage of the changed lines and the coverage of the whole file. All other metrics use the delta of the
+         * file with respect to the reference build.
+         *
+         * @param metric
+         *         the metric to get the delta for
+         *
+         * @return the delta of the metric, or an empty result if no delta is available
+         */
+        @Override
+        Optional<Value> getMetricDelta(final Metric metric) {
+            if (metric.isCoverage()) {
+                return getModifiedLinesCoverageDelta(metric);
+            }
+            return super.getMetricDelta(metric);
+        }
+
+        private Optional<Value> getModifiedLinesCoverageDelta(final Metric metric) {
             var modifiedLinesCoverage = getFile().getTypedValue(metric, Coverage.nullObject(metric));
             if (modifiedLinesCoverage.isSet()) {
-                return createColoredCoverageDeltaColumn(
-                        metric,
-                        modifiedLinesCoverage.subtract(
-                                originalFile.getTypedValue(metric, Coverage.nullObject(metric))));
+                return Optional.of(modifiedLinesCoverage.subtract(
+                        originalFile.getTypedValue(metric, Coverage.nullObject(metric))));
             }
-            return NO_COVERAGE;
+            return Optional.empty();
         }
     }
 }

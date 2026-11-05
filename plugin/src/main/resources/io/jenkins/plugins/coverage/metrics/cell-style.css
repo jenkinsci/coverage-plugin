@@ -19,3 +19,19 @@
     text-decoration: none;
 }
 
+
+.coverage-cell-combined { /* Value and delta in a single cell, see FilesTableModel. */
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 0.35em;
+}
+
+.coverage-cell-delta {
+    font-size: 0.75em;
+    padding: 0 4px;
+    border-radius: 6px;
+    white-space: nowrap;
+    min-width: 4em;
+    text-align: right;
+}

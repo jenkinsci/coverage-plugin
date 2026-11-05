@@ -339,14 +339,18 @@ class RunTabTest extends AbstractCoverageTest {
         assertThat(model.hasIndirectCoverageChanges()).isFalse();
 
         var node = viewModel.getNode();
+        assertThat(model.hasFileDeltas()).isFalse();
+        assertThat(model.hasModifiedFiles()).isFalse();
+
         assertThat(model.getTableModel(CoverageViewModel.ABSOLUTE_COVERAGE_TABLE_ID))
-                .isInstanceOf(CoverageTableModel.class)
+                .isInstanceOf(FilesTableModel.class)
+                .satisfies(table -> assertThat(table.getId()).isEqualTo(CoverageViewModel.ABSOLUTE_COVERAGE_TABLE_ID))
                 .satisfies(table -> assertThat(table.getRows())
                         .hasSize(node.getAllFileNodes().size()));
         assertThat(model.getTableModel(CoverageViewModel.MODIFIED_LINES_COVERAGE_TABLE_ID))
-                .isInstanceOf(ModifiedLinesCoverageTableModel.class);
+                .isInstanceOf(FilesTableModel.class);
         assertThat(model.getTableModel(CoverageViewModel.INDIRECT_COVERAGE_TABLE_ID))
-                .isInstanceOf(IndirectCoverageChangesTable.class);
+                .isInstanceOf(FilesTableModel.class);
 
         // All other links are delegated to the parent view model
         assertThat(model.getDynamic("info")).isInstanceOf(MessagesViewModel.class);

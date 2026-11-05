@@ -76,7 +76,28 @@ public class FilesModel extends DefaultAsyncTableContentProvider implements Mode
     }
 
     /**
-     * Returns the table model that matches the given table ID. Overrides the abstract method from
+     * Checks whether there are files with modified lines, i.e., whether the option to show only the modified files
+     * of the table of all files should be offered.
+     *
+     * @return {@code true} if there are modified files, {@code false} otherwise
+     */
+    public boolean hasModifiedFiles() {
+        return parent.hasModifiedFiles();
+    }
+
+    /**
+     * Checks whether the deltas of the files with respect to the reference build are available, i.e., whether the
+     * column mode selection (values, deltas, or both) should be offered.
+     *
+     * @return {@code true} if file deltas are available, {@code false} otherwise
+     */
+    public boolean hasFileDeltas() {
+        return parent.hasFileDeltas();
+    }
+
+    /**
+     * Returns the table model that matches the given table ID. The model provides value, delta, and combined columns
+     * for all metrics, see {@link FilesTableModel}. Overrides the abstract method from
      * {@link DefaultAsyncTableContentProvider}, whose {@code getTableRows(String)} is what the data-tables plugin's
      * client-side {@code tableDataProxy} calls (bound to "it" in the corresponding jelly view) to asynchronously
      * load the actual table rows.
@@ -88,7 +109,7 @@ public class FilesModel extends DefaultAsyncTableContentProvider implements Mode
      */
     @Override
     public TableModel getTableModel(final String tableId) {
-        return parent.getTableModel(tableId);
+        return new FilesTableModel(parent.createTableModel(tableId));
     }
 
     /**

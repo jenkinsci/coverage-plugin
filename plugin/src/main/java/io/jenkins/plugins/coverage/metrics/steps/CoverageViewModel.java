@@ -70,6 +70,7 @@ import tools.jackson.databind.ObjectMapper;
 @SuppressWarnings({
     "PMD.GodClass",
     "PMD.CouplingBetweenObjects",
+    "PMD.CyclomaticComplexity",
     "checkstyle:ClassDataAbstractionCoupling",
     "checkstyle:ClassFanOutComplexity"
 })
@@ -516,6 +517,18 @@ public class CoverageViewModel extends DefaultAsyncTableContentProvider implemen
      */
     @Override
     public TableModel getTableModel(final String tableId) {
+        return createTableModel(tableId);
+    }
+
+    /**
+     * Creates the coverage table model that matches with the passed table ID.
+     *
+     * @param tableId
+     *         ID of the table model
+     *
+     * @return the table model with the specified ID
+     */
+    CoverageTableModel createTableModel(final String tableId) {
         var renderer = createRenderer(tableId);
 
         var actualId = tableId.replace(INLINE_SUFFIX, StringUtils.EMPTY);
@@ -650,6 +663,24 @@ public class CoverageViewModel extends DefaultAsyncTableContentProvider implemen
      */
     public boolean hasIndirectCoverageChanges() {
         return !indirectCoverageChangesTreeRoot.isEmpty();
+    }
+
+    /**
+     * Checks whether there are files with modified lines with respect to the reference build.
+     *
+     * @return {@code true} if there are modified files, {@code false} otherwise
+     */
+    public boolean hasModifiedFiles() {
+        return changes.hasModifiedLines();
+    }
+
+    /**
+     * Checks whether the deltas of the files with respect to the reference build are available.
+     *
+     * @return {@code true} if file deltas are available, {@code false} otherwise
+     */
+    public boolean hasFileDeltas() {
+        return deltas.hasDeltas();
     }
 
     /**

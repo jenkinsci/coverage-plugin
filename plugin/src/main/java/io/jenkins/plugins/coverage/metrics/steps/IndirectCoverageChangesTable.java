@@ -3,9 +3,12 @@ package io.jenkins.plugins.coverage.metrics.steps;
 import edu.hm.hafner.coverage.ChangeSet;
 import edu.hm.hafner.coverage.FileDeltas;
 import edu.hm.hafner.coverage.FileNode;
+import edu.hm.hafner.coverage.Metric;
 import edu.hm.hafner.coverage.Node;
+import edu.hm.hafner.coverage.Value;
 import io.jenkins.plugins.coverage.metrics.color.ColorProvider;
 import java.util.Locale;
+import java.util.Optional;
 
 /**
  * A coverage table model that handles the lines of code that have been indirectly changed with respect to a result of a
@@ -48,6 +51,14 @@ class IndirectCoverageChangesTable extends ChangesTableModel {
                 final RowRenderer renderer,
                 final ColorProvider colorProvider) {
             super(originalFile, changedFileNode, changes, deltas, browserLocale, renderer, colorProvider);
+        }
+
+        @Override
+        Optional<Value> getMetricValue(final Metric metric) {
+            if (metric == Metric.LOC) {
+                return Optional.of(new Value(Metric.LOC, getLoc()));
+            }
+            return super.getMetricValue(metric);
         }
 
         @Override
