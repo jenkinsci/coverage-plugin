@@ -1,7 +1,7 @@
 package io.jenkins.plugins.coverage.metrics.color;
 
 import edu.hm.hafner.coverage.Metric;
-import java.awt.*;
+import java.awt.Color;
 
 /**
  * Computes a fill color for a numeric metric value by linearly interpolating between a red, a yellow, and a green
