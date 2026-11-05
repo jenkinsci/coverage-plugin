@@ -7,10 +7,18 @@
     <st:attribute name="id" type="String" use="required">
       The ID of the coverage results.
     </st:attribute>
+    <st:attribute name="active">
+      The URL of the task that should be shown as selected (e.g., 'table'). Required only for pages that are
+      subpages of a task, e.g., the details page of a file. All other tasks are selected by Jenkins core if the
+      current URL matches the URL of the task.
+    </st:attribute>
 
   </st:documentation>
 
-  <div id="side-panel" class="app-page-body__sidebar coverage-sidebar">
+  <st:adjunct includes="io.jenkins.plugins.coverage.metrics.steps.RunTab.active-tab"/>
+
+  <!-- The attribute data-active-task is omitted if no active task is given (null attribute values are skipped). -->
+  <div id="side-panel" class="app-page-body__sidebar coverage-sidebar" data-active-task="${attrs.active}">
 
     <l:tasks>
       <l:task title="${%Overview}"
