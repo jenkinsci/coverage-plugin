@@ -59,6 +59,21 @@ class FilesTableModelTest {
     }
 
     /**
+     * Verifies that metrics that are part of the tree but have no value for any of the files are not shown.
+     */
+    @Test
+    void shouldSkipMetricsWithoutValuesForFiles() {
+        var tree = createTree();
+        tree.addValue(new Value(Metric.TESTS, 5));
+        assertThat(tree.containsMetric(Metric.TESTS)).isTrue();
+
+        var model = createModel(tree, FileDeltas.empty());
+
+        assertThat(model.getColumns()).extracting(TableColumn::getHeaderLabel).doesNotContain(Metric.TESTS.getLabel());
+        assertThat(getSingleRow(model)).doesNotContainKey("testsValue");
+    }
+
+    /**
      * Verifies that the value, delta, and combined columns are provided for all metrics with a delta. Metrics without
      * a delta (here: LOC) provide a value column only.
      */
@@ -110,9 +125,23 @@ class FilesTableModelTest {
      * @return the table model
      */
     private FilesTableModel createModel(final FileDeltas deltas) {
+        return createModel(createTree(), deltas);
+    }
+
+    /**
+     * Creates a table model for the specified tree.
+     *
+     * @param tree
+     *         the coverage tree
+     * @param deltas
+     *         the deltas of the files with respect to the reference build
+     *
+     * @return the table model
+     */
+    private FilesTableModel createModel(final Node tree, final FileDeltas deltas) {
         return new FilesTableModel(new CoverageTableModel(
                 "absolute-coverage-table",
-                createTree(),
+                tree,
                 ChangeSet.empty(),
                 deltas,
                 new InlineRowRenderer(),

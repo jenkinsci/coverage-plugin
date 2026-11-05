@@ -110,7 +110,7 @@ class FilesTableModel extends TableModel {
                 .build());
 
         var priority = FIRST_METRIC_PRIORITY;
-        for (Metric metric : getVisibleMetrics()) {
+        for (Metric metric : getVisibleMetrics(rowProvider.createRows())) {
             var label = getLabel(metric);
             columns.add(createMetricColumn(label, metric, VALUE_SUFFIX, priority));
             if (hasDelta(metric)) {
@@ -136,8 +136,9 @@ class FilesTableModel extends TableModel {
 
     @Override
     public List<Object> getRows() {
-        var metrics = getVisibleMetrics();
-        return rowProvider.createRows().stream()
+        var rows = rowProvider.createRows();
+        var metrics = getVisibleMetrics(rows);
+        return rows.stream()
                 .map(row -> createRow(row, metrics))
                 .map(Object.class::cast)
                 .toList();
@@ -167,8 +168,22 @@ class FilesTableModel extends TableModel {
         cells.put(getKey(metric, suffix), cellFactory.apply(metric));
     }
 
-    private List<Metric> getVisibleMetrics() {
-        return METRICS.stream().filter(rowProvider.getRoot()::containsMetric).toList();
+    /**
+     * Returns the metrics that are shown in the table. A metric is shown only if at least one row has a value for this
+     * metric: e.g., the number of tests is part of the tree if a test report has been recorded, but the tests might
+     * not be mapped to any of the files.
+     *
+     * @param rows
+     *         the rows of the table
+     *
+     * @return the metrics to show
+     */
+    private List<Metric> getVisibleMetrics(final List<CoverageRow> rows) {
+        return METRICS.stream()
+                .filter(rowProvider.getRoot()::containsMetric)
+                .filter(metric ->
+                        rows.stream().anyMatch(row -> row.getMetricValue(metric).isPresent()))
+                .toList();
     }
 
     private boolean hasDelta(final Metric metric) {
