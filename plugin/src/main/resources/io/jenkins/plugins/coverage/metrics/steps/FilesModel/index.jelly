@@ -1,5 +1,6 @@
 <?jelly escape-by-default='true'?>
-<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:l="/lib/layout" xmlns:cov="/coverage">
+<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:l="/lib/layout" xmlns:cov="/coverage"
+         xmlns:dt="/data-tables">
 
   <st:header name="Content-Type" value="text/html;charset=UTF-8"/>
 
@@ -49,25 +50,27 @@
 
       <div class="content">
         <div id="files-panel-absolute-coverage" class="files-table-panel">
-          <cov:coverage-table id="absolute-coverage" title="${it.displayName}"
-                              symbol="symbol-regular/file-lines plugin-font-awesome-api"/>
+          <l:card title="${it.displayName}">
+            <dt:table model="${it.getTableModel('absolute-coverage-table')}"/>
+          </l:card>
         </div>
         <j:if test="${it.hasModifiedLinesCoverage()}">
           <div id="files-panel-modified-lines-coverage" class="files-table-panel" style="display: none;">
-            <cov:coverage-table id="modified-lines-coverage" title="${it.displayName}"
-                                symbol="symbol-diff-stat plugin-forensics-api"/>
+            <l:card title="${it.displayName}">
+              <dt:table model="${it.getTableModel('modified-lines-coverage-table')}"/>
+            </l:card>
           </div>
         </j:if>
         <j:if test="${it.hasIndirectCoverageChanges()}">
           <div id="files-panel-indirect-coverage" class="files-table-panel" style="display: none;">
-            <cov:coverage-table id="indirect-coverage" title="${it.displayName}"
-                                symbol="symbol-regular/face-smile plugin-font-awesome-api"/>
+            <l:card title="${it.displayName}">
+              <dt:table model="${it.getTableModel('indirect-coverage-table')}"/>
+            </l:card>
           </div>
         </j:if>
       </div>
     </div>
 
-    <st:bind var="proxy" value="${it}"/>
     <st:adjunct includes="io.jenkins.plugins.coverage.metrics.steps.FilesModel.files-model"/>
 
   </l:run-subpage>

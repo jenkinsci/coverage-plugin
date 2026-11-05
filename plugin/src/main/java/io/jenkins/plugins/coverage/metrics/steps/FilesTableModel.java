@@ -38,7 +38,7 @@ class FilesTableModel extends TableModel {
     static final String COMBINED_SUFFIX = "Combined";
 
     /** The metrics that are shown in the table (if available), in the order of the columns. */
-    private static final List<Metric> METRICS = List.of(
+    static final List<Metric> METRICS = List.of(
             Metric.LINE,
             Metric.BRANCH,
             Metric.MCDC_PAIR,
@@ -194,7 +194,16 @@ class FilesTableModel extends TableModel {
         return CaseUtils.toCamelCase(metric.name(), false, '_') + suffix;
     }
 
-    private static String getLabel(final Metric metric) {
+    /**
+     * Returns the label of the specified metric for the column header of a file. Metrics that are aggregated using
+     * the maximum (e.g., the cyclomatic complexity of the methods of a file) are marked accordingly.
+     *
+     * @param metric
+     *         the metric to get the label for
+     *
+     * @return the label
+     */
+    static String getLabel(final Metric metric) {
         if (FileMetricAggregation.of(metric) == MetricAggregation.MAXIMUM) {
             return Messages.Column_MetricMaximum(metric.getLabel());
         }

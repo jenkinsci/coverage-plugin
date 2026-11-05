@@ -13,6 +13,7 @@ import edu.hm.hafner.echarts.LabeledTreeMapNode;
 import edu.hm.hafner.util.FilteredLog;
 import edu.hm.hafner.util.VisibleForTesting;
 import edu.umd.cs.findbugs.annotations.CheckForNull;
+import hudson.Functions;
 import hudson.model.Api;
 import hudson.model.ModelObject;
 import hudson.model.Run;
@@ -29,6 +30,7 @@ import io.jenkins.plugins.coverage.metrics.restapi.FileCoverageApiModel;
 import io.jenkins.plugins.coverage.metrics.restapi.ModifiedLinesCoverageApiModel;
 import io.jenkins.plugins.coverage.metrics.source.SourceCodeFacade;
 import io.jenkins.plugins.coverage.metrics.source.SourceViewModel;
+import io.jenkins.plugins.coverage.metrics.steps.CoverageTableModel.CoverageRow;
 import io.jenkins.plugins.coverage.metrics.steps.CoverageTableModel.InlineRowRenderer;
 import io.jenkins.plugins.coverage.metrics.steps.CoverageTableModel.LinkedRowRenderer;
 import io.jenkins.plugins.coverage.metrics.steps.CoverageTableModel.RowRenderer;
@@ -529,8 +531,21 @@ public class CoverageViewModel extends DefaultAsyncTableContentProvider implemen
      * @return the table model with the specified ID
      */
     CoverageTableModel createTableModel(final String tableId) {
-        var renderer = createRenderer(tableId);
+        return createTableModel(tableId, createRenderer(tableId));
+    }
 
+    /**
+     * Creates the coverage table model that matches with the passed table ID. The file names are rendered using the
+     * specified renderer.
+     *
+     * @param tableId
+     *         ID of the table model
+     * @param renderer
+     *         the renderer for the file names
+     *
+     * @return the table model with the specified ID
+     */
+    CoverageTableModel createTableModel(final String tableId, final RowRenderer renderer) {
         var actualId = tableId.replace(INLINE_SUFFIX, StringUtils.EMPTY);
         return switch (actualId) {
             case ABSOLUTE_COVERAGE_TABLE_ID ->
@@ -684,6 +699,29 @@ public class CoverageViewModel extends DefaultAsyncTableContentProvider implemen
     }
 
     /**
+     * Returns the color provider that is used to render the coverage values.
+     *
+     * @return the color provider
+     */
+    ColorProvider getColorProvider() {
+        return colorProvider;
+    }
+
+    /**
+     * Creates a row of the coverage table for the specified file. The row provides the rendered values and deltas of
+     * all metrics of the file.
+     *
+     * @param file
+     *         the file to create the row for
+     *
+     * @return the created row
+     */
+    CoverageRow createFileRow(final FileNode file) {
+        return new CoverageRow(
+                file, changes, deltas, Functions.getCurrentLocale(), new InlineRowRenderer(), colorProvider);
+    }
+
+    /**
      * Returns whether the source file is available in Jenkins build folder.
      *
      * @param coverageNode
@@ -721,7 +759,8 @@ public class CoverageViewModel extends DefaultAsyncTableContentProvider implemen
      *
      * @return the new subpage
      */
-    @SuppressWarnings({"unused", "PMD.CyclomaticComplexity", "PMD.CognitiveComplexity"}) // Called by jelly view
+    @SuppressWarnings({"unused", "PMD.CyclomaticComplexity", "PMD.CognitiveComplexity", "PMD.AvoidDeeplyNestedIfStmts"
+    }) // Called by jelly view
     @CheckForNull
     public Object getDynamic(final String link) {
         if (usePropertyFacade.isRunTabEnabled()) {
@@ -768,6 +807,9 @@ public class CoverageViewModel extends DefaultAsyncTableContentProvider implemen
             try {
                 Optional<Node> targetResult = getNode().findByHashCode(Metric.FILE, Integer.parseInt(link));
                 if (targetResult.isPresent() && targetResult.get() instanceof FileNode fileNode) {
+                    if (usePropertyFacade.isRunTabEnabled()) {
+                        return new FileDetailsModel(this, fileNode);
+                    }
                     var view = new SourceViewModel(getOwner(), getId(), fileNode);
                     return SourceCodeViewModel.protectedSourceCodeView(view, getOwner(), fileNode.getName());
                 }

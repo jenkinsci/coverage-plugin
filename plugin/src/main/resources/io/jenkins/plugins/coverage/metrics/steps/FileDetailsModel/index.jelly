@@ -1,0 +1,81 @@
+<?jelly escape-by-default='true'?>
+<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:l="/lib/layout" xmlns:cov="/coverage"
+         xmlns:dt="/data-tables">
+
+  <st:header name="Content-Type" value="text/html;charset=UTF-8"/>
+
+  <l:run-subpage>
+
+    <st:adjunct includes="io.jenkins.plugins.coverage.metrics.steps.RunTab.styles"/>
+    <st:adjunct includes="io.jenkins.plugins.coverage.metrics.cell-style"/>
+    <st:adjunct includes="io.jenkins.plugins.coverage.metrics.source.SourceViewModel.view-model"/>
+
+    <l:app-bar title="${it.displayName}">
+      <div class="jenkins-details">
+        <a href="${rootURL}/${it.object.url}${it.id}/table" class="jenkins-details__item" tooltip="${%back.to.files}">
+          <div class="jenkins-details__item__icon">
+            <l:icon src="symbol-documents-outline plugin-ionicons-api" alt=""/>
+          </div>
+          <span>${it.path}</span>
+        </a>
+      </div>
+    </l:app-bar>
+
+    <div class="coverage-body">
+      <cov:sidepanel id="${it.id}"/>
+
+      <div class="content coverage-file-details">
+
+        <j:set var="summaries" value="${it.summaries}"/>
+        <j:if test="${!summaries.isEmpty()}">
+          <l:card title="${%Summary}">
+            <div class="coverage-file-details__summary">
+              <j:forEach var="summary" items="${summaries}">
+                <div class="coverage-file-details__metric" tooltip="${summary.name()}">
+                  <span class="coverage-file-details__metric-label">${summary.label()}</span>
+                  <j:out value="${summary.cell()}"/>
+                </div>
+              </j:forEach>
+            </div>
+          </l:card>
+        </j:if>
+
+        <j:if test="${it.hasMethods()}">
+          <l:card title="${%Methods}">
+            <div class="flex-fill h-100">
+              <dt:table model="${it.getTableModel('methods')}"/>
+            </div>
+          </l:card>
+        </j:if>
+
+        <l:card title="${%Source code}">
+          <j:choose>
+            <j:when test="${!it.hasPermissionToViewSourceCode()}">
+              <p>${%permission.denied}</p>
+            </j:when>
+            <j:when test="${it.sourceFileAvailable}">
+              <div class="coverage-file-details__source">
+                <table class="source">
+                  <j:out value="${it.sourceFileContent}"/>
+                </table>
+              </div>
+            </j:when>
+            <j:otherwise>
+              <p>
+                <b>${%Source code is unavailable.}</b>
+                ${%Some possible reasons are:}
+              </p>
+              <ul>
+                <li>${%reason.1}</li>
+                <li>${%reason.2}</li>
+              </ul>
+            </j:otherwise>
+          </j:choose>
+        </l:card>
+
+      </div>
+    </div>
+
+  </l:run-subpage>
+
+</j:jelly>

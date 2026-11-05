@@ -1,4 +1,4 @@
-/* global $, proxy */
+/* global $ */
 
 (function ($) {
     const SELECT_SELECTOR = '#files-table-select';
@@ -61,64 +61,6 @@
                 .column(MODIFIED_COLUMN)
                 .search(showOnlyModifiedFiles ? 'true' : '')
                 .draw();
-        });
-    }
-
-    /**
-     * Initializes a selection listener for a datatable which loads the selected source code.
-     *
-     * @param {String} tableId The ID of the DataTable
-     */
-    function initializeSourceCodeSelection(tableId) {
-        const inlineTable = $('#' + tableId + '-table-inline');
-        if (inlineTable.length === 0) {
-            return; // this table is either not offered, or no source code is stored
-        }
-        const datatable = inlineTable.DataTable();
-        const sourceView = $('#' + tableId + '-source-file');
-        const noFileSelectedBanner = $('#' + tableId + '-no-selection');
-        const noSourceAvailableBanner = $('#' + tableId + '-no-source');
-
-        function showNoSelection() {
-            sourceView.hide();
-            noSourceAvailableBanner.hide();
-            noFileSelectedBanner.show();
-        }
-
-        function showNoSourceCode() {
-            sourceView.hide();
-            noFileSelectedBanner.hide();
-            noSourceAvailableBanner.show();
-        }
-
-        function showSourceCode() {
-            noFileSelectedBanner.hide();
-            noSourceAvailableBanner.hide();
-            sourceView.show();
-        }
-
-        showNoSelection();
-        datatable.on('select', function (e, dt, type, indexes) {
-            if (type === 'row') {
-                showSourceCode();
-                sourceView.html('Loading...');
-                const rowData = datatable.rows(indexes).data().toArray();
-                proxy.getSourceCode(rowData[0].fileHash, tableId + '-table', function (t) {
-                    const sourceCode = t.responseObject();
-                    if (sourceCode === "n/a") {
-                        showNoSourceCode();
-                    }
-                    else {
-                        sourceView.html(sourceCode);
-                    }
-                });
-            }
-            else {
-                showNoSelection();
-            }
-        });
-        datatable.on('deselect', function () {
-            showNoSelection();
         });
     }
 
@@ -218,7 +160,5 @@
     $(document).ready(function () {
         initializeTableSelect();
         initializeColumnsSelect();
-
-        TABLE_IDS.forEach(initializeSourceCodeSelection);
     });
 })(jQuery3);

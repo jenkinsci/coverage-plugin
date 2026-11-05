@@ -554,3 +554,40 @@ button.coverage-hotspots__grid-header:hover {
 .files-table-panel table.data-table thead th {
     white-space: normal;
 }
+
+/* Details page of a single file, see FileDetailsModel. */
+.coverage-file-details {
+    display: flex;
+    flex-direction: column;
+    gap: calc(var(--section-padding) / 2);
+}
+
+.coverage-file-details__summary {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem 1.5rem;
+}
+
+.coverage-file-details__metric {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.coverage-file-details__metric-label {
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.coverage-file-details__source {
+    overflow-x: auto;
+
+    /* Jumps from the methods table to a line should not end up below the sticky header. */
+    td.line a {
+        scroll-margin-top: calc(3 * var(--header-height));
+    }
+
+    td.line a:target {
+        font-weight: bold;
+    }
+}
