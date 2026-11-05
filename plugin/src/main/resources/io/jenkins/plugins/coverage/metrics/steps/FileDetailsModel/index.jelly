@@ -22,7 +22,7 @@
     </l:app-bar>
 
     <div class="coverage-body">
-      <cov:sidepanel id="${it.id}"/>
+      <cov:sidepanel id="${it.id}" active="table"/>
 
       <div class="content coverage-file-details">
 
