@@ -1,0 +1,21 @@
+<?jelly escape-by-default='true'?>
+<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:l="/lib/layout">
+  <st:adjunct includes="io.jenkins.plugins.coverage.metrics.steps.CoverageHistoryPageEntryDecorator.resources"/>
+
+  <j:set var="summary" value="${it.decorator.getSummary(it.build)}"/>
+
+  <a class="coverage-history-summary coverage-history-summary--${summary.trend.cssModifier}" href="${rootURL}/${it.build.url}${summary.urlName}/">
+    <l:icon src="${summary.icon}" class="coverage-history-summary__icon"/>
+    <j:forEach var="metric" items="${summary.metrics}">
+      <!-- display: contents, so the tooltip is attached to the cells of the row -->
+      <span class="coverage-history-summary__metric">
+        <span class="coverage-history-summary__label" tooltip="${metric.tooltip}">${metric.label}</span>
+        <span class="coverage-history-summary__value" tooltip="${metric.tooltip}">${metric.value}</span>
+        <j:if test="${metric.hasDelta()}">
+          <span class="coverage-history-summary__delta coverage-history-summary__delta--${metric.trend.cssModifier}"
+                tooltip="${metric.tooltip}">${metric.delta}</span>
+        </j:if>
+      </span>
+    </j:forEach>
+  </a>
+</j:jelly>
