@@ -2,7 +2,7 @@ package io.jenkins.plugins.coverage.metrics.source;
 
 import static org.assertj.core.api.Assertions.*;
 
-import edu.hm.hafner.coverage.FileNode;
+import edu.hm.hafner.coverage.FileNodeFixture;
 import edu.hm.hafner.coverage.Mutation;
 import edu.hm.hafner.coverage.Mutation.MutationBuilder;
 import edu.hm.hafner.coverage.MutationStatus;
@@ -69,11 +69,12 @@ class MutationSourcePrinterTest extends AbstractCoverageTest {
 
     @Test
     void shouldIgnoreMutationsInLinesWithoutCoverageCounters() {
-        var fileNode = new FileNode("Mixed.java", "edu/hm/hafner/Mixed.java");
-        fileNode.addCounters(10, 1, 0);
-        fileNode.addMutation(createMutation(10, MutationStatus.KILLED));
-        fileNode.addMutation(createMutation(20, MutationStatus.SURVIVED));
-        fileNode.addMutation(createMutation(30, MutationStatus.NO_COVERAGE));
+        var fileNode = new FileNodeFixture("Mixed.java", "edu/hm/hafner/Mixed.java")
+                .withCounters(10, 1, 0)
+                .withMutation(createMutation(10, MutationStatus.KILLED))
+                .withMutation(createMutation(20, MutationStatus.SURVIVED))
+                .withMutation(createMutation(30, MutationStatus.NO_COVERAGE))
+                .build();
 
         var file = new MutationSourcePrinter(fileNode);
 
@@ -89,8 +90,9 @@ class MutationSourcePrinterTest extends AbstractCoverageTest {
 
     @Test
     void shouldHandleFileWithMutationsButWithoutAnyCoverageCounters() {
-        var fileNode = new FileNode("Empty.java", "edu/hm/hafner/Empty.java");
-        fileNode.addMutation(createMutation(10, MutationStatus.SURVIVED));
+        var fileNode = new FileNodeFixture("Empty.java", "edu/hm/hafner/Empty.java")
+                .withMutation(createMutation(10, MutationStatus.SURVIVED))
+                .build();
 
         var file = new MutationSourcePrinter(fileNode);
 
