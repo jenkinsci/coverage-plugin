@@ -2,6 +2,10 @@ package io.jenkins.plugins.coverage.metrics.source;
 
 import static org.assertj.core.api.Assertions.*;
 
+import edu.hm.hafner.coverage.FileNode;
+import edu.hm.hafner.coverage.Mutation;
+import edu.hm.hafner.coverage.Mutation.MutationBuilder;
+import edu.hm.hafner.coverage.MutationStatus;
 import edu.hm.hafner.coverage.parser.PitestParser;
 import io.jenkins.plugins.coverage.metrics.AbstractCoverageTest;
 import org.junit.jupiter.api.Test;
@@ -61,6 +65,47 @@ class MutationSourcePrinterTest extends AbstractCoverageTest {
         assertThat(file.getTooltip(30))
                 .contains("Killed Mutations:")
                 .doesNotContain("Survived Mutations:", "Not Covered Mutations:");
+    }
+
+    @Test
+    void shouldIgnoreMutationsInLinesWithoutCoverageCounters() {
+        var fileNode = new FileNode("Mixed.java", "edu/hm/hafner/Mixed.java");
+        fileNode.addCounters(10, 1, 0);
+        fileNode.addMutation(createMutation(10, MutationStatus.KILLED));
+        fileNode.addMutation(createMutation(20, MutationStatus.SURVIVED));
+        fileNode.addMutation(createMutation(30, MutationStatus.NO_COVERAGE));
+
+        var file = new MutationSourcePrinter(fileNode);
+
+        assertThat(file.isPainted(10)).isTrue();
+        assertThat(file.getColorClass(10)).isEqualTo(CoverageSourcePrinter.FULL_COVERAGE);
+        assertThat(file.getSummaryColumn(10)).isEqualTo("1/1");
+
+        assertThat(file.isPainted(20)).isFalse();
+        assertThat(file.getSurvived(20)).isZero();
+        assertThat(file.isPainted(30)).isFalse();
+        assertThat(file.getNotCovered(30)).isZero();
+    }
+
+    @Test
+    void shouldHandleFileWithMutationsButWithoutAnyCoverageCounters() {
+        var fileNode = new FileNode("Empty.java", "edu/hm/hafner/Empty.java");
+        fileNode.addMutation(createMutation(10, MutationStatus.SURVIVED));
+
+        var file = new MutationSourcePrinter(fileNode);
+
+        assertThat(file.isPainted(10)).isFalse();
+        assertThat(file.renderLine(10, "return 42;")).contains("noCover");
+    }
+
+    private static Mutation createMutation(final int line, final MutationStatus status) {
+        return new MutationBuilder()
+                .withLine(line)
+                .withStatus(status)
+                .withIsDetected(status == MutationStatus.KILLED)
+                .withMutator("mutator")
+                .withDescription("description")
+                .build();
     }
 
     @Test

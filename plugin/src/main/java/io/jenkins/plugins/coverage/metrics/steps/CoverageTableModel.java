@@ -442,8 +442,22 @@ class CoverageTableModel extends TableModel {
             if (value instanceof Coverage coverage) {
                 return createColoredCoverageColumn(coverage);
             }
+            return createNumberCell(value, browserLocale);
+        }
+
+        /**
+         * Creates a table cell that shows the specified (non-coverage) value as a plain, right-aligned number.
+         *
+         * @param value
+         *         the value to show
+         * @param locale
+         *         the locale to use to render the value
+         *
+         * @return the created {@link DetailedCell}
+         */
+        static DetailedCell<?> createNumberCell(final Value value, final Locale locale) {
             var cell = div().withClasses("text-end")
-                    .withText(FORMATTER.format(value, browserLocale))
+                    .withText(FORMATTER.format(value, locale))
                     .render();
             return new DetailedCell<>(cell, value.asDouble());
         }
@@ -504,13 +518,31 @@ class CoverageTableModel extends TableModel {
          * @return the new {@link DetailedCell}
          */
         protected DetailedCell<?> createColoredCoverageColumn(final Coverage coverage) {
+            return createCoverageCell(coverage, colorProvider, browserLocale);
+        }
+
+        /**
+         * Creates a table cell which colorizes the shown coverage dependent on the coverage percentage. The cell
+         * shows the percentage as a colored bar.
+         *
+         * @param coverage
+         *         the coverage of the element
+         * @param colors
+         *         the color provider to use
+         * @param locale
+         *         the locale to use to render the percentage
+         *
+         * @return the new {@link DetailedCell}
+         */
+        static DetailedCell<?> createCoverageCell(
+                final Coverage coverage, final ColorProvider colors, final Locale locale) {
             if (coverage.isSet()) {
                 double percentage = coverage.asRounded();
-                DisplayColors colors = CoverageLevel.getDisplayColorsOfCoverageLevel(percentage, colorProvider);
+                DisplayColors displayColors = CoverageLevel.getDisplayColorsOfCoverageLevel(percentage, colors);
                 var style = String.format(
                         Locale.ENGLISH,
                         "background-image: linear-gradient(90deg, %s %f%%, transparent %f%%);",
-                        colors.getFillColorAsRGBAHex(TABLE_COVERAGE_COLOR_ALPHA),
+                        displayColors.getFillColorAsRGBAHex(TABLE_COVERAGE_COLOR_ALPHA),
                         percentage,
                         percentage);
                 var cell = div().withClasses(COVERAGE_COLUMN_OUTER)
@@ -519,7 +551,7 @@ class CoverageTableModel extends TableModel {
                                 .attr("data-bs-toggle", "tooltip")
                                 .attr("data-bs-placement", "top")
                                 .withTitle(FORMATTER.formatAdditionalInformation(coverage))
-                                .withText(FORMATTER.formatPercentage(coverage, browserLocale)))
+                                .withText(FORMATTER.formatPercentage(coverage, locale)))
                         .render();
                 return new DetailedCell<>(cell, percentage);
             }
@@ -600,6 +632,24 @@ class CoverageTableModel extends TableModel {
                     .attr("data-bs-placement", "top")
                     .withTitle(path)
                     .render();
+        }
+    }
+
+    /**
+     * Renders filenames with links to the details page of the file in the run tab, see {@link FileDetailsModel}. In
+     * contrast to the {@link LinkedRowRenderer}, the link is always rendered since the details page also shows the
+     * metrics of the file and its methods if the source code is not available.
+     */
+    static class DetailsRowRenderer implements RowRenderer {
+        @Override
+        public void configureTable(final TableConfiguration tableConfiguration) {
+            // nothing required
+        }
+
+        @Override
+        public String renderFileName(final String fileName, final String path) {
+            return LinkedRowRenderer.renderWithToolTip(
+                    a().withHref(String.valueOf(path.hashCode())).withText(fileName), path);
         }
     }
 

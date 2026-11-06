@@ -1,6 +1,6 @@
 package io.jenkins.plugins.coverage.metrics.steps;
 
-import static io.jenkins.plugins.util.assertions.Assertions.*;
+import static io.jenkins.plugins.util.assertions.Assertions.assertThat;
 
 import edu.hm.hafner.coverage.ClassNode;
 import edu.hm.hafner.coverage.Difference;
@@ -277,7 +277,7 @@ class CoverageQualityGateEvaluatorTest extends AbstractCoverageTest {
                 .isNotInactive()
                 .hasMessages(
                         "[Whole project - Cyclomatic Complexity]: ≪Unstable≫ - (Actual value: 150, Quality gate: 149.00)",
-                        "[Whole project - N-Path Complexity]: ≪Unstable≫ - (Actual value: 15, Quality gate: 14.00)",
+                        "[Whole project - NPATH Complexity]: ≪Unstable≫ - (Actual value: 15, Quality gate: 14.00)",
                         "[Modified code lines - Lines of Code]: ≪Unstable≫ - (Actual value: 1000, Quality gate: 999.00)");
     }
 

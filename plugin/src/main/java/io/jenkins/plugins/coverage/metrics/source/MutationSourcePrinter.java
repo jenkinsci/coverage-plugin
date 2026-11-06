@@ -52,12 +52,16 @@ final class MutationSourcePrinter extends CoverageSourcePrinter {
         extractMutationDetails(file.getMutationsPerLine());
 
         for (Mutation mutation : file.getMutations()) {
+            var indexOfLine = findIndexOfLine(mutation.getLine());
+            if (indexOfLine < 0) {
+                continue; // the line has no coverage counters and will not be painted
+            }
             if (mutation.hasSurvived()) {
-                survivedPerLine[findIndexOfLine(mutation.getLine())]++;
+                survivedPerLine[indexOfLine]++;
             } else if (mutation.isKilled()) {
-                killedPerLine[findIndexOfLine(mutation.getLine())]++;
+                killedPerLine[indexOfLine]++;
             } else if (mutation.isMissed()) {
-                notCoveredPerLine[findIndexOfLine(mutation.getLine())]++;
+                notCoveredPerLine[indexOfLine]++;
             }
         }
     }
@@ -65,8 +69,9 @@ final class MutationSourcePrinter extends CoverageSourcePrinter {
     private void extractMutationDetails(final NavigableMap<Integer, List<Mutation>> mutationsPerLine) {
         for (Entry<Integer, List<Mutation>> entry : mutationsPerLine.entrySet()) {
             var indexOfLine = findIndexOfLine(entry.getKey());
-
-            tooltipPerLine[indexOfLine] = createInfo(entry.getValue());
+            if (indexOfLine >= 0) {
+                tooltipPerLine[indexOfLine] = createInfo(entry.getValue());
+            }
         }
     }
 

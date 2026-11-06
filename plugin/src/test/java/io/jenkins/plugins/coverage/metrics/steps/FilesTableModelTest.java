@@ -40,7 +40,7 @@ class FilesTableModelTest {
 
         assertThat(model.getColumns())
                 .extracting(TableColumn::getHeaderLabel)
-                .containsExactly("Hash", "Modified", "File", "Package", "Line", "LOC", "Complexity ↑");
+                .containsExactly("Hash", "Modified", "File", "Package", "Line", "LOC", "Cyclomatic ↑");
 
         var row = getSingleRow(model);
         assertThat(row)
@@ -96,9 +96,9 @@ class FilesTableModelTest {
                         "Line Δ",
                         "Line",
                         "LOC",
-                        "Complexity ↑",
-                        "Complexity ↑ Δ",
-                        "Complexity ↑");
+                        "Cyclomatic ↑",
+                        "Cyclomatic ↑ Δ",
+                        "Cyclomatic ↑");
 
         var row = getSingleRow(model);
         assertThat(row)

@@ -4,7 +4,6 @@ import static net.javacrumbs.jsonunit.assertj.JsonAssertions.*;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-import edu.hm.hafner.coverage.FileNode;
 import edu.hm.hafner.coverage.Metric;
 import edu.hm.hafner.coverage.MetricAggregation;
 import edu.hm.hafner.util.FilteredLog;
@@ -16,11 +15,13 @@ import io.jenkins.plugins.coverage.metrics.restapi.FileCoverageApiModel;
 import io.jenkins.plugins.coverage.metrics.restapi.ModifiedLinesCoverageApiModel;
 import io.jenkins.plugins.coverage.metrics.source.SourceViewModel;
 import io.jenkins.plugins.coverage.metrics.steps.CoverageViewModel.UsePropertyFacade;
+import io.jenkins.plugins.datatables.DetailedCell;
 import io.jenkins.plugins.prism.SourceCodeViewModel;
 import io.jenkins.plugins.util.QualityGateResult;
 import io.jenkins.plugins.util.QualityGateStatus;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Map;
 import java.util.NoSuchElementException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -144,11 +145,24 @@ class RunTabTest extends AbstractCoverageTest {
         });
     }
 
-    @ParameterizedTest(name = "Run tab enabled: {0}")
-    @ValueSource(booleans = {true, false})
-    void shouldResolveSourceFileByHashCodeIndependentOfRunTab(
-            final boolean isRunTabEnabled, @TempDir final Path buildFolder) {
-        var viewModel = createViewModel(isRunTabEnabled, buildFolder);
+    @Test
+    void shouldResolveFileDetailsByHashCodeIfRunTabIsEnabled(@TempDir final Path buildFolder) {
+        var viewModel = createViewModel(true, buildFolder);
+        var fileNode = viewModel.getNode().getAllFileNodes().getFirst();
+
+        assertThat(viewModel.getDynamic(
+                        String.valueOf(fileNode.getRelativePath().hashCode())))
+                .isInstanceOfSatisfying(FileDetailsModel.class, details -> {
+                    assertThat(details.getPath()).isEqualTo(fileNode.getRelativePath());
+                    assertThat(details.getDisplayName()).isEqualTo(fileNode.getName());
+                    assertThat(details.getObject()).isSameAs(viewModel.getOwner());
+                    assertThat(details.isSourceFileAvailable()).isFalse();
+                });
+    }
+
+    @Test
+    void shouldResolveSourceFileByHashCodeIfRunTabIsDisabled(@TempDir final Path buildFolder) {
+        var viewModel = createViewModel(false, buildFolder);
         var fileNode = viewModel.getNode().getAllFileNodes().getFirst();
 
         try (var sourceCode = mockStatic(SourceCodeViewModel.class)) {
@@ -334,7 +348,6 @@ class RunTabTest extends AbstractCoverageTest {
         assertThat(model.getTab().getActions()).containsExactly(getAction(viewModel));
         assertThat(model.getFormatter()).isNotNull();
 
-        assertThat(model.hasSourceCode()).isFalse();
         assertThat(model.hasModifiedLinesCoverage()).isFalse();
         assertThat(model.hasIndirectCoverageChanges()).isFalse();
 
@@ -357,18 +370,21 @@ class RunTabTest extends AbstractCoverageTest {
         assertThat(model.getDynamic("table")).isInstanceOf(FilesModel.class);
         assertThat(model.getDynamic("does-not-exist")).isNull();
 
-        try (var sourceCode = mockStatic(SourceCodeViewModel.class)) {
-            sourceCode
-                    .when(() -> SourceCodeViewModel.hasPermissionToViewSourceCode(any()))
-                    .thenReturn(true);
-
-            FileNode fileNode = node.getAllFileNodes().getFirst();
-            assertThat(model.getSourceCode(
-                            String.valueOf(fileNode.getRelativePath().hashCode()),
-                            CoverageViewModel.ABSOLUTE_COVERAGE_TABLE_ID))
-                    .as("No source code has been stored in the build folder")
-                    .isEqualTo(Messages.Coverage_Not_Available());
-        }
+        var fileNode = node.getAllFileNodes().getFirst();
+        assertThat(model.getTableModel(CoverageViewModel.ABSOLUTE_COVERAGE_TABLE_ID)
+                        .getRows())
+                .first()
+                .isInstanceOfSatisfying(
+                        Map.class,
+                        row -> assertThat(row.get("fileName"))
+                                .isInstanceOfSatisfying(
+                                        DetailedCell.class,
+                                        cell -> assertThat(cell.getDisplay())
+                                                .as("File names link to the details page of the file")
+                                                .asString()
+                                                .contains("href=\""
+                                                        + fileNode.getRelativePath()
+                                                                .hashCode() + "\"")));
     }
 
     @Test

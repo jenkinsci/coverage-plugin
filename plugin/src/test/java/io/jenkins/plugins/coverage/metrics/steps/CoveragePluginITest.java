@@ -1,7 +1,14 @@
 package io.jenkins.plugins.coverage.metrics.steps;
 
-import static io.jenkins.plugins.coverage.metrics.AbstractCoverageTest.*;
-import static org.assertj.core.api.Assertions.*;
+import static io.jenkins.plugins.coverage.metrics.AbstractCoverageTest.JACOCO_ANALYSIS_MODEL_COVERED;
+import static io.jenkins.plugins.coverage.metrics.AbstractCoverageTest.JACOCO_ANALYSIS_MODEL_FILE;
+import static io.jenkins.plugins.coverage.metrics.AbstractCoverageTest.JACOCO_ANALYSIS_MODEL_MISSED;
+import static io.jenkins.plugins.coverage.metrics.AbstractCoverageTest.JACOCO_ANALYSIS_MODEL_TOTAL;
+import static io.jenkins.plugins.coverage.metrics.AbstractCoverageTest.JACOCO_CODING_STYLE_COVERED;
+import static io.jenkins.plugins.coverage.metrics.AbstractCoverageTest.JACOCO_CODING_STYLE_FILE;
+import static io.jenkins.plugins.coverage.metrics.AbstractCoverageTest.JACOCO_CODING_STYLE_MISSED;
+import static org.assertj.core.api.Assertions.LIST;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import edu.hm.hafner.coverage.Coverage;
 import edu.hm.hafner.coverage.Coverage.CoverageBuilder;
@@ -176,7 +183,7 @@ class CoveragePluginITest extends AbstractCoverageITest {
                 .extracting(TableModel::getColumns)
                 .asInstanceOf(LIST)
                 .extracting("headerLabel")
-                .containsExactly("Hash", "Modified", "File", "Package", "Line", "Branch", "LOC", "Complexity");
+                .containsExactly("Hash", "Modified", "File", "Package", "Line", "Branch", "LOC", "Cyclomatic");
         assertThat(tableModel.getRows())
                 .hasSize(307)
                 .first()
@@ -841,7 +848,7 @@ class CoveragePluginITest extends AbstractCoverageITest {
                         "MC/DC Pairs",
                         "Function Call",
                         "LOC",
-                        "Complexity");
+                        "Cyclomatic");
         assertThat(coverageResult.getAllValues(Baseline.PROJECT))
                 .contains(createLineCoverageBuilder()
                         .withCovered(VECTORCAST_COVERED_LINES)
