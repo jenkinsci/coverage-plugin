@@ -150,7 +150,7 @@
 }
 
 .coverage-dashboard__quality-gate-status {
-    font-size: 14px;
+    font-size: var(--font-size-sm);
     font-weight: 700;
 }
 
@@ -171,7 +171,7 @@
     row-gap: 8px;
     align-items: center;
     padding-right: 28px;
-    font-size: 12px;
+    font-size: var(--font-size-sm);
 }
 
 .coverage-dashboard__quality-gate-item {
@@ -202,7 +202,7 @@
 
 /* Always rendered (even if empty), so that every row has 4 cells and the grid stays aligned. */
 .coverage-dashboard__quality-gate-item-hint {
-    font-size: 11px;
+    font-size: var(--font-size-xs);
     color: var(--text-color-secondary);
     white-space: nowrap;
 }
@@ -210,7 +210,7 @@
 .coverage-dashboard__quality-gate-item-threshold {
     font-weight: 400;
     color: var(--text-color-secondary);
-    font-size: 11px;
+    font-size: var(--font-size-xs);
     white-space: nowrap;
 }
 
@@ -260,20 +260,20 @@
 }
 
 .coverage-ring__label {
-    font-size: 14px;
+    font-size: var(--font-size-sm);
     font-weight: 700;
     color: var(--text-color);
     white-space: nowrap;
 }
 
 .coverage-ring-widget__title {
-    font-size: 12px;
+    font-size: var(--font-size-sm);
     color: var(--text-color-secondary);
     text-align: center;
 }
 
 .coverage-ring-widget__counts {
-    font-size: 12px;
+    font-size: var(--font-size-xs);
     color: var(--text-color-secondary);
 }
 
@@ -294,7 +294,7 @@
     display: grid;
     grid-template-columns: minmax(160px, max-content) repeat(4, minmax(30px, max-content) minmax(20px, max-content));
     gap: 0 12px;
-    font-size: 12px;
+    font-size: var(--font-size-sm);
 }
 
 .coverage-dashboard__count-grid-header {
@@ -351,7 +351,7 @@
 }
 
 .coverage-ring-widget__missed {
-    font-size: 12px;
+    font-size: var(--font-size-xs);
     font-weight: 600;
     color: var(--red);
 }
@@ -360,7 +360,7 @@
     display: inline-flex;
     align-items: center;
     gap: 0.25rem;
-    font-size: 12px;
+    font-size: var(--font-size-xs);
     font-weight: 600;
     color: var(--green);
 }
@@ -394,7 +394,7 @@
 .coverage-hotspots__grid {
     display: grid;
     gap: 0 12px;
-    font-size: 12px;
+    font-size: var(--font-size-sm);
 }
 
 .coverage-hotspots__grid--ranking {
@@ -495,7 +495,7 @@ button.coverage-hotspots__grid-header:hover {
     margin: 12px -12px;
     border-collapse: separate;
     border-spacing: 12px 0;
-    font-size: 12px;
+    font-size: var(--font-size-sm);
 }
 
 .coverage-help__table th {
@@ -590,4 +590,15 @@ button.coverage-hotspots__grid-header:hover {
     td.line a:target {
         font-weight: bold;
     }
+}
+
+/* Data tables of the run tab (e.g., the "Files" tab): use the same font sizes and weights as the other run tab pages
+   rather than the Bootstrap defaults of the data-tables plugin. */
+.coverage-body table.data-table th,
+.coverage-body table.data-table .dt-column-title {
+    font-weight: 600;
+}
+
+.coverage-body .dt-paging .page-link {
+    font-size: var(--font-size-sm);
 }

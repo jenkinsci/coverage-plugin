@@ -13,10 +13,22 @@
     function selectCoverageTab() {
         const tabs = document.querySelectorAll('.app-build-tabs > a');
         const coverageTab = Array.from(tabs).find(tab => tab.getAttribute('href').endsWith(TAB_URL));
-        if (!coverageTab) {
-            return;
+        if (!coverageTab || !isBelow(new URL(coverageTab.href, window.location.href).pathname)) {
+            return; // e.g., the results of another coverage action (with a different ID) are shown
         }
         tabs.forEach(tab => tab.classList.toggle(TERTIARY, tab !== coverageTab));
+    }
+
+    /**
+     * Determines whether the current page is the specified page or one of its subpages.
+     *
+     * @param {String} path the path of the page
+     * @return {Boolean} true if the current page is the page or one of its subpages
+     */
+    function isBelow(path) {
+        const current = window.location.pathname.replace(/\/$/, '');
+        const parent = path.replace(/\/$/, '');
+        return current === parent || current.startsWith(parent + '/');
     }
 
     function selectSidePanelTask() {
