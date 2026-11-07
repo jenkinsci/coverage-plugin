@@ -154,7 +154,10 @@ class CoverageViewModelTest extends AbstractCoverageTest {
                     assertThat(row.getCoverageOfNode(Metric.MUTATION)).isEqualTo(createCoverage(Metric.MUTATION, 1, 4));
                     assertThat(row.getMutationCoverageDelta().getSort())
                             .isNotEqualTo(CoverageTableModel.NO_COVERAGE.getSort());
-                    assertThat(row.getTestStrengthDelta()).isEqualTo(CoverageTableModel.NO_COVERAGE);
+                    assertThat(row.getCoverageOfNode(Metric.TEST_STRENGTH))
+                            .isEqualTo(createCoverage(Metric.TEST_STRENGTH, 1, 1));
+                    assertThat(row.getTestStrengthDelta().getSort())
+                            .isNotEqualTo(CoverageTableModel.NO_COVERAGE.getSort());
                 });
     }
 
