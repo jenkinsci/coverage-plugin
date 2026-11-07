@@ -5,6 +5,7 @@ import static org.assertj.core.api.Assertions.*;
 import edu.hm.hafner.coverage.ChangeSet;
 import edu.hm.hafner.coverage.ChangeSet.ChangeSetBuilder;
 import edu.hm.hafner.coverage.FileNode;
+import edu.hm.hafner.coverage.FileNodeFixture;
 import edu.hm.hafner.util.ResourceTest;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -106,7 +107,7 @@ class SourceCodeFacadeTest extends ResourceTest {
     private FileNode createFileCoverageNode() {
         var file = new FileNode("", "path");
         for (int i = 1; i <= 25; i++) {
-            file.addCounters(i, 1, 0);
+            new FileNodeFixture(file).withCounters(i, 1, 0);
         }
         return file;
     }

@@ -7,6 +7,7 @@ import edu.hm.hafner.coverage.ChangeSet.ChangeSetBuilder;
 import edu.hm.hafner.coverage.Coverage;
 import edu.hm.hafner.coverage.Coverage.CoverageBuilder;
 import edu.hm.hafner.coverage.FileNode;
+import edu.hm.hafner.coverage.FileNodeFixture;
 import edu.hm.hafner.coverage.Metric;
 import edu.hm.hafner.coverage.PackageNode;
 import edu.hm.hafner.coverage.Value;
@@ -61,8 +62,8 @@ class FileCoverageApiTest extends AbstractModifiedFilesCoverageTest {
      */
     @Test
     void shouldReportAllSetCoverageMetrics() {
-        var fileNode = new FileNode("Test.java", "path");
-        fileNode.addCounters(1, 1, 0);
+        var fileNode =
+                new FileNodeFixture("Test.java", "path").withCounters(1, 1, 0).build();
         fileNode.addValue(new CoverageBuilder()
                 .withMetric(Metric.LINE)
                 .withCovered(88)

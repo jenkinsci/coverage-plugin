@@ -37,7 +37,7 @@
     <hpi.bundledArtifacts>coverage-model</hpi.bundledArtifacts>
 
     <!-- Library Dependencies Versions -->
-    <coverage-model.version>0.83.2</coverage-model.version>
+    <coverage-model.version>0.84.0</coverage-model.version>
 
     <!-- Test Library Dependencies Versions -->
     <xmlunit.version>2.14.0</xmlunit.version>
@@ -169,6 +169,22 @@
       <groupId>org.jenkins-ci.plugins.workflow</groupId>
       <artifactId>workflow-step-api</artifactId>
     </dependency>
+
+    <!-- Test Dependencies -->
+    <dependency>
+      <groupId>edu.hm.hafner</groupId>
+      <artifactId>coverage-model</artifactId>
+      <version>${coverage-model.version}</version>
+      <classifier>tests</classifier>
+      <type>test-jar</type>
+      <scope>test</scope>
+      <exclusions>
+        <exclusion>
+          <groupId>*</groupId>
+          <artifactId>*</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
     <dependency>
       <groupId>io.jenkins</groupId>
       <artifactId>configuration-as-code</artifactId>
@@ -179,8 +195,6 @@
       <artifactId>git-forensics</artifactId>
       <scope>test</scope>
     </dependency>
-
-    <!-- Test Plugin Dependencies -->
     <dependency>
       <groupId>io.jenkins.plugins</groupId>
       <artifactId>plugin-util-api</artifactId>
@@ -293,8 +307,6 @@
         </exclusion>
       </exclusions>
     </dependency>
-
-    <!-- Test Library Dependencies -->
     <dependency>
       <groupId>org.xmlunit</groupId>
       <artifactId>xmlunit-core</artifactId>

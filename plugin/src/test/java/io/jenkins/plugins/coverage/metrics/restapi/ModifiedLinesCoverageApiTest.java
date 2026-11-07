@@ -4,7 +4,7 @@ import static net.javacrumbs.jsonunit.assertj.JsonAssertions.*;
 import static org.assertj.core.api.Assertions.*;
 
 import edu.hm.hafner.coverage.ChangeSet.ChangeSetBuilder;
-import edu.hm.hafner.coverage.FileNode;
+import edu.hm.hafner.coverage.FileNodeFixture;
 import edu.hm.hafner.coverage.PackageNode;
 import edu.hm.hafner.util.LineRange;
 import io.jenkins.plugins.coverage.metrics.AbstractModifiedFilesCoverageTest;
@@ -71,9 +71,10 @@ class ModifiedLinesCoverageApiTest extends AbstractModifiedFilesCoverageTest {
 
     @Test
     void shouldIncludeLinesWithoutCoverage() {
-        var fileNode = new FileNode("Test.java", "path");
-        fileNode.addCounters(1, 1, 0);
-        fileNode.addCounters(4, 1, 0);
+        var fileNode = new FileNodeFixture("Test.java", "path")
+                .withCounters(1, 1, 0)
+                .withCounters(4, 1, 0)
+                .build();
         var parentNode = new PackageNode("package");
         parentNode.addChild(fileNode);
         var expectedBlocks = createListOfModifiedLines(LineCoverageType.COVERED, new LineRange(1, 4));
@@ -87,9 +88,10 @@ class ModifiedLinesCoverageApiTest extends AbstractModifiedFilesCoverageTest {
 
     @Test
     void shouldIgnoreNotModifiedLines() {
-        var fileNode = new FileNode("Test.java", "path");
-        fileNode.addCounters(1, 1, 0);
-        fileNode.addCounters(2, 1, 0);
+        var fileNode = new FileNodeFixture("Test.java", "path")
+                .withCounters(1, 1, 0)
+                .withCounters(2, 1, 0)
+                .build();
         var parentNode = new PackageNode("package");
         parentNode.addChild(fileNode);
         var expectedBlocks = createListOfModifiedLines(LineCoverageType.COVERED, new LineRange(1));

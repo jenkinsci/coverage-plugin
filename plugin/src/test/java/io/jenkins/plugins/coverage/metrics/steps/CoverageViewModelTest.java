@@ -9,6 +9,7 @@ import edu.hm.hafner.coverage.ChangeSet;
 import edu.hm.hafner.coverage.ChangeSet.ChangeSetBuilder;
 import edu.hm.hafner.coverage.FileDeltas;
 import edu.hm.hafner.coverage.FileNode;
+import edu.hm.hafner.coverage.FileNodeFixture;
 import edu.hm.hafner.coverage.ModuleNode;
 import edu.hm.hafner.coverage.Node;
 import edu.hm.hafner.util.FilteredLog;
@@ -106,7 +107,7 @@ class CoverageViewModelTest extends AbstractCoverageTest {
             var fileNode = new FileNode("File-" + file, "path");
 
             for (int line = 0; line < 2; line++) {
-                fileNode.addCounters(10 + line, 1, 1);
+                new FileNodeFixture(fileNode).withCounters(10 + line, 1, 1);
             }
             root.addChild(fileNode);
         }

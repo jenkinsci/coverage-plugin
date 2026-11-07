@@ -2,7 +2,7 @@ package io.jenkins.plugins.coverage.metrics.source;
 
 import static org.assertj.core.api.Assertions.*;
 
-import edu.hm.hafner.coverage.FileNode;
+import edu.hm.hafner.coverage.FileNodeFixture;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
@@ -12,10 +12,11 @@ class VectorCastSourcePrinterTest {
     @ParameterizedTest
     @CsvSource({"0, 0, 3", "1, 0, 4", "0, 1, 4", "1, 1, 5"})
     void shouldAlignHeadersWithMetricColumns(final int calls, final int pairs, final int columns) {
-        var file = new FileNode("example.c", "example.c");
-        file.addCounters(1, 1, 0);
-        file.addFunctionCallCounters(1, calls, 0);
-        file.addMcdcPairCounters(1, pairs, 0);
+        var file = new FileNodeFixture("example.c", "example.c")
+                .withCounters(1, 1, 0)
+                .withFunctionCallCounters(1, calls, 0)
+                .withMcdcPairCounters(1, pairs, 0)
+                .build();
         var printer = new VectorCastSourcePrinter(file);
 
         XmlAssert.assertThat(printer.getColumnHeader().replace("&nbsp;", "&#160;"))
@@ -47,11 +48,12 @@ class VectorCastSourcePrinterTest {
             final int pairsCovered,
             final int pairsMissed,
             final String pairClass) {
-        var file = new FileNode("example.c", "example.c");
-        file.addCounters(1, covered, missed);
-        file.addFunctionCallCounters(1, callsCovered, callsMissed);
-        file.addMcdcPairCounters(1, pairsCovered, pairsMissed);
-        file.addMcdcPairCounters(2, 1, 0);
+        var file = new FileNodeFixture("example.c", "example.c")
+                .withCounters(1, covered, missed)
+                .withFunctionCallCounters(1, callsCovered, callsMissed)
+                .withMcdcPairCounters(1, pairsCovered, pairsMissed)
+                .withMcdcPairCounters(2, 1, 0)
+                .build();
         var printer = new VectorCastSourcePrinter(file);
         var row = printer.renderLine(1, "if (check()) {}");
 
@@ -77,10 +79,11 @@ class VectorCastSourcePrinterTest {
     })
     void shouldDescribeCoveredAndUncoveredItems(
             final int covered, final int missed, final String callTooltip, final String pairTooltip) {
-        var file = new FileNode("example.c", "example.c");
-        file.addCounters(1, 1, 0);
-        file.addFunctionCallCounters(1, covered, missed);
-        file.addMcdcPairCounters(1, covered, missed);
+        var file = new FileNodeFixture("example.c", "example.c")
+                .withCounters(1, 1, 0)
+                .withFunctionCallCounters(1, covered, missed)
+                .withMcdcPairCounters(1, covered, missed)
+                .build();
         var printer = new VectorCastSourcePrinter(file);
         var row = printer.renderLine(1, "if (check()) {}");
 
@@ -102,13 +105,14 @@ class VectorCastSourcePrinterTest {
 
     @Test
     void shouldLeaveInapplicableMetricsBlank() {
-        var file = new FileNode("example.c", "example.c");
-        file.addCounters(1, 1, 0);
-        file.addCounters(2, 1, 0);
-        file.addFunctionCallCounters(1, 0, 0);
-        file.addMcdcPairCounters(1, 0, 0);
-        file.addFunctionCallCounters(2, 1, 0);
-        file.addMcdcPairCounters(2, 1, 0);
+        var file = new FileNodeFixture("example.c", "example.c")
+                .withCounters(1, 1, 0)
+                .withCounters(2, 1, 0)
+                .withFunctionCallCounters(1, 0, 0)
+                .withMcdcPairCounters(1, 0, 0)
+                .withFunctionCallCounters(2, 1, 0)
+                .withMcdcPairCounters(2, 1, 0)
+                .build();
         var printer = new VectorCastSourcePrinter(file);
 
         for (int line : new int[] {1, 3}) {
