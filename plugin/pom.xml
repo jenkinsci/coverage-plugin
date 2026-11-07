@@ -36,6 +36,9 @@
     <hpi.strictBundledArtifacts>true</hpi.strictBundledArtifacts>
     <hpi.bundledArtifacts>coverage-model</hpi.bundledArtifacts>
 
+    <!-- Required for the HistoryPageEntryDecorator of the new build history -->
+    <jenkins.version>2.589</jenkins.version>
+
     <!-- Library Dependencies Versions -->
     <coverage-model.version>0.83.2</coverage-model.version>
 
