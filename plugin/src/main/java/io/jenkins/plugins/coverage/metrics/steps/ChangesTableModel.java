@@ -85,6 +85,16 @@ abstract class ChangesTableModel extends CoverageTableModel {
             return createColoredModifiedLinesCoverageDeltaColumn(Metric.BRANCH);
         }
 
+        @Override
+        public DetailedCell<?> getMutationCoverageDelta() {
+            return createColoredModifiedLinesCoverageDeltaColumn(Metric.MUTATION);
+        }
+
+        @Override
+        public DetailedCell<?> getTestStrengthDelta() {
+            return createColoredModifiedLinesCoverageDeltaColumn(Metric.TEST_STRENGTH);
+        }
+
         DetailedCell<?> createColoredModifiedLinesCoverageDeltaColumn(final Metric metric) {
             return getModifiedLinesCoverageDelta(metric)
                     .<DetailedCell<?>>map(delta -> createColoredCoverageDeltaColumn(metric, delta))

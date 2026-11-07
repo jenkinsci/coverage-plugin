@@ -104,7 +104,6 @@ class MutationSourcePrinterTest extends AbstractCoverageTest {
         return new MutationBuilder()
                 .withLine(line)
                 .withStatus(status)
-                .withIsDetected(status == MutationStatus.KILLED)
                 .withMutator("mutator")
                 .withDescription("description")
                 .build();

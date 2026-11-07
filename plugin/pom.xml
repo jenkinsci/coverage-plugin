@@ -37,7 +37,7 @@
     <hpi.bundledArtifacts>coverage-model</hpi.bundledArtifacts>
 
     <!-- Library Dependencies Versions -->
-    <coverage-model.version>0.84.0</coverage-model.version>
+    <coverage-model.version>0.85.0</coverage-model.version>
 
     <!-- Test Library Dependencies Versions -->
     <xmlunit.version>2.14.0</xmlunit.version>
@@ -170,7 +170,7 @@
       <artifactId>workflow-step-api</artifactId>
     </dependency>
 
-    <!-- Test Dependencies -->
+    <!-- Test Library Dependencies -->
     <dependency>
       <groupId>edu.hm.hafner</groupId>
       <artifactId>coverage-model</artifactId>

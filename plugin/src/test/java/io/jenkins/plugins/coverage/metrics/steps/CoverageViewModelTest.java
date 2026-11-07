@@ -7,11 +7,15 @@ import static org.mockito.Mockito.*;
 
 import edu.hm.hafner.coverage.ChangeSet;
 import edu.hm.hafner.coverage.ChangeSet.ChangeSetBuilder;
+import edu.hm.hafner.coverage.Coverage;
+import edu.hm.hafner.coverage.Coverage.CoverageBuilder;
 import edu.hm.hafner.coverage.FileDeltas;
 import edu.hm.hafner.coverage.FileNode;
 import edu.hm.hafner.coverage.FileNodeFixture;
+import edu.hm.hafner.coverage.Metric;
 import edu.hm.hafner.coverage.ModuleNode;
 import edu.hm.hafner.coverage.Node;
+import edu.hm.hafner.coverage.parser.PitestParser;
 import edu.hm.hafner.util.FilteredLog;
 import hudson.model.Run;
 import io.jenkins.plugins.bootstrap5.MessagesViewModel;
@@ -120,6 +124,56 @@ class CoverageViewModelTest extends AbstractCoverageTest {
             builder.addIndirectCoverageChange("path", 10 + line, 2);
         }
         return builder.build();
+    }
+
+    /**
+     * Verifies that the table of the indirect coverage changes contains the mutations of the affected lines.
+     */
+    @Test
+    void shouldProvideMutationCoverageOfIndirectCoverageChanges() {
+        var tree = readResult("mutations.xml", new PitestParser());
+        var path = tree.getAllFileNodes().stream()
+                .filter(file -> "CoberturaParser.java".equals(file.getName()))
+                .findFirst()
+                .orElseThrow()
+                .getRelativePath();
+        var changes = new ChangeSetBuilder()
+                .addIndirectCoverageChange(path, 137, 1) // SURVIVED
+                .addIndirectCoverageChange(path, 148, 1) // KILLED
+                .addIndirectCoverageChange(path, 138, -1) // NO_COVERAGE
+                .addIndirectCoverageChange(path, 195, -1) // 2 x NO_COVERAGE
+                .build();
+
+        var model = createModel(tree, changes);
+
+        assertThat(model.hasIndirectCoverageChanges()).isTrue();
+        assertThat(model.getTableModel(INDIRECT_COVERAGE_TABLE_ID).getRows())
+                .singleElement()
+                .isInstanceOfSatisfying(CoverageRow.class, row -> {
+                    assertThat(row.getCoverageOfNode(Metric.LINE)).isEqualTo(createCoverage(Metric.LINE, 2, 2));
+                    assertThat(row.getCoverageOfNode(Metric.MUTATION)).isEqualTo(createCoverage(Metric.MUTATION, 1, 4));
+                    assertThat(row.getMutationCoverageDelta().getSort())
+                            .isNotEqualTo(CoverageTableModel.NO_COVERAGE.getSort());
+                    assertThat(row.getCoverageOfNode(Metric.TEST_STRENGTH))
+                            .isEqualTo(createCoverage(Metric.TEST_STRENGTH, 1, 1));
+                    assertThat(row.getTestStrengthDelta().getSort())
+                            .isNotEqualTo(CoverageTableModel.NO_COVERAGE.getSort());
+                });
+    }
+
+    /**
+     * Creates a coverage value for the specified metric.
+     *
+     * @param metric the metric of the coverage
+     * @param covered the number of covered items
+     * @param missed the number of missed items
+     * @return the coverage value
+     */
+    private Coverage createCoverage(final Metric metric, final int covered, final int missed) {
+        return new CoverageBuilder(metric)
+                .withCovered(covered)
+                .withMissed(missed)
+                .build();
     }
 
     @Test
