@@ -170,7 +170,7 @@
       <artifactId>workflow-step-api</artifactId>
     </dependency>
 
-    <!-- Test Dependencies -->
+    <!-- Test Library Dependencies -->
     <dependency>
       <groupId>edu.hm.hafner</groupId>
       <artifactId>coverage-model</artifactId>
