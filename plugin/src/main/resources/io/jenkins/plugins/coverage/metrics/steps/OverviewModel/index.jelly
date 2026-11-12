@@ -144,7 +144,7 @@
               <j:set var="metricsHelp"><cov:help-link anchor="metrics"/></j:set>
               <l:card title="${%Further metrics}" controls="${metricsHelp}">
                 <j:set var="worst" value="${it.worstValues}"/>
-                <div class="coverage-dashboard__count-grid">
+                <div class="coverage-dashboard__count-grid" style="--coverage-baselines: ${size(it.baselines)}">
                   <div class="coverage-dashboard__count-grid-header coverage-dashboard__count-grid-header--label">${%Metric}</div>
                   <j:forEach var="baseline" items="${it.baselines}">
                     <div class="coverage-dashboard__count-grid-header coverage-dashboard__count-grid-header--group">${baseline.title}</div>

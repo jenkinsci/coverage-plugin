@@ -1,6 +1,6 @@
 package io.jenkins.plugins.coverage.metrics.steps;
 
-import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
 
 import edu.hm.hafner.coverage.ChangeSet;
@@ -39,6 +39,7 @@ import org.junitpioneer.jupiter.DefaultLocale;
  *
  * @author Ullrich Hafner
  */
+@SuppressWarnings("checkstyle:ClassFanOutComplexity")
 class OverviewModelTest extends AbstractCoverageTest {
     @ParameterizedTest(name = "{0} is shown as a dashboard card")
     @EnumSource(
