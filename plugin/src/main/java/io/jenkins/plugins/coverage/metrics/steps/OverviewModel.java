@@ -30,7 +30,9 @@ import java.util.stream.Collectors;
  *
  * @author Ullrich Hafner
  */
+@SuppressWarnings("PMD.GodClass")
 public class OverviewModel implements ModelObject {
+    private static final String QUALITY_GATE_ICON = "symbol-shield-checkmark-outline plugin-ionicons-api";
     private static final String ERROR_ICON = "symbol-close-circle-outline plugin-ionicons-api";
     private static final String WARNING_ICON = "symbol-warning-outline plugin-ionicons-api";
     private static final String ERROR_COLOR = "jenkins-!-error-color";
@@ -456,12 +458,14 @@ public class OverviewModel implements ModelObject {
     @SuppressWarnings("unused") // Called by jelly view
     public List<QualityGateGroup> getQualityGateGroups() {
         var groups = new LinkedHashMap<String, List<QualityGateResultItem>>();
+        var icons = new LinkedHashMap<String, String>();
         for (QualityGateResultItem item : getQualityGateResult().getResultItems()) {
-            groups.computeIfAbsent(getGroupTitle(item.getQualityGate()), title -> new ArrayList<>())
-                    .add(item);
+            var title = getGroupTitle(item.getQualityGate());
+            groups.computeIfAbsent(title, key -> new ArrayList<>()).add(item);
+            icons.putIfAbsent(title, getGroupIcon(item.getQualityGate()));
         }
         return groups.entrySet().stream()
-                .map(entry -> new QualityGateGroup(entry.getKey(), entry.getValue()))
+                .map(entry -> new QualityGateGroup(entry.getKey(), icons.get(entry.getKey()), entry.getValue()))
                 .toList();
     }
 
@@ -470,6 +474,13 @@ public class OverviewModel implements ModelObject {
             return getFormatter().getDisplayName(gate.getMetric());
         }
         return qualityGate.getName();
+    }
+
+    private String getGroupIcon(final QualityGate qualityGate) {
+        if (qualityGate instanceof CoverageQualityGate gate) {
+            return getFormatter().getIcon(gate.getMetric());
+        }
+        return QUALITY_GATE_ICON;
     }
 
     /**
@@ -609,6 +620,7 @@ public class OverviewModel implements ModelObject {
      */
     public static class QualityGateGroup {
         private final String title;
+        private final String icon;
         private final List<QualityGateResultItem> items;
 
         /**
@@ -616,16 +628,23 @@ public class OverviewModel implements ModelObject {
          *
          * @param title
          *         the title of the group (the display name of the metric)
+         * @param icon
+         *         the icon of the group (the icon of the metric)
          * @param items
          *         the results of the quality gates of the group
          */
-        QualityGateGroup(final String title, final List<QualityGateResultItem> items) {
+        QualityGateGroup(final String title, final String icon, final List<QualityGateResultItem> items) {
             this.title = title;
+            this.icon = icon;
             this.items = List.copyOf(items);
         }
 
         public String getTitle() {
             return title;
+        }
+
+        public String getIcon() {
+            return icon;
         }
 
         public List<QualityGateResultItem> getItems() {

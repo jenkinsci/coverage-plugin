@@ -54,7 +54,10 @@
                 <div class="coverage-dashboard__quality-gate-groups">
                   <j:forEach var="group" items="${it.qualityGateGroups}">
                     <div class="coverage-dashboard__quality-gate-group">
-                      <div class="coverage-dashboard__quality-gate-group-title">${group.title}</div>
+                      <div class="coverage-dashboard__quality-gate-group-title">
+                        <l:icon src="${group.icon}" class="icon-sm" alt=""/>
+                        ${group.title}
+                      </div>
                       <j:forEach var="item" items="${group.items}">
                         <j:set var="label" value="${it.getQualityGateLabel(item)}"/>
                         <div class="coverage-dashboard__quality-gate-item">
@@ -87,7 +90,9 @@
           <div class="coverage-dashboard__metrics">
             <j:forEach var="metric" items="${it.coverageMetrics}">
               <div class="coverage-dashboard__metric-card">
-                <l:card title="${formatter.getDisplayName(metric)}">
+                <!-- The card renders the controls attribute (HTML) in its title; the CSS moves it in front of the title. -->
+                <j:set var="metricIcon"><l:icon src="${formatter.getIcon(metric)}" class="icon-sm" alt=""/></j:set>
+                <l:card title="${formatter.getDisplayName(metric)}" controls="${metricIcon}">
                   <div class="coverage-dashboard__rings">
                     <j:forEach var="baseline" items="${it.baselines}">
                       <j:if test="${it.hasValue(baseline, metric)}">
@@ -145,7 +150,10 @@
                     <div class="coverage-dashboard__count-grid-header coverage-dashboard__count-grid-header--group">${baseline.title}</div>
                   </j:forEach>
                   <j:forEach var="metric" items="${it.countMetrics}">
-                    <div class="coverage-dashboard__count-grid-label">${formatter.getDisplayName(metric)}</div>
+                    <div class="coverage-dashboard__count-grid-label">
+                      <l:icon src="${formatter.getIcon(metric)}" class="icon-sm" alt=""/>
+                      ${formatter.getDisplayName(metric)}
+                    </div>
                     <j:forEach var="baseline" items="${it.baselines}">
                       <j:choose>
                         <j:when test="${it.hasValue(baseline, metric)}">

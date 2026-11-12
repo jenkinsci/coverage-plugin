@@ -316,6 +316,36 @@ public final class ElementFormatter {
     }
 
     /**
+     * Returns the icon of the specified metric, an Ionicons symbol in outline style (e.g., to be used in card titles
+     * or in front of the name of a metric). Metrics without a specific icon use a generic chart icon.
+     *
+     * @param metric
+     *         the metric to get the icon for
+     *
+     * @return the icon, in the format required by {@code l:icon}
+     */
+    @SuppressWarnings({"checkstyle:CyclomaticComplexity", "PMD.CyclomaticComplexity"})
+    public String getIcon(final Metric metric) {
+        var name = switch (metric) {
+            case CONTAINER, MODULE -> "cube";
+            case PACKAGE -> "folder";
+            case FILE -> "document";
+            case CLASS -> "shapes";
+            case METHOD -> "code";
+            case LINE -> "reorder-four";
+            case BRANCH -> "git-branch";
+            case INSTRUCTION -> "code-slash";
+            case MUTATION -> "bug";
+            case TEST_STRENGTH -> "barbell";
+            case TESTS -> "checkbox";
+            case LOC -> "document-text";
+            case CYCLOMATIC_COMPLEXITY -> "git-network";
+            default -> "analytics";
+        };
+        return "symbol-%s-outline plugin-ionicons-api".formatted(name);
+    }
+
+    /**
      * Returns a localized human-readable name for the specified metric.
      *
      * @param metric

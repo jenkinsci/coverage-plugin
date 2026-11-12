@@ -121,6 +121,17 @@
     max-width: 100%;
 }
 
+/* The icon of the metric is rendered as card control (see index.jelly): show it in front of the title */
+.coverage-dashboard__metric-card .jenkins-card__title {
+    justify-content: flex-start;
+    gap: 6px;
+}
+
+.coverage-dashboard__metric-card .jenkins-card__controls {
+    order: -1;
+    margin-right: 0;
+}
+
 /* Quality gates: overall status on the left (separated by a vertical line that spans all rows), the quality gates
    grouped by metric on the right. The layout is identical to the quality gates card of the Warnings plugin. */
 .coverage-dashboard__quality-gates {
@@ -170,6 +181,9 @@
 
 .coverage-dashboard__quality-gate-group-title {
     grid-column: 1 / -1;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
     font-size: var(--font-size-sm);
     font-weight: 600;
 }
@@ -342,6 +356,7 @@
     font-weight: 600;
     display: flex;
     align-items: center;
+    gap: 6px;
     padding: 5px 16px 5px 0;
 }
 
@@ -622,4 +637,11 @@ button.coverage-hotspots__grid-header:hover {
 
 .coverage-body .dt-paging .page-link {
     font-size: var(--font-size-sm);
+}
+
+.coverage-help__metric {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    white-space: nowrap;
 }

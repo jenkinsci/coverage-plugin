@@ -255,6 +255,12 @@ class OverviewModelTest extends AbstractCoverageTest {
                         Metric.LINE.getDisplayName(),
                         Metric.BRANCH.getDisplayName(),
                         Metric.CYCLOMATIC_COMPLEXITY.getDisplayName());
+        assertThat(groups)
+                .extracting(OverviewModel.QualityGateGroup::getIcon)
+                .containsExactly(
+                        "symbol-reorder-four-outline plugin-ionicons-api",
+                        "symbol-git-branch-outline plugin-ionicons-api",
+                        "symbol-git-network-outline plugin-ionicons-api");
         assertThat(groups.get(0).getItems())
                 .extracting(model::getQualityGateLabel)
                 .containsExactly("Whole project", "Modified code lines");
