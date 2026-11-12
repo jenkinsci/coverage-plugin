@@ -1,23 +1,27 @@
 package io.jenkins.plugins.coverage.metrics.steps;
 
-import edu.umd.cs.findbugs.annotations.CheckForNull;
+import edu.hm.hafner.util.VisibleForTesting;
 import hudson.model.Actionable;
+import hudson.model.Run;
+import io.jenkins.plugins.coverage.metrics.steps.CoverageViewModel.UsePropertyFacade;
 import io.jenkins.plugins.util.QualityGateResult;
-import java.io.IOException;
+import jakarta.servlet.http.HttpServletResponse;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.function.Predicate;
 import jenkins.management.Badge;
 import jenkins.model.Tab;
-import jenkins.model.experimentalflags.BooleanUserExperimentalFlag;
-import org.kohsuke.stapler.HttpRedirect;
-import org.kohsuke.stapler.StaplerResponse2;
+import org.kohsuke.stapler.HttpResponse;
+import org.kohsuke.stapler.HttpResponses;
+import org.kohsuke.stapler.verb.GET;
 
 /**
  * Defines the coverage tab for a run.
  */
 public class RunTab extends Tab {
     static final String URL = "coverage";
+
+    private final UsePropertyFacade usePropertyFacade;
 
     /**
      * Creates a new {@link RunTab}.
@@ -26,7 +30,22 @@ public class RunTab extends Tab {
      *         the run to create the tab for
      */
     public RunTab(final Actionable object) {
+        this(object, CoverageViewModel::isRunTabActive);
+    }
+
+    /**
+     * Creates a new {@link RunTab} with a custom facade for the experimental flag of the new build page.
+     *
+     * @param object
+     *         the run to create the tab for
+     * @param usePropertyFacade
+     *         the facade that determines whether the run tab is enabled
+     */
+    @VisibleForTesting
+    RunTab(final Actionable object, final UsePropertyFacade usePropertyFacade) {
         super(object);
+
+        this.usePropertyFacade = usePropertyFacade;
     }
 
     @Override
@@ -96,25 +115,22 @@ public class RunTab extends Tab {
 
     /**
      * Redirects to the overview of the first coverage action if the new UI is enabled. Without this, opening the
-     * "Coverage" tab landed on this tab's own root with no id chosen yet, leaving nothing selected in the sidebar.
+     * "Coverage" tab landed on this tab's own root with no id chosen yet, leaving nothing selected in the sidebar. The
+     * redirect target is derived from the URL of the run (and not from the request), and it is resolved via the
+     * context path, so it is independent of whether the request URL ends with a slash.
      *
-     * @param response
-     *         the response
-     *
-     * @return the redirect to the overview page of the first coverage action
-     * @throws IOException
-     *         if an input or output exception occurs.
+     * @return the redirect to the overview page of the first coverage action, or a 404 error if the new build page
+     *         is disabled or if there are no coverage results
      */
-    @CheckForNull
-    public HttpRedirect doIndex(final StaplerResponse2 response) throws IOException {
-        Boolean newUiEnabled = BooleanUserExperimentalFlag.getFlagValueForCurrentUser(
-                "jenkins.model.experimentalflags.NewBuildPageUserExperimentalFlag");
-
-        if (Boolean.TRUE.equals(newUiEnabled)) {
-            return new HttpRedirect(getActions().get(0).getUrlName() + CoverageViewModel.OVERVIEW_URL);
+    @GET
+    public HttpResponse doIndex() {
+        var actions = getActions();
+        if (usePropertyFacade.isRunTabEnabled() && getObject() instanceof Run<?, ?> run && !actions.isEmpty()) {
+            return HttpResponses.redirectViaContextPath(
+                    run.getUrl() + actions.get(0).getUrlName() + "/" + CoverageViewModel.OVERVIEW_URL);
         }
 
-        response.sendError(404, "This page requires the new build page UI to be enabled");
-        return null;
+        return HttpResponses.errorWithoutStack(
+                HttpServletResponse.SC_NOT_FOUND, "This page requires the new build page UI to be enabled");
     }
 }

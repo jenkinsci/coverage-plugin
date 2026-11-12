@@ -216,6 +216,96 @@ class OverviewModelTest extends AbstractCoverageTest {
         assertThat(missing.getQualityGateHint(getFirstItem(missing))).isEmpty();
     }
 
+    /**
+     * Verifies that the quality gates are grouped by metric (in the order of their first occurrence) and labeled by
+     * baseline and (non-default) aggregation.
+     */
+    @Test
+    @DefaultLocale("en")
+    void shouldGroupQualityGatesByMetric() {
+        var result = new QualityGateResult();
+        result.add(
+                new CoverageQualityGate(60, Metric.LINE, Baseline.PROJECT, QualityGateCriticality.UNSTABLE),
+                QualityGateStatus.PASSED,
+                "95.83%");
+        result.add(
+                new CoverageQualityGate(60, Metric.BRANCH, Baseline.PROJECT, QualityGateCriticality.UNSTABLE),
+                QualityGateStatus.PASSED,
+                "91.27%");
+        result.add(
+                new CoverageQualityGate(50, Metric.LINE, Baseline.MODIFIED_LINES, QualityGateCriticality.FAILURE),
+                QualityGateStatus.FAILED,
+                "40.00%");
+        result.add(
+                new CoverageQualityGate(
+                        10,
+                        Metric.CYCLOMATIC_COMPLEXITY,
+                        Baseline.PROJECT,
+                        QualityGateCriticality.UNSTABLE,
+                        MetricAggregation.MAXIMUM),
+                QualityGateStatus.PASSED,
+                "8");
+
+        var model = createModel(readJacocoResult(JACOCO_CODING_STYLE_FILE), result);
+        var groups = model.getQualityGateGroups();
+
+        assertThat(groups)
+                .extracting(OverviewModel.QualityGateGroup::getTitle)
+                .containsExactly(
+                        Metric.LINE.getDisplayName(),
+                        Metric.BRANCH.getDisplayName(),
+                        Metric.CYCLOMATIC_COMPLEXITY.getDisplayName());
+        assertThat(groups.get(0).getItems())
+                .extracting(model::getQualityGateLabel)
+                .containsExactly("Whole project", "Modified code lines");
+        assertThat(groups.get(1).getItems())
+                .extracting(model::getQualityGateLabel)
+                .containsExactly("Whole project");
+        assertThat(groups.get(2).getItems())
+                .extracting(model::getQualityGateLabel)
+                .containsExactly("Whole project (Maximum)");
+    }
+
+    /**
+     * Verifies that there are no groups if there are no quality gates.
+     */
+    @Test
+    void shouldHaveNoGroupsWithoutQualityGates() {
+        assertThat(createModel().getQualityGateGroups()).isEmpty();
+    }
+
+    /**
+     * Verifies that the criticality of a quality gate is visualized with an error icon (if the step or build fails)
+     * or a warning icon (if the step or build is marked as unstable).
+     *
+     * @param criticality
+     *         the criticality of the quality gate
+     * @param icon
+     *         the expected icon
+     * @param color
+     *         the expected color
+     * @param description
+     *         the expected description
+     */
+    @ParameterizedTest(name = "{0}")
+    @CsvSource({
+        "NOTE,     symbol-warning-outline plugin-ionicons-api,      jenkins-!-warning-color, Mark the step as unstable",
+        "UNSTABLE, symbol-warning-outline plugin-ionicons-api,      jenkins-!-warning-color, Mark the step and the build as unstable",
+        "ERROR,    symbol-close-circle-outline plugin-ionicons-api, jenkins-!-error-color,   Fail the step but not the build",
+        "FAILURE,  symbol-close-circle-outline plugin-ionicons-api, jenkins-!-error-color,   Fail the step and the build"
+    })
+    @DefaultLocale("en")
+    void shouldVisualizeCriticality(
+            final QualityGateCriticality criticality, final String icon, final String color, final String description) {
+        var qualityGate = new CoverageQualityGate(60, Metric.LINE, Baseline.PROJECT, criticality);
+
+        var model = createModel();
+
+        assertThat(model.getCriticalityIcon(qualityGate)).isEqualTo(icon);
+        assertThat(model.getCriticalityColor(qualityGate)).isEqualTo(color);
+        assertThat(model.getCriticalityDescription(qualityGate)).isEqualTo(description);
+    }
+
     private static QualityGateResult createResult(final Baseline baseline, final QualityGateStatus status) {
         var result = new QualityGateResult();
         result.add(new CoverageQualityGate(100, Metric.LINE, baseline, QualityGateCriticality.UNSTABLE), status, "-");

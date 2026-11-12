@@ -58,6 +58,7 @@ import org.apache.commons.lang3.Strings;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.kohsuke.stapler.HttpResponse;
 import org.kohsuke.stapler.bind.JavaScriptMethod;
+import org.kohsuke.stapler.verb.GET;
 import tools.jackson.core.JacksonException;
 import tools.jackson.core.type.TypeReference;
 import tools.jackson.databind.ObjectMapper;
@@ -740,6 +741,7 @@ public class CoverageViewModel extends DefaultAsyncTableContentProvider implemen
      *
      * @return a redirect to the overview tab, or a forward to the (legacy) index view
      */
+    @GET
     @SuppressWarnings("unused") // Called by Stapler
     public HttpResponse doIndex() {
         if (usePropertyFacade.isRunTabEnabled()) {

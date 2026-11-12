@@ -108,25 +108,6 @@
     gap: calc(var(--section-padding) / 2);
 }
 
-.coverage-dashboard__top {
-    display: flex;
-    flex-wrap: wrap;
-    gap: calc(var(--section-padding) / 2);
-    align-items: stretch;
-}
-
-.coverage-dashboard__top-item {
-    flex: 0 1 320px;
-    min-width: 260px;
-}
-
-.coverage-dashboard__top-item--wide {
-    flex: 0 0 auto;
-    width: fit-content;
-    max-width: 100%;
-    min-width: 260px;
-}
-
 .coverage-dashboard__metrics {
     display: flex;
     flex-wrap: wrap;
@@ -140,12 +121,24 @@
     max-width: 100%;
 }
 
+/* Quality gates: overall status on the left (separated by a vertical line that spans all rows), the quality gates
+   grouped by metric on the right. The layout is identical to the quality gates card of the Warnings plugin. */
+.coverage-dashboard__quality-gates {
+    display: flex;
+    align-items: stretch;
+    gap: var(--section-padding);
+}
+
 .coverage-dashboard__quality-gate-total {
+    flex: 0 0 auto;
     display: flex;
     flex-direction: column;
+    justify-content: center;
     align-items: center;
     gap: 6px;
-    padding: 4px 0 12px;
+    min-width: 100px;
+    padding-right: var(--section-padding);
+    border-right: var(--jenkins-border);
     text-align: center;
 }
 
@@ -154,24 +147,31 @@
     font-weight: 700;
 }
 
-.coverage-dashboard__divider {
-    height: 1px;
-    background: var(--jenkins-border-color, #e5e7eb);
-    margin: 0 0 12px;
+/* At most 3 metrics per row (each column at least a third of the width), and each column at least 300px wide, so
+   that the baseline, value, threshold, and criticality of a quality gate fit into one line. */
+.coverage-dashboard__quality-gate-groups {
+    flex: 1;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(max(300px, calc((100% - 2 * 16px) / 3)), 1fr));
+    gap: 12px 16px;
 }
 
-/* Each quality gate result is a row of 4 grid cells (name / value / threshold / hint, see index.jelly) so that the value
-   column lines up flush left across all rows, independent of how wide the name or the value text happens to be --
-   a flex row with justify-content: space-between could only align the value block's right edge, not the value
-   text itself. `display: contents` on the row lets its 3 children become direct grid items of the list. */
-.coverage-dashboard__quality-gate-items {
+/* Each quality gate is a row of 4 grid cells (name / value / threshold / criticality) so that the columns line up
+   across all quality gates of a metric. `display: contents` on the row lets its children become direct grid items.
+   The optional hint spans a row of its own. */
+.coverage-dashboard__quality-gate-group {
     display: grid;
-    grid-template-columns: max-content max-content max-content max-content;
-    column-gap: 10px;
-    row-gap: 8px;
+    grid-template-columns: 1fr max-content max-content max-content;
+    column-gap: 6px;
+    row-gap: 4px;
     align-items: center;
-    padding-right: 28px;
+    align-content: start;
+}
+
+.coverage-dashboard__quality-gate-group-title {
+    grid-column: 1 / -1;
     font-size: var(--font-size-sm);
+    font-weight: 600;
 }
 
 .coverage-dashboard__quality-gate-item {
@@ -182,14 +182,19 @@
     display: inline-flex;
     align-items: center;
     gap: 6px;
+    min-width: 0;
     color: var(--text-color-secondary);
+    font-size: var(--font-size-sm);
     white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .coverage-dashboard__quality-gate-item-value {
+    font-size: var(--font-size-sm);
     font-weight: 600;
     white-space: nowrap;
-    text-align: left;
+    text-align: right;
 }
 
 .coverage-dashboard__quality-gate-item-value[data-successful="false"] {
@@ -200,18 +205,34 @@
     color: var(--green);
 }
 
-/* Always rendered (even if empty), so that every row has 4 cells and the grid stays aligned. */
-.coverage-dashboard__quality-gate-item-hint {
+.coverage-dashboard__quality-gate-item-threshold {
     font-size: var(--font-size-xs);
     color: var(--text-color-secondary);
     white-space: nowrap;
 }
 
-.coverage-dashboard__quality-gate-item-threshold {
-    font-weight: 400;
-    color: var(--text-color-secondary);
+.coverage-dashboard__quality-gate-item-criticality {
+    display: inline-flex;
+    align-items: center;
+}
+
+.coverage-dashboard__quality-gate-item-hint {
+    grid-column: 1 / -1;
+    padding-left: 22px;
     font-size: var(--font-size-xs);
-    white-space: nowrap;
+    color: var(--text-color-secondary);
+}
+
+@media (max-width: 800px) {
+    .coverage-dashboard__quality-gates {
+        flex-direction: column;
+    }
+
+    .coverage-dashboard__quality-gate-total {
+        flex-direction: row;
+        padding-right: 0;
+        border-right: none;
+    }
 }
 
 .coverage-dashboard__rings {

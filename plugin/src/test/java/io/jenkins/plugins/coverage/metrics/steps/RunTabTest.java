@@ -19,6 +19,9 @@ import io.jenkins.plugins.datatables.DetailedCell;
 import io.jenkins.plugins.prism.SourceCodeViewModel;
 import io.jenkins.plugins.util.QualityGateResult;
 import io.jenkins.plugins.util.QualityGateStatus;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletResponse;
+import java.io.IOException;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
@@ -27,6 +30,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
+import org.kohsuke.stapler.StaplerRequest2;
+import org.kohsuke.stapler.StaplerResponse2;
 
 /**
  * Tests the class {@link RunTab}.
@@ -100,6 +105,71 @@ class RunTabTest extends AbstractCoverageTest {
         var tab = new RunTab(build);
 
         assertThat(tab.getDynamic("mutation")).isEqualTo(mutation);
+    }
+
+    /**
+     * Verifies that the index page redirects to the overview of the first coverage action, using an absolute URL
+     * that is derived from the URL of the run.
+     *
+     * @throws IOException
+     *         never thrown
+     * @throws ServletException
+     *         never thrown
+     */
+    @Test
+    void shouldRedirectToOverviewOfFirstActionIfRunTabIsEnabled() throws IOException, ServletException {
+        var build = CoverageMetricColumnTest.createBuildWithActions(
+                createAction("jacoco", new QualityGateResult()), createAction("mutation", new QualityGateResult()));
+        when(build.getUrl()).thenReturn("job/x/42/");
+        var response = mock(StaplerResponse2.class);
+
+        new RunTab(build, () -> true).doIndex().generateResponse(createRequest(), response, new Object());
+
+        verify(response).sendRedirect(anyInt(), eq("/jenkins/job/x/42/jacoco/overview"));
+    }
+
+    /**
+     * Verifies that the index page is not available if the run tab is disabled.
+     *
+     * @throws IOException
+     *         never thrown
+     * @throws ServletException
+     *         never thrown
+     */
+    @Test
+    void shouldNotRedirectIfRunTabIsDisabled() throws IOException, ServletException {
+        var build = CoverageMetricColumnTest.createBuildWithActions(createAction("jacoco", new QualityGateResult()));
+        var response = mock(StaplerResponse2.class);
+
+        new RunTab(build, () -> false).doIndex().generateResponse(createRequest(), response, new Object());
+
+        verify(response).sendError(eq(HttpServletResponse.SC_NOT_FOUND), anyString());
+        verify(response, never()).sendRedirect(anyInt(), anyString());
+    }
+
+    /**
+     * Verifies that the index page is not available if there are no coverage results.
+     *
+     * @throws IOException
+     *         never thrown
+     * @throws ServletException
+     *         never thrown
+     */
+    @Test
+    void shouldNotRedirectWithoutCoverageResults() throws IOException, ServletException {
+        var build = CoverageMetricColumnTest.createBuildWithActions();
+        var response = mock(StaplerResponse2.class);
+
+        new RunTab(build, () -> true).doIndex().generateResponse(createRequest(), response, new Object());
+
+        verify(response).sendError(eq(HttpServletResponse.SC_NOT_FOUND), anyString());
+        verify(response, never()).sendRedirect(anyInt(), anyString());
+    }
+
+    private StaplerRequest2 createRequest() {
+        var request = mock(StaplerRequest2.class);
+        when(request.getContextPath()).thenReturn("/jenkins");
+        return request;
     }
 
     @Test
