@@ -43,40 +43,56 @@
       <div class="content">
         <div class="coverage-dashboard" data-report-id="${it.id}">
 
-          <div class="coverage-dashboard__top">
-            <j:if test="${!qualityGateResult.inactive}">
-              <div class="coverage-dashboard__top-item coverage-dashboard__top-item--wide">
-                <l:card title="${%Quality Gates}">
-                  <div class="coverage-dashboard__quality-gate-total">
-                    <l:icon class="${qualityGateResult.overallStatus.iconClass} icon-lg"
-                            alt="${qualityGateResult.overallStatus.description}"/>
-                    <div class="coverage-dashboard__quality-gate-status">${qualityGateResult.overallStatus.description}</div>
-                  </div>
-                  <j:if test="${!qualityGateResult.resultItems.isEmpty()}">
-                    <div class="coverage-dashboard__divider"/>
-                    <div class="coverage-dashboard__quality-gate-items">
-                      <j:forEach var="item" items="${qualityGateResult.resultItems}">
+          <j:if test="${!qualityGateResult.inactive}">
+            <l:card title="${%Quality Gates}">
+              <div class="coverage-dashboard__quality-gates">
+                <div class="coverage-dashboard__quality-gate-total">
+                  <l:icon class="${qualityGateResult.overallStatus.iconClass} icon-lg"
+                          alt="${qualityGateResult.overallStatus.description}"/>
+                  <div class="coverage-dashboard__quality-gate-status">${qualityGateResult.overallStatus.description}</div>
+                </div>
+                <div class="coverage-dashboard__quality-gate-groups">
+                  <j:forEach var="group" items="${it.qualityGateGroups}">
+                    <div class="coverage-dashboard__quality-gate-group">
+                      <div class="coverage-dashboard__quality-gate-group-title">
+                        <l:icon src="${group.icon}" class="icon-sm" alt=""/>
+                        ${group.title}
+                      </div>
+                      <j:forEach var="item" items="${group.items}">
+                        <j:set var="label" value="${it.getQualityGateLabel(item)}"/>
                         <div class="coverage-dashboard__quality-gate-item">
-                          <span class="coverage-dashboard__quality-gate-item-name">
+                          <span class="coverage-dashboard__quality-gate-item-name" tooltip="${item.qualityGate.name}">
                             <l:icon class="${item.status.iconClass} icon-sm" alt="${item.status.description}"/>
-                            ${item.qualityGate.name}
+                            ${label}
                           </span>
-                          <span class="coverage-dashboard__quality-gate-item-value" data-successful="${item.status.successful}">${item.actualValue}</span>
+                          <span class="coverage-dashboard__quality-gate-item-value"
+                                data-successful="${item.status.successful}">${item.actualValue}</span>
                           <span class="coverage-dashboard__quality-gate-item-threshold">(${%Threshold}: ${item.qualityGate.threshold})</span>
-                          <span class="coverage-dashboard__quality-gate-item-hint">${it.getQualityGateHint(item)}</span>
+                          <span class="coverage-dashboard__quality-gate-item-criticality"
+                                tooltip="${it.getCriticalityDescription(item.qualityGate)}">
+                            <l:icon src="${it.getCriticalityIcon(item.qualityGate)}"
+                                    class="icon-sm ${it.getCriticalityColor(item.qualityGate)}"
+                                    alt="${it.getCriticalityDescription(item.qualityGate)}"/>
+                          </span>
+                          <j:set var="hint" value="${it.getQualityGateHint(item)}"/>
+                          <j:if test="${!hint.isEmpty()}">
+                            <span class="coverage-dashboard__quality-gate-item-hint">${hint}</span>
+                          </j:if>
                         </div>
                       </j:forEach>
                     </div>
-                  </j:if>
-                </l:card>
+                  </j:forEach>
+                </div>
               </div>
-            </j:if>
-          </div>
+            </l:card>
+          </j:if>
 
           <div class="coverage-dashboard__metrics">
             <j:forEach var="metric" items="${it.coverageMetrics}">
               <div class="coverage-dashboard__metric-card">
-                <l:card title="${formatter.getDisplayName(metric)}">
+                <!-- The card renders the controls attribute (HTML) in its title; the CSS moves it in front of the title. -->
+                <j:set var="metricIcon"><l:icon src="${formatter.getIcon(metric)}" class="icon-sm" alt=""/></j:set>
+                <l:card title="${formatter.getDisplayName(metric)}" controls="${metricIcon}">
                   <div class="coverage-dashboard__rings">
                     <j:forEach var="baseline" items="${it.baselines}">
                       <j:if test="${it.hasValue(baseline, metric)}">
@@ -128,13 +144,16 @@
               <j:set var="metricsHelp"><cov:help-link anchor="metrics"/></j:set>
               <l:card title="${%Further metrics}" controls="${metricsHelp}">
                 <j:set var="worst" value="${it.worstValues}"/>
-                <div class="coverage-dashboard__count-grid">
+                <div class="coverage-dashboard__count-grid" style="--coverage-baselines: ${size(it.baselines)}">
                   <div class="coverage-dashboard__count-grid-header coverage-dashboard__count-grid-header--label">${%Metric}</div>
                   <j:forEach var="baseline" items="${it.baselines}">
                     <div class="coverage-dashboard__count-grid-header coverage-dashboard__count-grid-header--group">${baseline.title}</div>
                   </j:forEach>
                   <j:forEach var="metric" items="${it.countMetrics}">
-                    <div class="coverage-dashboard__count-grid-label">${formatter.getDisplayName(metric)}</div>
+                    <div class="coverage-dashboard__count-grid-label">
+                      <l:icon src="${formatter.getIcon(metric)}" class="icon-sm" alt=""/>
+                      ${formatter.getDisplayName(metric)}
+                    </div>
                     <j:forEach var="baseline" items="${it.baselines}">
                       <j:choose>
                         <j:when test="${it.hasValue(baseline, metric)}">

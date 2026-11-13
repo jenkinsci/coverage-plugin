@@ -2,16 +2,21 @@ package io.jenkins.plugins.coverage.metrics.steps;
 
 import edu.hm.hafner.coverage.Coverage;
 import edu.hm.hafner.coverage.Metric;
+import edu.hm.hafner.coverage.MetricAggregation;
 import edu.hm.hafner.coverage.Value;
 import edu.umd.cs.findbugs.annotations.NonNull;
 import hudson.model.ModelObject;
 import hudson.model.Run;
 import io.jenkins.plugins.coverage.metrics.model.Baseline;
 import io.jenkins.plugins.coverage.metrics.model.ElementFormatter;
+import io.jenkins.plugins.util.QualityGate;
+import io.jenkins.plugins.util.QualityGate.QualityGateCriticality;
 import io.jenkins.plugins.util.QualityGateResult;
 import io.jenkins.plugins.util.QualityGateResult.QualityGateResultItem;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
@@ -25,7 +30,14 @@ import java.util.stream.Collectors;
  *
  * @author Ullrich Hafner
  */
+@SuppressWarnings("PMD.GodClass")
 public class OverviewModel implements ModelObject {
+    private static final String QUALITY_GATE_ICON = "symbol-shield-checkmark-outline plugin-ionicons-api";
+    private static final String ERROR_ICON = "symbol-close-circle-outline plugin-ionicons-api";
+    private static final String WARNING_ICON = "symbol-warning-outline plugin-ionicons-api";
+    private static final String ERROR_COLOR = "jenkins-!-error-color";
+    private static final String WARNING_COLOR = "jenkins-!-warning-color";
+
     private final Run<?, ?> owner;
     private final CoverageBuildAction action;
     private final WorstValuesModel worstValues;
@@ -436,6 +448,116 @@ public class OverviewModel implements ModelObject {
     }
 
     /**
+     * Returns the results of the quality gates grouped by metric, in the order of their first occurrence. Each group
+     * is rendered as a block in the quality gates card, with the metric as heading and the individual quality gates
+     * (one for each baseline and criticality) below. Quality gates that do not evaluate a coverage metric are grouped
+     * by their name.
+     *
+     * @return the quality gate results, grouped by metric
+     */
+    @SuppressWarnings("unused") // Called by jelly view
+    public List<QualityGateGroup> getQualityGateGroups() {
+        var groups = new LinkedHashMap<String, List<QualityGateResultItem>>();
+        var icons = new LinkedHashMap<String, String>();
+        for (QualityGateResultItem item : getQualityGateResult().getResultItems()) {
+            var title = getGroupTitle(item.getQualityGate());
+            groups.computeIfAbsent(title, key -> new ArrayList<>()).add(item);
+            icons.putIfAbsent(title, getGroupIcon(item.getQualityGate()));
+        }
+        return groups.entrySet().stream()
+                .map(entry -> new QualityGateGroup(entry.getKey(), icons.get(entry.getKey()), entry.getValue()))
+                .toList();
+    }
+
+    private String getGroupTitle(final QualityGate qualityGate) {
+        if (qualityGate instanceof CoverageQualityGate gate) {
+            return getFormatter().getDisplayName(gate.getMetric());
+        }
+        return qualityGate.getName();
+    }
+
+    private String getGroupIcon(final QualityGate qualityGate) {
+        if (qualityGate instanceof CoverageQualityGate gate) {
+            return getFormatter().getIcon(gate.getMetric());
+        }
+        return QUALITY_GATE_ICON;
+    }
+
+    /**
+     * Returns the label of the specified quality gate within its group (see {@link #getQualityGateGroups()}): the
+     * baseline, followed by the aggregation if it is not the default one. The metric is already shown as the heading
+     * of the group.
+     *
+     * @param item
+     *         the result of the quality gate
+     *
+     * @return the label
+     */
+    @SuppressWarnings("unused") // Called by jelly view
+    public String getQualityGateLabel(final QualityGateResultItem item) {
+        if (item.getQualityGate() instanceof CoverageQualityGate gate) {
+            var baseline = getFormatter().getDisplayName(gate.getBaseline());
+            if (gate.getAggregation() == MetricAggregation.getDefault()) {
+                return baseline;
+            }
+            return "%s (%s)".formatted(baseline, getFormatter().getDisplayName(gate.getAggregation()));
+        }
+        return item.getQualityGate().getName();
+    }
+
+    /**
+     * Returns the icon that visualizes the criticality of the specified quality gate: an error icon for quality gates
+     * that fail the step or build, and a warning icon for quality gates that mark the step or build as unstable.
+     *
+     * @param qualityGate
+     *         the quality gate
+     *
+     * @return the icon
+     */
+    @SuppressWarnings("unused") // Called by jelly view
+    public String getCriticalityIcon(final QualityGate qualityGate) {
+        return isFailing(qualityGate) ? ERROR_ICON : WARNING_ICON;
+    }
+
+    /**
+     * Returns the CSS class that defines the color of the criticality icon of the specified quality gate (see
+     * {@link #getCriticalityIcon(QualityGate)}).
+     *
+     * @param qualityGate
+     *         the quality gate
+     *
+     * @return the CSS class of the color
+     */
+    @SuppressWarnings("unused") // Called by jelly view
+    public String getCriticalityColor(final QualityGate qualityGate) {
+        return isFailing(qualityGate) ? ERROR_COLOR : WARNING_COLOR;
+    }
+
+    /**
+     * Returns a localized description of the criticality of the specified quality gate, i.e., what happens with the
+     * step and the build if the quality gate is missed. Shown as tooltip of the criticality icon.
+     *
+     * @param qualityGate
+     *         the quality gate
+     *
+     * @return the localized description
+     */
+    @SuppressWarnings("unused") // Called by jelly view
+    public String getCriticalityDescription(final QualityGate qualityGate) {
+        return switch (qualityGate.getCriticality()) {
+            case NOTE -> Messages.OverviewModel_criticalityUnstableStage();
+            case UNSTABLE -> Messages.OverviewModel_criticalityUnstableRun();
+            case ERROR -> Messages.OverviewModel_criticalityFailureStage();
+            case FAILURE -> Messages.OverviewModel_criticalityFailureRun();
+        };
+    }
+
+    private static boolean isFailing(final QualityGate qualityGate) {
+        var criticality = qualityGate.getCriticality();
+        return criticality == QualityGateCriticality.ERROR || criticality == QualityGateCriticality.FAILURE;
+    }
+
+    /**
      * Returns a hint that tells how many more items need to be covered so that the specified quality gate would
      * pass, e.g. {@code "Cover 42 more lines"}. The hint is computed when the view is rendered from the covered and
      * total counts of the baseline of the gate, so no additional data needs to be stored with the quality gate result.
@@ -491,5 +613,42 @@ public class OverviewModel implements ModelObject {
             case MUTATION -> Messages.OverviewModel_hintMutation(missing);
             default -> Messages.OverviewModel_hintItems(missing);
         };
+    }
+
+    /**
+     * The results of all quality gates that evaluate the same metric.
+     */
+    public static class QualityGateGroup {
+        private final String title;
+        private final String icon;
+        private final List<QualityGateResultItem> items;
+
+        /**
+         * Creates a new group.
+         *
+         * @param title
+         *         the title of the group (the display name of the metric)
+         * @param icon
+         *         the icon of the group (the icon of the metric)
+         * @param items
+         *         the results of the quality gates of the group
+         */
+        QualityGateGroup(final String title, final String icon, final List<QualityGateResultItem> items) {
+            this.title = title;
+            this.icon = icon;
+            this.items = List.copyOf(items);
+        }
+
+        public String getTitle() {
+            return title;
+        }
+
+        public String getIcon() {
+            return icon;
+        }
+
+        public List<QualityGateResultItem> getItems() {
+            return items;
+        }
     }
 }

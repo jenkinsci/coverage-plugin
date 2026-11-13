@@ -77,7 +77,12 @@
               <tbody>
                 <j:forEach var="metric" items="${it.metrics}">
                   <tr>
-                    <td class="coverage-help__name">${formatter.getDisplayName(metric)}</td>
+                    <td class="coverage-help__name">
+                      <span class="coverage-help__metric">
+                        <l:icon src="${formatter.getIcon(metric)}" class="icon-sm" alt=""/>
+                        ${formatter.getDisplayName(metric)}
+                      </span>
+                    </td>
                     <td>${it.getMetricDescription(metric)}</td>
                     <td>${it.getGroup(metric)}</td>
                     <td>${it.getTendency(metric)}</td>

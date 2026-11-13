@@ -11,6 +11,7 @@ import edu.hm.hafner.coverage.Value;
 import java.util.Locale;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.EnumSource;
 import org.junitpioneer.jupiter.DefaultLocale;
 
@@ -161,5 +162,37 @@ class ElementFormatterTest {
         assertThat(formatter.getDisplayName(MetricAggregation.OVERALL)).isEqualTo("Overall");
         assertThat(formatter.getDisplayName(MetricAggregation.MAXIMUM)).isEqualTo("Maximum");
         assertThat(formatter.getDisplayName(MetricAggregation.MINIMUM)).isEqualTo("Minimum");
+    }
+
+    /**
+     * Verifies the icons of the metrics: specific icons for the most important metrics and a generic icon for all
+     * other metrics.
+     *
+     * @param metric
+     *         the metric
+     * @param icon
+     *         the expected name of the Ionicons symbol
+     */
+    @ParameterizedTest(name = "{0} -> {1}")
+    @CsvSource({
+        "LINE, reorder-four",
+        "BRANCH, git-branch",
+        "INSTRUCTION, code-slash",
+        "MUTATION, bug",
+        "TEST_STRENGTH, barbell",
+        "TESTS, checkbox",
+        "LOC, document-text",
+        "CYCLOMATIC_COMPLEXITY, git-network",
+        "MODULE, cube",
+        "PACKAGE, folder",
+        "FILE, document",
+        "CLASS, shapes",
+        "METHOD, code",
+        "MCDC_PAIR, analytics"
+    })
+    void shouldProvideIconForMetric(final Metric metric, final String icon) {
+        var formatter = new ElementFormatter();
+
+        assertThat(formatter.getIcon(metric)).isEqualTo("symbol-%s-outline plugin-ionicons-api".formatted(icon));
     }
 }
