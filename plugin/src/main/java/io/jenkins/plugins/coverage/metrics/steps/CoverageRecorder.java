@@ -803,8 +803,6 @@ public class CoverageRecorder extends Recorder {
         void log(final FilteredLog log) {
             logHandler.log(log);
             if (importantLogHandler != null) {
-                importantLogHandler.logErrorMessages(log.getErrorMessages());
-
                 var infoMessages = log.getInfoMessages();
                 while (infoPosition < infoMessages.size()) {
                     var message = infoMessages.get(infoPosition);
