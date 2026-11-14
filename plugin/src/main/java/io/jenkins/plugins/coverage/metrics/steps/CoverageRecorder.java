@@ -96,6 +96,7 @@ public class CoverageRecorder extends Recorder {
     private ChecksAnnotationScope checksAnnotationScope = ChecksAnnotationScope.MODIFIED_LINES;
     private boolean ignoreParsingErrors = false;
     private boolean failOnError = false;
+    private boolean quiet = false;
     private boolean enabledForFailure = false;
     private boolean skipSymbolicLinks = false;
     private String scm = StringUtils.EMPTY;
@@ -290,6 +291,21 @@ public class CoverageRecorder extends Recorder {
     }
 
     /**
+     * Sets whether informational log messages should be suppressed.
+     *
+     * @param quiet
+     *         {@code true} to suppress informational log messages, {@code false} to keep the default verbose output
+     */
+    @DataBoundSetter
+    public void setQuiet(final boolean quiet) {
+        this.quiet = quiet;
+    }
+
+    public boolean isQuiet() {
+        return quiet;
+    }
+
+    /**
      * Returns whether recording should be enabled for failed builds as well.
      *
      * @param enabledForFailure
@@ -400,7 +416,7 @@ public class CoverageRecorder extends Recorder {
             final ResultHandler resultHandler)
             throws InterruptedException {
         var overallResult = run.getResult();
-        var logHandler = new LogHandler(taskListener, "Coverage");
+        var logHandler = new CoverageLogHandler(taskListener, isQuiet());
         if (enabledForFailure || overallResult == null || overallResult.isBetterOrEqualTo(Result.UNSTABLE)) {
             var log = new FilteredLog("Errors while recording code coverage:");
             log.logInfo("Recording coverage results");
@@ -414,7 +430,7 @@ public class CoverageRecorder extends Recorder {
             } else {
                 perform(run, workspace, taskListener, resultHandler, log, logHandler);
             }
-        } else {
+        } else if (!isQuiet()) {
             logHandler.log("Skipping execution of coverage recorder since overall result is '%s'", overallResult);
         }
     }
@@ -425,7 +441,7 @@ public class CoverageRecorder extends Recorder {
             final TaskListener taskListener,
             final ResultHandler resultHandler,
             final FilteredLog log,
-            final LogHandler logHandler)
+            final CoverageLogHandler logHandler)
             throws InterruptedException {
         var results = recordCoverageResults(run, workspace, resultHandler, log, logHandler);
         var aggregatedResult = aggregateResults(log, results);
@@ -497,7 +513,7 @@ public class CoverageRecorder extends Recorder {
 
     private static void failStage(
             final ResultHandler resultHandler,
-            final LogHandler logHandler,
+            final CoverageLogHandler logHandler,
             final FilteredLog log,
             final String message) {
         log.logError(message);
@@ -510,7 +526,7 @@ public class CoverageRecorder extends Recorder {
             final FilePath workspace,
             final ResultHandler resultHandler,
             final FilteredLog log,
-            final LogHandler logHandler)
+            final CoverageLogHandler logHandler)
             throws InterruptedException {
         Map<Parser, List<ModuleNode>> results = new EnumMap<>(Parser.class);
 
@@ -764,6 +780,86 @@ public class CoverageRecorder extends Recorder {
             items.add(Messages.ChecksAnnotationScope_ModifiedLines(), MODIFIED_LINES.name());
             items.add(Messages.ChecksAnnotationScope_AllLines(), ALL_LINES.name());
             return items;
+        }
+    }
+
+    /**
+     * Logs coverage messages while preserving errors and quality-gate results in quiet mode.
+     */
+    private static class CoverageLogHandler {
+        private final LogHandler logHandler;
+
+        @CheckForNull
+        private final LogHandler importantLogHandler;
+
+        private int infoPosition;
+
+        CoverageLogHandler(final TaskListener taskListener, final boolean quiet) {
+            logHandler = new LogHandler(taskListener, "Coverage");
+            logHandler.setQuiet(quiet);
+            importantLogHandler = quiet ? new LogHandler(taskListener, "Coverage") : null;
+        }
+
+        void log(final FilteredLog log) {
+            logHandler.log(log);
+            if (importantLogHandler != null) {
+                importantLogHandler.logErrorMessages(log.getErrorMessages());
+
+                var infoMessages = log.getInfoMessages();
+                while (infoPosition < infoMessages.size()) {
+                    var message = infoMessages.get(infoPosition);
+                    infoPosition++;
+                    if (isImportantMessage(message)) {
+                        importantLogHandler.log("%s", message);
+                    }
+                }
+            }
+        }
+
+        void log(final String format, final Object... args) {
+            if (importantLogHandler == null) {
+                logHandler.log(format, args);
+            }
+        }
+
+        private static boolean isImportantMessage(final String message) {
+            return isFailureMessage(message)
+                    || isQualityGateStatusMessage(message)
+                    || isQualityGateContextMessage(message);
+        }
+
+        private static boolean isQualityGateStatusMessage(final String message) {
+            return isMissedQualityGateMessage(message) || isPassedQualityGateMessage(message);
+        }
+
+        private static boolean isQualityGateContextMessage(final String message) {
+            return isQualityGateDetailsMessage(message)
+                    || isIgnoreErrorsMessage(message)
+                    || isQualityGateEntry(message);
+        }
+
+        private static boolean isFailureMessage(final String message) {
+            return message.startsWith("Failing build due to some errors during recording of the coverage");
+        }
+
+        private static boolean isMissedQualityGateMessage(final String message) {
+            return message.startsWith("-> Some quality gates have been missed");
+        }
+
+        private static boolean isPassedQualityGateMessage(final String message) {
+            return "-> All quality gates have been passed".equals(message);
+        }
+
+        private static boolean isQualityGateDetailsMessage(final String message) {
+            return "-> Details for each quality gate:".equals(message);
+        }
+
+        private static boolean isIgnoreErrorsMessage(final String message) {
+            return "Ignore errors and continue processing".equals(message);
+        }
+
+        private static boolean isQualityGateEntry(final String message) {
+            return message.startsWith("   - [");
         }
     }
 }
