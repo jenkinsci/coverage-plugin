@@ -161,8 +161,8 @@ class QualityGateITest extends AbstractCoverageITest {
 
     @Test
     void shouldKeepQualityGateResultsVisibleInQuietFreestyleJob() {
-        var qualityGates = List.of(
-                new CoverageQualityGate(100.0, Metric.LINE, Baseline.PROJECT, QualityGateCriticality.UNSTABLE));
+        var qualityGates =
+                List.of(new CoverageQualityGate(100.0, Metric.LINE, Baseline.PROJECT, QualityGateCriticality.UNSTABLE));
         var project = createFreestyleJob(
                 Parser.JACOCO,
                 recorder -> {
