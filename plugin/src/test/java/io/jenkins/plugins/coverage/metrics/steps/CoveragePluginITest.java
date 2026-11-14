@@ -77,28 +77,64 @@ class CoveragePluginITest extends AbstractCoverageITest {
     }
 
     @Test
-    void shouldSuppressInformationalMessagesInQuietFreestyleJob() {
+    void shouldSuppressInformationalMessagesForMultipleReportsInQuietFreestyleJob() {
         var project = createFreestyleJob(
-                Parser.JACOCO, recorder -> recorder.setQuiet(true), JACOCO_ANALYSIS_MODEL_FILE);
+                Parser.JACOCO,
+                recorder -> recorder.setQuiet(true),
+                JACOCO_ANALYSIS_MODEL_FILE,
+                JACOCO_CODING_STYLE_FILE);
 
         Run<?, ?> run = buildSuccessfully(project);
 
-        verifyJaCoCoAction(run.getAction(CoverageBuildAction.class));
-        assertThat(getConsoleLog(run)).doesNotContain("Successfully parsed file", "Line Coverage:");
+        var coverageResult = run.getAction(CoverageBuildAction.class);
+        assertThat(coverageResult.getAllValues(Baseline.PROJECT))
+                .contains(createLineCoverageBuilder()
+                        .withCovered(JACOCO_ANALYSIS_MODEL_COVERED + JACOCO_CODING_STYLE_COVERED)
+                        .withMissed(JACOCO_ANALYSIS_MODEL_MISSED + JACOCO_CODING_STYLE_MISSED)
+                        .build());
+        assertThat(getConsoleLog(run))
+                .doesNotContain(
+                        "Successfully parsed file",
+                        "Module Coverage:",
+                        "Package Coverage:",
+                        "File Coverage:",
+                        "Class Coverage:",
+                        "Method Coverage:",
+                        "Line Coverage:",
+                        "Branch Coverage:",
+                        "Instruction Coverage:",
+                        "Lines of Code:",
+                        "Cyclomatic Complexity:");
     }
 
     @Test
-    void shouldSuppressInformationalMessagesInQuietPipeline() {
-        var job = createPipelineWithWorkspaceFiles(JACOCO_ANALYSIS_MODEL_FILE);
+    void shouldSuppressInformationalMessagesForMultipleReportsInQuietPipeline() {
+        var job = createPipelineWithWorkspaceFiles(JACOCO_ANALYSIS_MODEL_FILE, JACOCO_CODING_STYLE_FILE);
         setPipelineScript(
                 job,
-                "recordCoverage tools: [[parser: 'JACOCO', pattern: '" + JACOCO_ANALYSIS_MODEL_FILE + "']], "
-                        + "quiet: true");
+                "recordCoverage tools: [[parser: 'JACOCO', pattern: '**/*.xml']], quiet: true");
 
         Run<?, ?> run = buildSuccessfully(job);
 
-        verifyJaCoCoAction(run.getAction(CoverageBuildAction.class));
-        assertThat(getConsoleLog(run)).doesNotContain("Successfully parsed file", "Line Coverage:");
+        var coverageResult = run.getAction(CoverageBuildAction.class);
+        assertThat(coverageResult.getAllValues(Baseline.PROJECT))
+                .contains(createLineCoverageBuilder()
+                        .withCovered(JACOCO_ANALYSIS_MODEL_COVERED + JACOCO_CODING_STYLE_COVERED)
+                        .withMissed(JACOCO_ANALYSIS_MODEL_MISSED + JACOCO_CODING_STYLE_MISSED)
+                        .build());
+        assertThat(getConsoleLog(run))
+                .doesNotContain(
+                        "Successfully parsed file",
+                        "Module Coverage:",
+                        "Package Coverage:",
+                        "File Coverage:",
+                        "Class Coverage:",
+                        "Method Coverage:",
+                        "Line Coverage:",
+                        "Branch Coverage:",
+                        "Instruction Coverage:",
+                        "Lines of Code:",
+                        "Cyclomatic Complexity:");
     }
 
     @Test
