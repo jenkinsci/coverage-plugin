@@ -110,9 +110,7 @@ class CoveragePluginITest extends AbstractCoverageITest {
     @Test
     void shouldSuppressInformationalMessagesForMultipleReportsInQuietPipeline() {
         var job = createPipelineWithWorkspaceFiles(JACOCO_ANALYSIS_MODEL_FILE, JACOCO_CODING_STYLE_FILE);
-        setPipelineScript(
-                job,
-                "recordCoverage tools: [[parser: 'JACOCO', pattern: '**/*.xml']], quiet: true");
+        setPipelineScript(job, "recordCoverage tools: [[parser: 'JACOCO', pattern: '**/*.xml']], quiet: true");
 
         Run<?, ?> run = buildSuccessfully(job);
 
@@ -200,9 +198,7 @@ class CoveragePluginITest extends AbstractCoverageITest {
     @Test
     void shouldKeepParsingErrorsVisibleInQuietFreestyleJob() {
         var project = createFreestyleJob(
-                Parser.COBERTURA,
-                recorder -> recorder.setQuiet(true),
-                "cobertura-duplicate-methods.xml");
+                Parser.COBERTURA, recorder -> recorder.setQuiet(true), "cobertura-duplicate-methods.xml");
 
         Run<?, ?> run = buildWithResult(project, Result.FAILURE);
 
@@ -215,9 +211,7 @@ class CoveragePluginITest extends AbstractCoverageITest {
     void shouldKeepParsingErrorsVisibleInQuietPipeline() {
         var job = createPipeline();
         copyFileToWorkspace(job, "cobertura-duplicate-methods.xml", "cobertura.xml");
-        setPipelineScript(
-                job,
-                "recordCoverage tools: [[parser: 'COBERTURA', pattern: 'cobertura.xml']], quiet: true");
+        setPipelineScript(job, "recordCoverage tools: [[parser: 'COBERTURA', pattern: 'cobertura.xml']], quiet: true");
 
         Run<?, ?> run = buildWithResult(job, Result.FAILURE);
 
