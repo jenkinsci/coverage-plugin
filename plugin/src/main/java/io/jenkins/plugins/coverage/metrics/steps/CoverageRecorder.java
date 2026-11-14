@@ -554,7 +554,7 @@ public class CoverageRecorder extends Recorder {
                     || message.equals("-> All quality gates have been passed")
                     || message.equals("-> Details for each quality gate:")
                     || message.equals("Ignore errors and continue processing")
-                    || message.startsWith("   - ");
+                    || message.startsWith("   - [");
         }
     }
 
