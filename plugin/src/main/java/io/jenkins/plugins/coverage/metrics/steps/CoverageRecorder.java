@@ -426,8 +426,7 @@ public class CoverageRecorder extends Recorder {
                 failStage(resultHandler, logHandler, log, validation.getLocalizedMessage());
             }
             if (tools.isEmpty()) {
-                failStage(
-                        resultHandler, logHandler, log, "No tools defined that will record the coverage files");
+                failStage(resultHandler, logHandler, log, "No tools defined that will record the coverage files");
             } else {
                 perform(run, workspace, taskListener, resultHandler, log, logHandler);
             }
@@ -510,52 +509,6 @@ public class CoverageRecorder extends Recorder {
             return icons.iterator().next(); // unique icon
         }
         return ICON;
-    }
-
-    /**
-     * Logs coverage messages while preserving errors and quality-gate results in quiet mode.
-     */
-    private static class CoverageLogHandler {
-        private final LogHandler logHandler;
-        @CheckForNull
-        private final LogHandler importantLogHandler;
-        private int infoPosition;
-
-        CoverageLogHandler(final TaskListener taskListener, final boolean quiet) {
-            logHandler = new LogHandler(taskListener, "Coverage");
-            logHandler.setQuiet(quiet);
-            importantLogHandler = quiet ? new LogHandler(taskListener, "Coverage") : null;
-        }
-
-        void log(final FilteredLog log) {
-            logHandler.log(log);
-            if (importantLogHandler != null) {
-                importantLogHandler.logErrorMessages(log.getErrorMessages());
-
-                var infoMessages = log.getInfoMessages();
-                while (infoPosition < infoMessages.size()) {
-                    var message = infoMessages.get(infoPosition++);
-                    if (isImportantMessage(message)) {
-                        importantLogHandler.log("%s", message);
-                    }
-                }
-            }
-        }
-
-        void log(final String format, final Object... args) {
-            if (importantLogHandler == null) {
-                logHandler.log(format, args);
-            }
-        }
-
-        private static boolean isImportantMessage(final String message) {
-            return message.startsWith("Failing build due to some errors during recording of the coverage")
-                    || message.startsWith("-> Some quality gates have been missed")
-                    || message.equals("-> All quality gates have been passed")
-                    || message.equals("-> Details for each quality gate:")
-                    || message.equals("Ignore errors and continue processing")
-                    || message.startsWith("   - [");
-        }
     }
 
     private static void failStage(
@@ -827,6 +780,78 @@ public class CoverageRecorder extends Recorder {
             items.add(Messages.ChecksAnnotationScope_ModifiedLines(), MODIFIED_LINES.name());
             items.add(Messages.ChecksAnnotationScope_AllLines(), ALL_LINES.name());
             return items;
+        }
+    }
+    /**
+     * Logs coverage messages while preserving errors and quality-gate results in quiet mode.
+     */
+    private static class CoverageLogHandler {
+        private final LogHandler logHandler;
+
+        @CheckForNull
+        private final LogHandler importantLogHandler;
+
+        private int infoPosition;
+
+        CoverageLogHandler(final TaskListener taskListener, final boolean quiet) {
+            logHandler = new LogHandler(taskListener, "Coverage");
+            logHandler.setQuiet(quiet);
+            importantLogHandler = quiet ? new LogHandler(taskListener, "Coverage") : null;
+        }
+
+        void log(final FilteredLog log) {
+            logHandler.log(log);
+            if (importantLogHandler != null) {
+                importantLogHandler.logErrorMessages(log.getErrorMessages());
+
+                var infoMessages = log.getInfoMessages();
+                while (infoPosition < infoMessages.size()) {
+                    var message = infoMessages.get(infoPosition);
+                    infoPosition++;
+                    if (isImportantMessage(message)) {
+                        importantLogHandler.log("%s", message);
+                    }
+                }
+            }
+        }
+
+        void log(final String format, final Object... args) {
+            if (importantLogHandler == null) {
+                logHandler.log(format, args);
+            }
+        }
+
+        private static boolean isImportantMessage(final String message) {
+            return isFailureMessage(message)
+                    || isMissedQualityGateMessage(message)
+                    || isPassedQualityGateMessage(message)
+                    || isQualityGateDetailsMessage(message)
+                    || isIgnoreErrorsMessage(message)
+                    || isQualityGateEntry(message);
+        }
+
+        private static boolean isFailureMessage(final String message) {
+            return message.startsWith("Failing build due to some errors during recording of the coverage");
+        }
+
+        private static boolean isMissedQualityGateMessage(final String message) {
+            return message.startsWith("-> Some quality gates have been missed");
+        }
+
+        private static boolean isPassedQualityGateMessage(final String message) {
+            return "-> All quality gates have been passed".equals(message);
+        }
+
+        private static boolean isQualityGateDetailsMessage(final String message) {
+            return "-> Details for each quality gate:".equals(message);
+        }
+
+        private static boolean isIgnoreErrorsMessage(final String message) {
+            return "Ignore errors and continue processing".equals(message);
+        }
+
+        private static boolean isQualityGateEntry(final String message) {
+            return message.startsWith("   - [");
         }
     }
 }
