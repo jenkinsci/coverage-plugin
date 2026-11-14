@@ -146,6 +146,7 @@ class CoveragePluginITest extends AbstractCoverageITest {
 
         assertThat(getConsoleLog(run))
                 .contains("[-ERROR-] No files found for pattern", "Ignore errors and continue processing")
+                .containsOnlyOnce("[-ERROR-] No files found for pattern")
                 .doesNotContain("[Coverage] Recording coverage results");
     }
 
@@ -158,6 +159,7 @@ class CoveragePluginITest extends AbstractCoverageITest {
 
         assertThat(getConsoleLog(run))
                 .contains("[-ERROR-] No files found for pattern", "Ignore errors and continue processing")
+                .containsOnlyOnce("[-ERROR-] No files found for pattern")
                 .doesNotContain("[Coverage] Recording coverage results");
     }
 
