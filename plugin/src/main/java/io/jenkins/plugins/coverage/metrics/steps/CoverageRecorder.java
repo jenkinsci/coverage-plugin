@@ -536,7 +536,7 @@ public class CoverageRecorder extends Recorder {
                 while (infoPosition < infoMessages.size()) {
                     var message = infoMessages.get(infoPosition++);
                     if (isImportantMessage(message)) {
-                        importantLogHandler.log(message);
+                        importantLogHandler.log("%s", message);
                     }
                 }
             }
