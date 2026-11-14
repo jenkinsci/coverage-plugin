@@ -111,6 +111,80 @@ class QualityGateITest extends AbstractCoverageITest {
     }
 
     @Test
+    void shouldKeepQualityGateResultsVisibleInQuietPipeline() {
+        var project = createPipelineWithWorkspaceFiles(JACOCO_ANALYSIS_MODEL_FILE);
+
+        setPipelineScript(
+                project,
+                "recordCoverage("
+                        + "tools: [[parser: '" + Parser.JACOCO.name() + "', pattern: '**/*xml']], "
+                        + "qualityGates: [[threshold: 100.0, metric: 'LINE', baseline: 'PROJECT', "
+                        + "criticality: 'UNSTABLE']], quiet: true)\n");
+
+        var build = (WorkflowRun) buildWithResult(project, Result.UNSTABLE);
+
+        var coverageResult = build.getAction(CoverageBuildAction.class);
+        assertThat(coverageResult.getQualityGateResult()).hasOverallStatus(QualityGateStatus.WARNING);
+        assertThatFlowNodeHasWarningAction(build);
+        assertThat(getConsoleLog(build))
+                .contains(
+                        "-> Some quality gates have been missed: overall result is UNSTABLE",
+                        "-> Details for each quality gate:",
+                        "   - [Whole project - Line Coverage]: ≪Unstable≫ - "
+                                + "(Actual value: 95.39%, Quality gate: 100.00)")
+                .doesNotContain("Successfully parsed file", "Line Coverage:");
+    }
+
+    @Test
+    void shouldKeepPassedQualityGateVisibleInQuietPipeline() {
+        var project = createPipelineWithWorkspaceFiles(JACOCO_ANALYSIS_MODEL_FILE);
+
+        setPipelineScript(
+                project,
+                "recordCoverage("
+                        + "tools: [[parser: '" + Parser.JACOCO.name() + "', pattern: '**/*xml']], "
+                        + "qualityGates: [[threshold: -100.0, metric: 'LINE', baseline: 'PROJECT', "
+                        + "criticality: 'UNSTABLE']], quiet: true)\n");
+
+        var build = (WorkflowRun) buildWithResult(project, Result.SUCCESS);
+
+        var coverageResult = build.getAction(CoverageBuildAction.class);
+        assertThat(coverageResult.getQualityGateResult()).hasOverallStatus(QualityGateStatus.PASSED);
+        assertThat(getConsoleLog(build))
+                .contains(
+                        "-> All quality gates have been passed",
+                        "-> Details for each quality gate:",
+                        "   - [Whole project - Line Coverage]: ≪Success≫ - "
+                                + "(Actual value: 95.39%, Quality gate: -100.00)")
+                .doesNotContain("Successfully parsed file", "Line Coverage:");
+    }
+
+    @Test
+    void shouldKeepQualityGateResultsVisibleInQuietFreestyleJob() {
+        var qualityGates = List.of(
+                new CoverageQualityGate(100.0, Metric.LINE, Baseline.PROJECT, QualityGateCriticality.UNSTABLE));
+        var project = createFreestyleJob(
+                Parser.JACOCO,
+                recorder -> {
+                    recorder.setQuiet(true);
+                    recorder.setQualityGates(qualityGates);
+                },
+                JACOCO_ANALYSIS_MODEL_FILE);
+
+        Run<?, ?> build = buildWithResult(project, Result.UNSTABLE);
+
+        var coverageResult = build.getAction(CoverageBuildAction.class);
+        assertThat(coverageResult.getQualityGateResult()).hasOverallStatus(QualityGateStatus.WARNING);
+        assertThat(getConsoleLog(build))
+                .contains(
+                        "-> Some quality gates have been missed: overall result is UNSTABLE",
+                        "-> Details for each quality gate:",
+                        "   - [Whole project - Line Coverage]: ≪Unstable≫ - "
+                                + "(Actual value: 95.39%, Quality gate: 100.00)")
+                .doesNotContain("Successfully parsed file", "Line Coverage:");
+    }
+
+    @Test
     void shouldUseQualityGateInPipeline() {
         var project = createPipelineWithWorkspaceFiles(JACOCO_ANALYSIS_MODEL_FILE);
 

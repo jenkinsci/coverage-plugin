@@ -76,6 +76,91 @@ class CoveragePluginITest extends AbstractCoverageITest {
         assertThat(getConsoleLog(run)).contains("[-ERROR-] No tools defined that will record the coverage files");
     }
 
+    @Test
+    void shouldSuppressInformationalMessagesInQuietFreestyleJob() {
+        var project = createFreestyleJob(
+                Parser.JACOCO, recorder -> recorder.setQuiet(true), JACOCO_ANALYSIS_MODEL_FILE);
+
+        Run<?, ?> run = buildSuccessfully(project);
+
+        verifyJaCoCoAction(run.getAction(CoverageBuildAction.class));
+        assertThat(getConsoleLog(run)).doesNotContain("Successfully parsed file", "Line Coverage:");
+    }
+
+    @Test
+    void shouldSuppressInformationalMessagesInQuietPipeline() {
+        var job = createPipelineWithWorkspaceFiles(JACOCO_ANALYSIS_MODEL_FILE);
+        setPipelineScript(
+                job,
+                "recordCoverage tools: [[parser: 'JACOCO', pattern: '" + JACOCO_ANALYSIS_MODEL_FILE + "']], "
+                        + "quiet: true");
+
+        Run<?, ?> run = buildSuccessfully(job);
+
+        verifyJaCoCoAction(run.getAction(CoverageBuildAction.class));
+        assertThat(getConsoleLog(run)).doesNotContain("Successfully parsed file", "Line Coverage:");
+    }
+
+    @Test
+    void shouldKeepErrorsVisibleInQuietFreestyleJob() {
+        var project = createFreestyleJob(Parser.JACOCO, recorder -> {
+            recorder.setQuiet(true);
+            recorder.getTools().get(0).setPattern("missing.xml");
+        });
+
+        Run<?, ?> run = buildSuccessfully(project);
+
+        assertThat(getConsoleLog(run))
+                .contains("[-ERROR-] No files found for pattern", "Ignore errors and continue processing")
+                .doesNotContain("[Coverage] Recording coverage results");
+    }
+
+    @Test
+    void shouldKeepErrorsVisibleInQuietPipeline() {
+        var job = createPipeline();
+        setPipelineScript(job, "recordCoverage tools: [[parser: 'JACOCO', pattern: 'missing.xml']], quiet: true");
+
+        Run<?, ?> run = buildSuccessfully(job);
+
+        assertThat(getConsoleLog(run))
+                .contains("[-ERROR-] No files found for pattern", "Ignore errors and continue processing")
+                .doesNotContain("[Coverage] Recording coverage results");
+    }
+
+    @Test
+    void shouldStillFailOnErrorsInQuietFreestyleJobWhenConfigured() {
+        var project = createFreestyleJob(Parser.JACOCO, recorder -> {
+            recorder.setQuiet(true);
+            recorder.setFailOnError(true);
+            recorder.getTools().get(0).setPattern("missing.xml");
+        });
+
+        Run<?, ?> run = buildWithResult(project, Result.FAILURE);
+
+        assertThat(getConsoleLog(run))
+                .contains(
+                        "[-ERROR-] No files found for pattern",
+                        "Failing build due to some errors during recording of the coverage")
+                .doesNotContain("[Coverage] Recording coverage results");
+    }
+
+    @Test
+    void shouldStillFailOnErrorsInQuietPipelineWhenConfigured() {
+        var job = createPipeline();
+        setPipelineScript(
+                job,
+                "recordCoverage tools: [[parser: 'JACOCO', pattern: 'missing.xml']], "
+                        + "failOnError: true, quiet: true");
+
+        Run<?, ?> run = buildWithResult(job, Result.FAILURE);
+
+        assertThat(getConsoleLog(run))
+                .contains(
+                        "[-ERROR-] No files found for pattern",
+                        "Failing build due to some errors during recording of the coverage")
+                .doesNotContain("[Coverage] Recording coverage results");
+    }
+
     @EnumSource
     @ParameterizedTest(name = "{index} => Freestyle job with parser {0}")
     @DisplayName("Report error but do not fail build in freestyle job when no input files are found")

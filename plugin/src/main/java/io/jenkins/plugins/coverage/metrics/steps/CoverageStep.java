@@ -67,6 +67,7 @@ public class CoverageStep extends Step implements Serializable {
     private ChecksAnnotationScope checksAnnotationScope = ChecksAnnotationScope.MODIFIED_LINES;
     private boolean ignoreParsingErrors = false;
     private boolean failOnError = false;
+    private boolean quiet = false;
     private boolean enabledForFailure = false;
     private boolean skipSymbolicLinks = false;
     private String scm = StringUtils.EMPTY;
@@ -254,6 +255,21 @@ public class CoverageStep extends Step implements Serializable {
     }
 
     /**
+     * Sets whether informational log messages should be suppressed.
+     *
+     * @param quiet
+     *         {@code true} to suppress informational log messages, {@code false} to keep the default verbose output
+     */
+    @DataBoundSetter
+    public void setQuiet(final boolean quiet) {
+        this.quiet = quiet;
+    }
+
+    public boolean isQuiet() {
+        return quiet;
+    }
+
+    /**
      * Returns whether recording should be enabled for failed builds as well.
      *
      * @param enabledForFailure
@@ -362,6 +378,7 @@ public class CoverageStep extends Step implements Serializable {
             recorder.setChecksAnnotationScope(step.getChecksAnnotationScope());
             recorder.setIgnoreParsingErrors(step.isIgnoreParsingErrors());
             recorder.setFailOnError(step.isFailOnError());
+            recorder.setQuiet(step.isQuiet());
             recorder.setEnabledForFailure(step.isEnabledForFailure());
             recorder.setScm(step.getScm());
             recorder.setSourceCodeEncoding(step.getSourceCodeEncoding());
