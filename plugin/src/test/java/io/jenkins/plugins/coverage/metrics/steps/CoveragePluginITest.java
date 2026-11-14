@@ -197,6 +197,35 @@ class CoveragePluginITest extends AbstractCoverageITest {
                 .doesNotContain("[Coverage] Recording coverage results");
     }
 
+    @Test
+    void shouldKeepParsingErrorsVisibleInQuietFreestyleJob() {
+        var project = createFreestyleJob(
+                Parser.COBERTURA,
+                recorder -> recorder.setQuiet(true),
+                "cobertura-duplicate-methods.xml");
+
+        Run<?, ?> run = buildWithResult(project, Result.FAILURE);
+
+        assertThat(getConsoleLog(run))
+                .contains("A duplicate element was detected", "ignoreErrors=true", "Enumerate")
+                .doesNotContain("Successfully parsed file");
+    }
+
+    @Test
+    void shouldKeepParsingErrorsVisibleInQuietPipeline() {
+        var job = createPipeline();
+        copyFileToWorkspace(job, "cobertura-duplicate-methods.xml", "cobertura.xml");
+        setPipelineScript(
+                job,
+                "recordCoverage tools: [[parser: 'COBERTURA', pattern: 'cobertura.xml']], quiet: true");
+
+        Run<?, ?> run = buildWithResult(job, Result.FAILURE);
+
+        assertThat(getConsoleLog(run))
+                .contains("A duplicate element was detected", "ignoreErrors=true", "Enumerate")
+                .doesNotContain("Successfully parsed file");
+    }
+
     @EnumSource
     @ParameterizedTest(name = "{index} => Freestyle job with parser {0}")
     @DisplayName("Report error but do not fail build in freestyle job when no input files are found")
