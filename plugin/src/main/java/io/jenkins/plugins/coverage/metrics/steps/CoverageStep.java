@@ -47,7 +47,7 @@ import org.kohsuke.stapler.verb.POST;
  *
  * @author Ullrich Hafner
  */
-@SuppressWarnings("PMD.DataClass")
+@SuppressWarnings({"PMD.DataClass", "PMD.TooManyFields"})
 public class CoverageStep extends Step implements Serializable {
     @Serial
     private static final long serialVersionUID = 34386077204781270L;
