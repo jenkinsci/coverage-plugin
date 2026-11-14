@@ -782,6 +782,7 @@ public class CoverageRecorder extends Recorder {
             return items;
         }
     }
+
     /**
      * Logs coverage messages while preserving errors and quality-gate results in quiet mode.
      */
@@ -823,9 +824,16 @@ public class CoverageRecorder extends Recorder {
 
         private static boolean isImportantMessage(final String message) {
             return isFailureMessage(message)
-                    || isMissedQualityGateMessage(message)
-                    || isPassedQualityGateMessage(message)
-                    || isQualityGateDetailsMessage(message)
+                    || isQualityGateStatusMessage(message)
+                    || isQualityGateContextMessage(message);
+        }
+
+        private static boolean isQualityGateStatusMessage(final String message) {
+            return isMissedQualityGateMessage(message) || isPassedQualityGateMessage(message);
+        }
+
+        private static boolean isQualityGateContextMessage(final String message) {
+            return isQualityGateDetailsMessage(message)
                     || isIgnoreErrorsMessage(message)
                     || isQualityGateEntry(message);
         }
