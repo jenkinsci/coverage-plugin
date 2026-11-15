@@ -38,7 +38,6 @@ import io.jenkins.plugins.prism.SourceCodeRetention;
 import io.jenkins.plugins.util.AgentFileVisitor.FileVisitorResult;
 import io.jenkins.plugins.util.EnvironmentResolver;
 import io.jenkins.plugins.util.JenkinsFacade;
-import io.jenkins.plugins.util.LogHandler;
 import io.jenkins.plugins.util.ResultHandler;
 import io.jenkins.plugins.util.RunResultHandler;
 import io.jenkins.plugins.util.ValidationUtilities;
@@ -83,6 +82,8 @@ public class CoverageRecorder extends Recorder {
     static final String CHECKS_DEFAULT_NAME = "Code Coverage";
 
     static final String DEFAULT_ID = "coverage";
+    static final String FAIL_ON_ERROR_MESSAGE = "Failing build due to some errors during recording of the coverage";
+    static final String IGNORE_ERRORS_MESSAGE = "Ignore errors and continue processing";
     private static final ValidationUtilities VALIDATION_UTILITIES = new ValidationUtilities();
     /** The coverage report symbol from the Ionicons plugin. */
     private static final String ICON = "symbol-footsteps-outline plugin-ionicons-api";
@@ -416,7 +417,7 @@ public class CoverageRecorder extends Recorder {
             final ResultHandler resultHandler)
             throws InterruptedException {
         var overallResult = run.getResult();
-        var logHandler = new CoverageLogHandler(taskListener, isQuiet());
+        var logHandler = CoverageLogHandler.create(taskListener, isQuiet());
         if (enabledForFailure || overallResult == null || overallResult.isBetterOrEqualTo(Result.UNSTABLE)) {
             var log = new FilteredLog("Errors while recording code coverage:");
             log.logInfo("Recording coverage results");
@@ -430,7 +431,7 @@ public class CoverageRecorder extends Recorder {
             } else {
                 perform(run, workspace, taskListener, resultHandler, log, logHandler);
             }
-        } else if (!isQuiet()) {
+        } else {
             logHandler.log("Skipping execution of coverage recorder since overall result is '%s'", overallResult);
         }
     }
@@ -551,11 +552,10 @@ public class CoverageRecorder extends Recorder {
                 var coverageResults = result.getResults();
                 if (result.hasErrors()) {
                     if (isFailOnError()) {
-                        var errorMessage = "Failing build due to some errors during recording of the coverage";
-                        log.logInfo(errorMessage);
-                        resultHandler.publishResult(Result.FAILURE, errorMessage);
+                        log.logInfo(FAIL_ON_ERROR_MESSAGE);
+                        resultHandler.publishResult(Result.FAILURE, FAIL_ON_ERROR_MESSAGE);
                     } else {
-                        log.logInfo("Ignore errors and continue processing");
+                        log.logInfo(IGNORE_ERRORS_MESSAGE);
                     }
                 }
                 results.put(tool.getParser(), coverageResults);
@@ -783,83 +783,4 @@ public class CoverageRecorder extends Recorder {
         }
     }
 
-    /**
-     * Logs coverage messages while preserving errors and quality-gate results in quiet mode.
-     */
-    private static class CoverageLogHandler {
-        private final LogHandler logHandler;
-
-        @CheckForNull
-        private final LogHandler importantLogHandler;
-
-        private int infoPosition;
-
-        CoverageLogHandler(final TaskListener taskListener, final boolean quiet) {
-            logHandler = new LogHandler(taskListener, "Coverage");
-            logHandler.setQuiet(quiet);
-            importantLogHandler = quiet ? new LogHandler(taskListener, "Coverage") : null;
-        }
-
-        void log(final FilteredLog log) {
-            logHandler.log(log);
-            if (importantLogHandler != null) {
-                importantLogHandler.logErrorMessages(log.getErrorMessages());
-
-                var infoMessages = log.getInfoMessages();
-                while (infoPosition < infoMessages.size()) {
-                    var message = infoMessages.get(infoPosition);
-                    infoPosition++;
-                    if (isImportantMessage(message)) {
-                        importantLogHandler.log("%s", message);
-                    }
-                }
-            }
-        }
-
-        void log(final String format, final Object... args) {
-            if (importantLogHandler == null) {
-                logHandler.log(format, args);
-            }
-        }
-
-        private static boolean isImportantMessage(final String message) {
-            return isFailureMessage(message)
-                    || isQualityGateStatusMessage(message)
-                    || isQualityGateContextMessage(message);
-        }
-
-        private static boolean isQualityGateStatusMessage(final String message) {
-            return isMissedQualityGateMessage(message) || isPassedQualityGateMessage(message);
-        }
-
-        private static boolean isQualityGateContextMessage(final String message) {
-            return isQualityGateDetailsMessage(message)
-                    || isIgnoreErrorsMessage(message)
-                    || isQualityGateEntry(message);
-        }
-
-        private static boolean isFailureMessage(final String message) {
-            return message.startsWith("Failing build due to some errors during recording of the coverage");
-        }
-
-        private static boolean isMissedQualityGateMessage(final String message) {
-            return message.startsWith("-> Some quality gates have been missed");
-        }
-
-        private static boolean isPassedQualityGateMessage(final String message) {
-            return "-> All quality gates have been passed".equals(message);
-        }
-
-        private static boolean isQualityGateDetailsMessage(final String message) {
-            return "-> Details for each quality gate:".equals(message);
-        }
-
-        private static boolean isIgnoreErrorsMessage(final String message) {
-            return "Ignore errors and continue processing".equals(message);
-        }
-
-        private static boolean isQualityGateEntry(final String message) {
-            return message.startsWith("   - [");
-        }
-    }
 }

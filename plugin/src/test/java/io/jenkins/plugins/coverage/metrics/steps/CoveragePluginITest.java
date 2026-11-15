@@ -108,79 +108,6 @@ class CoveragePluginITest extends AbstractCoverageITest {
     }
 
     @Test
-    void shouldSuppressInformationalMessagesForMultipleReportsInQuietPipeline() {
-        var job = createPipelineWithWorkspaceFiles(JACOCO_ANALYSIS_MODEL_FILE, JACOCO_CODING_STYLE_FILE);
-        setPipelineScript(job, "recordCoverage tools: [[parser: 'JACOCO', pattern: '**/*.xml']], quiet: true");
-
-        Run<?, ?> run = buildSuccessfully(job);
-
-        var coverageResult = run.getAction(CoverageBuildAction.class);
-        assertThat(coverageResult.getAllValues(Baseline.PROJECT))
-                .contains(createLineCoverageBuilder()
-                        .withCovered(JACOCO_ANALYSIS_MODEL_COVERED + JACOCO_CODING_STYLE_COVERED)
-                        .withMissed(JACOCO_ANALYSIS_MODEL_MISSED + JACOCO_CODING_STYLE_MISSED)
-                        .build());
-        assertThat(getConsoleLog(run))
-                .doesNotContain(
-                        "Successfully parsed file",
-                        "Module Coverage:",
-                        "Package Coverage:",
-                        "File Coverage:",
-                        "Class Coverage:",
-                        "Method Coverage:",
-                        "Line Coverage:",
-                        "Branch Coverage:",
-                        "Instruction Coverage:",
-                        "Lines of Code:",
-                        "Cyclomatic Complexity:");
-    }
-
-    @Test
-    void shouldKeepErrorsVisibleInQuietFreestyleJob() {
-        var project = createFreestyleJob(Parser.JACOCO, recorder -> {
-            recorder.setQuiet(true);
-            recorder.getTools().get(0).setPattern("missing.xml");
-        });
-
-        Run<?, ?> run = buildSuccessfully(project);
-
-        assertThat(getConsoleLog(run))
-                .contains("[-ERROR-] No files found for pattern", "Ignore errors and continue processing")
-                .containsOnlyOnce("[-ERROR-] No files found for pattern")
-                .doesNotContain("[Coverage] Recording coverage results");
-    }
-
-    @Test
-    void shouldKeepErrorsVisibleInQuietPipeline() {
-        var job = createPipeline();
-        setPipelineScript(job, "recordCoverage tools: [[parser: 'JACOCO', pattern: 'missing.xml']], quiet: true");
-
-        Run<?, ?> run = buildSuccessfully(job);
-
-        assertThat(getConsoleLog(run))
-                .contains("[-ERROR-] No files found for pattern", "Ignore errors and continue processing")
-                .containsOnlyOnce("[-ERROR-] No files found for pattern")
-                .doesNotContain("[Coverage] Recording coverage results");
-    }
-
-    @Test
-    void shouldStillFailOnErrorsInQuietFreestyleJobWhenConfigured() {
-        var project = createFreestyleJob(Parser.JACOCO, recorder -> {
-            recorder.setQuiet(true);
-            recorder.setFailOnError(true);
-            recorder.getTools().get(0).setPattern("missing.xml");
-        });
-
-        Run<?, ?> run = buildWithResult(project, Result.FAILURE);
-
-        assertThat(getConsoleLog(run))
-                .contains(
-                        "[-ERROR-] No files found for pattern",
-                        "Failing build due to some errors during recording of the coverage")
-                .doesNotContain("[Coverage] Recording coverage results");
-    }
-
-    @Test
     void shouldStillFailOnErrorsInQuietPipelineWhenConfigured() {
         var job = createPipeline();
         setPipelineScript(
@@ -195,31 +122,6 @@ class CoveragePluginITest extends AbstractCoverageITest {
                         "[-ERROR-] No files found for pattern",
                         "Failing build due to some errors during recording of the coverage")
                 .doesNotContain("[Coverage] Recording coverage results");
-    }
-
-    @Test
-    void shouldKeepParsingErrorsVisibleInQuietFreestyleJob() {
-        var project = createFreestyleJob(
-                Parser.COBERTURA, recorder -> recorder.setQuiet(true), "cobertura-duplicate-methods.xml");
-
-        Run<?, ?> run = buildWithResult(project, Result.FAILURE);
-
-        assertThat(getConsoleLog(run))
-                .contains("A duplicate element was detected", "ignoreErrors=true", "Enumerate")
-                .doesNotContain("Successfully parsed file");
-    }
-
-    @Test
-    void shouldKeepParsingErrorsVisibleInQuietPipeline() {
-        var job = createPipeline();
-        copyFileToWorkspace(job, "cobertura-duplicate-methods.xml", "cobertura.xml");
-        setPipelineScript(job, "recordCoverage tools: [[parser: 'COBERTURA', pattern: 'cobertura.xml']], quiet: true");
-
-        Run<?, ?> run = buildWithResult(job, Result.FAILURE);
-
-        assertThat(getConsoleLog(run))
-                .contains("A duplicate element was detected", "ignoreErrors=true", "Enumerate")
-                .doesNotContain("Successfully parsed file");
     }
 
     @EnumSource

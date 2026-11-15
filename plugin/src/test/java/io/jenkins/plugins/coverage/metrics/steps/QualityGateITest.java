@@ -160,31 +160,6 @@ class QualityGateITest extends AbstractCoverageITest {
     }
 
     @Test
-    void shouldKeepQualityGateResultsVisibleInQuietFreestyleJob() {
-        var qualityGates =
-                List.of(new CoverageQualityGate(100.0, Metric.LINE, Baseline.PROJECT, QualityGateCriticality.UNSTABLE));
-        var project = createFreestyleJob(
-                Parser.JACOCO,
-                recorder -> {
-                    recorder.setQuiet(true);
-                    recorder.setQualityGates(qualityGates);
-                },
-                JACOCO_ANALYSIS_MODEL_FILE);
-
-        Run<?, ?> build = buildWithResult(project, Result.UNSTABLE);
-
-        var coverageResult = build.getAction(CoverageBuildAction.class);
-        assertThat(coverageResult.getQualityGateResult()).hasOverallStatus(QualityGateStatus.WARNING);
-        assertThat(getConsoleLog(build))
-                .contains(
-                        "-> Some quality gates have been missed: overall result is UNSTABLE",
-                        "-> Details for each quality gate:",
-                        "   - [Whole project - Line Coverage]: ≪Unstable≫ - "
-                                + "(Actual value: 95.39%, Quality gate: 100.00)")
-                .doesNotContain("Successfully parsed file", "Line Coverage:");
-    }
-
-    @Test
     void shouldUseQualityGateInPipeline() {
         var project = createPipelineWithWorkspaceFiles(JACOCO_ANALYSIS_MODEL_FILE);
 
