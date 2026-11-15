@@ -782,5 +782,4 @@ public class CoverageRecorder extends Recorder {
             return items;
         }
     }
-
 }
