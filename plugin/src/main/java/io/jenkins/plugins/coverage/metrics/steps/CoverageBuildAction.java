@@ -1,7 +1,5 @@
 package io.jenkins.plugins.coverage.metrics.steps;
 
-import static hudson.model.Run.XSTREAM2;
-
 import edu.hm.hafner.coverage.ChangeSet;
 import edu.hm.hafner.coverage.Difference;
 import edu.hm.hafner.coverage.FileDeltas;
@@ -140,12 +138,6 @@ public final class CoverageBuildAction extends BuildAction<Node> implements Stap
     private transient boolean isFileDeltasLoaded;
 
     private transient Lock sidecarLock = new ReentrantLock(); // re-created in readResolve
-
-    static {
-        CoverageXmlStream.registerConverters(XSTREAM2);
-
-        registerValueListConverters(XSTREAM2);
-    }
 
     static void registerValueListConverters(final XStream2 xstream) {
         xstream.alias("coverage-aggregated-values", AggregatedValues.class);
