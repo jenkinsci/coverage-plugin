@@ -18,6 +18,7 @@
            style="display: flex; flex-direction: row; justify-content: flex-end; align-items: center; flex-wrap: wrap; gap: 12px;">
         <div style="display: flex; align-items: center;">
           <div class="jenkins-!-margin-right-1" style="text-wrap: nowrap">${%Metric}:</div>
+          <cov:metric-icons select="hierarchy-metric-select" formatter="${formatter}"/>
           <div class="jenkins-select">
             <select id="hierarchy-metric-select" class="jenkins-select__input" style="min-width: 20em;">
               <j:if test="${!it.coverageTreeMetrics.isEmpty()}">

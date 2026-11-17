@@ -10,6 +10,7 @@ import edu.hm.hafner.coverage.Node;
 import edu.hm.hafner.coverage.Value;
 import hudson.model.ModelObject;
 import hudson.model.Run;
+import io.jenkins.plugins.coverage.metrics.model.ElementFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -30,7 +31,11 @@ import tools.jackson.databind.ObjectMapper;
  *
  * @author Ullrich Hafner
  */
-@SuppressWarnings({"checkstyle:ClassDataAbstractionCoupling", "PMD.CouplingBetweenObjects"})
+@SuppressWarnings({
+    "checkstyle:ClassDataAbstractionCoupling",
+    "checkstyle:ClassFanOutComplexity",
+    "PMD.CouplingBetweenObjects"
+})
 public class HotspotsModel implements ModelObject {
     /** The maximum number of files in each ranking. */
     static final int MAX_ENTRIES = 10;
@@ -69,6 +74,10 @@ public class HotspotsModel implements ModelObject {
 
     public RunTab getTab() {
         return new RunTab(parent.getOwner());
+    }
+
+    public ElementFormatter getFormatter() {
+        return parent.getFormatter();
     }
 
     /**

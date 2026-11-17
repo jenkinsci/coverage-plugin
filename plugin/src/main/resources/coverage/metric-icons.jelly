@@ -1,0 +1,28 @@
+<?jelly escape-by-default='true'?>
+<j:jelly xmlns:st="jelly:stapler" xmlns:j="jelly:core" xmlns:l="/lib/layout">
+
+  <st:documentation>
+    Renders the icon of the selected metric next to a metric selection in the app bar. The options of a select box
+    cannot contain icons, so the icons of all metrics are rendered next to the select box. All icons are hidden: the
+    script metric-icon.js shows the icon of the selected metric. The values of the options of the select box must be
+    the tag names of the metrics (see Metric#toTagName). Options with other values (e.g., a constant) show no icon.
+
+    <st:attribute name="select" type="String" use="required">
+      The ID of the select box that contains the metrics.
+    </st:attribute>
+    <st:attribute name="formatter" type="io.jenkins.plugins.coverage.metrics.model.ElementFormatter" use="required">
+      The formatter that provides the metrics and their icons.
+    </st:attribute>
+  </st:documentation>
+
+  <st:adjunct includes="io.jenkins.plugins.coverage.metrics.metric-icon"/>
+
+  <span class="coverage-metric-icons" data-select="${attrs.select}">
+    <j:forEach var="metric" items="${attrs.formatter.allMetrics}">
+      <span class="coverage-metric-icon jenkins-hidden" data-metric="${metric.toTagName()}">
+        <l:icon src="${attrs.formatter.getIcon(metric)}" class="icon-sm" alt=""/>
+      </span>
+    </j:forEach>
+  </span>
+
+</j:jelly>

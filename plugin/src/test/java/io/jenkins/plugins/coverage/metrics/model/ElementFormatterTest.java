@@ -195,4 +195,11 @@ class ElementFormatterTest {
 
         assertThat(formatter.getIcon(metric)).isEqualTo("symbol-%s-outline plugin-ionicons-api".formatted(icon));
     }
+
+    @Test
+    void shouldProvideAllMetrics() {
+        var formatter = new ElementFormatter();
+
+        assertThat(formatter.getAllMetrics()).containsExactly(Metric.values());
+    }
 }

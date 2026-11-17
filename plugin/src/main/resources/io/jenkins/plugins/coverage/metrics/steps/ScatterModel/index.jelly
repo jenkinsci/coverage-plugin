@@ -15,6 +15,7 @@
            style="display: flex; flex-direction: row; justify-content: space-between; align-items: center; height: auto; flex-wrap: wrap; gap: 12px;">
         <div style="display: flex; align-items: center;">
           <div class="jenkins-!-margin-right-1" style="text-wrap: nowrap">${%x-title}:</div>
+          <cov:metric-icons select="scatter-x-metric" formatter="${it.formatter}"/>
           <div class="jenkins-select">
             <select id="scatter-x-metric" class="jenkins-select__input" style="min-width: 14em;"
                     data-coverage-label="${%coverage-group}" data-software-label="${%software-group}"/>
@@ -22,6 +23,7 @@
         </div>
         <div style="display: flex; align-items: center;">
           <div class="jenkins-!-margin-right-1" style="text-wrap: nowrap">${%y-title}:</div>
+          <cov:metric-icons select="scatter-y-metric" formatter="${it.formatter}"/>
           <div class="jenkins-select">
             <select id="scatter-y-metric" class="jenkins-select__input" style="min-width: 14em;"
                     data-coverage-label="${%coverage-group}" data-software-label="${%software-group}"/>
@@ -39,6 +41,7 @@
         </div>
         <div style="display: flex; align-items: center;" tooltip="${%size-tooltip}">
           <div class="jenkins-!-margin-right-1" style="text-wrap: nowrap">${%size-title}:</div>
+          <cov:metric-icons select="scatter-size-metric" formatter="${it.formatter}"/>
           <div class="jenkins-select">
             <select id="scatter-size-metric" class="jenkins-select__input" style="min-width: 14em;"
                     data-constant-label="${%size-constant}"/>

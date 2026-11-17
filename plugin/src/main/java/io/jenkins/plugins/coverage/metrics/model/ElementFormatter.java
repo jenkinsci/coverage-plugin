@@ -346,6 +346,16 @@ public final class ElementFormatter {
     }
 
     /**
+     * Returns all available metrics. Used by the views to render the icons of all metrics that might be selected in a
+     * metric selection (see {@link #getIcon(Metric)}).
+     *
+     * @return all metrics
+     */
+    public List<Metric> getAllMetrics() {
+        return List.of(Metric.values());
+    }
+
+    /**
      * Returns a localized human-readable name for the specified metric.
      *
      * @param metric

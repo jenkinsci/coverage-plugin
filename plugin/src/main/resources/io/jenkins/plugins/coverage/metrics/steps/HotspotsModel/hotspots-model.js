@@ -1,4 +1,4 @@
-/* global $, proxy, echarts, echartsJenkinsApi, CoverageColorScale */
+/* global $, proxy, echarts, echartsJenkinsApi, CoverageColorScale, CoverageMetricIcons */
 
 (function ($) {
     const CHART_SELECTOR = '#coverage-histogram';
@@ -89,6 +89,7 @@
         else if (findMetric(PREFERRED_METRIC)) {
             select.value = PREFERRED_METRIC;
         }
+        CoverageMetricIcons.update(select);
     }
 
     // The names of the aggregations depend on the metric (the worst value is the maximum or the minimum), so the
