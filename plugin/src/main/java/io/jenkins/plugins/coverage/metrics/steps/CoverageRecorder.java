@@ -38,7 +38,6 @@ import io.jenkins.plugins.prism.SourceCodeRetention;
 import io.jenkins.plugins.util.AgentFileVisitor.FileVisitorResult;
 import io.jenkins.plugins.util.EnvironmentResolver;
 import io.jenkins.plugins.util.JenkinsFacade;
-import io.jenkins.plugins.util.LogHandler;
 import io.jenkins.plugins.util.ResultHandler;
 import io.jenkins.plugins.util.RunResultHandler;
 import io.jenkins.plugins.util.ValidationUtilities;
@@ -83,6 +82,8 @@ public class CoverageRecorder extends Recorder {
     static final String CHECKS_DEFAULT_NAME = "Code Coverage";
 
     static final String DEFAULT_ID = "coverage";
+    static final String FAIL_ON_ERROR_MESSAGE = "Failing build due to some errors during recording of the coverage";
+    static final String IGNORE_ERRORS_MESSAGE = "Ignore errors and continue processing";
     private static final ValidationUtilities VALIDATION_UTILITIES = new ValidationUtilities();
     /** The coverage report symbol from the Ionicons plugin. */
     private static final String ICON = "symbol-footsteps-outline plugin-ionicons-api";
@@ -96,6 +97,7 @@ public class CoverageRecorder extends Recorder {
     private ChecksAnnotationScope checksAnnotationScope = ChecksAnnotationScope.MODIFIED_LINES;
     private boolean ignoreParsingErrors = false;
     private boolean failOnError = false;
+    private boolean quiet = false;
     private boolean enabledForFailure = false;
     private boolean skipSymbolicLinks = false;
     private String scm = StringUtils.EMPTY;
@@ -290,6 +292,21 @@ public class CoverageRecorder extends Recorder {
     }
 
     /**
+     * Sets whether informational log messages should be suppressed.
+     *
+     * @param quiet
+     *         {@code true} to suppress informational log messages, {@code false} to keep the default verbose output
+     */
+    @DataBoundSetter
+    public void setQuiet(final boolean quiet) {
+        this.quiet = quiet;
+    }
+
+    public boolean isQuiet() {
+        return quiet;
+    }
+
+    /**
      * Returns whether recording should be enabled for failed builds as well.
      *
      * @param enabledForFailure
@@ -400,7 +417,7 @@ public class CoverageRecorder extends Recorder {
             final ResultHandler resultHandler)
             throws InterruptedException {
         var overallResult = run.getResult();
-        var logHandler = new LogHandler(taskListener, "Coverage");
+        var logHandler = CoverageLogHandler.create(taskListener, isQuiet());
         if (enabledForFailure || overallResult == null || overallResult.isBetterOrEqualTo(Result.UNSTABLE)) {
             var log = new FilteredLog("Errors while recording code coverage:");
             log.logInfo("Recording coverage results");
@@ -425,7 +442,7 @@ public class CoverageRecorder extends Recorder {
             final TaskListener taskListener,
             final ResultHandler resultHandler,
             final FilteredLog log,
-            final LogHandler logHandler)
+            final CoverageLogHandler logHandler)
             throws InterruptedException {
         var results = recordCoverageResults(run, workspace, resultHandler, log, logHandler);
         var aggregatedResult = aggregateResults(log, results);
@@ -497,7 +514,7 @@ public class CoverageRecorder extends Recorder {
 
     private static void failStage(
             final ResultHandler resultHandler,
-            final LogHandler logHandler,
+            final CoverageLogHandler logHandler,
             final FilteredLog log,
             final String message) {
         log.logError(message);
@@ -510,7 +527,7 @@ public class CoverageRecorder extends Recorder {
             final FilePath workspace,
             final ResultHandler resultHandler,
             final FilteredLog log,
-            final LogHandler logHandler)
+            final CoverageLogHandler logHandler)
             throws InterruptedException {
         Map<Parser, List<ModuleNode>> results = new EnumMap<>(Parser.class);
 
@@ -535,11 +552,10 @@ public class CoverageRecorder extends Recorder {
                 var coverageResults = result.getResults();
                 if (result.hasErrors()) {
                     if (isFailOnError()) {
-                        var errorMessage = "Failing build due to some errors during recording of the coverage";
-                        log.logInfo(errorMessage);
-                        resultHandler.publishResult(Result.FAILURE, errorMessage);
+                        log.logInfo(FAIL_ON_ERROR_MESSAGE);
+                        resultHandler.publishResult(Result.FAILURE, FAIL_ON_ERROR_MESSAGE);
                     } else {
-                        log.logInfo("Ignore errors and continue processing");
+                        log.logInfo(IGNORE_ERRORS_MESSAGE);
                     }
                 }
                 results.put(tool.getParser(), coverageResults);

@@ -45,6 +45,9 @@
     <f:entry field="failOnError">
       <f:checkbox title="${%failOnError.title}"/>
     </f:entry>
+    <f:entry field="quiet">
+      <f:checkbox title="${%quiet.title}"/>
+    </f:entry>
     <f:entry field="enabledForFailure">
       <f:checkbox title="${%title.enabledForFailure}"/>
     </f:entry>
