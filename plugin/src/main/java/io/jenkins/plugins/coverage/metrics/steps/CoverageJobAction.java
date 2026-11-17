@@ -5,6 +5,7 @@ import edu.hm.hafner.coverage.Node;
 import edu.hm.hafner.coverage.Value;
 import edu.hm.hafner.echarts.line.LinesChartModel;
 import edu.hm.hafner.util.VisibleForTesting;
+import edu.umd.cs.findbugs.annotations.CheckForNull;
 import edu.umd.cs.findbugs.annotations.NonNull;
 import hudson.model.Job;
 import io.jenkins.plugins.coverage.metrics.model.Baseline;
@@ -53,8 +54,18 @@ public class CoverageJobAction extends TrendChartJobAction<CoverageBuildAction> 
         this.id = id;
     }
 
+    /**
+     * Returns the icon for the side panel link of this action. If the new build page is enabled, then the results are
+     * shown in the Coverage tab of a build (see {@link RunTab}), so no link is created in the side panel of the job.
+     *
+     * @return the icon for the side panel link, or {@code null} if the new build page is enabled
+     */
+    @CheckForNull
     @Override
     public String getIconFileName() {
+        if (CoverageViewModel.isRunTabActive()) {
+            return null; // Jenkins API: null hides the link
+        }
         return icon;
     }
 

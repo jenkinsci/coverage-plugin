@@ -56,6 +56,30 @@ class CoverageJobActionTest {
         verifyNoInteractions(response);
     }
 
+    /**
+     * Verifies that the link in the side panel of the job is hidden if the new build page is enabled: the results are
+     * shown in the Coverage tab of a build then. This holds for actions with a custom ID as well.
+     */
+    @Test
+    void shouldHideSidePanelLinkIfNewBuildPageIsEnabled() {
+        var icon = "coverage-icon";
+        var action = new CoverageJobAction(mock(Job.class), URL, "Coverage Results", icon);
+        var custom = new CoverageJobAction(mock(Job.class), "custom", "Custom Coverage", icon);
+
+        try (var viewModel = mockStatic(CoverageViewModel.class)) {
+            viewModel.when(CoverageViewModel::isRunTabActive).thenReturn(false);
+
+            assertThat(action.getIconFileName()).isEqualTo(icon);
+            assertThat(custom.getIconFileName()).isEqualTo(icon);
+
+            viewModel.when(CoverageViewModel::isRunTabActive).thenReturn(true);
+
+            assertThat(action.getIconFileName()).isNull();
+            assertThat(action.getUrlName()).isEqualTo(URL);
+            assertThat(custom.getIconFileName()).isNull();
+        }
+    }
+
     private static CoverageJobAction createAction(final FreeStyleProject job) {
         return new CoverageJobAction(job, URL, "Coverage Results", StringUtils.EMPTY);
     }
