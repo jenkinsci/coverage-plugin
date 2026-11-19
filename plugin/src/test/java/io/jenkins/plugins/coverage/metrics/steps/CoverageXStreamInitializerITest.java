@@ -16,4 +16,14 @@ class CoverageXStreamInitializerITest extends IntegrationTestWithJenkinsPerSuite
         assertThat(Run.XSTREAM2.getConverterLookup().lookupConverterForType(Fraction.class))
                 .isInstanceOf(CoverageXmlStream.FractionConverter.class);
     }
+
+    @Test
+    void shouldIgnoreSubsequentRegistrations() {
+        var converter = Run.XSTREAM2.getConverterLookup().lookupConverterForType(Fraction.class);
+
+        CoverageXStreamInitializer.registerConverters();
+
+        assertThat(Run.XSTREAM2.getConverterLookup().lookupConverterForType(Fraction.class))
+                .isSameAs(converter);
+    }
 }
