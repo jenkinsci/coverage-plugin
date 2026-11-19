@@ -11,6 +11,7 @@
     const FOOTER_SELECTOR = '.page-footer';
     const MIN_CHART_HEIGHT = 300;
     const BOTTOM_MARGIN = 40;
+    const SHADOW_MARGIN = 4;
     let resizeTimeout;
 
     // The chart is reused for every metric the user picks in the selector. The report id (read from the chart's
@@ -173,9 +174,12 @@
                             }
                         }
                     },
-                    width: '100%',
-                    height: '100%',
-                    top: 'top',
+                    // Leave a small margin, otherwise the shadow of the outer elements is clipped at the canvas
+                    // border (e.g., the top line of the first row)
+                    left: SHADOW_MARGIN,
+                    right: SHADOW_MARGIN,
+                    top: SHADOW_MARGIN,
+                    bottom: SHADOW_MARGIN,
                     label: {
                         show: true,
                         formatter: '{b}'
