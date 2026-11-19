@@ -1,4 +1,4 @@
-/* global $, proxy, echarts, echartsJenkinsApi */
+/* global $, proxy, echarts, echartsJenkinsApi, CoverageMetricIcons */
 
 (function ($) {
     const CHART_SELECTOR = '#coverage-scatter';
@@ -103,6 +103,7 @@
             select.appendChild(optgroup);
         });
         select.value = previous && findMetric(previous) ? previous : defaultId;
+        CoverageMetricIcons.update(select);
     }
 
     // Default: the first percentage on X and the first absolute metric on Y (e.g. Line Coverage vs. Complexity).
@@ -149,6 +150,7 @@
         else {
             select.value = preferred ? preferred.id : CONSTANT_SIZE;
         }
+        CoverageMetricIcons.update(select);
     }
 
     // Maps the values to a symbol size. The area (not the radius) is proportional to the value, large outliers are

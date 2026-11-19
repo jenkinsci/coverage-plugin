@@ -1,4 +1,4 @@
-/* global $, proxy, echarts, CoverageColorScale */
+/* global $, proxy, echarts, CoverageColorScale, CoverageMetricIcons */
 
 (function ($) {
     const CHART_ID = 'hierarchy-tree';
@@ -347,6 +347,7 @@
         if (stored && select.querySelector('option[value="' + stored + '"]')) {
             select.value = stored;
         }
+        CoverageMetricIcons.update(select);
 
         select.addEventListener('change', function () {
             localStorage.setItem(metricStorageKey(), select.value);

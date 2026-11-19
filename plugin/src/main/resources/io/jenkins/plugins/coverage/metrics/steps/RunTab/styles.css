@@ -649,3 +649,24 @@ button.coverage-hotspots__grid-header:hover {
     gap: 6px;
     white-space: nowrap;
 }
+
+/* Icon of the selected metric next to a metric selection in the app bar (see taglib coverage/metric-icons.jelly). */
+.coverage-metric-icons {
+    display: inline-flex;
+    align-items: center;
+    margin-right: 0.5rem;
+}
+
+.coverage-metric-icons:not(:has(.coverage-metric-icon:not(.jenkins-hidden))) {
+    display: none;
+}
+
+.coverage-metric-icon {
+    display: inline-flex;
+    align-items: center;
+}
+
+.coverage-metric-icon,
+.coverage-metric-icon svg {
+    color: var(--text-color);
+}
