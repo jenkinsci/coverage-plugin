@@ -42,12 +42,28 @@ class HotspotsModelTest extends AbstractCoverageTest {
     @Test
     void shouldProvideDisplayNameAndOwner() {
         Run<?, ?> run = mock(Run.class);
-        var model = createModel(new ModuleNode("empty"), run);
+        final Node node = new ModuleNode("empty");
+        var wrapped = new CoverageViewModel(
+                run,
+                ID,
+                "",
+                node,
+                ChangeSet.empty(),
+                FileDeltas.empty(),
+                createStatistics(),
+                new QualityGateResult(),
+                "-",
+                new FilteredLog("Errors"),
+                Function.identity(),
+                Function.identity());
+        var model = new HotspotsModel(wrapped);
 
         assertThat(model.getDisplayName()).isEqualTo(Messages.CoverageHotspotsModel_displayName());
         assertThat(model.getId()).isEqualTo(ID);
         assertThat(model.getObject()).isSameAs(run);
         assertThat(model.getTab()).isNotNull();
+
+        assertThat(model.getFormatter()).isSameAs(wrapped.getFormatter());
     }
 
     @Test
