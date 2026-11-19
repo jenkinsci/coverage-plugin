@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="ArchitectureTest" time="0.493" tests="2" errors="0" skipped="0" failures="0">
+  <testcase name="NO_EXCEPTIONS_WITH_NO_ARG_CONSTRUCTOR" classname="ArchitectureTest" time="0.324"/>
+  <testcase name="NO_PUBLIC_TEST_CLASSES" classname="ArchitectureTest" time="0.0"/>
+</testsuite>

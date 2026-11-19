@@ -5,7 +5,6 @@ import edu.hm.hafner.coverage.ContainerNode;
 import edu.hm.hafner.coverage.CoverageParser.ProcessingMode;
 import edu.hm.hafner.coverage.ModuleNode;
 import edu.hm.hafner.coverage.Node;
-import edu.hm.hafner.coverage.PackageNode;
 import edu.hm.hafner.util.FilteredLog;
 import edu.hm.hafner.util.TreeStringBuilder;
 import edu.umd.cs.findbugs.annotations.CheckForNull;
@@ -619,18 +618,7 @@ public class CoverageRecorder extends Recorder {
     }
 
     private void mapTests(final ClassNode classNode, final Node coverageTree) {
-        var normalizedPackageName = PackageNode.normalizePackageName(classNode.getPackageName());
-
-        coverageTree
-                .findPackage(normalizedPackageName)
-                .orElseGet(() -> createPackage(coverageTree, normalizedPackageName))
-                .addChild(classNode);
-    }
-
-    private PackageNode createPackage(final Node coverageTree, final String normalizedPackageName) {
-        var packageNode = new PackageNode(normalizedPackageName);
-        coverageTree.addChild(packageNode);
-        return packageNode;
+        coverageTree.findOrCreatePackageNode(classNode.getPackageName()).addChild(classNode);
     }
 
     private boolean isEmpty(final Map<Parser, List<ModuleNode>> results) {
