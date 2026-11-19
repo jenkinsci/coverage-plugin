@@ -13,6 +13,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import edu.hm.hafner.coverage.Coverage;
 import edu.hm.hafner.coverage.Coverage.CoverageBuilder;
 import edu.hm.hafner.coverage.Metric;
+import edu.hm.hafner.coverage.Node;
 import edu.hm.hafner.coverage.Value;
 import hudson.model.Result;
 import hudson.model.Run;
@@ -531,6 +532,49 @@ class CoveragePluginITest extends AbstractCoverageITest {
                 .filteredOn(Value::getMetric, Metric.TESTS)
                 .first()
                 .satisfies(m -> assertThat(m.asInteger()).isEqualTo(3));
+    }
+
+    /**
+     * Verifies that unmapped tests are added to the coverage tree even if the tree is a container of the JaCoCo module
+     * and the PIT module (that uses the empty name "-"). Previously, the package "-" of a test class in the default
+     * package clashed with the PIT module of the same name.
+     */
+    @Test
+    void shouldMapUnmappedTestsWhenCoverageTreeContainsPitModule() {
+        var job = createPipelineWithWorkspaceFiles(
+                "jacoco.xml",
+                "mutations.xml",
+                "TEST-ArchitectureTest.xml",
+                "TEST-edu.hm.hafner.archunit.PackageArchitectureTest.xml");
+
+        setPipelineScript(
+                job,
+                "recordCoverage tools: ["
+                        + "[parser: 'JACOCO', pattern: 'jacoco.xml'],"
+                        + "[parser: 'PIT', pattern: 'mutations.xml'],"
+                        + "[parser: 'JUNIT', pattern: 'TEST-*.xml']"
+                        + "]");
+
+        Run<?, ?> build = buildSuccessfully(job);
+
+        assertThat(getConsoleLog(build)).doesNotContain("Found unhandled", "There is already the same child");
+
+        var coverageResult = build.getAction(CoverageBuildAction.class);
+        assertThat(coverageResult.getAllValues(Baseline.PROJECT))
+                .filteredOn(Value::getMetric, Metric.TESTS)
+                .first()
+                .satisfies(m -> assertThat(m.asInteger()).isEqualTo(3));
+
+        var tree = coverageResult.getResult();
+        assertThat(tree.getMetric()).isEqualTo(Metric.CONTAINER);
+        assertThat(tree.findPackage("-"))
+                .hasValueSatisfying(packageNode -> assertThat(packageNode.getAllClassNodes())
+                        .extracting(Node::getName)
+                        .containsExactly("ArchitectureTest"));
+        assertThat(tree.findPackage("edu.hm.hafner.archunit"))
+                .hasValueSatisfying(packageNode -> assertThat(packageNode.getAllClassNodes())
+                        .extracting(Node::getName)
+                        .containsExactly("edu.hm.hafner.archunit.PackageArchitectureTest"));
     }
 
     @Test
