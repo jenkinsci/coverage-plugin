@@ -324,69 +324,12 @@ class OverviewModelTest extends AbstractCoverageTest {
     }
 
     @Test
-    void shouldHaveNoReferenceBuildUrlWhenThereIsNoReferenceBuild() {
+    void shouldHaveNoReferenceBuildTextOrUrlWhenThereIsNoReferenceBuild() {
         var model = createModel();
 
         assertThat(model.getReferenceBuild()).isEmpty();
-        assertThat(model.hasReferenceBuild()).isFalse();
-        assertThat(model.getReferenceBuildName()).isEmpty();
-        assertThat(model.getReferenceBuildText()).isEqualTo(Messages.OverviewModel_noReferenceBuild());
-        assertThat(model.getComparisonCaption()).isEqualTo(Messages.OverviewModel_noReferenceBuild());
+        assertThat(model.getReferenceBuildText()).isEmpty();
         assertThat(model.getReferenceBuildUrl()).isEmpty();
-    }
-
-    @ParameterizedTest(name = "{0} is shown as {1}")
-    @CsvSource({
-        "INACTIVE, symbol-status-nobuilt",
-        "PASSED,   symbol-status-blue",
-        "NOTE,     symbol-status-yellow",
-        "WARNING,  symbol-status-yellow",
-        "ERROR,    symbol-status-red",
-        "FAILED,   symbol-status-red"
-    })
-    void shouldUseTheBuildStatusSymbolsForQualityGateStatus(final QualityGateStatus status, final String icon) {
-        assertThat(createModel().getStatusIcon(status)).isEqualTo(icon);
-    }
-
-    @Test
-    void shouldCountQualityGates() {
-        var result = createResult(Baseline.PROJECT, QualityGateStatus.PASSED);
-        result.add(
-                new CoverageQualityGate(100, Metric.BRANCH, Baseline.PROJECT, QualityGateCriticality.FAILURE),
-                QualityGateStatus.FAILED,
-                "-");
-        var model = createModel(readJacocoResult(JACOCO_CODING_STYLE_FILE), result);
-
-        assertThat(model.hasQualityGates()).isTrue();
-        assertThat(model.getQualityGateStatus()).isEqualTo(QualityGateStatus.FAILED);
-        assertThat(model.getQualityGatesSize()).isEqualTo(2);
-        assertThat(model.getMissedQualityGatesSize()).isOne();
-
-        var inactive = createModel();
-        assertThat(inactive.hasQualityGates()).isFalse();
-        assertThat(inactive.getQualityGatesSize()).isZero();
-    }
-
-    @Test
-    void shouldProvideHeadlineMetricsAndUrls() {
-        var model = createModel();
-
-        assertThat(model.getHeadlineMetrics()).containsExactly(Metric.LINE, Metric.BRANCH);
-        assertThat(model.getDecreasedMetrics()).isEmpty();
-        assertThat(model.getWorstTrend()).isZero();
-        assertThat(model.getResultName()).isEqualTo(Messages.Coverage_Link_Name());
-        assertThat(model.getOverviewUrl()).isEqualTo("coverage/overview");
-        assertThat(model.getLogUrl()).isEqualTo("coverage/log");
-        assertThat(model.getErrorMessagesSize()).isZero();
-    }
-
-    @Test
-    void shouldUseSoftwareMetricsAsHeadlineMetricsIfThereIsNoCoverage() {
-        var model = createModel(createModuleWithMethods());
-
-        assertThat(model.getHeadlineMetrics()).noneMatch(Metric::isCoverage);
-        assertThat(model.getDecreasedMetrics()).isEmpty();
-        assertThat(model.getCoverageBar()).isEmpty();
     }
 
     @Test

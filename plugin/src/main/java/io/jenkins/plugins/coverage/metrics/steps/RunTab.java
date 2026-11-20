@@ -1,14 +1,14 @@
 package io.jenkins.plugins.coverage.metrics.steps;
 
 import edu.hm.hafner.util.VisibleForTesting;
-import edu.umd.cs.findbugs.annotations.CheckForNull;
 import hudson.model.Actionable;
 import hudson.model.Run;
 import io.jenkins.plugins.coverage.metrics.steps.CoverageViewModel.UsePropertyFacade;
-import io.jenkins.plugins.util.QualityGateStatus;
+import io.jenkins.plugins.util.QualityGateResult;
 import jakarta.servlet.http.HttpServletResponse;
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.function.Predicate;
 import jenkins.management.Badge;
 import jenkins.model.Tab;
 import org.kohsuke.stapler.HttpResponse;
@@ -67,38 +67,18 @@ public class RunTab extends Tab {
         return URL;
     }
 
-    /**
-     * Returns the badge of the tab. The badge shows the number of missed quality gates (as danger if a quality gate
-     * failed the step or the build, as warning otherwise). Without missed quality gates, the badge shows the number of
-     * coverage metrics that decreased with respect to the reference build. If nothing got worse, no badge is shown.
-     *
-     * @return the badge, or {@code null} if no badge should be shown
-     */
     @Override
-    @CheckForNull
     public Badge getBadge() {
-        var widget = getWidget();
+        var failed = getActions().stream()
+                .map(CoverageBuildAction::getQualityGateResult)
+                .filter(Predicate.not(QualityGateResult::isSuccessful))
+                .count();
 
-        int missedQualityGates = widget.getMissedQualityGatesSize();
-        if (missedQualityGates > 0) {
-            var status = widget.getQualityGateStatus();
-            return new Badge(
-                    String.valueOf(missedQualityGates),
-                    Messages.RunTab_badgeQualityGates(missedQualityGates),
-                    status == QualityGateStatus.ERROR || status == QualityGateStatus.FAILED
-                            ? Badge.Severity.DANGER
-                            : Badge.Severity.WARNING);
+        if (failed == 0) {
+            return null;
         }
 
-        int decreasedMetrics = widget.getDecreasedMetricsSize();
-        if (decreasedMetrics > 0) {
-            return new Badge(
-                    String.valueOf(decreasedMetrics),
-                    Messages.RunTab_badgeDecreasedMetrics(decreasedMetrics),
-                    Badge.Severity.WARNING);
-        }
-
-        return null;
+        return new Badge(String.valueOf(failed), Messages.RunTab_failedQualityGates(failed), Badge.Severity.WARNING);
     }
 
     public List<CoverageBuildAction> getActions() {
@@ -106,23 +86,12 @@ public class RunTab extends Tab {
     }
 
     /**
-     * Returns the overviews of all coverage results of the run, in the order of the results.
+     * Generates the widget for the Overview tab.
      *
-     * @return the overviews
-     */
-    public List<OverviewModel> getOverviews() {
-        return getActions().stream()
-                .map(action -> new OverviewModel(action.getOwner(), action))
-                .toList();
-    }
-
-    /**
-     * Returns the widget that summarizes the coverage results on the build page.
-     *
-     * @return the widget
+     * @return the widget.
      */
     public Widget getWidget() {
-        return new Widget(getOverviews());
+        return new Widget(getActions());
     }
 
     /**

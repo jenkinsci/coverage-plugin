@@ -16,26 +16,16 @@
     <l:app-bar title="${it.displayName}">
       <div class="jenkins-details"
            style="display: flex; flex-direction: row; justify-content: flex-end; align-items: center; flex-wrap: wrap; gap: 12px;">
-        <div class="jenkins-details">
-          <j:choose>
-            <j:when test="${empty(it.referenceBuildUrl)}">
-              <span class="jenkins-details__item">
-                <div class="jenkins-details__item__icon">
-                  <l:icon src="symbol-git-compare-outline plugin-ionicons-api" alt=""/>
-                </div>
-                <span>${it.referenceBuildText}</span>
-              </span>
-            </j:when>
-            <j:otherwise>
-              <a href="${rootURL}/${it.referenceBuildUrl}" class="jenkins-details__item" tooltip="${%reference.tooltip}">
-                <div class="jenkins-details__item__icon">
-                  <l:icon src="symbol-git-compare-outline plugin-ionicons-api" alt=""/>
-                </div>
-                <span>${it.referenceBuildText}</span>
-              </a>
-            </j:otherwise>
-          </j:choose>
-        </div>
+        <j:if test="${it.referenceBuild.present}">
+          <div class="jenkins-details">
+            <a href="${rootURL}/${it.referenceBuildUrl}" class="jenkins-details__item">
+              <div class="jenkins-details__item__icon">
+                <l:icon src="symbol-git-compare-outline plugin-ionicons-api" alt=""/>
+              </div>
+              <span>${it.referenceBuildText}</span>
+            </a>
+          </div>
+        </j:if>
         <div style="display: flex; align-items: center;" tooltip="${%green-tooltip}">
           <div class="jenkins-!-margin-right-1" style="text-wrap: nowrap">${%green-title}:</div>
           <input type="number" step="any" id="overview-green-threshold" class="jenkins-input" style="width: 7em;"/>
@@ -57,7 +47,7 @@
             <l:card title="${%Quality Gates}">
               <div class="coverage-dashboard__quality-gates">
                 <div class="coverage-dashboard__quality-gate-total">
-                  <l:icon src="${it.getStatusIcon(qualityGateResult.overallStatus)}" class="icon-lg"
+                  <l:icon class="${qualityGateResult.overallStatus.iconClass} icon-lg"
                           alt="${qualityGateResult.overallStatus.description}"/>
                   <div class="coverage-dashboard__quality-gate-status">${qualityGateResult.overallStatus.description}</div>
                 </div>
@@ -72,7 +62,7 @@
                         <j:set var="label" value="${it.getQualityGateLabel(item)}"/>
                         <div class="coverage-dashboard__quality-gate-item">
                           <span class="coverage-dashboard__quality-gate-item-name" tooltip="${item.qualityGate.name}">
-                            <l:icon src="${it.getStatusIcon(item.status)}" class="icon-sm" alt="${item.status.description}"/>
+                            <l:icon class="${item.status.iconClass} icon-sm" alt="${item.status.description}"/>
                             ${label}
                           </span>
                           <span class="coverage-dashboard__quality-gate-item-value"

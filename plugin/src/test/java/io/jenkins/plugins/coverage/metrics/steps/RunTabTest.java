@@ -4,7 +4,6 @@ import static net.javacrumbs.jsonunit.assertj.JsonAssertions.*;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-import edu.hm.hafner.coverage.Difference;
 import edu.hm.hafner.coverage.Metric;
 import edu.hm.hafner.coverage.MetricAggregation;
 import edu.hm.hafner.util.FilteredLog;
@@ -18,7 +17,6 @@ import io.jenkins.plugins.coverage.metrics.source.SourceViewModel;
 import io.jenkins.plugins.coverage.metrics.steps.CoverageViewModel.UsePropertyFacade;
 import io.jenkins.plugins.datatables.DetailedCell;
 import io.jenkins.plugins.prism.SourceCodeViewModel;
-import io.jenkins.plugins.util.QualityGate.QualityGateCriticality;
 import io.jenkins.plugins.util.QualityGateResult;
 import io.jenkins.plugins.util.QualityGateStatus;
 import jakarta.servlet.ServletException;
@@ -67,7 +65,7 @@ class RunTabTest extends AbstractCoverageTest {
 
     @Test
     void shouldShowAnIconButNoBadgeWhenAllQualityGatesPass() {
-        var action = createAction("coverage", createQualityGateResult(QualityGateStatus.PASSED));
+        var action = createAction("coverage", new QualityGateResult(QualityGateStatus.PASSED));
         var build = CoverageMetricColumnTest.createBuildWithActions(action);
         var tab = new RunTab(build);
 
@@ -77,56 +75,16 @@ class RunTabTest extends AbstractCoverageTest {
     }
 
     @Test
-    void shouldShowADangerBadgeWithTheMissedGateCountWhenGatesFail() {
-        var first = createAction("coverage", createQualityGateResult(QualityGateStatus.WARNING));
-        var second = createAction("mutation", createQualityGateResult(QualityGateStatus.FAILED));
+    void shouldShowAWarningBadgeWithTheFailedGateCountWhenGatesFail() {
+        var first = createAction("coverage", new QualityGateResult(QualityGateStatus.ERROR));
+        var second = createAction("mutation", new QualityGateResult(QualityGateStatus.FAILED));
         var build = CoverageMetricColumnTest.createBuildWithActions(first, second);
         var tab = new RunTab(build);
 
         var badge = tab.getBadge();
         assertThat(badge).isNotNull();
         assertThat(badge.getText()).isEqualTo("2");
-        assertThat(badge.getTooltip()).isEqualTo(Messages.RunTab_badgeQualityGates(2));
-        assertThat(badge.getSeverity()).containsIgnoringCase("danger");
-    }
-
-    @Test
-    void shouldShowAWarningBadgeWhenGatesMarkTheBuildAsUnstable() {
-        var action =
-                createAction("coverage", createQualityGateResult(QualityGateStatus.PASSED, QualityGateStatus.WARNING));
-        var tab = new RunTab(CoverageMetricColumnTest.createBuildWithActions(action));
-
-        var badge = tab.getBadge();
-        assertThat(badge).isNotNull();
-        assertThat(badge.getText()).isEqualTo("1");
-        assertThat(badge.getTooltip()).isEqualTo(Messages.RunTab_badgeQualityGates(1));
-        assertThat(badge.getSeverity()).containsIgnoringCase("warning");
-    }
-
-    @Test
-    void shouldShowAWarningBadgeWhenCoverageDecreased() {
-        var action = new CoverageBuildAction(
-                mock(Run.class),
-                "coverage",
-                "",
-                "",
-                readJacocoResult(JACOCO_CODING_STYLE_FILE),
-                new QualityGateResult(),
-                new FilteredLog("Errors"),
-                "-",
-                List.of(new Difference(Metric.LINE, -1), new Difference(Metric.BRANCH, -2)),
-                List.of(),
-                List.of(),
-                List.of(),
-                List.of(),
-                List.of(),
-                false);
-        var tab = new RunTab(CoverageMetricColumnTest.createBuildWithActions(action));
-
-        var badge = tab.getBadge();
-        assertThat(badge).isNotNull();
-        assertThat(badge.getText()).isEqualTo("2");
-        assertThat(badge.getTooltip()).isEqualTo(Messages.RunTab_badgeDecreasedMetrics(2));
+        assertThat(badge.getTooltip()).isEqualTo(Messages.RunTab_failedQualityGates(2));
         assertThat(badge.getSeverity()).containsIgnoringCase("warning");
     }
 
@@ -136,29 +94,7 @@ class RunTabTest extends AbstractCoverageTest {
         var build = CoverageMetricColumnTest.createBuildWithActions(action);
         var tab = new RunTab(build);
 
-        assertThat(tab.getOverviews()).extracting(OverviewModel::getId).containsExactly("coverage");
-        assertThat(tab.getWidget().getResults())
-                .extracting(OverviewModel::getId)
-                .containsExactly("coverage");
-    }
-
-    /**
-     * Creates a quality gate result with a quality gate for each of the specified statuses.
-     *
-     * @param statuses
-     *         the status of each quality gate
-     *
-     * @return the quality gate result
-     */
-    private QualityGateResult createQualityGateResult(final QualityGateStatus... statuses) {
-        var result = new QualityGateResult();
-        for (QualityGateStatus status : statuses) {
-            result.add(
-                    new CoverageQualityGate(100, Metric.LINE, Baseline.PROJECT, QualityGateCriticality.UNSTABLE),
-                    status,
-                    "-");
-        }
-        return result;
+        assertThat(tab.getWidget().getResults()).containsExactly(action);
     }
 
     @Test
@@ -371,7 +307,7 @@ class RunTabTest extends AbstractCoverageTest {
         assertThat(model.formatDelta(Baseline.PROJECT, Metric.LINE)).isEqualTo(Messages.Coverage_Not_Available());
 
         assertThat(model.getReferenceBuild()).isEmpty();
-        assertThat(model.getReferenceBuildText()).isEqualTo(Messages.OverviewModel_noReferenceBuild());
+        assertThat(model.getReferenceBuildText()).isEmpty();
         assertThat(model.getReferenceBuildUrl()).isEmpty();
     }
 

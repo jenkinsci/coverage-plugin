@@ -13,7 +13,6 @@ import io.jenkins.plugins.util.QualityGate;
 import io.jenkins.plugins.util.QualityGate.QualityGateCriticality;
 import io.jenkins.plugins.util.QualityGateResult;
 import io.jenkins.plugins.util.QualityGateResult.QualityGateResultItem;
-import io.jenkins.plugins.util.QualityGateStatus;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.ArrayList;
@@ -21,7 +20,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
-import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 /**
@@ -39,13 +37,10 @@ public class OverviewModel implements ModelObject {
     private static final String WARNING_ICON = "symbol-warning-outline plugin-ionicons-api";
     private static final String ERROR_COLOR = "jenkins-!-error-color";
     private static final String WARNING_COLOR = "jenkins-!-warning-color";
-    private static final int MAX_HEADLINE_METRICS = 3;
 
     private final Run<?, ?> owner;
     private final CoverageBuildAction action;
     private final WorstValuesModel worstValues;
-    private Optional<Run<?, ?>> referenceBuild = Optional.empty();
-    private boolean isReferenceBuildResolved;
 
     OverviewModel(final Run<?, ?> owner, final CoverageBuildAction action) {
         this.owner = owner;
@@ -414,283 +409,38 @@ public class OverviewModel implements ModelObject {
     }
 
     /**
-     * Returns the name of the coverage result, e.g. "Coverage" or a user-defined name like "Unit Tests".
-     *
-     * @return the name of the result
-     */
-    public String getResultName() {
-        return action.getDisplayName();
-    }
-
-    /**
-     * Returns the icon of the coverage result.
-     *
-     * @return the icon of the result
-     */
-    public String getResultIcon() {
-        return action.getIcon();
-    }
-
-    /**
-     * Returns the URL of this overview page, relative to the run.
-     *
-     * @return the URL of the overview page
-     */
-    public String getOverviewUrl() {
-        return getId() + "/" + CoverageViewModel.OVERVIEW_URL;
-    }
-
-    /**
-     * Returns the URL of the log page of the coverage result, relative to the run.
-     *
-     * @return the URL of the log page
-     */
-    public String getLogUrl() {
-        return getId() + "/" + CoverageViewModel.LOG_VIEW_URL;
-    }
-
-    /**
-     * Returns the number of error messages that have been recorded while parsing and processing the coverage results.
-     *
-     * @return the number of error messages
-     */
-    public int getErrorMessagesSize() {
-        return action.getLog().getErrorMessages().size();
-    }
-
-    /**
-     * Returns the most important metrics of the whole project: these metrics summarize the coverage result in the
-     * widget of the build page (and in the pills of the individual results). Preferred are the coverage metrics of
-     * the summary (e.g., line and branch coverage, or mutation coverage and test strength). If the result does not
-     * contain any of these metrics, the other coverage metrics are used, and if there are no coverage metrics at all
-     * (e.g., for results with software metrics only), the metrics of the summary are used.
-     *
-     * @return the most important metrics, at most {@value #MAX_HEADLINE_METRICS}
-     */
-    public List<Metric> getHeadlineMetrics() {
-        var summaryCoverage = selectMetrics(action.getValues(Baseline.PROJECT), OverviewModel::isCardMetric);
-        if (!summaryCoverage.isEmpty()) {
-            return summaryCoverage;
-        }
-        var allCoverage = selectMetrics(action.getAllValues(Baseline.PROJECT), OverviewModel::isCardMetric);
-        if (!allCoverage.isEmpty()) {
-            return allCoverage;
-        }
-        return selectMetrics(action.getValues(Baseline.PROJECT), metric -> true);
-    }
-
-    private static List<Metric> selectMetrics(final List<Value> values, final Predicate<Metric> filter) {
-        return values.stream()
-                .map(Value::getMetric)
-                .filter(filter)
-                .distinct()
-                .sorted()
-                .limit(MAX_HEADLINE_METRICS)
-                .toList();
-    }
-
-    /**
-     * Returns the coverage metrics of the {@link #getHeadlineMetrics() headline metrics} whose value for the whole
-     * project decreased with respect to the reference build. Software metrics are not considered, since they change
-     * naturally when the code grows (e.g., the number of lines or the complexity).
-     *
-     * @return the decreased coverage metrics
-     */
-    public List<Metric> getDecreasedMetrics() {
-        return getHeadlineMetrics().stream()
-                .filter(Metric::isCoverage)
-                .filter(metric -> getTrend(Baseline.PROJECT, metric) < 0)
-                .toList();
-    }
-
-    /**
-     * Returns the worst trend of the coverage metrics of the {@link #getHeadlineMetrics() headline metrics} for the
-     * whole project, i.e., the strongest decrease with respect to the reference build.
-     *
-     * @return the worst trend: a negative value for a deterioration, a positive value if all metrics improved, or
-     *         {@code 0} if there is no significant change or no delta at all
-     */
-    public double getWorstTrend() {
-        return getHeadlineMetrics().stream()
-                .filter(Metric::isCoverage)
-                .mapToDouble(metric -> getTrend(Baseline.PROJECT, metric))
-                .min()
-                .orElse(0);
-    }
-
-    /**
-     * Returns the absolute number of covered and missed items of the first coverage metric of the
-     * {@link #getHeadlineMetrics() headline metrics}. Percentages hide the size of the gap: 80% of 50 lines is
-     * something different from 80% of 50,000 lines. The coverage of the modified lines is preferred, since it shows
-     * whether the changes of the build are tested. If there are no modified lines, the coverage of the whole project
-     * is used.
-     *
-     * @return the covered and missed items, or an empty {@link Optional} if there are no coverage metrics
-     */
-    public Optional<CoverageBar> getCoverageBar() {
-        return getHeadlineMetrics().stream()
-                .filter(Metric::isCoverage)
-                .findFirst()
-                .flatMap(metric -> createCoverageBar(Baseline.MODIFIED_LINES, metric)
-                        .or(() -> createCoverageBar(Baseline.PROJECT, metric)));
-    }
-
-    private Optional<CoverageBar> createCoverageBar(final Baseline baseline, final Metric metric) {
-        return action.getValueForMetric(baseline, metric)
-                .filter(Coverage.class::isInstance)
-                .map(Coverage.class::cast)
-                .filter(coverage -> coverage.getTotal() > 0)
-                .map(coverage -> new CoverageBar(
-                        "%s: %s".formatted(baseline.getTitle(), getFormatter().getDisplayName(metric)),
-                        coverage.getCovered(),
-                        coverage.getMissed()));
-    }
-
-    /**
-     * Returns the reference build that has been used to compute the coverage delta. The build is resolved only once,
-     * since each lookup requires a search in Jenkins.
+     * Returns the possible reference build that has been used to compute the coverage delta.
      *
      * @return the reference build, if available
      */
     public Optional<Run<?, ?>> getReferenceBuild() {
-        if (!isReferenceBuildResolved) {
-            referenceBuild = action.getReferenceBuild();
-            isReferenceBuildResolved = true;
-        }
-        return referenceBuild;
+        return action.getReferenceBuild();
     }
 
     /**
-     * Returns whether there is a reference build. Without a reference build, there are no deltas for the whole
-     * project.
+     * Returns the text for the reference build button in the app bar ("Reference build &lt;full display name&gt;"),
+     * e.g. to be shown next to the green/red threshold inputs. Only meaningful when {@link #getReferenceBuild()} is
+     * present; returns an empty string otherwise.
      *
-     * @return {@code true} if there is a reference build, {@code false} otherwise
-     */
-    public boolean hasReferenceBuild() {
-        return getReferenceBuild().isPresent();
-    }
-
-    /**
-     * Returns the name of the reference build, e.g. {@code #48}. If the reference build belongs to another job
-     * (e.g., the target branch of a pull request), the full name of the build is returned, e.g. {@code main #48}.
-     *
-     * @return the name of the reference build, or an empty string if there is no reference build
-     */
-    public String getReferenceBuildName() {
-        return getReferenceBuild().map(this::getNameOf).orElse("");
-    }
-
-    private String getNameOf(final Run<?, ?> build) {
-        if (owner.getParent() == build.getParent()) {
-            return build.getDisplayName();
-        }
-        return build.getFullDisplayName();
-    }
-
-    /**
-     * Returns the text of the reference build entry in the app bar, e.g. "Reference build #48".
-     *
-     * @return the text of the reference build entry
+     * @return the button text, or an empty string if there is no reference build
      */
     @SuppressWarnings("unused") // Called by jelly view
     public String getReferenceBuildText() {
-        if (hasReferenceBuild()) {
-            return Messages.OverviewModel_referenceBuildButton(getReferenceBuildName());
-        }
-        return Messages.OverviewModel_noReferenceBuild();
-    }
-
-    /**
-     * Returns the caption that names the reference build the deltas are computed for, e.g. "compared to #48".
-     *
-     * @return the caption
-     */
-    public String getComparisonCaption() {
-        if (hasReferenceBuild()) {
-            return Messages.OverviewModel_comparedTo(getReferenceBuildName());
-        }
-        return Messages.OverviewModel_noReferenceBuild();
+        return getReferenceBuild()
+                .map(build -> Messages.OverviewModel_referenceBuildButton(build.getFullDisplayName()))
+                .orElse("");
     }
 
     /**
      * Returns the URL of the reference build (relative to the Jenkins root), to be used as the link target for the
-     * reference build entry in the app bar.
+     * reference build button in the app bar. Only meaningful when {@link #getReferenceBuild()} is present; returns
+     * an empty string otherwise.
      *
      * @return the URL of the reference build, or an empty string if there is no reference build
      */
+    @SuppressWarnings("unused") // Called by jelly view
     public String getReferenceBuildUrl() {
         return getReferenceBuild().map(Run::getUrl).orElse("");
-    }
-
-    /**
-     * Returns whether this result has active quality gates.
-     *
-     * @return {@code true} if there are quality gates, {@code false} otherwise
-     */
-    public boolean hasQualityGates() {
-        return !getQualityGateResult().isInactive();
-    }
-
-    /**
-     * Returns the overall status of the quality gates.
-     *
-     * @return the overall quality gate status
-     */
-    public QualityGateStatus getQualityGateStatus() {
-        return getQualityGateResult().getOverallStatus();
-    }
-
-    /**
-     * Returns the number of quality gates.
-     *
-     * @return the number of quality gates
-     */
-    public int getQualityGatesSize() {
-        return getQualityGateResult().getResultItems().size();
-    }
-
-    /**
-     * Returns the number of quality gates that have been missed.
-     *
-     * @return the number of missed quality gates
-     */
-    public int getMissedQualityGatesSize() {
-        return (int) getQualityGateResult().getResultItems().stream()
-                .filter(item -> !item.getStatus().isSuccessful())
-                .count();
-    }
-
-    /**
-     * Returns the symbol that visualizes the specified quality gate status. The symbols are the build status symbols
-     * of Jenkins (see the icon legend), so that a quality gate status looks like the build result it causes: passed
-     * like a successful build, note and warning like an unstable build, and error and failed like a failed build.
-     *
-     * @param status
-     *         the quality gate status
-     *
-     * @return the symbol
-     */
-    @SuppressWarnings("unused") // Called by jelly view
-    public String getStatusIcon(final QualityGateStatus status) {
-        return toStatusIcon(status);
-    }
-
-    /**
-     * Returns the symbol that visualizes the specified quality gate status (see
-     * {@link #getStatusIcon(QualityGateStatus)}).
-     *
-     * @param status
-     *         the quality gate status
-     *
-     * @return the symbol
-     */
-    static String toStatusIcon(final QualityGateStatus status) {
-        return switch (status) {
-            case PASSED -> "symbol-status-blue";
-            case NOTE, WARNING -> "symbol-status-yellow";
-            case ERROR, FAILED -> "symbol-status-red";
-            default -> "symbol-status-nobuilt";
-        };
     }
 
     public QualityGateResult getQualityGateResult() {
@@ -899,51 +649,6 @@ public class OverviewModel implements ModelObject {
 
         public List<QualityGateResultItem> getItems() {
             return items;
-        }
-    }
-
-    /**
-     * The covered and missed items of a coverage metric, rendered as a segmented bar with a legend.
-     */
-    public static final class CoverageBar {
-        private final String title;
-        private final int covered;
-        private final int missed;
-
-        CoverageBar(final String title, final int covered, final int missed) {
-            this.title = title;
-            this.covered = covered;
-            this.missed = missed;
-        }
-
-        public String getTitle() {
-            return title;
-        }
-
-        public int getCovered() {
-            return covered;
-        }
-
-        public int getMissed() {
-            return missed;
-        }
-
-        /**
-         * Returns the localized label of the covered items, e.g. "3047 covered".
-         *
-         * @return the label of the covered items
-         */
-        public String getCoveredLabel() {
-            return Messages.OverviewModel_covered(covered);
-        }
-
-        /**
-         * Returns the localized label of the missed items, e.g. "129 missed".
-         *
-         * @return the label of the missed items
-         */
-        public String getMissedLabel() {
-            return Messages.OverviewModel_missed(missed);
         }
     }
 }

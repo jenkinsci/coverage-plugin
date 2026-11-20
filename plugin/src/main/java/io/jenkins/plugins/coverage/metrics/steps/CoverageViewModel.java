@@ -101,7 +101,7 @@ public class CoverageViewModel extends DefaultAsyncTableContentProvider implemen
     private static final String SCATTER_URL = "scatter";
     private static final String HOTSPOTS_URL = "hotspots";
     private static final String FILES_URL = "table";
-    static final String LOG_VIEW_URL = "log";
+    private static final String LOG_VIEW_URL = "log";
     private static final String HELP_URL = "help";
 
     private static final String NEW_BUILD_PAGE_FLAG_CLASS_NAME =
