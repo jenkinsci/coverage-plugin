@@ -1,6 +1,5 @@
-// Shared color-scale logic for coverage gauges and badges rendered by different views -- currently the Overview
-// tab's ring gauges (see RunTab/dashboard-metrics.js) and the build-summary widget's metric badges (see
-// RunTab/widget.jelly / widget-badges.js). Kept at this package level (rather than under RunTab or OverviewModel)
+// Shared color-scale logic for coverage gauges rendered by different views -- currently the Overview tab's ring
+// gauges (see RunTab/dashboard-metrics.js). Kept at this package level (rather than under RunTab or OverviewModel)
 // so any view for any report can reuse the same continuous gradient and the same per-report threshold
 // persistence, without duplicating either.
 (function (window) {
