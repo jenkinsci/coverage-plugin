@@ -450,12 +450,13 @@ public class OverviewModel implements ModelObject {
     }
 
     /**
-     * Returns the number of error messages that have been recorded while parsing and processing the coverage results.
+     * Returns the number of errors that have been recorded while parsing and processing the coverage results. The
+     * title of the log, which is part of the error messages, is not counted.
      *
-     * @return the number of error messages
+     * @return the number of errors
      */
     public int getErrorMessagesSize() {
-        return action.getLog().getErrorMessages().size();
+        return action.getLog().size();
     }
 
     /**
