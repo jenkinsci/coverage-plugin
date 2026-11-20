@@ -1,9 +1,6 @@
 <?jelly escape-by-default='true'?>
 <j:jelly xmlns:j="jelly:core" xmlns:l="/lib/layout" xmlns:st="jelly:stapler">
   <st:adjunct includes="io.jenkins.plugins.coverage.metrics.steps.RunTab.styles"/>
-  <st:adjunct includes="io.jenkins.plugins.coverage.metrics.cell-style"/>
-  <st:adjunct includes="io.jenkins.plugins.coverage.metrics.color-scale"/>
-  <st:adjunct includes="io.jenkins.plugins.coverage.metrics.steps.RunTab.widget-badges"/>
 
   <j:set var="maxItems" value="7"/>
 
@@ -12,40 +9,121 @@
 
     <a class="coverage-widget__link" href="${it.urlName}" tabindex="-1" aria-hidden="true"/>
 
-    <div class="jenkins-card__teaser">
-      <l:icon src="${widget.symbol}" class="${widget.iconColor}"/>
-      <div>${widget.message}</div>
-
+    <div class="jenkins-card__teaser coverage-widget__content">
       <j:choose>
-        <!-- A single result leaves no ambiguity about which result a click would open, so show its card metrics
-             (the same ones promoted to gauge cards on the Overview tab) as colored badges instead of one generic,
-             not very informative pill. Several results still get one pill each, so they stay individually
-             clickable. -->
-        <j:when test="${widget.singleResult.present}">
-          <div class="coverage-widget coverage-widget--metrics">
-            <j:forEach var="badge" items="${widget.singleResultMetrics}">
-              <div class="coverage-cell-outer coverage-widget__metric">
-                <div class="coverage-jenkins-cell-inner" style="${badge.style}" title="${badge.tooltip}"
-                     data-report-id="${badge.reportId}" data-value="${badge.percentage}"
-                     data-fill-percentage="${badge.fillPercentage}">
-                  <span class="coverage-widget__metric-label">${badge.label}</span>
-                  ${badge.value}
-                </div>
-              </div>
-            </j:forEach>
+        <j:when test="${widget.hasQualityGates()}">
+          <j:set var="status" value="${widget.qualityGateStatus}"/>
+          <div class="coverage-widget__status">
+            <l:icon src="${widget.qualityGateIcon}" alt="${status.description}"/>
+            <div>
+              <div class="coverage-widget__status-title">${status.description}</div>
+              <div class="coverage-widget__status-caption">${widget.qualityGateSummary}</div>
+            </div>
           </div>
         </j:when>
         <j:otherwise>
-          <div class="coverage-widget">
-            <j:forEach var="action" items="${widget.results}">
-                <a href="${action.urlName}" class="coverage-widget__item">
-                    <l:icon src="${action.icon}"/>
-                    ${action.displayName}
-                </a>
-            </j:forEach>
+          <div class="coverage-widget__status">
+            <l:icon src="${widget.symbol}"/>
+            <div>
+              <j:forEach var="line" items="${widget.lines}">
+                <div>${line}</div>
+              </j:forEach>
+            </div>
           </div>
         </j:otherwise>
       </j:choose>
+
+      <j:set var="metrics" value="${widget.metrics}"/>
+      <j:if test="${!metrics.isEmpty()}">
+        <div class="coverage-widget__metrics">
+          <j:forEach var="metric" items="${metrics}">
+            <div class="coverage-widget__metric" tooltip="${metric.tooltip}">
+              <div class="coverage-widget__metric-value">${metric.value}</div>
+              <j:if test="${!metric.delta.isEmpty()}">
+                <div class="coverage-widget__metric-delta" data-trend="${metric.trend}">${metric.delta}</div>
+              </j:if>
+              <div class="coverage-widget__metric-label">${metric.label}</div>
+            </div>
+          </j:forEach>
+        </div>
+      </j:if>
+
+      <div class="coverage-widget__reference" tooltip="${widget.referenceBuildTooltip}">
+        <j:choose>
+          <j:when test="${empty(widget.referenceBuildUrl)}">
+            ${widget.comparisonCaption}
+          </j:when>
+          <j:otherwise>
+            <a href="${rootURL}/${widget.referenceBuildUrl}">${widget.comparisonCaption}</a>
+          </j:otherwise>
+        </j:choose>
+      </div>
+
+      <j:set var="optionalBar" value="${widget.coverageBar}"/>
+      <j:if test="${optionalBar.present}">
+        <j:set var="bar" value="${optionalBar.get()}"/>
+        <div class="coverage-widget__bar-container">
+          <div class="coverage-widget__bar-title">${bar.title}</div>
+          <div class="coverage-widget__bar">
+            <j:if test="${bar.covered gt 0}">
+              <div class="coverage-widget__bar-segment coverage-widget__bar-segment--covered"
+                   style="flex-grow: ${bar.covered}" tooltip="${bar.coveredLabel}"/>
+            </j:if>
+            <j:if test="${bar.missed gt 0}">
+              <div class="coverage-widget__bar-segment coverage-widget__bar-segment--missed"
+                   style="flex-grow: ${bar.missed}" tooltip="${bar.missedLabel}"/>
+            </j:if>
+          </div>
+          <div class="coverage-widget__bar-legend">
+            <span class="coverage-widget__bar-legend-item">
+              <span class="coverage-widget__bar-legend-dot coverage-widget__bar-segment--covered"/>
+              ${bar.coveredLabel}
+            </span>
+            <span class="coverage-widget__bar-legend-item">
+              <span class="coverage-widget__bar-legend-dot coverage-widget__bar-segment--missed"/>
+              ${bar.missedLabel}
+            </span>
+          </div>
+        </div>
+      </j:if>
+
+      <j:if test="${widget.hasPills() or widget.errorMessagesSize gt 0}">
+        <div class="coverage-widget">
+          <j:if test="${widget.hasPills()}">
+            <j:set var="results" value="${widget.results}"/>
+            <j:forEach var="result" items="${results}" indexVar="i">
+              <j:if test="${i lt maxItems}">
+                <a href="${result.overviewUrl}" class="coverage-widget__item"
+                   data-status="${widget.getStatusModifier(result)}" tooltip="${widget.getTooltipOf(result)}">
+                  <l:icon src="${result.resultIcon}"/>
+                  ${result.resultName}
+                  <span class="coverage-widget__item-value">${widget.getValueOf(result)}</span>
+                  <j:set var="decrease" value="${widget.getDecreaseOf(result)}"/>
+                  <j:if test="${!decrease.isEmpty()}">
+                    <span class="coverage-widget__item-decrease">${decrease}</span>
+                  </j:if>
+                </a>
+              </j:if>
+
+              <j:if test="${i eq maxItems}">
+                <a href="${widget.tabUrl}" class="coverage-widget__item coverage-widget__item--more"
+                   tooltip="${%more.tooltip}">
+                  ${%more(size(results) - maxItems)}
+                  <l:icon src="symbol-chevron-forward-outline plugin-ionicons-api"/>
+                </a>
+              </j:if>
+            </j:forEach>
+          </j:if>
+
+          <j:if test="${widget.errorMessagesSize gt 0}">
+            <a href="${widget.logUrl}" class="coverage-widget__item" data-status="error"
+               tooltip="${%errors.tooltip}">
+              <l:icon src="symbol-close-circle-outline plugin-ionicons-api"/>
+              ${%errors(widget.errorMessagesSize)}
+            </a>
+          </j:if>
+        </div>
+      </j:if>
     </div>
   </l:card>
 </j:jelly>
