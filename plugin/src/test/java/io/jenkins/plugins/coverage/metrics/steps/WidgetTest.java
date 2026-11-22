@@ -3,9 +3,13 @@ package io.jenkins.plugins.coverage.metrics.steps;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
+import edu.hm.hafner.coverage.ClassNode;
 import edu.hm.hafner.coverage.Coverage.CoverageBuilder;
 import edu.hm.hafner.coverage.Difference;
+import edu.hm.hafner.coverage.FileNode;
+import edu.hm.hafner.coverage.MethodNode;
 import edu.hm.hafner.coverage.Metric;
+import edu.hm.hafner.coverage.ModuleNode;
 import edu.hm.hafner.coverage.Value;
 import edu.hm.hafner.util.FilteredLog;
 import hudson.model.Job;
@@ -98,6 +102,34 @@ class WidgetTest extends AbstractCoverageTest {
                 .containsExactly(Messages.Widget_coverageDecreased(1), Messages.Widget_noQualityGates());
         assertThat(widget.getMetrics()).extracting(MetricSummary::getTrend).containsExactly("worse", "better");
         assertThat(widget.getMetrics()).extracting(MetricSummary::getDelta).doesNotContain("");
+    }
+
+    @Test
+    void shouldShowTheMetricsOfTheFirstResultWithCoverage() {
+        var metrics = createSoftwareMetricsAction(MUTATION_ID, List.of());
+        var coverage = createAction(COVERAGE_ID, new QualityGateResult());
+        var widget = createWidget(metrics, coverage);
+
+        assertThat(widget.getMetrics())
+                .extracting(MetricSummary::getLabel)
+                .containsExactly(Metric.LINE.getLabel(), Metric.BRANCH.getLabel());
+        assertThat(widget.getCoverageBar()).isPresent();
+    }
+
+    @Test
+    void shouldNotColorTheDeltasOfSoftwareMetrics() {
+        var widget = createWidget(createSoftwareMetricsAction(
+                COVERAGE_ID, List.of(new Difference(Metric.CYCLOMATIC_COMPLEXITY, 10))));
+
+        assertThat(widget.getMetrics())
+                .filteredOn(metric -> metric.getLabel().equals(Metric.CYCLOMATIC_COMPLEXITY.getLabel()))
+                .singleElement()
+                .satisfies(metric -> {
+                    assertThat(metric.getDelta()).isNotEmpty();
+                    assertThat(metric.getTrend()).isEqualTo("none");
+                });
+        assertThat(widget.getDecreasedMetricsSize()).isZero();
+        assertThat(widget.getCoverageBar()).isEmpty();
     }
 
     @Test
@@ -218,6 +250,34 @@ class WidgetTest extends AbstractCoverageTest {
         assertThat(widget.getReferenceBuildUrl()).isEmpty();
         assertThat(widget.getReferenceBuildTooltip())
                 .isEqualTo("%1$s: #48, %1$s: #47".formatted(Messages.Coverage_Link_Name()));
+    }
+
+    private CoverageBuildAction createSoftwareMetricsAction(final String id, final List<Difference> differences) {
+        var module = new ModuleNode("module");
+        var file = new FileNode("File.java", "src/File.java");
+        module.addChild(file);
+        var classNode = new ClassNode("Class");
+        file.addChild(classNode);
+        var method = new MethodNode("method", "()V");
+        method.addValue(new Value(Metric.CYCLOMATIC_COMPLEXITY, 5));
+        classNode.addChild(method);
+
+        return new CoverageBuildAction(
+                mock(Run.class),
+                id,
+                "",
+                "",
+                module,
+                new QualityGateResult(),
+                new FilteredLog("Errors"),
+                "-",
+                differences,
+                List.of(),
+                List.of(),
+                List.of(),
+                List.of(),
+                List.of(),
+                false);
     }
 
     private Run<?, ?> createRun(final Job<?, ?> job, final String displayName, final String url) {

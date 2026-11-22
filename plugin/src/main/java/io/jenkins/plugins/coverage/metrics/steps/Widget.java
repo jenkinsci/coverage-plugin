@@ -27,8 +27,8 @@ import java.util.stream.Collectors;
  *
  * <p>
  * All values are delegated to the {@link OverviewModel overviews} of the individual results, so the widget and the
- * overviews always show the same numbers. The metrics and the bar are taken from the first result, i.e., the result
- * that is opened when the Coverage tab is selected. The layout is defined in the Jelly view
+ * overviews always show the same numbers. The metrics and the bar are taken from the first result with coverage
+ * metrics. The layout is defined in the Jelly view
  * {@code RunTab/widget.jelly}.
  * </p>
  */
@@ -151,13 +151,24 @@ public class Widget {
         return List.of(Messages.Widget_coverageRecorded(), Messages.Widget_noQualityGates());
     }
 
+    /**
+     * Returns the result whose metrics are shown in the widget: the first result that contains coverage metrics. If
+     * there is no such result (e.g., if only software metrics have been recorded), the first result is used.
+     *
+     * @return the primary result, or an empty {@link Optional} if there are no results
+     */
     private Optional<OverviewModel> getPrimary() {
-        return overviews.stream().findFirst();
+        return overviews.stream()
+                .filter(overview -> overview.getHeadlineMetrics().stream().anyMatch(Metric::isCoverage))
+                .findFirst()
+                .or(() -> overviews.stream().findFirst());
     }
 
     /**
-     * Returns the most important metrics of the first result (see {@link OverviewModel#getHeadlineMetrics()}),
-     * formatted for the widget.
+     * Returns the most important metrics of the primary result (see {@link OverviewModel#getHeadlineMetrics()}),
+     * formatted for the widget. Only the deltas of coverage metrics are colored: software metrics (e.g., the number
+     * of lines or the complexity) change naturally when the code grows, so their deltas are neither an improvement
+     * nor a deterioration.
      *
      * @return the metrics
      */
@@ -179,7 +190,7 @@ public class Widget {
                     formatter.getLabel(metric),
                     overview.getShortValue(Baseline.PROJECT, metric),
                     overview.formatDelta(Baseline.PROJECT, metric),
-                    toTrend(overview.getTrend(Baseline.PROJECT, metric)),
+                    metric.isCoverage() ? toTrend(overview.getTrend(Baseline.PROJECT, metric)) : NO_TREND,
                     tooltip);
         }
         return new MetricSummary(
@@ -207,7 +218,7 @@ public class Widget {
     }
 
     /**
-     * Returns the covered and missed items of the first result (see {@link OverviewModel#getCoverageBar()}).
+     * Returns the covered and missed items of the primary result (see {@link OverviewModel#getCoverageBar()}).
      *
      * @return the covered and missed items, or an empty {@link Optional} if there are no coverage metrics
      */
