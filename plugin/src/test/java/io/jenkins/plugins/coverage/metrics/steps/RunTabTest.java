@@ -62,7 +62,7 @@ class RunTabTest extends AbstractCoverageTest {
         assertThat(tab.getIconFileName()).isNull();
         assertThat(tab.getBadge()).isNull();
         assertThat(tab.getActions()).isEmpty();
-        assertThat(tab.getWidget().getResults()).isEmpty();
+        assertThat(tab.getWidget().getMetrics()).isEmpty();
     }
 
     @Test
@@ -137,9 +137,7 @@ class RunTabTest extends AbstractCoverageTest {
         var tab = new RunTab(build);
 
         assertThat(tab.getOverviews()).extracting(OverviewModel::getId).containsExactly("coverage");
-        assertThat(tab.getWidget().getResults())
-                .extracting(OverviewModel::getId)
-                .containsExactly("coverage");
+        assertThat(tab.getWidget().getMetrics()).isNotEmpty();
     }
 
     /**

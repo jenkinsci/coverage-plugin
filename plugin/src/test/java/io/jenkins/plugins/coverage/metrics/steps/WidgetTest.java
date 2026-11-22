@@ -46,8 +46,6 @@ class WidgetTest extends AbstractCoverageTest {
         assertThat(widget.getQualityGateIcon()).isEqualTo("symbol-status-nobuilt");
         assertThat(widget.getMetrics()).isEmpty();
         assertThat(widget.getCoverageBar()).isEmpty();
-        assertThat(widget.hasPills()).isFalse();
-        assertThat(widget.getResults()).isEmpty();
         assertThat(widget.getErrorMessagesSize()).isZero();
         assertThat(widget.getLogUrl()).isEqualTo(RunTab.URL);
         assertThat(widget.getDecreasedMetricsSize()).isZero();
@@ -84,7 +82,6 @@ class WidgetTest extends AbstractCoverageTest {
             assertThat(bar.getMissedLabel()).isEqualTo(Messages.OverviewModel_missed(JACOCO_CODING_STYLE_MISSED));
         });
 
-        assertThat(widget.hasPills()).isFalse();
         assertThat(widget.getDecreasedMetricsSize()).isZero();
     }
 
@@ -118,8 +115,8 @@ class WidgetTest extends AbstractCoverageTest {
 
     @Test
     void shouldNotColorTheDeltasOfSoftwareMetrics() {
-        var widget = createWidget(createSoftwareMetricsAction(
-                COVERAGE_ID, List.of(new Difference(Metric.CYCLOMATIC_COMPLEXITY, 10))));
+        var widget = createWidget(
+                createSoftwareMetricsAction(COVERAGE_ID, List.of(new Difference(Metric.CYCLOMATIC_COMPLEXITY, 10))));
 
         assertThat(widget.getMetrics())
                 .filteredOn(metric -> metric.getLabel().equals(Metric.CYCLOMATIC_COMPLEXITY.getLabel()))
@@ -161,10 +158,6 @@ class WidgetTest extends AbstractCoverageTest {
         assertThat(widget.getQualityGateIcon()).isEqualTo("symbol-status-red");
         assertThat(widget.getMissedQualityGatesSize()).isEqualTo(2);
         assertThat(widget.getQualityGateSummary()).isEqualTo(Messages.Widget_qualityGatesMissed(2, 3));
-
-        assertThat(widget.hasPills()).isTrue();
-        assertThat(widget.getResults()).extracting(OverviewModel::getId).containsExactly(MUTATION_ID, COVERAGE_ID);
-        assertThat(widget.getResults()).extracting(widget::getStatusModifier).containsExactly("error", "warning");
     }
 
     @Test
@@ -178,22 +171,19 @@ class WidgetTest extends AbstractCoverageTest {
     }
 
     @Test
-    void shouldSortPillsByCoverageDecrease() {
+    void shouldCountDecreasedMetricsOfAllResults() {
         var stable = createAction(COVERAGE_ID, new QualityGateResult());
         var decreased =
                 createAction(MUTATION_ID, new QualityGateResult(), List.of(new Difference(Metric.LINE, -5)), List.of());
         var widget = createWidget(stable, decreased);
 
-        assertThat(widget.getResults()).extracting(OverviewModel::getId).containsExactly(MUTATION_ID, COVERAGE_ID);
-
-        var first = widget.getResults().get(0);
-        assertThat(widget.getStatusModifier(first)).isEqualTo("none");
-        assertThat(widget.getValueOf(first)).isEqualTo("91.02%");
-        assertThat(widget.getTooltipOf(first)).startsWith(Metric.LINE.getDisplayName());
-        assertThat(widget.getDecreaseOf(first)).isNotEmpty();
-        assertThat(widget.getDecreaseOf(widget.getResults().get(1))).isEmpty();
+        assertThat(widget.getDecreasedMetricsSize()).isOne();
+        assertThat(widget.getSymbol()).isEqualTo("symbol-status-yellow");
+        assertThat(widget.getMetrics())
+                .extracting(MetricSummary::getTrend)
+                .as("the metrics are taken from the first result")
+                .containsOnly("none");
         assertThat(widget.getMetrics().get(0).getTooltip()).startsWith(Messages.Coverage_Link_Name() + " - ");
-        assertThat(widget.getTabUrl()).isEqualTo(RunTab.URL);
     }
 
     @Test

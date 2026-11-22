@@ -373,9 +373,7 @@ class OverviewModelTest extends AbstractCoverageTest {
 
         assertThat(model.getHeadlineMetrics()).containsExactly(Metric.LINE, Metric.BRANCH);
         assertThat(model.getDecreasedMetrics()).isEmpty();
-        assertThat(model.getWorstTrend()).isZero();
         assertThat(model.getResultName()).isEqualTo(Messages.Coverage_Link_Name());
-        assertThat(model.getOverviewUrl()).isEqualTo("coverage/overview");
         assertThat(model.getLogUrl()).isEqualTo("coverage/log");
         assertThat(model.getErrorMessagesSize()).isZero();
     }

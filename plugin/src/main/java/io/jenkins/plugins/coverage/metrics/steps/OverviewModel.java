@@ -423,24 +423,6 @@ public class OverviewModel implements ModelObject {
     }
 
     /**
-     * Returns the icon of the coverage result.
-     *
-     * @return the icon of the result
-     */
-    public String getResultIcon() {
-        return action.getIcon();
-    }
-
-    /**
-     * Returns the URL of this overview page, relative to the run.
-     *
-     * @return the URL of the overview page
-     */
-    public String getOverviewUrl() {
-        return getId() + "/" + CoverageViewModel.OVERVIEW_URL;
-    }
-
-    /**
      * Returns the URL of the log page of the coverage result, relative to the run.
      *
      * @return the URL of the log page
@@ -502,21 +484,6 @@ public class OverviewModel implements ModelObject {
                 .filter(Metric::isCoverage)
                 .filter(metric -> getTrend(Baseline.PROJECT, metric) < 0)
                 .toList();
-    }
-
-    /**
-     * Returns the worst trend of the coverage metrics of the {@link #getHeadlineMetrics() headline metrics} for the
-     * whole project, i.e., the strongest decrease with respect to the reference build.
-     *
-     * @return the worst trend: a negative value for a deterioration, a positive value if all metrics improved, or
-     *         {@code 0} if there is no significant change or no delta at all
-     */
-    public double getWorstTrend() {
-        return getHeadlineMetrics().stream()
-                .filter(Metric::isCoverage)
-                .mapToDouble(metric -> getTrend(Baseline.PROJECT, metric))
-                .min()
-                .orElse(0);
     }
 
     /**

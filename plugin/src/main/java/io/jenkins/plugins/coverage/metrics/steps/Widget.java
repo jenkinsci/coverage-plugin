@@ -16,27 +16,20 @@ import java.util.stream.Collectors;
  * does that block anything?". It shows (from top to bottom):
  * <ul>
  *     <li>the overall status of the quality gates (or the status of the coverage deltas if there are no quality
- *     gates),</li>
+ *     gates), and a link to the log page if errors have been recorded,</li>
  *     <li>the most important metrics of the whole project with their deltas, and the reference build they are
  *     compared to,</li>
- *     <li>the covered and missed items of the modified lines (or of the whole project),</li>
- *     <li>a pill for each result (only if there is more than one result), colored by the status of its quality gates,
- *     and</li>
- *     <li>a link to the log page if errors have been recorded.</li>
+ *     <li>the covered and missed items of the modified lines (or of the whole project).</li>
  * </ul>
  *
  * <p>
- * All values are delegated to the {@link OverviewModel overviews} of the individual results, so the widget and the
- * overviews always show the same numbers. The metrics and the bar are taken from the first result with coverage
- * metrics. The layout is defined in the Jelly view
- * {@code RunTab/widget.jelly}.
+ * The individual results are not listed, since the cards of the build page have a fixed height: the overview of each
+ * result provides the details. All values are delegated to the {@link OverviewModel overviews} of the individual
+ * results, so the widget and the overviews always show the same numbers. The metrics and the bar are taken from the
+ * first result with coverage metrics. The layout is defined in the Jelly view {@code RunTab/widget.jelly}.
  * </p>
  */
-@SuppressWarnings("PMD.GodClass")
 public class Widget {
-    private static final String ERROR_STATUS = "error";
-    private static final String WARNING_STATUS = "warning";
-    private static final String NO_STATUS = "none";
     private static final String BETTER = "better";
     private static final String WORSE = "worse";
     private static final String NO_TREND = "none";
@@ -288,116 +281,6 @@ public class Widget {
                                 ? overview.getReferenceBuildName()
                                 : Messages.OverviewModel_noReferenceBuild()))
                 .collect(Collectors.joining(", "));
-    }
-
-    /**
-     * Returns the URL of the Coverage tab, relative to the run. The pill that summarizes the remaining results links
-     * to this page, which opens the overview of the first result.
-     *
-     * @return the URL of the Coverage tab
-     */
-    public String getTabUrl() {
-        return RunTab.URL;
-    }
-
-    /**
-     * Returns whether the widget shows a pill for each result. If there is only one result, the pills are skipped,
-     * since the metrics already show the details of this result.
-     *
-     * @return {@code true} if the pills should be shown, {@code false} otherwise
-     */
-    public boolean hasPills() {
-        return overviews.size() > 1;
-    }
-
-    /**
-     * Returns the results that get a pill. The results are sorted so that the most relevant results come first:
-     * results with missed quality gates (worst status first), then results with the strongest coverage decrease.
-     * Passed quality gates do not change the order.
-     *
-     * @return the results, sorted by relevance
-     */
-    public List<OverviewModel> getResults() {
-        return overviews.stream()
-                .sorted(Comparator.comparingInt(this::getStatusRank)
-                        .reversed()
-                        .thenComparingDouble(OverviewModel::getWorstTrend)
-                        .thenComparing(OverviewModel::getResultName, String.CASE_INSENSITIVE_ORDER))
-                .toList();
-    }
-
-    /**
-     * Returns the value of the first headline metric of the specified result, e.g. "91.02%".
-     *
-     * @param overview
-     *         the result
-     *
-     * @return the value, or an empty string if the result has no metrics
-     */
-    public String getValueOf(final OverviewModel overview) {
-        return overview.getHeadlineMetrics().stream()
-                .findFirst()
-                .map(metric -> overview.getShortValue(Baseline.PROJECT, metric))
-                .orElse("");
-    }
-
-    /**
-     * Returns the tooltip of the pill of the specified result, e.g. "Line Coverage: 91.02% (3047/3176)".
-     *
-     * @param overview
-     *         the result
-     *
-     * @return the tooltip, or an empty string if the result has no metrics
-     */
-    public String getTooltipOf(final OverviewModel overview) {
-        return overview.getHeadlineMetrics().stream()
-                .findFirst()
-                .map(metric -> "%s: %s"
-                        .formatted(
-                                overview.getFormatter().getDisplayName(metric),
-                                overview.formatValue(Baseline.PROJECT, metric)))
-                .orElse("");
-    }
-
-    /**
-     * Returns the delta of the first decreased coverage metric of the specified result, e.g. "-0.52%".
-     *
-     * @param overview
-     *         the result
-     *
-     * @return the delta, or an empty string if no coverage metric decreased
-     */
-    public String getDecreaseOf(final OverviewModel overview) {
-        return overview.getDecreasedMetrics().stream()
-                .findFirst()
-                .map(metric -> overview.formatDelta(Baseline.PROJECT, metric))
-                .orElse("");
-    }
-
-    /**
-     * Returns the CSS modifier that defines the color of the pill of the specified result: {@code error} if a
-     * quality gate failed the step or the build, {@code warning} if a quality gate marked the step or the build as
-     * unstable, and {@code none} otherwise.
-     *
-     * @param overview
-     *         the result
-     *
-     * @return the CSS modifier
-     */
-    public String getStatusModifier(final OverviewModel overview) {
-        return switch (overview.getQualityGateStatus()) {
-            case ERROR, FAILED -> ERROR_STATUS;
-            case NOTE, WARNING -> WARNING_STATUS;
-            default -> NO_STATUS;
-        };
-    }
-
-    private int getStatusRank(final OverviewModel overview) {
-        return switch (getStatusModifier(overview)) {
-            case ERROR_STATUS -> 2;
-            case WARNING_STATUS -> 1;
-            default -> 0;
-        };
     }
 
     /**
