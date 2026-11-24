@@ -1,191 +1,330 @@
 package io.jenkins.plugins.coverage.metrics.steps;
 
-import edu.hm.hafner.coverage.Coverage;
-import edu.hm.hafner.coverage.Value;
+import edu.hm.hafner.coverage.Metric;
+import hudson.model.Run;
 import io.jenkins.plugins.coverage.metrics.model.Baseline;
-import io.jenkins.plugins.coverage.metrics.model.ElementFormatter;
-import io.jenkins.plugins.util.QualityGateResult;
-import java.util.ArrayList;
+import io.jenkins.plugins.coverage.metrics.steps.OverviewModel.CoverageBar;
+import io.jenkins.plugins.util.QualityGateStatus;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
-import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 /**
- * Model for the coverage widget.
+ * Server side model of the Coverage widget on the build page. The widget is a compact version of the {@link
+ * OverviewModel overview} of the Coverage tab and answers the question: "Did this build make the coverage worse, and
+ * does that block anything?". It shows (from top to bottom):
+ * <ul>
+ *     <li>the overall status of the quality gates (or the status of the coverage deltas if there are no quality
+ *     gates), and a link to the log page if errors have been recorded,</li>
+ *     <li>the most important metrics of the whole project with their deltas, and the reference build they are
+ *     compared to,</li>
+ *     <li>the covered and missed items of the modified lines (or of the whole project).</li>
+ * </ul>
+ *
+ * <p>
+ * The individual results are not listed, since the cards of the build page have a fixed height: the overview of each
+ * result provides the details. All values are delegated to the {@link OverviewModel overviews} of the individual
+ * results, so the widget and the overviews always show the same numbers. The metrics and the bar are taken from the
+ * first result with coverage metrics. The layout is defined in the Jelly view {@code RunTab/widget.jelly}.
+ * </p>
  */
 public class Widget {
-    /** Alpha value (0-100) used for the badge background color, matching the coverage tables elsewhere. */
-    private static final int BADGE_COLOR_ALPHA = 80;
+    private static final String BETTER = "better";
+    private static final String WORSE = "worse";
+    private static final String NO_TREND = "none";
 
-    private final String message;
-    private final List<CoverageBuildAction> results;
+    private final List<OverviewModel> overviews;
 
     /**
-     * Creates a new widget.
+     * Creates a new widget for the specified overviews.
      *
-     * @param results
-     *         the list of results to display in the widget
+     * @param overviews
+     *         the overviews of the coverage results that provide all values
      */
-    public Widget(final List<CoverageBuildAction> results) {
-        this.results = new ArrayList<>(results);
+    Widget(final List<OverviewModel> overviews) {
+        this.overviews = List.copyOf(overviews);
+    }
 
-        var failed = getFailedQualityGates();
-        if (failed == 1) {
-            message = Messages.Widget_failedQualityGate();
-        } else if (failed > 1) {
-            message = Messages.Widget_failedQualityGates(failed);
-        } else {
-            var active = results.stream()
-                    .map(CoverageBuildAction::getQualityGateResult)
-                    .filter(Predicate.not(QualityGateResult::isInactive))
-                    .count();
+    /**
+     * Returns whether at least one of the results has an active quality gate.
+     *
+     * @return {@code true} if there are quality gates, {@code false} otherwise
+     */
+    public boolean hasQualityGates() {
+        return overviews.stream().anyMatch(OverviewModel::hasQualityGates);
+    }
 
-            if (active > 0) {
-                message = Messages.Widget_passedQualityGates();
-            } else {
-                message = Messages.Widget_noQualityGates();
-            }
+    /**
+     * Returns the overall status of the quality gates, i.e., the worst status of all results.
+     *
+     * @return the overall quality gate status
+     */
+    public QualityGateStatus getQualityGateStatus() {
+        return overviews.stream()
+                .map(OverviewModel::getQualityGateStatus)
+                .max(Comparator.naturalOrder())
+                .orElse(QualityGateStatus.INACTIVE);
+    }
+
+    /**
+     * Returns the symbol that visualizes the overall status of the quality gates (see
+     * {@link OverviewModel#getStatusIcon(QualityGateStatus)}).
+     *
+     * @return the symbol
+     */
+    public String getQualityGateIcon() {
+        return OverviewModel.toStatusIcon(getQualityGateStatus());
+    }
+
+    /**
+     * Returns a localized summary of the quality gates, e.g. "1 of 3 quality gates missed".
+     *
+     * @return the summary
+     */
+    public String getQualityGateSummary() {
+        int missed = getMissedQualityGatesSize();
+        int total =
+                overviews.stream().mapToInt(OverviewModel::getQualityGatesSize).sum();
+        if (missed == 0) {
+            return Messages.Widget_qualityGatesPassed(total);
         }
+        return Messages.Widget_qualityGatesMissed(missed, total);
     }
 
-    private long getFailedQualityGates() {
-        return results.stream()
-                .map(CoverageBuildAction::getQualityGateResult)
-                .filter(Predicate.not(QualityGateResult::isSuccessful))
-                .count();
+    /**
+     * Returns the number of quality gates of all results that have been missed.
+     *
+     * @return the number of missed quality gates
+     */
+    public int getMissedQualityGatesSize() {
+        return overviews.stream()
+                .mapToInt(OverviewModel::getMissedQualityGatesSize)
+                .sum();
     }
 
+    /**
+     * Returns the number of coverage metrics of all results whose value for the whole project decreased with respect
+     * to the reference build (see {@link OverviewModel#getDecreasedMetrics()}).
+     *
+     * @return the number of decreased coverage metrics
+     */
+    public int getDecreasedMetricsSize() {
+        return overviews.stream()
+                .mapToInt(overview -> overview.getDecreasedMetrics().size())
+                .sum();
+    }
+
+    /**
+     * Returns the symbol that is shown in front of the summary lines if there are no quality gates. Without quality
+     * gates, the status is derived from the coverage deltas: an unstable symbol if the coverage decreased, and a
+     * success symbol otherwise. The symbols are the same build status symbols that are used for the quality gates.
+     *
+     * @return the symbol
+     */
     public String getSymbol() {
-        return "symbol-footsteps-outline plugin-ionicons-api";
+        return OverviewModel.toStatusIcon(
+                getDecreasedMetricsSize() > 0 ? QualityGateStatus.WARNING : QualityGateStatus.PASSED);
     }
 
     /**
-     * Returns the CSS class to show the coverage logo in. The color depends on the quality gates results, successful is
-     * returned only when all gates are passed.
+     * Returns the summary lines that are shown if there are no quality gates. The first line states whether the
+     * coverage decreased, the second line explains the status.
      *
-     * @return the CSS class to show the coverage logo in
+     * @return the summary lines
      */
-    public String getIconColor() {
-        if (getFailedQualityGates() == 0) {
-            return "jenkins-!-success-color";
+    public List<String> getLines() {
+        int decreased = getDecreasedMetricsSize();
+        if (decreased > 0) {
+            return List.of(Messages.Widget_coverageDecreased(decreased), Messages.Widget_noQualityGates());
         }
-        return "jenkins-!-warning-color";
-    }
-
-    public String getMessage() {
-        return message;
-    }
-
-    public List<CoverageBuildAction> getResults() {
-        return results;
-    }
-
-    /**
-     * Returns the single available result, if there is exactly one coverage result for this build. Showing a
-     * generic pill per result (see {@link #getResults()}) is useful only to distinguish between several results;
-     * when there is just one, the widget shows its card metrics (see {@link OverviewModel#isCardMetric}) as
-     * colored badges instead, which is more informative at a glance.
-     *
-     * @return the single result, or an empty {@link Optional} if there is not exactly one result
-     */
-    public Optional<CoverageBuildAction> getSingleResult() {
-        return results.size() == 1 ? Optional.of(results.getFirst()) : Optional.empty();
-    }
-
-    /**
-     * Returns the card metrics (see {@link OverviewModel#isCardMetric}) of the project baseline for the single
-     * available result, pre-formatted for rendering as colored badges (same coloring as the plugin's own coverage
-     * tables, e.g. the file coverage table). Empty unless {@link #getSingleResult()} is present.
-     *
-     * @return the card metric badges of the single result, sorted by metric; an empty list if there is not exactly
-     *         one result
-     */
-    public List<MetricBadge> getSingleResultMetrics() {
-        return getSingleResult()
-                .map(single -> {
-                    var formatter = single.getFormatter();
-                    var reportId = single.getUrlName();
-                    return single.getAllValues(Baseline.PROJECT).stream()
-                            .filter(value -> OverviewModel.isCardMetric(value.getMetric()))
-                            .sorted(Comparator.comparing(Value::getMetric))
-                            .map(value -> createBadge(formatter, value, reportId))
-                            .collect(Collectors.<MetricBadge>toList());
-                })
-                .orElseGet(List::of);
-    }
-
-    private static MetricBadge createBadge(final ElementFormatter formatter, final Value value, final String reportId) {
-        var colors = formatter.getDisplayColors(Baseline.PROJECT, value);
-        var fillPercentage = formatter.getBackgroundColorFillPercentage(value);
-        var style = "background-image: linear-gradient(90deg, %s %s, transparent %s);"
-                .formatted(colors.getFillColorAsRGBAHex(BADGE_COLOR_ALPHA), fillPercentage, fillPercentage);
-        var metric = value.getMetric();
-        var tooltip =
-                "%s: %s".formatted(formatter.getDisplayName(metric), formatter.formatAdditionalInformation(value));
-
-        return new MetricBadge(
-                formatter.getLabel(metric),
-                formatter.format(value),
-                tooltip,
-                style,
-                toPercentage(value),
-                fillPercentage,
-                reportId);
-    }
-
-    /**
-     * Returns the percentage of the given value on the same 0-100 scale used everywhere else in the plugin (e.g.
-     * the Overview tab's ring gauges), regardless of whether it is backed by a {@link Coverage} instance (the
-     * common case) or a plain {@link Value} such as a raw count.
-     *
-     * @param value
-     *         the value to convert
-     *
-     * @return the percentage, from 0 to 100
-     */
-    private static double toPercentage(final Value value) {
-        if (value instanceof Coverage coverage) {
-            return coverage.getCoveredPercentage().toDouble();
+        if (hasReferenceBuild()) {
+            return List.of(Messages.Widget_noCoverageDecrease(), Messages.Widget_noQualityGates());
         }
-        return value.asDouble();
+        return List.of(Messages.Widget_coverageRecorded(), Messages.Widget_noQualityGates());
     }
 
     /**
-     * A single card metric of {@link #getSingleResultMetrics()}, pre-formatted so the view can render it as a
-     * colored badge without needing to call back into the {@link ElementFormatter}. Also carries the raw
-     * percentage, the fill-percentage text, and the report ID (see {@link #getPercentage()}, {@link
-     * #getFillPercentage()}, {@link #getReportId()}) so that client-side script can recolor the badge using the
-     * green/red thresholds the user has configured for this report on the Overview tab -- those are only ever
-     * persisted to the browser's local storage, so they are not available while rendering this badge on the
-     * server, which instead uses the plugin's default thresholds.
+     * Returns the result whose metrics are shown in the widget: the first result that contains coverage metrics. If
+     * there is no such result (e.g., if only software metrics have been recorded), the first result is used.
+     *
+     * @return the primary result, or an empty {@link Optional} if there are no results
+     */
+    private Optional<OverviewModel> getPrimary() {
+        return overviews.stream()
+                .filter(overview -> overview.getHeadlineMetrics().stream().anyMatch(Metric::isCoverage))
+                .findFirst()
+                .or(() -> overviews.stream().findFirst());
+    }
+
+    /**
+     * Returns the most important metrics of the primary result (see {@link OverviewModel#getHeadlineMetrics()}),
+     * formatted for the widget. Only the deltas of coverage metrics are colored: software metrics (e.g., the number
+     * of lines or the complexity) change naturally when the code grows, so their deltas are neither an improvement
+     * nor a deterioration.
+     *
+     * @return the metrics
+     */
+    public List<MetricSummary> getMetrics() {
+        return getPrimary().map(this::createMetrics).orElseGet(List::of);
+    }
+
+    private List<MetricSummary> createMetrics(final OverviewModel overview) {
+        return overview.getHeadlineMetrics().stream()
+                .map(metric -> createMetric(overview, metric))
+                .toList();
+    }
+
+    private MetricSummary createMetric(final OverviewModel overview, final Metric metric) {
+        var formatter = overview.getFormatter();
+        var tooltip = createTooltip(overview, metric);
+        if (overview.hasDelta(Baseline.PROJECT, metric)) {
+            return new MetricSummary(
+                    formatter.getLabel(metric),
+                    overview.getShortValue(Baseline.PROJECT, metric),
+                    overview.formatDelta(Baseline.PROJECT, metric),
+                    metric.isCoverage() ? toTrend(overview.getTrend(Baseline.PROJECT, metric)) : NO_TREND,
+                    tooltip);
+        }
+        return new MetricSummary(
+                formatter.getLabel(metric), overview.getShortValue(Baseline.PROJECT, metric), "", NO_TREND, tooltip);
+    }
+
+    private String createTooltip(final OverviewModel overview, final Metric metric) {
+        var tooltip = "%s: %s"
+                .formatted(
+                        overview.getFormatter().getDisplayName(metric), overview.formatValue(Baseline.PROJECT, metric));
+        if (overviews.size() > 1) {
+            return "%s - %s".formatted(overview.getResultName(), tooltip);
+        }
+        return tooltip;
+    }
+
+    private static String toTrend(final double trend) {
+        if (trend > 0) {
+            return BETTER;
+        }
+        if (trend < 0) {
+            return WORSE;
+        }
+        return NO_TREND;
+    }
+
+    /**
+     * Returns the covered and missed items of the primary result (see {@link OverviewModel#getCoverageBar()}).
+     *
+     * @return the covered and missed items, or an empty {@link Optional} if there are no coverage metrics
+     */
+    public Optional<CoverageBar> getCoverageBar() {
+        return getPrimary().flatMap(OverviewModel::getCoverageBar);
+    }
+
+    private List<Run<?, ?>> getReferenceBuilds() {
+        return overviews.stream()
+                .map(OverviewModel::getReferenceBuild)
+                .flatMap(Optional::stream)
+                .distinct()
+                .toList();
+    }
+
+    /**
+     * Returns whether at least one of the results has a reference build. Without a reference build, the deltas are
+     * not available.
+     *
+     * @return {@code true} if there is a reference build, {@code false} otherwise
+     */
+    public boolean hasReferenceBuild() {
+        return !getReferenceBuilds().isEmpty();
+    }
+
+    /**
+     * Returns the caption below the metrics that names the reference build, e.g. "compared to #48". If the results
+     * use different reference builds, the number of reference builds is shown.
+     *
+     * @return the caption
+     */
+    public String getComparisonCaption() {
+        var builds = getReferenceBuilds();
+        if (builds.size() > 1) {
+            return Messages.OverviewModel_comparedTo(Messages.OverviewModel_referenceBuilds(builds.size()));
+        }
+        return overviews.stream()
+                .filter(OverviewModel::hasReferenceBuild)
+                .findFirst()
+                .map(OverviewModel::getComparisonCaption)
+                .orElse(Messages.OverviewModel_noReferenceBuild());
+    }
+
+    /**
+     * Returns the URL of the reference build (relative to the Jenkins root), or an empty string if there is no single
+     * reference build.
+     *
+     * @return the URL of the reference build
+     */
+    public String getReferenceBuildUrl() {
+        var builds = getReferenceBuilds();
+        if (builds.size() == 1) {
+            return builds.get(0).getUrl();
+        }
+        return "";
+    }
+
+    /**
+     * Returns a tooltip that lists the reference build of each result, e.g. "Unit Tests: #48, Mutations: #47".
+     *
+     * @return the tooltip
+     */
+    public String getReferenceBuildTooltip() {
+        return overviews.stream()
+                .map(overview -> overview.getResultName() + ": "
+                        + (overview.hasReferenceBuild()
+                                ? overview.getReferenceBuildName()
+                                : Messages.OverviewModel_noReferenceBuild()))
+                .collect(Collectors.joining(", "));
+    }
+
+    /**
+     * Returns the number of error messages that have been recorded for all results.
+     *
+     * @return the number of error messages
+     */
+    public int getErrorMessagesSize() {
+        return overviews.stream().mapToInt(OverviewModel::getErrorMessagesSize).sum();
+    }
+
+    /**
+     * Returns the URL of the log page that shows the error messages, relative to the run. The log page of the first
+     * result with errors is used.
+     *
+     * @return the URL of the log page, or the URL of the Coverage tab if there are no errors
+     */
+    public String getLogUrl() {
+        return overviews.stream()
+                .filter(overview -> overview.getErrorMessagesSize() > 0)
+                .findFirst()
+                .map(OverviewModel::getLogUrl)
+                .orElse(RunTab.URL);
+    }
+
+    /**
+     * A single metric of the widget, pre-formatted so that the view can render it without needing to call back into
+     * the {@link OverviewModel}.
      */
     @SuppressWarnings("PMD.DataClass")
-    public static final class MetricBadge {
+    public static final class MetricSummary {
         private final String label;
         private final String value;
+        private final String delta;
+        private final String trend;
         private final String tooltip;
-        private final String style;
-        private final double percentage;
-        private final String fillPercentage;
-        private final String reportId;
 
-        private MetricBadge(
-                final String label,
-                final String value,
-                final String tooltip,
-                final String style,
-                final double percentage,
-                final String fillPercentage,
-                final String reportId) {
+        MetricSummary(
+                final String label, final String value, final String delta, final String trend, final String tooltip) {
             this.label = label;
             this.value = value;
+            this.delta = delta;
+            this.trend = trend;
             this.tooltip = tooltip;
-            this.style = style;
-            this.percentage = percentage;
-            this.fillPercentage = fillPercentage;
-            this.reportId = reportId;
         }
 
         public String getLabel() {
@@ -196,24 +335,27 @@ public class Widget {
             return value;
         }
 
+        /**
+         * Returns the formatted delta with respect to the reference build, e.g. "+0.52%".
+         *
+         * @return the delta, or an empty string if there is no delta
+         */
+        public String getDelta() {
+            return delta;
+        }
+
+        /**
+         * Returns whether the delta is an improvement: {@code better} for an improvement, {@code worse} for a
+         * deterioration, and {@code none} if there is no significant change or no delta.
+         *
+         * @return the trend
+         */
+        public String getTrend() {
+            return trend;
+        }
+
         public String getTooltip() {
             return tooltip;
-        }
-
-        public String getStyle() {
-            return style;
-        }
-
-        public double getPercentage() {
-            return percentage;
-        }
-
-        public String getFillPercentage() {
-            return fillPercentage;
-        }
-
-        public String getReportId() {
-            return reportId;
         }
     }
 }

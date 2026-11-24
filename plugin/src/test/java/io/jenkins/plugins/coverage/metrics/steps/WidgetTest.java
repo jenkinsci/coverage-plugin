@@ -3,127 +3,328 @@ package io.jenkins.plugins.coverage.metrics.steps;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-import edu.hm.hafner.coverage.Coverage;
+import edu.hm.hafner.coverage.ClassNode;
+import edu.hm.hafner.coverage.Coverage.CoverageBuilder;
+import edu.hm.hafner.coverage.Difference;
+import edu.hm.hafner.coverage.FileNode;
+import edu.hm.hafner.coverage.MethodNode;
 import edu.hm.hafner.coverage.Metric;
+import edu.hm.hafner.coverage.ModuleNode;
+import edu.hm.hafner.coverage.Value;
 import edu.hm.hafner.util.FilteredLog;
+import hudson.model.Job;
 import hudson.model.Run;
 import io.jenkins.plugins.coverage.metrics.AbstractCoverageTest;
 import io.jenkins.plugins.coverage.metrics.model.Baseline;
+import io.jenkins.plugins.coverage.metrics.steps.OverviewModel.CoverageBar;
+import io.jenkins.plugins.coverage.metrics.steps.Widget.MetricSummary;
+import io.jenkins.plugins.util.QualityGate.QualityGateCriticality;
 import io.jenkins.plugins.util.QualityGateResult;
 import io.jenkins.plugins.util.QualityGateStatus;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 import org.junit.jupiter.api.Test;
+import org.junitpioneer.jupiter.DefaultLocale;
 
 /**
  * Tests the class {@link Widget}.
  *
  * @author Ullrich Hafner
  */
+@DefaultLocale("en")
 class WidgetTest extends AbstractCoverageTest {
-    @Test
-    void shouldShowNoQualityGatesMessageWhenNoGateIsActive() {
-        var widget = createWidget(createAction("coverage", new QualityGateResult()));
+    private static final String COVERAGE_ID = "coverage";
+    private static final String MUTATION_ID = "mutation";
 
-        assertThat(widget.getMessage()).isEqualTo(Messages.Widget_noQualityGates());
-        assertThat(widget.getIconColor()).isEqualTo("jenkins-!-success-color");
+    @Test
+    void shouldHandleRunsWithoutResults() {
+        var widget = new Widget(List.of());
+
+        assertThat(widget.hasQualityGates()).isFalse();
+        assertThat(widget.getQualityGateStatus()).isEqualTo(QualityGateStatus.INACTIVE);
+        assertThat(widget.getQualityGateIcon()).isEqualTo("symbol-status-nobuilt");
+        assertThat(widget.getMetrics()).isEmpty();
+        assertThat(widget.getCoverageBar()).isEmpty();
+        assertThat(widget.getErrorMessagesSize()).isZero();
+        assertThat(widget.getLogUrl()).isEqualTo(RunTab.URL);
+        assertThat(widget.getDecreasedMetricsSize()).isZero();
+        assertThat(widget.hasReferenceBuild()).isFalse();
+        assertThat(widget.getComparisonCaption()).isEqualTo(Messages.OverviewModel_noReferenceBuild());
+        assertThat(widget.getReferenceBuildUrl()).isEmpty();
     }
 
     @Test
-    void shouldShowPassedMessageWhenAllActiveGatesPass() {
-        var widget = createWidget(createAction("coverage", new QualityGateResult(QualityGateStatus.PASSED)));
+    void shouldShowProjectMetricsWithoutDeltasAndQualityGates() {
+        var widget = createWidget(createAction(COVERAGE_ID, new QualityGateResult()));
 
-        assertThat(widget.getMessage()).isEqualTo(Messages.Widget_passedQualityGates());
-        assertThat(widget.getIconColor()).isEqualTo("jenkins-!-success-color");
+        assertThat(widget.hasQualityGates()).isFalse();
+        assertThat(widget.getSymbol()).isEqualTo("symbol-status-blue");
+        assertThat(widget.getLines())
+                .containsExactly(Messages.Widget_coverageRecorded(), Messages.Widget_noQualityGates());
+
+        assertThat(widget.getMetrics())
+                .extracting(MetricSummary::getLabel)
+                .containsExactly(Metric.LINE.getLabel(), Metric.BRANCH.getLabel());
+        var line = widget.getMetrics().get(0);
+        assertThat(line.getValue()).isEqualTo("91.02%");
+        assertThat(line.getDelta()).isEmpty();
+        assertThat(line.getTrend()).isEqualTo("none");
+        assertThat(line.getTooltip())
+                .startsWith(Metric.LINE.getDisplayName())
+                .contains(String.valueOf(JACOCO_CODING_STYLE_COVERED));
+
+        assertThat(widget.getCoverageBar()).hasValueSatisfying(bar -> {
+            assertThat(bar.getTitle()).contains(Baseline.PROJECT.getTitle(), Metric.LINE.getDisplayName());
+            assertThat(bar.getCovered()).isEqualTo(JACOCO_CODING_STYLE_COVERED);
+            assertThat(bar.getMissed()).isEqualTo(JACOCO_CODING_STYLE_MISSED);
+            assertThat(bar.getCoveredLabel()).isEqualTo(Messages.OverviewModel_covered(JACOCO_CODING_STYLE_COVERED));
+            assertThat(bar.getMissedLabel()).isEqualTo(Messages.OverviewModel_missed(JACOCO_CODING_STYLE_MISSED));
+        });
+
+        assertThat(widget.getDecreasedMetricsSize()).isZero();
     }
 
     @Test
-    void shouldShowSingularMessageForOneFailedGate() {
-        var widget = createWidget(createAction("coverage", new QualityGateResult(QualityGateStatus.ERROR)));
+    void shouldShowWarningStatusIfCoverageDecreased() {
+        var widget = createWidget(createAction(
+                COVERAGE_ID,
+                new QualityGateResult(),
+                List.of(new Difference(Metric.LINE, -2), new Difference(Metric.BRANCH, 1)),
+                List.of()));
 
-        assertThat(widget.getMessage()).isEqualTo(Messages.Widget_failedQualityGate());
-        assertThat(widget.getIconColor()).isEqualTo("jenkins-!-warning-color");
+        assertThat(widget.getDecreasedMetricsSize()).isOne();
+        assertThat(widget.getSymbol()).isEqualTo("symbol-status-yellow");
+        assertThat(widget.getLines())
+                .containsExactly(Messages.Widget_coverageDecreased(1), Messages.Widget_noQualityGates());
+        assertThat(widget.getMetrics()).extracting(MetricSummary::getTrend).containsExactly("worse", "better");
+        assertThat(widget.getMetrics()).extracting(MetricSummary::getDelta).doesNotContain("");
     }
 
     @Test
-    void shouldShowPluralMessageForSeveralFailedGates() {
+    void shouldShowTheMetricsOfTheFirstResultWithCoverage() {
+        var metrics = createSoftwareMetricsAction(MUTATION_ID, List.of());
+        var coverage = createAction(COVERAGE_ID, new QualityGateResult());
+        var widget = createWidget(metrics, coverage);
+
+        assertThat(widget.getMetrics())
+                .extracting(MetricSummary::getLabel)
+                .containsExactly(Metric.LINE.getLabel(), Metric.BRANCH.getLabel());
+        assertThat(widget.getCoverageBar()).isPresent();
+    }
+
+    @Test
+    void shouldNotColorTheDeltasOfSoftwareMetrics() {
         var widget = createWidget(
-                createAction("coverage", new QualityGateResult(QualityGateStatus.ERROR)),
-                createAction("mutation", new QualityGateResult(QualityGateStatus.FAILED)));
+                createSoftwareMetricsAction(COVERAGE_ID, List.of(new Difference(Metric.CYCLOMATIC_COMPLEXITY, 10))));
 
-        assertThat(widget.getMessage()).isEqualTo(Messages.Widget_failedQualityGates(2));
-        assertThat(widget.getIconColor()).isEqualTo("jenkins-!-warning-color");
+        assertThat(widget.getMetrics())
+                .filteredOn(metric -> metric.getLabel().equals(Metric.CYCLOMATIC_COMPLEXITY.getLabel()))
+                .singleElement()
+                .satisfies(metric -> {
+                    assertThat(metric.getDelta()).isNotEmpty();
+                    assertThat(metric.getTrend()).isEqualTo("none");
+                });
+        assertThat(widget.getDecreasedMetricsSize()).isZero();
+        assertThat(widget.getCoverageBar()).isEmpty();
     }
 
     @Test
-    void shouldCountOnlyFailedGatesEvenWhenOthersAreInactiveOrPassing() {
+    void shouldPreferTheModifiedLinesForTheCoverageBar() {
+        var modifiedLines = new CoverageBuilder()
+                .withMetric(Metric.LINE)
+                .withCovered(40)
+                .withMissed(3)
+                .build();
+        var widget =
+                createWidget(createAction(COVERAGE_ID, new QualityGateResult(), List.of(), List.of(modifiedLines)));
+
+        assertThat(widget.getCoverageBar())
+                .map(CoverageBar::getTitle)
+                .hasValueSatisfying(title -> assertThat(title).contains(Baseline.MODIFIED_LINES.getTitle()));
+        assertThat(widget.getCoverageBar()).map(CoverageBar::getCovered).contains(40);
+        assertThat(widget.getCoverageBar()).map(CoverageBar::getMissed).contains(3);
+    }
+
+    @Test
+    void shouldSummarizeMissedQualityGatesOfAllResults() {
+        var coverage =
+                createAction(COVERAGE_ID, createQualityGateResult(QualityGateStatus.PASSED, QualityGateStatus.WARNING));
+        var mutation = createAction(MUTATION_ID, createQualityGateResult(QualityGateStatus.FAILED));
+        var widget = createWidget(coverage, mutation);
+
+        assertThat(widget.hasQualityGates()).isTrue();
+        assertThat(widget.getQualityGateStatus()).isEqualTo(QualityGateStatus.FAILED);
+        assertThat(widget.getQualityGateIcon()).isEqualTo("symbol-status-red");
+        assertThat(widget.getMissedQualityGatesSize()).isEqualTo(2);
+        assertThat(widget.getQualityGateSummary()).isEqualTo(Messages.Widget_qualityGatesMissed(2, 3));
+    }
+
+    @Test
+    void shouldSummarizePassedQualityGates() {
+        var widget = createWidget(createAction(COVERAGE_ID, createQualityGateResult(QualityGateStatus.PASSED)));
+
+        assertThat(widget.getQualityGateStatus()).isEqualTo(QualityGateStatus.PASSED);
+        assertThat(widget.getQualityGateIcon()).isEqualTo("symbol-status-blue");
+        assertThat(widget.getMissedQualityGatesSize()).isZero();
+        assertThat(widget.getQualityGateSummary()).isEqualTo(Messages.Widget_qualityGatesPassed(1));
+    }
+
+    @Test
+    void shouldCountDecreasedMetricsOfAllResults() {
+        var stable = createAction(COVERAGE_ID, new QualityGateResult());
+        var decreased =
+                createAction(MUTATION_ID, new QualityGateResult(), List.of(new Difference(Metric.LINE, -5)), List.of());
+        var widget = createWidget(stable, decreased);
+
+        assertThat(widget.getDecreasedMetricsSize()).isOne();
+        assertThat(widget.getSymbol()).isEqualTo("symbol-status-yellow");
+        assertThat(widget.getMetrics())
+                .extracting(MetricSummary::getTrend)
+                .as("the metrics are taken from the first result")
+                .containsOnly("none");
+        assertThat(widget.getMetrics().get(0).getTooltip()).startsWith(Messages.Coverage_Link_Name() + " - ");
+    }
+
+    @Test
+    void shouldLinkToTheLogOfTheFirstResultWithErrors() {
+        var errors = new FilteredLog("Errors");
+        errors.logError("First error");
+        errors.logError("Second error");
         var widget = createWidget(
-                createAction("coverage", new QualityGateResult()),
-                createAction("mutation", new QualityGateResult(QualityGateStatus.PASSED)),
-                createAction("modified-lines", new QualityGateResult(QualityGateStatus.ERROR)));
+                createAction(COVERAGE_ID, new QualityGateResult()),
+                createAction(MUTATION_ID, new QualityGateResult(), errors));
 
-        assertThat(widget.getMessage()).isEqualTo(Messages.Widget_failedQualityGate());
+        assertThat(widget.getErrorMessagesSize()).isEqualTo(2);
+        assertThat(widget.getLogUrl()).isEqualTo(MUTATION_ID + "/log");
     }
 
     @Test
-    void shouldReturnEmptyOptionalAndNoBadgesWhenThereAreNoResults() {
-        var widget = createWidget();
+    void shouldNameTheReferenceBuildOfTheSameJob() {
+        var job = mock(Job.class);
+        var owner = createRun(job, "#49", "job/x/49/");
+        var reference = createRun(job, "#48", "job/x/48/");
+        var widget = new Widget(List.of(new OverviewModel(owner, createActionWithReference(COVERAGE_ID, reference))));
 
-        assertThat(widget.getSingleResult()).isEmpty();
-        assertThat(widget.getResults()).isEmpty();
-        assertThat(widget.getSingleResultMetrics()).isEmpty();
+        assertThat(widget.hasReferenceBuild()).isTrue();
+        assertThat(widget.getComparisonCaption()).isEqualTo(Messages.OverviewModel_comparedTo("#48"));
+        assertThat(widget.getReferenceBuildUrl()).isEqualTo("job/x/48/");
+        assertThat(widget.getReferenceBuildTooltip()).isEqualTo(Messages.Coverage_Link_Name() + ": #48");
+        assertThat(widget.getLines())
+                .containsExactly(Messages.Widget_noCoverageDecrease(), Messages.Widget_noQualityGates());
     }
 
     @Test
-    void shouldReturnThePresentResultWhenThereIsExactlyOne() {
-        var action = createAction("coverage", new QualityGateResult());
-        var widget = createWidget(action);
+    void shouldUseTheFullNameForReferenceBuildsOfOtherJobs() {
+        var owner = createRun(mock(Job.class), "#49", "job/x/PR-1/49/");
+        var reference = createRun(mock(Job.class), "#48", "job/x/main/48/");
+        when(reference.getFullDisplayName()).thenReturn("x » main #48");
 
-        assertThat(widget.getSingleResult()).contains(action);
+        var overview = new OverviewModel(owner, createActionWithReference(COVERAGE_ID, reference));
+
+        assertThat(overview.getReferenceBuildName()).isEqualTo("x » main #48");
+        assertThat(overview.getReferenceBuildText())
+                .isEqualTo(Messages.OverviewModel_referenceBuildButton("x » main #48"));
     }
 
     @Test
-    void shouldReturnEmptyOptionalAndNoBadgesWhenThereAreSeveralResults() {
-        var widget = createWidget(
-                createAction("coverage", new QualityGateResult()), createAction("mutation", new QualityGateResult()));
+    void shouldShowTheNumberOfReferenceBuildsIfTheResultsUseDifferentBuilds() {
+        var job = mock(Job.class);
+        var owner = createRun(job, "#49", "job/x/49/");
+        var widget = new Widget(List.of(
+                new OverviewModel(owner, createActionWithReference(COVERAGE_ID, createRun(job, "#48", "job/x/48/"))),
+                new OverviewModel(owner, createActionWithReference(MUTATION_ID, createRun(job, "#47", "job/x/47/")))));
 
-        assertThat(widget.getSingleResult()).isEmpty();
-        assertThat(widget.getSingleResultMetrics()).isEmpty();
-        assertThat(widget.getResults()).hasSize(2);
+        assertThat(widget.getComparisonCaption())
+                .isEqualTo(Messages.OverviewModel_comparedTo(Messages.OverviewModel_referenceBuilds(2)));
+        assertThat(widget.getReferenceBuildUrl()).isEmpty();
+        assertThat(widget.getReferenceBuildTooltip())
+                .isEqualTo("%1$s: #48, %1$s: #47".formatted(Messages.Coverage_Link_Name()));
     }
 
-    @Test
-    void shouldBuildCardMetricBadgesSortedByMetricForTheSingleResult() {
-        var action = createAction("coverage", new QualityGateResult());
-        var widget = createWidget(action);
+    private CoverageBuildAction createSoftwareMetricsAction(final String id, final List<Difference> differences) {
+        var module = new ModuleNode("module");
+        var file = new FileNode("File.java", "src/File.java");
+        module.addChild(file);
+        var classNode = new ClassNode("Class");
+        file.addChild(classNode);
+        var method = new MethodNode("method", "()V");
+        method.addValue(new Value(Metric.CYCLOMATIC_COMPLEXITY, 5));
+        classNode.addChild(method);
 
-        var badges = widget.getSingleResultMetrics();
-
-        // only the card metrics (see OverviewModel#isCardMetric) become badges, in natural metric order
-        assertThat(badges)
-                .extracting(Widget.MetricBadge::getLabel)
-                .containsExactly(Metric.LINE.getLabel(), Metric.BRANCH.getLabel(), Metric.INSTRUCTION.getLabel());
-
-        var lineCoverage = (Coverage)
-                action.getValueForMetric(Baseline.PROJECT, Metric.LINE).orElseThrow();
-        var lineBadge = badges.get(0);
-        assertThat(lineBadge.getReportId()).isEqualTo("coverage");
-        assertThat(lineBadge.getValue()).isEqualTo(action.getFormatter().format(lineCoverage));
-        assertThat(lineBadge.getPercentage())
-                .isEqualTo(lineCoverage.getCoveredPercentage().toDouble());
-        assertThat(lineBadge.getStyle()).contains("background-image: linear-gradient(90deg,");
-        assertThat(lineBadge.getTooltip()).contains(Metric.LINE.getDisplayName());
+        return new CoverageBuildAction(
+                mock(Run.class),
+                id,
+                "",
+                "",
+                module,
+                new QualityGateResult(),
+                new FilteredLog("Errors"),
+                "-",
+                differences,
+                List.of(),
+                List.of(),
+                List.of(),
+                List.of(),
+                List.of(),
+                false);
     }
 
-    @Test
-    void shouldReturnTheFootstepsSymbol() {
-        assertThat(createWidget().getSymbol()).isEqualTo("symbol-footsteps-outline plugin-ionicons-api");
+    private Run<?, ?> createRun(final Job<?, ?> job, final String displayName, final String url) {
+        Run<?, ?> run = mock(Run.class);
+        doReturn(job).when(run).getParent();
+        when(run.getDisplayName()).thenReturn(displayName);
+        when(run.getFullDisplayName()).thenReturn("x " + displayName);
+        when(run.getUrl()).thenReturn(url);
+        return run;
+    }
+
+    private CoverageBuildAction createActionWithReference(final String id, final Run<?, ?> reference) {
+        var action = spy(createAction(id, new QualityGateResult()));
+        doReturn(Optional.of(reference)).when(action).getReferenceBuild();
+        return action;
+    }
+
+    private QualityGateResult createQualityGateResult(final QualityGateStatus... statuses) {
+        var result = new QualityGateResult();
+        for (QualityGateStatus status : statuses) {
+            result.add(
+                    new CoverageQualityGate(100, Metric.LINE, Baseline.PROJECT, QualityGateCriticality.UNSTABLE),
+                    status,
+                    "-");
+        }
+        return result;
     }
 
     private Widget createWidget(final CoverageBuildAction... actions) {
-        return new Widget(List.of(actions));
+        return new Widget(Arrays.stream(actions)
+                .map(action -> new OverviewModel(mock(Run.class), action))
+                .toList());
     }
 
     private CoverageBuildAction createAction(final String id, final QualityGateResult qualityGateResult) {
+        return createAction(id, qualityGateResult, new FilteredLog("Errors"));
+    }
+
+    private CoverageBuildAction createAction(
+            final String id, final QualityGateResult qualityGateResult, final FilteredLog log) {
+        return createAction(id, qualityGateResult, log, List.of(), List.of());
+    }
+
+    private CoverageBuildAction createAction(
+            final String id,
+            final QualityGateResult qualityGateResult,
+            final List<Difference> differences,
+            final List<Value> modifiedLinesCoverage) {
+        return createAction(id, qualityGateResult, new FilteredLog("Errors"), differences, modifiedLinesCoverage);
+    }
+
+    private CoverageBuildAction createAction(
+            final String id,
+            final QualityGateResult qualityGateResult,
+            final FilteredLog log,
+            final List<Difference> differences,
+            final List<Value> modifiedLinesCoverage) {
         var node = readJacocoResult(JACOCO_CODING_STYLE_FILE);
         return new CoverageBuildAction(
                 mock(Run.class),
@@ -132,10 +333,10 @@ class WidgetTest extends AbstractCoverageTest {
                 "",
                 node,
                 qualityGateResult,
-                new FilteredLog("Errors"),
+                log,
                 "-",
-                List.of(),
-                List.of(),
+                differences,
+                modifiedLinesCoverage,
                 List.of(),
                 List.of(),
                 List.of(),
