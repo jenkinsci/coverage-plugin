@@ -243,7 +243,7 @@ class RunTabTest extends AbstractCoverageTest {
     }
 
     @ParameterizedTest(name = "URL \"{0}\" is ignored")
-    @ValueSource(strings = {"overview", "trend", "treemap", "table", "log", "help"})
+    @ValueSource(strings = {"overview", "trend", "treemap", "table", "log", "help", "remote-api"})
     void shouldIgnoreRunTabUrlsIfRunTabIsDisabled(final String url, @TempDir final Path buildFolder) {
         var viewModel = createViewModel(false, buildFolder);
 
@@ -261,6 +261,7 @@ class RunTabTest extends AbstractCoverageTest {
         assertThat(viewModel.getDynamic("table")).isInstanceOf(FilesModel.class);
         assertThat(viewModel.getDynamic("log")).isInstanceOf(LogModel.class);
         assertThat(viewModel.getDynamic("help")).isInstanceOf(HelpModel.class);
+        assertThat(viewModel.getDynamic("remote-api")).isInstanceOf(RemoteApiModel.class);
     }
 
     @ParameterizedTest(name = "Run tab enabled: {0}")
@@ -533,6 +534,25 @@ class RunTabTest extends AbstractCoverageTest {
         assertThat(model.getInfoMessages()).contains(INFO_MESSAGE);
         assertThat(model.getErrorMessages()).contains(ERROR_MESSAGE);
         assertThat(model.hasErrors()).isTrue();
+    }
+
+    /**
+     * Verifies that the remote API tab provides the URL of the remote API of the selected coverage results.
+     *
+     * @param buildFolder
+     *         the build folder of the created build
+     */
+    @Test
+    void shouldProvideRemoteApiModel(@TempDir final Path buildFolder) {
+        var viewModel = createViewModel(true, buildFolder);
+        var model = getDynamic(viewModel, "remote-api", RemoteApiModel.class);
+
+        assertThat(model.getDisplayName()).isEqualTo(Messages.RemoteApiModel_displayName());
+        assertThat(model.getId()).isEqualTo(ID);
+        assertThat(model.getObject()).isSameAs(viewModel.getOwner());
+        assertThat(model.getTab().getActions()).containsExactly(getAction(viewModel));
+        assertThat(model.getFormatter()).isNotNull();
+        assertThat(model.getApiUrl()).isEqualTo(viewModel.getOwner().getUrl() + ID + "/api");
     }
 
     private CoverageBuildAction getAction(final CoverageViewModel viewModel) {

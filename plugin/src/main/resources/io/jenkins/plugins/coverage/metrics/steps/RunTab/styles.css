@@ -187,6 +187,44 @@
     background: transparent;
 }
 
+/* Remote API page: the content column must not grow with its content (the default minimum width of a grid item
+   is its content width), otherwise long lines of the response would widen the whole page. */
+.coverage-remote-api {
+    min-width: 0;
+}
+
+/* The JSON response uses the monospace log style and keeps its indentation, but long lines are soft-wrapped
+   (even within long values like URLs) so that no horizontal scrolling is required. */
+.coverage-remote-api__response {
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+    overflow-x: hidden;
+    font-family: var(--font-family-mono);
+    font-size: var(--font-size-sm);
+}
+
+/* The endpoints are shown as short relative paths so that the table fits into the card; long paths and the
+   descriptions wrap instead of requiring horizontal scrolling. */
+.coverage-remote-api__table {
+    table-layout: auto;
+}
+
+.coverage-remote-api__table td {
+    overflow-wrap: anywhere;
+}
+
+.coverage-remote-api__endpoint {
+    width: 1%;
+    font-family: var(--font-family-mono);
+    white-space: nowrap;
+}
+
+@media (max-width: 768px) {
+    .coverage-remote-api__endpoint {
+        white-space: normal;
+    }
+}
+
 /* Error and Information Messages cards on the log page: same card-to-card spacing as on the Overview tab
    (see .coverage-dashboard below). The height computation in log-model.js measures this gap dynamically. */
 .coverage-log-cards {
