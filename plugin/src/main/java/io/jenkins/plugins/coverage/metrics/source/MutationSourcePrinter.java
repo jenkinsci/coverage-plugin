@@ -14,7 +14,6 @@ import edu.hm.hafner.coverage.FileNode;
 import edu.hm.hafner.coverage.Mutation;
 import j2html.tags.ContainerTag;
 import j2html.tags.UnescapedText;
-import java.io.Serial;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map.Entry;
@@ -28,9 +27,6 @@ import org.apache.commons.lang3.StringUtils;
  * line and mutation coverage in HTML.
  */
 final class MutationSourcePrinter extends CoverageSourcePrinter {
-    @Serial
-    private static final long serialVersionUID = -2215657894423024907L;
-
     private final int[] survivedPerLine;
     private final int[] killedPerLine;
     private final int[] notCoveredPerLine;

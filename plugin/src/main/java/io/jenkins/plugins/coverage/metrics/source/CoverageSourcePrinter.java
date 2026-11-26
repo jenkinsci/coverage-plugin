@@ -9,8 +9,6 @@ import static j2html.TagCreator.tr;
 import edu.hm.hafner.coverage.ChangeSet;
 import edu.hm.hafner.coverage.FileNode;
 import io.jenkins.plugins.prism.Sanitizer;
-import java.io.Serial;
-import java.io.Serializable;
 import java.util.Arrays;
 import java.util.NavigableSet;
 import java.util.TreeSet;
@@ -19,12 +17,9 @@ import org.apache.commons.text.StringEscapeUtils;
 
 /**
  * Provides all required information for a {@link FileNode} so that its source code can be rendered together with the
- * line and branch coverage in HTML.
+ * line and branch coverage in HTML. The HTML is used by the classic source code view.
  */
-class CoverageSourcePrinter implements Serializable {
-    @Serial
-    private static final long serialVersionUID = -6044649044983631852L;
-
+class CoverageSourcePrinter {
     static final Sanitizer SANITIZER = new Sanitizer();
     static final String MODIFIED = "modified";
     static final String UNDEFINED = "noCover";
@@ -39,7 +34,6 @@ class CoverageSourcePrinter implements Serializable {
 
     private final int[] missedPerLine;
 
-    @SuppressWarnings("serial")
     private final NavigableSet<Integer> modifiedLines;
 
     CoverageSourcePrinter(final FileNode file) {

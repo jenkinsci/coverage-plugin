@@ -142,7 +142,8 @@ public class FileDetailsModel extends DefaultAsyncTableContentProvider implement
      * @return the colored source code as HTML document
      */
     public String getSourceFileContent() {
-        return new SourceViewModel(getObject(), getId(), file).getSourceFileContent();
+        return new SourceViewModel(getObject(), getId(), parent.getNode(), file, parent.getChanges())
+                .getSourceFileContent();
     }
 
     /**

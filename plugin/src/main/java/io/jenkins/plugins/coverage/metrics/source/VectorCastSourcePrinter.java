@@ -9,7 +9,6 @@ import static j2html.TagCreator.tr;
 import edu.hm.hafner.coverage.ChangeSet;
 import edu.hm.hafner.coverage.FileNode;
 import j2html.tags.ContainerTag;
-import java.io.Serial;
 import org.apache.commons.lang3.StringUtils;
 
 /**
@@ -18,9 +17,6 @@ import org.apache.commons.lang3.StringUtils;
  */
 @SuppressWarnings("PMD.GodClass")
 public class VectorCastSourcePrinter extends CoverageSourcePrinter {
-    @Serial
-    private static final long serialVersionUID = 7204367145168517936L;
-
     private final int[] mcdcPairCoveredPerLine;
     private final int[] mcdcPairMissedPerLine;
 

@@ -17,7 +17,7 @@ import hudson.FilePath;
 import hudson.model.Run;
 import hudson.model.TaskListener;
 import io.jenkins.plugins.coverage.metrics.model.CoverageStatistics;
-import io.jenkins.plugins.coverage.metrics.source.SourceCodePainter;
+import io.jenkins.plugins.coverage.metrics.source.SourceCodeCopier;
 import io.jenkins.plugins.forensics.delta.Delta;
 import io.jenkins.plugins.forensics.delta.FileChanges;
 import io.jenkins.plugins.forensics.reference.ReferenceFinder;
@@ -32,7 +32,7 @@ import java.util.Set;
 
 /**
  * Transforms the old model to the new model and invokes all steps that work on the new model. Currently, only the
- * source code painting and copying have been moved to this new reporter class.
+ * storing of the source code files has been moved to this new reporter class.
  *
  * @author Ullrich Hafner
  */
@@ -122,16 +122,8 @@ public class CoverageReporter {
         var evaluator = new CoverageQualityGateEvaluator(qualityGates, statistics);
         var qualityGateStatus = evaluator.evaluate(notifier, log);
 
-        paintSourceFiles(
-                build,
-                workspace,
-                sourceCodeEncoding,
-                sourceCodeRetention,
-                id,
-                rootNode,
-                rootNode.getAllFileNodes(),
-                ChangeSet.empty(),
-                log);
+        storeSourceFiles(
+                build, workspace, sourceCodeEncoding, sourceCodeRetention, id, rootNode.getAllFileNodes(), log);
 
         return new CoverageBuildAction(build, id, optionalName, icon, rootNode, qualityGateStatus, log, statistics);
     }
@@ -202,9 +194,8 @@ public class CoverageReporter {
         var evaluator = new CoverageQualityGateEvaluator(qualityGates, statistics);
         var qualityGateResult = evaluator.evaluate(notifier, log);
 
-        var filesToStore = computePaintedFiles(rootNode, sourceCodeRetention, log, modifiedLinesCoverageRoot);
-        paintSourceFiles(
-                build, workspace, sourceCodeEncoding, sourceCodeRetention, id, rootNode, filesToStore, changes, log);
+        var filesToStore = computeStoredFiles(rootNode, sourceCodeRetention, log, modifiedLinesCoverageRoot);
+        storeSourceFiles(build, workspace, sourceCodeEncoding, sourceCodeRetention, id, filesToStore, log);
 
         return new CoverageBuildAction(
                 build,
@@ -258,7 +249,7 @@ public class CoverageReporter {
         return deltas;
     }
 
-    private List<FileNode> computePaintedFiles(
+    private List<FileNode> computeStoredFiles(
             final Node rootNode,
             final SourceCodeRetention sourceCodeRetention,
             final FilteredLog log,
@@ -266,29 +257,25 @@ public class CoverageReporter {
         List<FileNode> filesToStore;
         if (sourceCodeRetention == SourceCodeRetention.MODIFIED) {
             filesToStore = modifiedLinesCoverageRoot.getAllFileNodes();
-            log.logInfo("-> Selecting %d modified files for source code painting", filesToStore.size());
+            log.logInfo("-> Selecting %d modified files for storing the source code", filesToStore.size());
         } else {
             filesToStore = rootNode.getAllFileNodes();
         }
         return filesToStore;
     }
 
-    @SuppressWarnings("checkstyle:ParameterNumber")
-    private void paintSourceFiles(
+    private void storeSourceFiles(
             final Run<?, ?> build,
             final FilePath workspace,
             final String sourceCodeEncoding,
             final SourceCodeRetention sourceCodeRetention,
             final String id,
-            final Node rootNode,
             final List<FileNode> filesToStore,
-            final ChangeSet changes,
             final FilteredLog log)
             throws InterruptedException {
-        log.logInfo("Executing source code painting...");
-        var sourceCodePainter = new SourceCodePainter(build, workspace, id);
-        sourceCodePainter.processSourceCodePainting(
-                rootNode, filesToStore, changes, sourceCodeEncoding, sourceCodeRetention, log);
+        log.logInfo("Storing source code files...");
+        var sourceCodeCopier = new SourceCodeCopier(build, workspace, id);
+        sourceCodeCopier.copySourceFiles(filesToStore, sourceCodeEncoding, sourceCodeRetention, log);
         log.logInfo("Finished coverage processing - adding the action to the build...");
     }
 

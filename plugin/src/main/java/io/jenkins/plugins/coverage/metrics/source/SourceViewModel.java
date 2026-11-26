@@ -1,6 +1,8 @@
 package io.jenkins.plugins.coverage.metrics.source;
 
+import edu.hm.hafner.coverage.ChangeSet;
 import edu.hm.hafner.coverage.FileNode;
+import edu.hm.hafner.coverage.Node;
 import hudson.model.ModelObject;
 import hudson.model.Run;
 import java.io.IOException;
@@ -17,7 +19,9 @@ public class SourceViewModel implements ModelObject {
 
     private final Run<?, ?> owner;
     private final String id;
+    private final Node rootNode;
     private final FileNode fileNode;
+    private final ChangeSet changes;
 
     /**
      * Creates a new source view model instance.
@@ -26,13 +30,24 @@ public class SourceViewModel implements ModelObject {
      *         the owner of this view
      * @param id
      *         the ID that is used to store the coverage sources
+     * @param rootNode
+     *         the root of the coverage tree, used to determine the highlighted metrics
      * @param fileNode
      *         the selected file node of the coverage tree
+     * @param changes
+     *         the code changes with respect to the reference build
      */
-    public SourceViewModel(final Run<?, ?> owner, final String id, final FileNode fileNode) {
+    public SourceViewModel(
+            final Run<?, ?> owner,
+            final String id,
+            final Node rootNode,
+            final FileNode fileNode,
+            final ChangeSet changes) {
         this.owner = owner;
         this.id = id;
+        this.rootNode = rootNode;
         this.fileNode = fileNode;
+        this.changes = changes;
     }
 
     public Run<?, ?> getOwner() {
@@ -51,8 +66,7 @@ public class SourceViewModel implements ModelObject {
     @SuppressWarnings("unused") // Called by jelly view
     public String getSourceFileContent() {
         try {
-            return SOURCE_CODE_FACADE.read(
-                    getOwner().getRootDir(), id, getNode().getRelativePath());
+            return SOURCE_CODE_FACADE.readHtml(getOwner().getRootDir(), id, rootNode, fileNode, changes);
         } catch (IOException | InterruptedException exception) {
             return ExceptionUtils.getStackTrace(exception);
         }
