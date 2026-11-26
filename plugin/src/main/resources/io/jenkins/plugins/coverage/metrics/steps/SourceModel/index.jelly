@@ -1,0 +1,81 @@
+<?jelly escape-by-default='true'?>
+<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:l="/lib/layout" xmlns:cov="/coverage">
+
+  <st:header name="Content-Type" value="text/html;charset=UTF-8"/>
+
+  <l:run-subpage>
+
+    <st:adjunct includes="io.jenkins.plugins.coverage.metrics.steps.RunTab.styles"/>
+
+    <l:app-bar title="${it.displayName}">
+      <div class="jenkins-details" style="display: flex; align-items: center;">
+        <a href="${rootURL}/${it.detailsUrl}" class="jenkins-details__item" tooltip="${%back.to.details}">
+          <div class="jenkins-details__item__icon">
+            <l:icon src="symbol-document-text-outline plugin-ionicons-api" alt=""/>
+          </div>
+          <span>${it.path}</span>
+        </a>
+        <j:if test="${!it.paintedSourceFile and (it.hasModifiedLines() or it.hasIndirectCoverageChanges())}">
+          <div class="jenkins-!-margin-left-2" style="display: flex; align-items: center;"
+               tooltip="${%baseline.tooltip}">
+            <label class="jenkins-!-margin-right-1" style="text-wrap: nowrap"
+                   for="coverage-source-baseline">${%baseline.title}:</label>
+            <div class="jenkins-select">
+              <select id="coverage-source-baseline" class="jenkins-select__input" style="min-width: 14em;">
+                <option value="project">${%baseline.project}</option>
+                <j:if test="${it.hasModifiedLines()}">
+                  <option value="modified">${%baseline.modified}</option>
+                </j:if>
+                <j:if test="${it.hasIndirectCoverageChanges()}">
+                  <option value="indirect">${%baseline.indirect}</option>
+                </j:if>
+              </select>
+            </div>
+          </div>
+        </j:if>
+      </div>
+    </l:app-bar>
+
+    <div class="coverage-body">
+      <cov:sidepanel id="${it.id}" active="table"/>
+
+      <div class="content coverage-file-details">
+        <l:card title="${it.path}">
+          <j:choose>
+            <j:when test="${!it.hasPermissionToViewSourceCode()}">
+              <p>${%permission.denied}</p>
+            </j:when>
+            <j:when test="${!it.sourceFileAvailable}">
+              <p>
+                <b>${%Source code is unavailable.}</b>
+                ${%Some possible reasons are:}
+              </p>
+              <ul>
+                <li>${%reason.1}</li>
+                <li>${%reason.2}</li>
+              </ul>
+            </j:when>
+            <j:when test="${it.paintedSourceFile}">
+              <!-- Builds of previous versions contain the painted HTML files only -->
+              <st:adjunct includes="io.jenkins.plugins.coverage.metrics.source.SourceViewModel.view-model"/>
+              <div class="coverage-file-details__source">
+                <table class="source">
+                  <j:out value="${it.paintedSourceCode}"/>
+                </table>
+              </div>
+            </j:when>
+            <j:otherwise>
+              <div id="coverage-source" class="coverage-source">
+                <!-- Filters the markers by the baseline of the app bar -->
+                <st:adjunct includes="io.jenkins.plugins.coverage.metrics.steps.SourceModel.source-model"/>
+                <st:include it="${it.sourceCode}" page="content.jelly"/>
+              </div>
+            </j:otherwise>
+          </j:choose>
+        </l:card>
+      </div>
+    </div>
+
+  </l:run-subpage>
+
+</j:jelly>

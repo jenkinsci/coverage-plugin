@@ -3,6 +3,7 @@ package io.jenkins.plugins.coverage.metrics.steps;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import edu.hm.hafner.coverage.ChangeSet;
 import edu.hm.hafner.coverage.ClassNode;
@@ -92,6 +93,21 @@ class FileDetailsModelTest extends AbstractCoverageTest {
         assertThatThrownBy(() -> model.getTableModel("unknown"))
                 .isInstanceOf(NoSuchElementException.class)
                 .hasMessageContaining("unknown");
+    }
+
+    /**
+     * Verifies that the source code of the file is available as sub page of the details page.
+     */
+    @Test
+    void shouldProvideSourceCodePage() {
+        Run<?, ?> run = mock(Run.class);
+        when(run.getUrl()).thenReturn("job/example/1/");
+        var model = createModel(new FileNode("File.java", PATH), run);
+
+        assertThat(model.getSourceUrl()).isEqualTo("job/example/1/" + ID + "/" + PATH.hashCode() + "/source");
+        assertThat(model.getSource())
+                .extracting(SourceModel::getPath, SourceModel::getId)
+                .containsExactly(PATH, ID);
     }
 
     private FileNode createFile() {

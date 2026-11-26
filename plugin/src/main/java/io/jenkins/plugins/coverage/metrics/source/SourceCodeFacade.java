@@ -73,7 +73,7 @@ public class SourceCodeFacade {
      *
      * @return the name of the archive
      */
-    static String getSourceFileName(final String path) {
+    public static String getSourceFileName(final String path) {
         try {
             var hash = MessageDigest.getInstance("SHA-256").digest(path.getBytes(StandardCharsets.UTF_8));
             return HexFormat.of().formatHex(hash) + SOURCE_FILE_EXTENSION;
