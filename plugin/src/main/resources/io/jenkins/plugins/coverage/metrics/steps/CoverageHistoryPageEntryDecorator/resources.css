@@ -1,0 +1,130 @@
+/*
+ * Same look as the test result summary of the JUnit plugin: a row with a tag and a row of details.
+ * Each metric is shown in a separate summary, so the build history can hide the summaries
+ * of the less important metrics if there is not enough space.
+ * The value and the delta are joined to a segmented tag (same as in the Warnings plugin). Without
+ * a delta, the value segment is the first and last child and therefore a complete pill.
+ */
+.coverage-history-summary {
+  --coverage-history-icon-size: 0.75rem;
+  --coverage-history-tag-height: 1.375rem;
+  --coverage-history-tag-gap: 0.0625rem;
+  --coverage-history-tag-radius-outer: calc(var(--coverage-history-tag-height) / 2);
+  --coverage-history-tag-radius-inner: 0.25rem;
+
+  display: inline-flex;
+  flex-direction: column;
+  border-radius: var(--form-input-border-radius);
+  outline: none;
+}
+
+.coverage-history-summary:focus-visible {
+  box-shadow: 0 0 0 0.2rem var(--text-color);
+}
+
+/* Beat core's link colour and underline */
+.coverage-history-summary,
+.coverage-history-summary:link,
+.coverage-history-summary:visited,
+.coverage-history-summary:hover,
+.coverage-history-summary:focus,
+.coverage-history-summary:active {
+  color: inherit;
+  text-decoration: none;
+}
+
+.coverage-history-summary svg {
+  width: var(--coverage-history-icon-size);
+  height: var(--coverage-history-icon-size);
+  flex-shrink: 0;
+}
+
+.coverage-history-summary__tags {
+  display: flex;
+  align-items: center;
+  min-height: var(--coverage-history-tag-height);
+  margin-bottom: 0.375rem;
+}
+
+.coverage-history-summary__group {
+  display: flex;
+  align-items: center;
+  gap: var(--coverage-history-tag-gap);
+}
+
+.coverage-history-summary__tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3125rem;
+  height: var(--coverage-history-tag-height);
+  padding: 0 0.5625rem 0 0.375rem;
+  border-radius: var(--coverage-history-tag-radius-inner);
+  box-sizing: border-box;
+  color: var(--coverage-history-tag-color);
+  /* Tint over an opaque card base, so the tag doesn't change with whatever is behind it */
+  background: color-mix(
+    in srgb,
+    var(--coverage-history-tag-color) calc(var(--status-background-opacity, 0.125) * 100%),
+    var(--card-background)
+  );
+  border: var(--jenkins-border--inherit-subtle);
+  font-size: var(--font-size-xs);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.coverage-history-summary__tag svg * {
+  stroke-width: 50px;
+}
+
+.coverage-history-summary__tag:first-child {
+  border-top-left-radius: var(--coverage-history-tag-radius-outer);
+  border-bottom-left-radius: var(--coverage-history-tag-radius-outer);
+}
+
+.coverage-history-summary__tag:last-child {
+  border-top-right-radius: var(--coverage-history-tag-radius-outer);
+  border-bottom-right-radius: var(--coverage-history-tag-radius-outer);
+}
+
+/* Tag without icon (delta) */
+.coverage-history-summary__tag--delta {
+  padding: 0 0.5625rem;
+}
+
+/* The value is neutral, only the delta shows the trend */
+.coverage-history-summary__tag--neutral {
+  --coverage-history-tag-color: var(--text-color-secondary);
+}
+
+/* Trend compared to the reference build, same colors as the test result tags of the JUnit plugin */
+.coverage-history-summary__tag--increased {
+  --coverage-history-tag-color: var(--success-color);
+}
+
+.coverage-history-summary__tag--decreased {
+  --coverage-history-tag-color: var(--error-color);
+}
+
+.coverage-history-summary__tag--unchanged {
+  --coverage-history-tag-color: var(--text-color-secondary);
+}
+
+.coverage-history-summary__value {
+  font-weight: var(--font-bold-weight);
+}
+
+.coverage-history-summary__details {
+  display: flex;
+  gap: 0.5rem;
+  font-size: var(--font-size-xs);
+  font-variant-numeric: tabular-nums;
+  color: var(--text-color-secondary);
+}
+
+.coverage-history-summary__details > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.1875rem;
+  white-space: nowrap;
+}

@@ -1,0 +1,29 @@
+<?jelly escape-by-default='true'?>
+<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:l="/lib/layout">
+  <st:adjunct includes="io.jenkins.plugins.coverage.metrics.steps.CoverageHistoryPageEntryDecorator.resources"/>
+
+  <j:set var="summary" value="${it.decorator.getSummary(it.build)}"/>
+
+  <!-- Same structure as the test result summary of the JUnit plugin: a row of tags and a row of details -->
+  <a class="coverage-history-summary" href="${rootURL}/${it.build.url}${summary.urlName}/">
+    <div class="coverage-history-summary__tags">
+      <!-- Segmented tag: the value is neutral, only the delta (if available) shows the trend -->
+      <div class="coverage-history-summary__group" tooltip="${summary.tooltip}">
+        <span class="coverage-history-summary__tag coverage-history-summary__tag--neutral">
+          <l:icon src="${summary.icon}" alt="${summary.tooltip}"/>
+          <span class="coverage-history-summary__value" aria-hidden="true">${summary.value}</span>
+        </span>
+        <j:if test="${summary.hasDelta()}">
+          <span class="coverage-history-summary__tag coverage-history-summary__tag--delta coverage-history-summary__tag--${summary.trend.cssModifier}"
+                aria-hidden="true">${summary.delta}</span>
+        </j:if>
+      </div>
+    </div>
+
+    <j:if test="${summary.hasDetails()}">
+      <div class="coverage-history-summary__details">
+        <span>${summary.details}</span>
+      </div>
+    </j:if>
+  </a>
+</j:jelly>
