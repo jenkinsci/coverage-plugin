@@ -13,8 +13,8 @@ import java.util.NoSuchElementException;
 /**
  * Server side model for the details page of a single file in the run tab of the coverage results. The page shows a
  * summary of all metrics of the file (along with the deltas with respect to the reference build), a table with the
- * metrics of all methods of the file (see {@link MethodsTableModel}), and a link to the source code of the file with
- * the coverage highlighted (see {@link SourceModel}). The page is reached by the file links of the other run tab pages (e.g., the "Files" or the
+ * metrics of all methods of the file (see {@link MethodsTableModel}), and the source code of the file with the
+ * coverage highlighted (see {@link SourceModel}). The page is reached by the file links of the other run tab pages (e.g., the "Files" or the
  * "Hotspots" tab), see {@link CoverageViewModel#getDynamic(String)}. The layout of the associated view is defined in
  * the corresponding jelly view 'index.jelly'.
  *
@@ -135,22 +135,12 @@ public class FileDetailsModel extends DefaultAsyncTableContentProvider implement
     }
 
     /**
-     * Returns the sub page that shows the source code of the file with the coverage of the lines. Stapler resolves
-     * the URL {@code <file-hash>/source} with this getter.
+     * Returns the source code of the file with the coverage of the lines.
      *
-     * @return the source code page
+     * @return the source code of the file
      */
     public SourceModel getSource() {
         return new SourceModel(parent, file);
-    }
-
-    /**
-     * Returns the URL of the source code page of the file.
-     *
-     * @return the URL, relative to the context path of Jenkins
-     */
-    public String getSourceUrl() {
-        return getObject().getUrl() + getId() + "/" + getPath().hashCode() + "/" + SourceModel.URL;
     }
 
     /**

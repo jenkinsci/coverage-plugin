@@ -56,10 +56,6 @@ class SourceModelITest extends AbstractCoverageITest {
         storeOriginal(buildFolder, "class Example {\n    int a;\n    int b;\n}");
         var model = createModel(buildFolder, ChangeSet.empty());
 
-        assertThat(model.getDisplayName()).isEqualTo("Example.java");
-        assertThat(model.getPath()).isEqualTo(PATH);
-        assertThat(model.getId()).isEqualTo(ID);
-        assertThat(model.getDetailsUrl()).isEqualTo(URL + ID + "/" + PATH.hashCode());
         assertThat(model.hasPermissionToViewSourceCode()).isTrue();
         assertThat(model.isSourceFileAvailable()).isTrue();
         assertThat(model.isPaintedSourceFile()).isFalse();

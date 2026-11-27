@@ -9,14 +9,35 @@
     <st:adjunct includes="io.jenkins.plugins.coverage.metrics.steps.RunTab.styles"/>
     <st:adjunct includes="io.jenkins.plugins.coverage.metrics.cell-style"/>
 
+    <j:set var="source" value="${it.source}"/>
+    <j:set var="hasPrismSource" value="${it.hasPermissionToViewSourceCode() and source.sourceFileAvailable and !source.paintedSourceFile}"/>
+
     <l:app-bar title="${it.displayName}">
-      <div class="jenkins-details">
+      <div class="jenkins-details" style="display: flex; align-items: center;">
         <a href="${rootURL}/${it.object.url}${it.id}/table" class="jenkins-details__item" tooltip="${%back.to.files}">
           <div class="jenkins-details__item__icon">
             <l:icon src="symbol-documents-outline plugin-ionicons-api" alt=""/>
           </div>
           <span>${it.path}</span>
         </a>
+        <j:if test="${hasPrismSource and (source.hasModifiedLines() or source.hasIndirectCoverageChanges())}">
+          <div class="jenkins-!-margin-left-2" style="display: flex; align-items: center;"
+               tooltip="${%baseline.tooltip}">
+            <label class="jenkins-!-margin-right-1" style="text-wrap: nowrap"
+                   for="coverage-source-baseline">${%baseline.title}:</label>
+            <div class="jenkins-select">
+              <select id="coverage-source-baseline" class="jenkins-select__input" style="min-width: 14em;">
+                <option value="project">${%baseline.project}</option>
+                <j:if test="${source.hasModifiedLines()}">
+                  <option value="modified">${%baseline.modified}</option>
+                </j:if>
+                <j:if test="${source.hasIndirectCoverageChanges()}">
+                  <option value="indirect">${%baseline.indirect}</option>
+                </j:if>
+              </select>
+            </div>
+          </div>
+        </j:if>
       </div>
     </l:app-bar>
 
@@ -52,14 +73,7 @@
             <j:when test="${!it.hasPermissionToViewSourceCode()}">
               <p>${%permission.denied}</p>
             </j:when>
-            <j:when test="${it.sourceFileAvailable}">
-              <p>${%source.description}</p>
-              <a href="${rootURL}/${it.sourceUrl}" class="jenkins-button jenkins-button--primary">
-                <l:icon src="symbol-code-slash-outline plugin-ionicons-api"/>
-                ${%Show source code}
-              </a>
-            </j:when>
-            <j:otherwise>
+            <j:when test="${!source.sourceFileAvailable}">
               <p>
                 <b>${%Source code is unavailable.}</b>
                 ${%Some possible reasons are:}
@@ -68,6 +82,22 @@
                 <li>${%reason.1}</li>
                 <li>${%reason.2}</li>
               </ul>
+            </j:when>
+            <j:when test="${source.paintedSourceFile}">
+              <!-- Builds of previous versions contain the painted HTML files only -->
+              <st:adjunct includes="io.jenkins.plugins.coverage.metrics.source.SourceViewModel.view-model"/>
+              <div class="coverage-file-details__source">
+                <table class="source">
+                  <j:out value="${source.paintedSourceCode}"/>
+                </table>
+              </div>
+            </j:when>
+            <j:otherwise>
+              <div id="coverage-source" class="coverage-source">
+                <!-- Filters the markers by the baseline of the app bar -->
+                <st:adjunct includes="io.jenkins.plugins.coverage.metrics.steps.FileDetailsModel.source-model"/>
+                <st:include it="${source.sourceCode}" page="content.jelly"/>
+              </div>
             </j:otherwise>
           </j:choose>
         </l:card>

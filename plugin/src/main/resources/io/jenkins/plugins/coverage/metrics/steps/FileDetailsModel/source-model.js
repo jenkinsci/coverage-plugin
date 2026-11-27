@@ -1,6 +1,7 @@
 /**
- * Client side behavior of the source code page of a file in the coverage tab: filters the markers of the source code
- * view by the baseline that is selected in the app bar (see CoverageMarkerFactory for the data of the markers).
+ * Client side behavior of the source code on the details page of a file in the coverage tab: filters the markers of
+ * the source code view by the baseline that is selected in the app bar (see CoverageMarkerFactory for the data of the
+ * markers).
  * <ul>
  *   <li>project: the coverage of all lines of the file (and the mutations that have not been killed)</li>
  *   <li>modified: the coverage of the modified lines only</li>

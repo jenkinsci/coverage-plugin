@@ -12,12 +12,12 @@ import java.util.stream.Stream;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 
 /**
- * Server side model for the source code page of a single file in the run tab of the coverage results. The page is a
- * sub page of the details page of the file (see {@link FileDetailsModel}) and answers the question: "Which lines of
- * the file are covered by tests?". The source code is rendered by the {@link SourceCodeViewModel} of the Prism API
- * plugin: the coverage of the lines is shown by markers and by annotations of the lines (see
- * {@link CoverageMarkerFactory}). The client side script {@code source-model.js} filters the markers by the baseline
- * that is selected in the app bar: the whole file, the modified lines, or the indirect coverage changes.
+ * Provides the source code of a single file for the details page of the file in the run tab of the coverage results
+ * (see {@link FileDetailsModel}). The source code answers the question: "Which lines of the file are covered by
+ * tests?". It is rendered by the {@link SourceCodeViewModel} of the Prism API plugin: the coverage of the lines is
+ * shown by markers and by annotations of the lines (see {@link CoverageMarkerFactory}). The client side script
+ * {@code FileDetailsModel/source-model.js} filters the markers by the baseline that is selected in the app bar of
+ * the details page: the whole file, the modified lines, or the indirect coverage changes.
  *
  * <p>
  * Builds of previous versions of the plugin contain the source code as painted HTML files only. For these builds,
@@ -26,9 +26,7 @@ import org.apache.commons.lang3.exception.ExceptionUtils;
  *
  * @author Ullrich Hafner
  */
-public class SourceModel implements ModelObject {
-    static final String URL = "source";
-
+public class SourceModel {
     private static final SourceCodeFacade SOURCE_CODE_FACADE = new SourceCodeFacade();
 
     private final CoverageViewModel parent;
@@ -47,39 +45,16 @@ public class SourceModel implements ModelObject {
         this.file = file;
     }
 
-    @Override
-    public String getDisplayName() {
-        return file.getName();
-    }
-
-    public String getId() {
+    private String getId() {
         return parent.getId();
     }
 
-    public Run<?, ?> getObject() {
+    private Run<?, ?> getObject() {
         return parent.getOwner();
     }
 
-    public RunTab getTab() {
-        return new RunTab(parent.getOwner());
-    }
-
-    /**
-     * Returns the relative path of the file.
-     *
-     * @return the relative path
-     */
-    public String getPath() {
+    private String getPath() {
         return file.getRelativePath();
-    }
-
-    /**
-     * Returns the URL of the details page of the file.
-     *
-     * @return the URL, relative to the context path of Jenkins
-     */
-    public String getDetailsUrl() {
-        return getObject().getUrl() + getId() + "/" + getPath().hashCode();
     }
 
     /**
