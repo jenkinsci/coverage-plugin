@@ -638,7 +638,7 @@ public class CoverageViewModel extends DefaultAsyncTableContentProvider implemen
         var content = "";
         var rootDir = getOwner().getRootDir();
         if (isSourceFileAvailable(sourceNode)) {
-            content = SOURCE_CODE_FACADE.read(rootDir, getId(), sourceNode.getRelativePath());
+            content = SOURCE_CODE_FACADE.readHtml(rootDir, getId(), getNode(), sourceNode, changes);
         }
         if (!content.isEmpty()) {
             String cleanTableId = Strings.CS.removeEnd(tableId, INLINE_SUFFIX);
@@ -697,6 +697,16 @@ public class CoverageViewModel extends DefaultAsyncTableContentProvider implemen
      */
     public boolean hasFileDeltas() {
         return deltas.hasDeltas();
+    }
+
+    /**
+     * Returns the code changes with respect to the reference build: the modified lines and the indirect coverage
+     * changes.
+     *
+     * @return the code changes
+     */
+    ChangeSet getChanges() {
+        return changes;
     }
 
     /**
@@ -812,7 +822,7 @@ public class CoverageViewModel extends DefaultAsyncTableContentProvider implemen
                     if (usePropertyFacade.isRunTabEnabled()) {
                         return new FileDetailsModel(this, fileNode);
                     }
-                    var view = new SourceViewModel(getOwner(), getId(), fileNode);
+                    var view = new SourceViewModel(getOwner(), getId(), getNode(), fileNode, changes);
                     return SourceCodeViewModel.protectedSourceCodeView(view, getOwner(), fileNode.getName());
                 }
             } catch (NumberFormatException exception) {

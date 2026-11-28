@@ -92,7 +92,7 @@ class GitForensicsITest extends AbstractCoverageITest {
         assertThat(getConsoleLog(build))
                 .contains(
                         "[Coverage] -> 18 files contain changes",
-                        "[Coverage] Painting " + expectedNumberOfFilesToBeStored + " source files on agent");
+                        "[Coverage] Zipping " + expectedNumberOfFilesToBeStored + " source files on agent");
 
         verifyModifiedLinesCoverageApi(build);
     }

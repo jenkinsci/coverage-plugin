@@ -75,7 +75,7 @@ abstract class SourceCodeITest extends AbstractCoverageITest {
     }
 
     @Test
-    void refuseSourceCodePaintingInNotApprovedExternalFolder() throws IOException {
+    void refuseSourceCodeInNotApprovedExternalFolder() throws IOException {
         PrismConfiguration.getInstance().setSourceDirectories(List.of());
 
         var localAgent = crateCoverageAgent();
@@ -92,7 +92,7 @@ abstract class SourceCodeITest extends AbstractCoverageITest {
 
         assertThat(getConsoleLog(firstBuild))
                 .contains("-> finished resolving of absolute paths (found: 0, not found: 1)")
-                .contains("-> finished painting (0 files have been painted, 1 files failed)")
+                .contains("-> finished zipping (0 files have been zipped, 1 files failed)")
                 .contains(
                         "[-ERROR-] Removing non-workspace source directory '%s' - it has not been approved in Jenkins' global configuration."
                                 .formatted(sourceDirectory))
@@ -126,7 +126,7 @@ abstract class SourceCodeITest extends AbstractCoverageITest {
         Run<?, ?> firstBuild = buildSuccessfully(job);
         assertThat(getConsoleLog(firstBuild))
                 .contains("-> resolved absolute paths for all 1 source files")
-                .contains("-> finished painting successfully");
+                .contains("-> finished zipping successfully");
         verifySourceCodeInBuild(sourceDir, firstBuild, ACU_COBOL_PARSER, PATH_UTIL);
 
         Run<?, ?> secondBuild = buildSuccessfully(job);

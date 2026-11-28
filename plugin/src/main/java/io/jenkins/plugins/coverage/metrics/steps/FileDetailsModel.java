@@ -4,7 +4,6 @@ import edu.hm.hafner.coverage.FileNode;
 import hudson.model.ModelObject;
 import hudson.model.Run;
 import io.jenkins.plugins.coverage.metrics.model.ElementFormatter;
-import io.jenkins.plugins.coverage.metrics.source.SourceViewModel;
 import io.jenkins.plugins.datatables.DefaultAsyncTableContentProvider;
 import io.jenkins.plugins.datatables.TableModel;
 import io.jenkins.plugins.prism.SourceCodeViewModel;
@@ -15,7 +14,7 @@ import java.util.NoSuchElementException;
  * Server side model for the details page of a single file in the run tab of the coverage results. The page shows a
  * summary of all metrics of the file (along with the deltas with respect to the reference build), a table with the
  * metrics of all methods of the file (see {@link MethodsTableModel}), and the source code of the file with the
- * coverage highlighted. The page is reached by the file links of the other run tab pages (e.g., the "Files" or the
+ * coverage highlighted (see {@link SourceModel}). The page is reached by the file links of the other run tab pages (e.g., the "Files" or the
  * "Hotspots" tab), see {@link CoverageViewModel#getDynamic(String)}. The layout of the associated view is defined in
  * the corresponding jelly view 'index.jelly'.
  *
@@ -136,13 +135,12 @@ public class FileDetailsModel extends DefaultAsyncTableContentProvider implement
     }
 
     /**
-     * Returns the source code of the file rendered in HTML, the coverage is highlighted using the corresponding CSS
-     * classes.
+     * Returns the source code of the file with the coverage of the lines.
      *
-     * @return the colored source code as HTML document
+     * @return the source code of the file
      */
-    public String getSourceFileContent() {
-        return new SourceViewModel(getObject(), getId(), file).getSourceFileContent();
+    public SourceModel getSource() {
+        return new SourceModel(parent, file);
     }
 
     /**

@@ -2,14 +2,21 @@ package io.jenkins.plugins.coverage.metrics.source;
 
 import edu.hm.hafner.coverage.ChangeSet;
 import edu.hm.hafner.coverage.FileNode;
+import edu.hm.hafner.coverage.Metric;
+import edu.hm.hafner.coverage.Node;
 import edu.hm.hafner.util.FilteredLog;
 import hudson.FilePath;
 import hudson.model.Run;
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.util.HexFormat;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -18,7 +25,9 @@ import java.util.SortedMap;
 import java.util.SortedSet;
 import java.util.TreeMap;
 import java.util.TreeSet;
+import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.zip.ZipFile;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Strings;
 import org.jsoup.Jsoup;
@@ -30,6 +39,14 @@ import org.jsoup.parser.Parser;
  * Facade to the source code file structure in Jenkins build folder. Access of those files should be done using an
  * instance of this class only.
  *
+ * <p>
+ * The source code files are stored as zipped original files (encoded as UTF-8) in the folder
+ * {@code coverage-sources/<id>}, see {@link SourceCodeCopier}. The coverage is highlighted when a file is shown. Older
+ * builds contain zipped HTML files instead, where the coverage has been painted on the agent during the build. Both
+ * formats can be read: the HTML of the classic source code view is created on demand for the original files (see
+ * {@link #readHtml(File, String, Node, FileNode, ChangeSet)}).
+ * </p>
+ *
  * @author Ullrich Hafner
  * @author Florian Orendi
  */
@@ -39,9 +56,54 @@ public class SourceCodeFacade {
 
     static final int MAX_FILENAME_LENGTH = 245; // Windows has limitations on long file names
     static final String ZIP_FILE_EXTENSION = ".zip";
+    /** Extension of the zipped original source code files (the HTML files of older builds use {@code .zip}). */
+    static final String SOURCE_FILE_EXTENSION = ".source.zip";
 
     static String sanitizeFilename(final String inputName) {
         return StringUtils.right(inputName.replaceAll("[^a-zA-Z0-9-_.]", "_"), MAX_FILENAME_LENGTH);
+    }
+
+    /**
+     * Returns the name of the archive that contains the original source code file with the specified path. The name
+     * is derived from the SHA-256 hash of the path: in contrast to the sanitized names of the HTML files of older
+     * builds, different paths never get the same name.
+     *
+     * @param path
+     *         the path of the source code file
+     *
+     * @return the name of the archive
+     */
+    public static String getSourceFileName(final String path) {
+        try {
+            var hash = MessageDigest.getInstance("SHA-256").digest(path.getBytes(StandardCharsets.UTF_8));
+            return HexFormat.of().formatHex(hash) + SOURCE_FILE_EXTENSION;
+        } catch (NoSuchAlgorithmException exception) {
+            throw new IllegalStateException("SHA-256 is not available", exception);
+        }
+    }
+
+    /**
+     * Creates a factory that produces the correct {@link CoverageSourcePrinter} subtype for a given {@link FileNode}.
+     * The printer type is determined once from the available metrics of the root node, avoiding repeated metric
+     * lookups for every file.
+     *
+     * @param rootNode
+     *         the root of the coverage tree, used to determine which printer type to use
+     * @param changes
+     *         the changes that should be highlighted in the painted files
+     *
+     * @return a function that maps a {@link FileNode} to the appropriate {@link CoverageSourcePrinter}
+     */
+    static Function<FileNode, CoverageSourcePrinter> createPrinterFactory(
+            final Node rootNode, final ChangeSet changes) {
+        if (rootNode.getValue(Metric.MUTATION).isPresent()) {
+            return file -> new MutationSourcePrinter(file, changes);
+        } else if (rootNode.getValue(Metric.MCDC_PAIR).isPresent()
+                || rootNode.getValue(Metric.FUNCTION_CALL).isPresent()) {
+            return file -> new VectorCastSourcePrinter(file, changes);
+        } else {
+            return file -> new CoverageSourcePrinter(file, changes);
+        }
     }
 
     /**
@@ -59,7 +121,98 @@ public class SourceCodeFacade {
     }
 
     /**
-     * Reads the contents of the source file of the given file into a String.
+     * Returns the source code of the specified file as HTML for the classic source code view: each line is a row of
+     * a table, the coverage is highlighted using CSS classes. For original source code files, the HTML is created on
+     * demand. For older builds, the stored HTML is returned.
+     *
+     * @param buildResults
+     *         Jenkins directory for build results
+     * @param id
+     *         ID of the coverage results
+     * @param rootNode
+     *         the root of the coverage tree, used to determine the highlighted metrics
+     * @param file
+     *         the file to show
+     * @param changes
+     *         the changes that should be highlighted
+     *
+     * @return the source code as HTML
+     * @throws IOException
+     *         if the file could not be read
+     * @throws InterruptedException
+     *         if reading has been interrupted
+     */
+    public String readHtml(
+            final File buildResults, final String id, final Node rootNode, final FileNode file, final ChangeSet changes)
+            throws IOException, InterruptedException {
+        var path = file.getRelativePath();
+        if (!hasSourceFile(buildResults, id, path)) {
+            return read(buildResults, id, path);
+        }
+        var printer = createPrinterFactory(rootNode, changes).apply(file);
+        var lines = readLines(buildResults, id, path);
+        var html = new StringBuilder(printer.getColumnHeader());
+        for (int line = 0; line < lines.size(); line++) {
+            html.append(printer.renderLine(line + 1, lines.get(line)));
+        }
+        return html.toString();
+    }
+
+    /**
+     * Reads the lines of the original source code file with the specified path.
+     *
+     * @param buildResults
+     *         Jenkins directory for build results
+     * @param id
+     *         ID of the coverage results
+     * @param path
+     *         the path of the source code file
+     *
+     * @return the lines of the file
+     * @throws IOException
+     *         if the file could not be read
+     */
+    public List<String> readLines(final File buildResults, final String id, final String path) throws IOException {
+        try (var zip = new ZipFile(getSourceFile(buildResults, id, path), StandardCharsets.UTF_8)) {
+            var entries = zip.entries();
+            if (!entries.hasMoreElements()) {
+                throw new IOException("Zipped source file of '%s' is empty".formatted(path));
+            }
+            try (var reader = new BufferedReader(
+                    new InputStreamReader(zip.getInputStream(entries.nextElement()), StandardCharsets.UTF_8))) {
+                return reader.lines().toList();
+            }
+        }
+    }
+
+    /**
+     * Returns whether the original source code file with the specified path has been stored. Older builds contain
+     * HTML files only, see {@link #canRead(File, String, String)}.
+     *
+     * @param buildResults
+     *         Jenkins directory for build results
+     * @param id
+     *         ID of the coverage results
+     * @param path
+     *         the path of the source code file
+     *
+     * @return {@code true} if the original source code file is available, {@code false} otherwise
+     */
+    public boolean hasSourceFile(final File buildResults, final String id, final String path) {
+        return getSourceFile(buildResults, id, path).canRead();
+    }
+
+    private File getSourceFile(final File buildResults, final String id, final String path) {
+        return new File(getElementFolder(buildResults, id), getSourceFileName(path));
+    }
+
+    private File getElementFolder(final File buildResults, final String id) {
+        return new File(new File(buildResults, COVERAGE_SOURCES_DIRECTORY), id);
+    }
+
+    /**
+     * Reads the contents of the HTML file of the given file into a String. These HTML files are available in older
+     * builds only, see {@link #readHtml(File, String, Node, FileNode, ChangeSet)}.
      *
      * @param buildResults
      *         Jenkins directory for build results
@@ -70,8 +223,7 @@ public class SourceCodeFacade {
      *
      * @return the file content as String
      */
-    public String read(final File buildResults, final String id, final String path)
-            throws IOException, InterruptedException {
+    String read(final File buildResults, final String id, final String path) throws IOException, InterruptedException {
         Path tempDir = Files.createTempDirectory(COVERAGE_SOURCES_DIRECTORY);
         var unzippedSourcesDir = new FilePath(tempDir.toFile());
         try {
@@ -88,7 +240,8 @@ public class SourceCodeFacade {
     }
 
     /**
-     * Returns whether the source code is available for the specified source file.
+     * Returns whether the source code is available for the specified source file: either as original file or as HTML
+     * file of an older build.
      *
      * @param buildResults
      *         Jenkins directory for build results
@@ -97,10 +250,11 @@ public class SourceCodeFacade {
      * @param path
      *         relative path to the source code filename name
      *
-     * @return the file content as String
+     * @return {@code true} if the source code is available, {@code false} otherwise
      */
     public boolean canRead(final File buildResults, final String id, final String path) {
-        return createFileInBuildFolder(buildResults, id, path).canRead();
+        return hasSourceFile(buildResults, id, path)
+                || createFileInBuildFolder(buildResults, id, path).canRead();
     }
 
     /**
@@ -184,7 +338,7 @@ public class SourceCodeFacade {
     }
 
     /**
-     * Returns a file to a source file in Jenkins' build folder. Note that the file might not exist.
+     * Returns a file to an HTML file of an older build in Jenkins' build folder. Note that the file might not exist.
      *
      * @param buildResults
      *         Jenkins directory for build results
@@ -196,10 +350,7 @@ public class SourceCodeFacade {
      * @return the file
      */
     File createFileInBuildFolder(final File buildResults, final String id, final String path) {
-        var sourceFolder = new File(buildResults, COVERAGE_SOURCES_DIRECTORY);
-        var elementFolder = new File(sourceFolder, id);
-
-        return new File(elementFolder, sanitizeFilename(path) + ZIP_FILE_EXTENSION);
+        return new File(getElementFolder(buildResults, id), sanitizeFilename(path) + ZIP_FILE_EXTENSION);
     }
 
     /**
