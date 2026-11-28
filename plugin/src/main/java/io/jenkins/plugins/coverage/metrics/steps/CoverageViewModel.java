@@ -103,6 +103,7 @@ public class CoverageViewModel extends DefaultAsyncTableContentProvider implemen
     private static final String FILES_URL = "table";
     static final String LOG_VIEW_URL = "log";
     private static final String HELP_URL = "help";
+    private static final String REMOTE_API_URL = "remote-api";
 
     private static final String NEW_BUILD_PAGE_FLAG_CLASS_NAME =
             "jenkins.model.experimentalflags.NewBuildPageUserExperimentalFlag";
@@ -800,6 +801,9 @@ public class CoverageViewModel extends DefaultAsyncTableContentProvider implemen
             }
             if (HELP_URL.equals(link)) {
                 return new HelpModel(this);
+            }
+            if (REMOTE_API_URL.equals(link)) {
+                return new RemoteApiModel(this);
             }
         }
 

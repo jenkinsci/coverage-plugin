@@ -1,0 +1,63 @@
+<?jelly escape-by-default='true'?>
+<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:l="/lib/layout" xmlns:cov="/coverage">
+
+  <st:header name="Content-Type" value="text/html;charset=UTF-8"/>
+
+  <l:run-subpage>
+
+    <st:adjunct includes="io.jenkins.plugins.coverage.metrics.steps.RunTab.styles"/>
+
+    <j:set var="apiUrl" value="${rootURL}/${it.apiUrl}"/>
+
+    <l:app-bar title="${it.displayName}"/>
+
+    <div class="coverage-body">
+      <cov:sidepanel id="${it.id}"/>
+
+      <div class="content coverage-log-cards coverage-remote-api">
+        <l:card title="${%Endpoints}">
+          <p>${%endpoints-intro}</p>
+          <j:set var="resultUrl" value="${rootURL}/${it.object.url}${it.id}"/>
+          <table class="coverage-help__table coverage-remote-api__table">
+            <thead>
+              <tr>
+                <th>${%Endpoint}</th>
+                <th>${%Description}</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="coverage-remote-api__endpoint"><a href="${resultUrl}/api/">${it.id}/api</a></td>
+                <td>${%overview}</td>
+              </tr>
+              <tr>
+                <td class="coverage-remote-api__endpoint"><a href="${resultUrl}/api/json?pretty=true">${it.id}/api/json</a>
+                  (<a href="${resultUrl}/api/xml">XML</a>)</td>
+                <td>${%json}</td>
+              </tr>
+              <tr>
+                <td class="coverage-remote-api__endpoint"><a href="${resultUrl}/files/api/json?pretty=true">${it.id}/files/api/json</a>
+                  (<a href="${resultUrl}/files/api/xml">XML</a>)</td>
+                <td>${%files}</td>
+              </tr>
+              <tr>
+                <td class="coverage-remote-api__endpoint"><a href="${resultUrl}/modified/api/json?pretty=true">${it.id}/modified/api/json</a>
+                  (<a href="${resultUrl}/modified/api/xml">XML</a>)</td>
+                <td>${%modified}</td>
+              </tr>
+            </tbody>
+          </table>
+        </l:card>
+
+        <l:card title="${%Response}">
+          <pre id="remote-api-response" class="coverage-log coverage-remote-api__response"
+               data-url="${apiUrl}/json" data-loading="${%Loading}" data-error="${%Error}">${%Loading}</pre>
+        </l:card>
+      </div>
+    </div>
+
+    <st:adjunct includes="io.jenkins.plugins.coverage.metrics.steps.RemoteApiModel.remote-api"/>
+
+  </l:run-subpage>
+
+</j:jelly>
